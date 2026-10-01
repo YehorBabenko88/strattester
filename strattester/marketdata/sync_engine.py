@@ -42,20 +42,23 @@ class SyncEngine:
         written=unchanged=rejected=0
         try:
             for start,end in self._ranges(req):
-                cursor=start
-                while cursor<=end:
-                    rows=self.client.fetch_klines(req.symbol,cursor,end,'1')
+                page_end=end
+                while page_end>=start:
+                    rows=self.client.fetch_klines(req.symbol,start,page_end,'1')
                     if not rows: break
                     candles=[]
-                    max_ts=cursor
+                    timestamps=[int(row[0]) for row in rows]
+                    min_ts=min(timestamps)
                     for row in rows:
-                        ts=int(row[0]); max_ts=max(max_ts,ts)
-                        if ts>req.end_ms or ts+60_000>self.clock_ms(): continue
+                        ts=int(row[0])
+                        if ts<start or ts>req.end_ms or ts+60_000>self.clock_ms(): continue
                         candles.append(Candle(req.symbol,req.timeframe,ts,float(row[1]),float(row[2]),float(row[3]),float(row[4]),float(row[5]),float(row[6]) if len(row)>6 else None,True))
                     stats=self.store.upsert_candles(candles)
                     written+=stats.accepted; unchanged+=stats.unchanged; rejected+=stats.rejected
-                    if max_ts<cursor: break
-                    cursor=max_ts+60_000
+                    if min_ts<=start: break
+                    next_end=min_ts-60_000
+                    if next_end>=page_end: break
+                    page_end=next_end
             remaining=self._ranges(req)
             state=SyncState.READY if not remaining else SyncState.PARTIAL
             return SyncResult(state,written,unchanged,rejected)
