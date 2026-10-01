@@ -5,6 +5,10 @@ from strattester.marketdata.sqlite_store import SQLiteMarketStore,Candle
 def c(t=0,complete=True,close=1.0):
     return Candle('BTCUSDT','1m',t,1.0,1.1,0.9,close,10.0,100.0,complete)
 
+def test_candle_insert_shape_is_ten_columns():
+    candle=c()
+    assert len((candle.symbol,candle.timeframe,candle.open_time,candle.open,candle.high,candle.low,candle.close,candle.volume,candle.turnover,int(candle.complete)))==10
+
 def test_duplicate_is_idempotent(tmp_path):
     s=SQLiteMarketStore.open(tmp_path/'m.db')
     assert s.upsert_candles([c()]).accepted==1
@@ -33,10 +37,8 @@ def test_malformed_candle_rejected(tmp_path):
 
 def test_transaction_rolls_back_on_sql_error(tmp_path):
     s=SQLiteMarketStore.open(tmp_path/'m.db')
-    original=s.connection.execute
     class Broken:
         def __iter__(self): return iter([c(0), c(60_000)])
-    # schema constraint proves bounded transaction rollback on database failure
     s.connection.execute('DROP TABLE candles')
     with pytest.raises(sqlite3.Error):
         s.upsert_candles(Broken())
