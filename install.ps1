@@ -1,5 +1,5 @@
 param(
- [string]$InstallDir = "C:\Strattester",
+ [string]$InstallDir = "C:\ProgramData\Strattester",
  [string]$PythonExe = "",
  [string]$NssmExe = "",
  [switch]$DryRun
