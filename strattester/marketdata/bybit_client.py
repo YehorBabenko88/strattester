@@ -40,3 +40,19 @@ class BybitClient:
     def fetch_klines(self,symbol,start_ms,end_ms,interval='1',limit=1000):
         data=self.get('/v5/market/kline',{'category':'linear','symbol':symbol,'interval':interval,'start':start_ms,'end':end_ms,'limit':limit})
         return data.get('result',{}).get('list',[])
+
+
+    def fetch_linear_symbols(self):
+        symbols=set()
+        cursor=None
+        while True:
+            params={'category':'linear','limit':1000}
+            if cursor: params['cursor']=cursor
+            data=self.get('/v5/market/instruments-info',params)
+            result=data.get('result',{})
+            for row in result.get('list',[]):
+                if row.get('status')=='Trading' and row.get('quoteCoin')=='USDT' and row.get('contractType')=='LinearPerpetual':
+                    symbols.add(row.get('symbol'))
+            cursor=result.get('nextPageCursor') or ''
+            if not cursor: break
+        return symbols
