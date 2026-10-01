@@ -1,4 +1,4 @@
-param([string]$InstallDir="C:\Strattester",[Parameter(Mandatory=$true)][string]$NssmExe,[switch]$DeleteData)
+param([string]$InstallDir="C:\ProgramData\Strattester",[Parameter(Mandatory=$true)][string]$NssmExe,[switch]$DeleteData)
 $ErrorActionPreference="Stop"
 foreach($name in @("StrattesterWorker","StrattesterController")){
  & $NssmExe stop $name confirm 2>$null | Out-Null
