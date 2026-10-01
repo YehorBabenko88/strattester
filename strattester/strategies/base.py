@@ -3,12 +3,16 @@ from dataclasses import dataclass
 from hashlib import sha256
 import json
 from typing import Protocol
+from strattester.marketdata.datasets import DatasetKind
 
 @dataclass(frozen=True)
 class DataRequirement:
-    dataset:str
+    dataset:DatasetKind|str
     timeframes:tuple[str,...]=()
     required:bool=True
+    def __post_init__(self):
+        if isinstance(self.dataset,str):
+            object.__setattr__(self,'dataset',DatasetKind(self.dataset))
 
 @dataclass(frozen=True)
 class StrategyDefinition:
@@ -19,7 +23,7 @@ class StrategyDefinition:
     enabled:bool=True
 
 def strategy_fingerprint(d:StrategyDefinition)->str:
-    payload={'id':d.id,'version':d.version,'requirements':[(r.dataset,r.timeframes,r.required) for r in d.requirements],'impl':f'{d.implementation.__module__}.{d.implementation.__qualname__}'}
+    payload={'id':d.id,'version':d.version,'requirements':[(r.dataset.value,r.timeframes,r.required) for r in d.requirements],'impl':f'{d.implementation.__module__}.{d.implementation.__qualname__}'}
     return sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()
 
 class Strategy(Protocol):
