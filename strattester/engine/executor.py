@@ -10,7 +10,7 @@ class StrategyResult:
 
 def requirements_ready(definition,store,symbol):
     for req in definition.requirements:
-        if req.dataset=='candles':
+        if getattr(req.dataset,'value',req.dataset)=='candles':
             for tf in req.timeframes:
                 if store.coverage(symbol,'candles',tf).count==0: return False
         elif req.required:
