@@ -17,6 +17,12 @@ def test_entry_distance_variants_are_explicit():
     assert xs['LOW_ENTRY_040'].entry_distance==.004
     assert xs['HIGH_ENTRY_010'].entry_distance==.001
 
+def test_tp_and_sl_variants_preserve_original_entry_distance():
+    xs=legacy_variants()
+    for name in ('LOW_TP20','LOW_TP25','LOW_SL075','HIGH_TP20','HIGH_TP25','HIGH_SL075'):
+        assert xs[name].entry_distance==.0025
+
+
 def test_age_and_direction_variants_are_explicit():
     xs=legacy_variants()
     assert xs['LOW_AGE_24H'].max_level_age_ms==24*60*60*1000
