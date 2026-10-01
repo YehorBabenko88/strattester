@@ -66,7 +66,7 @@ class SQLiteMarketStore:
                     ON CONFLICT(symbol,timeframe,open_time) DO UPDATE SET
                     open=excluded.open,high=excluded.high,low=excluded.low,close=excluded.close,
                     volume=excluded.volume,turnover=excluded.turnover,complete=excluded.complete''',
-                    (c.symbol,c.timeframe,c.open_time,*values))
+                    (c.symbol,c.timeframe,c.open_time,c.open,c.high,c.low,c.close,c.volume,c.turnover,int(c.complete)))
                 accepted+=1
         return WriteStats(accepted,unchanged,rejected)
 
