@@ -43,7 +43,8 @@ def simulate_trade(signal:Signal,bars,policy:ExecutionPolicy,metadata=None)->Res
     rows=list(bars)
     entry_idx=None; raw_entry=None
     for i,b in enumerate(rows):
-        if b['t'] < signal.decision_time: continue
+        earliest = signal.decision_time if signal.entry_kind=='market' else signal.decision_time + policy.bar_ms
+        if b['t'] < earliest: continue
         if signal.entry_kind=='market':
             entry_idx=i; raw_entry=float(b['open']); break
         p=float(signal.entry_price)
