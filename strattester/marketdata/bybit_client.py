@@ -56,3 +56,29 @@ class BybitClient:
             cursor=result.get('nextPageCursor') or ''
             if not cursor: break
         return symbols
+
+
+    def _history_list(self,path,symbol,start_ms,end_ms,interval=None,limit=1000,category=True):
+        params={'symbol':symbol,'startTime':start_ms,'endTime':end_ms,'limit':limit}
+        if category: params['category']='linear'
+        if interval is not None: params['interval']=interval
+        data=self.get(path,params)
+        return data.get('result',{}).get('list',[])
+
+    def fetch_mark_klines(self,symbol,start_ms,end_ms,interval='1',limit=1000):
+        return self._history_list('/v5/market/mark-price-kline',symbol,start_ms,end_ms,interval,limit)
+
+    def fetch_index_klines(self,symbol,start_ms,end_ms,interval='1',limit=1000):
+        return self._history_list('/v5/market/index-price-kline',symbol,start_ms,end_ms,interval,limit)
+
+    def fetch_premium_klines(self,symbol,start_ms,end_ms,interval='1',limit=1000):
+        return self._history_list('/v5/market/premium-index-price-kline',symbol,start_ms,end_ms,interval,limit)
+
+    def fetch_open_interest(self,symbol,start_ms,end_ms,interval='5min',limit=200):
+        return self._history_list('/v5/market/open-interest',symbol,start_ms,end_ms,interval,limit)
+
+    def fetch_funding(self,symbol,start_ms,end_ms,limit=200):
+        return self._history_list('/v5/market/funding/history',symbol,start_ms,end_ms,None,limit)
+
+    def fetch_long_short_ratio(self,symbol,start_ms,end_ms,interval='5min',limit=500):
+        return self._history_list('/v5/market/account-ratio',symbol,start_ms,end_ms,interval,limit)
