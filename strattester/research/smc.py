@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from .causal import CausalFeature
 
 def confirmed_swings(bars,*,left:int=2,right:int=2,version='smc-v1'):
@@ -51,3 +52,34 @@ def market_structure(bars,*,bar_ms:int,left:int=2,right:int=2,version='smc-v1'):
                     if prior.get('close',0)>prior.get('open',0):
                         out.append(CausalFeature(prior['t'],close_known,'bearish_order_block',{'low':prior['low'],'high':prior['high']},version)); break
     return tuple(sorted(out,key=lambda x:(x.known_at,x.event_time,x.kind)))
+
+
+@dataclass(frozen=True)
+class SMCEvent:
+    event_time:int
+    known_at:int
+    kind:str
+    value:object
+    version:str
+    timeframe:str
+
+_TF_MS={'1m':60000,'3m':180000,'5m':300000,'15m':900000,'30m':1800000,'1h':3600000,'2h':7200000,'4h':14400000,'6h':21600000,'12h':43200000,'1d':86400000}
+
+def build_mtf_structure(series_by_timeframe,*,left:int=2,right:int=2,version='smc-mtf-v1'):
+    out=[]
+    for tf,bars in series_by_timeframe.items():
+        if tf not in _TF_MS: raise ValueError(f'unsupported timeframe: {tf}')
+        for x in market_structure(bars,bar_ms=_TF_MS[tf],left=left,right=right,version=version):
+            out.append(SMCEvent(x.event_time,x.known_at,x.kind,x.value,x.version,tf))
+    return tuple(sorted(out,key=lambda x:(x.known_at,x.event_time,x.timeframe,x.kind)))
+
+class SMCContext:
+    def __init__(self,events): self.events=tuple(events)
+    def bias_at(self,decision_time:int,timeframe:str):
+        structural=[x for x in self.events if x.timeframe==timeframe and x.known_at<=decision_time and x.kind in ('bullish_bos','bearish_bos','bullish_choch','bearish_choch')]
+        if not structural:return None
+        return 'bullish' if structural[-1].kind.startswith('bullish') else 'bearish'
+    def entry_allowed(self,decision_time:int,*,entry_timeframe:str,bias_timeframe:str,direction:str)->bool:
+        if entry_timeframe not in _TF_MS or bias_timeframe not in _TF_MS:return False
+        if _TF_MS[bias_timeframe]<=_TF_MS[entry_timeframe]:raise ValueError('bias timeframe must be higher than entry timeframe')
+        return self.bias_at(decision_time,bias_timeframe)==direction
