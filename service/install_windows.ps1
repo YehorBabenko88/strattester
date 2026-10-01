@@ -1,4 +1,4 @@
-param([string]$InstallDir="C:\Strattester",[Parameter(Mandatory=$true)][string]$NssmExe)
+param([string]$InstallDir="C:\ProgramData\Strattester",[Parameter(Mandatory=$true)][string]$NssmExe)
 $ErrorActionPreference="Stop"
 if(-not([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw "Run as Administrator"}
 $py=Join-Path $InstallDir ".venv\Scripts\python.exe"
