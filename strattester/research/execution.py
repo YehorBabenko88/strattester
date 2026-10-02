@@ -112,6 +112,7 @@ class ScaleSignal:
     entries:tuple[tuple[float,float],...]
     stop_loss:float
     take_profits:tuple[tuple[float,float],...]
+    move_stop_to_entry_after_tp1:bool=False
 
 @dataclass(frozen=True)
 class ExecutionFill:
@@ -141,7 +142,7 @@ def simulate_scale_trade(signal:ScaleSignal,bars,policy:ExecutionPolicy)->ScaleT
     if not signal.entries or abs(sum(x[1] for x in signal.entries)-1.0)>1e-9: raise ValueError('entry fractions')
     if not signal.take_profits or abs(sum(x[1] for x in signal.take_profits)-1.0)>1e-9: raise ValueError('target fractions')
     rows=list(bars); fills=[]; exits=[]; pending=list(enumerate(signal.entries))
-    target_idx=0; remaining_qty=0.0; first_allowed=signal.decision_time+policy.bar_ms
+    target_idx=0; remaining_qty=0.0; first_allowed=signal.decision_time+policy.bar_ms; active_stop=float(signal.stop_loss)
     for b in rows:
         if b['t']<first_allowed: continue
         o=float(b['open']); h=float(b['high']); l=float(b['low']); filled_now=False
@@ -158,10 +159,10 @@ def simulate_scale_trade(signal:ScaleSignal,bars,policy:ExecutionPolicy)->ScaleT
         # With OHLC data the order of entry/SL/TP inside the same bar is unknowable.
         # Skip exits on every bar that creates a new fill.
         if filled_now or remaining_qty<=0: continue
-        stop_gap=(o<=signal.stop_loss) if signal.side=='long' else (o>=signal.stop_loss)
-        stop_hit=(l<=signal.stop_loss) if signal.side=='long' else (h>=signal.stop_loss)
+        stop_gap=(o<=active_stop) if signal.side=='long' else (o>=active_stop)
+        stop_hit=(l<=active_stop) if signal.side=='long' else (h>=active_stop)
         if stop_gap or stop_hit:
-            raw=o if stop_gap else signal.stop_loss
+            raw=o if stop_gap else active_stop
             px=_adverse(float(raw),signal.side,policy.slippage_bps,False)
             exits.append(ExecutionExit(b['t'],px,remaining_qty,'SL')); remaining_qty=0.0
             break
@@ -173,6 +174,8 @@ def simulate_scale_trade(signal:ScaleSignal,bars,policy:ExecutionPolicy)->ScaleT
                 q=min(remaining_qty,total_filled*fraction)
                 px=_adverse(float(target),signal.side,policy.slippage_bps,False)
                 exits.append(ExecutionExit(b['t'],px,q,f'TP{target_idx+1}')); remaining_qty-=q; target_idx+=1
+                if signal.move_stop_to_entry_after_tp1 and target_idx==1 and remaining_qty>0:
+                    active_stop=sum(x.price*x.quantity for x in fills)/sum(x.quantity for x in fills)
     if remaining_qty>1e-12:
         b=rows[-1]; px=_adverse(float(b['close']),signal.side,policy.slippage_bps,False)
         exits.append(ExecutionExit(b['t'],px,remaining_qty,'EOD'))
