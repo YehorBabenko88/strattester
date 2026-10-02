@@ -16,7 +16,7 @@ def test_two_workers_cannot_claim_same_job(tmp_path):
 def test_exclusive_resource_prevents_competing_sync_jobs(tmp_path):
     p=tmp_path/'state.db'; s=SQLiteStateStore.open(p)
     a=Job.new('sync',symbol='BTCUSDT',resource_key='market:BTCUSDT',state=JobState.READY)
-    b=Job.new('sync',symbol='BTCUSDT',config_hash='market:BTCUSDT',state=JobState.READY)
+    b=Job.new('sync',symbol='BTCUSDT',resource_key='market:BTCUSDT',state=JobState.READY)
     s.put_job(a); s.put_job(b)
     first=s.claim_ready_jobs('w1',limit=2,now=100,lease_seconds=60)
     assert len(first)==1
