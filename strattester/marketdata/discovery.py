@@ -39,7 +39,7 @@ def inspect_database(path: Path) -> DatabaseInspection:
             latest=None
             if recognized:
                 cols={r[1] for r in con.execute('pragma table_info(candles)')}
-                ts_col='open_time' if 'open_time' in cols else ('open_time_ms' if 'open_time_ms' in cols else None)
+                ts_col='open_time' if 'open_time' in cols else ('open_time_ms' if 'open_time_ms' in cols else ('ts' if 'ts' in cols else None))
                 if ts_col:
                     latest=con.execute(f'select max({ts_col}) from candles').fetchone()[0]
         finally: con.close()
