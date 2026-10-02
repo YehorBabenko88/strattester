@@ -68,7 +68,7 @@ def simulate_trade(signal:Signal,bars,policy:ExecutionPolicy,metadata=None)->Res
             if o <= signal.stop_loss:
                 raw_exit=o; reason='SL_GAP'
             elif o >= signal.take_profit:
-                raw_exit=o; reason='TP_GAP'
+                raw_exit=signal.take_profit; reason='TP_GAP'
             else:
                 hit_sl=l <= signal.stop_loss
                 hit_tp=h >= signal.take_profit
@@ -83,7 +83,7 @@ def simulate_trade(signal:Signal,bars,policy:ExecutionPolicy,metadata=None)->Res
             if o >= signal.stop_loss:
                 raw_exit=o; reason='SL_GAP'
             elif o <= signal.take_profit:
-                raw_exit=o; reason='TP_GAP'
+                raw_exit=signal.take_profit; reason='TP_GAP'
             else:
                 hit_sl=h >= signal.stop_loss
                 hit_tp=l <= signal.take_profit
