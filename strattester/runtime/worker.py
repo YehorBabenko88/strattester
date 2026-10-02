@@ -1,14 +1,17 @@
 from __future__ import annotations
-import time
+import time,uuid
 from strattester.engine.jobs import JobState
 class WorkerRuntime:
-    def __init__(self,state_store,scheduler,executor,lifecycle,logger,snapshot_provider):
+    def __init__(self,state_store,scheduler,executor,lifecycle,logger,snapshot_provider,worker_id=None,lease_seconds=300):
         self.state_store=state_store; self.scheduler=scheduler; self.executor=executor; self.lifecycle=lifecycle; self.logger=logger; self.snapshot_provider=snapshot_provider
+        self.worker_id=worker_id or f'worker-{uuid.uuid4()}'; self.lease_seconds=lease_seconds
     def run_once(self):
-        jobs=self.scheduler.ready_jobs(self.snapshot_provider())
         if self.lifecycle.draining or self.lifecycle.stopping:return 0
+        candidates=self.scheduler.ready_jobs(self.snapshot_provider())
+        if not candidates:return 0
+        jobs=self.state_store.claim_ready_jobs(self.worker_id,limit=len(candidates),lease_seconds=self.lease_seconds)
         for job in jobs:
-            running=job.with_state(JobState.RUNNING,attempts=job.attempts+1)
+            running=job.with_state(JobState.RUNNING,attempts=job.attempts+1,lease_owner=self.worker_id)
             self.state_store.put_job(running)
             try:
                 self.executor(running)
