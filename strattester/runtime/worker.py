@@ -9,7 +9,7 @@ class WorkerRuntime:
         if self.lifecycle.draining or self.lifecycle.stopping:return 0
         candidates=self.scheduler.ready_jobs(self.snapshot_provider())
         if not candidates:return 0
-        jobs=self.state_store.claim_ready_jobs(self.worker_id,limit=len(candidates),lease_seconds=self.lease_seconds)
+        jobs=self.state_store.claim_ready_jobs(self.worker_id,limit=len(candidates),lease_seconds=self.lease_seconds,job_ids=[j.id for j in candidates])
         for job in jobs:
             running=job.with_state(JobState.RUNNING,attempts=job.attempts+1,lease_owner=self.worker_id)
             self.state_store.put_job(running)
