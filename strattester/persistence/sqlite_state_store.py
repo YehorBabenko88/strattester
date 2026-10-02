@@ -27,8 +27,8 @@ class SQLiteStateStore:
             rows=list(self.con.execute('SELECT id,payload FROM jobs ORDER BY rowid'))
             jobs=[self._decode(x[1]) for x in rows]
             active_keys={
-                j.config_hash for j in jobs
-                if j.config_hash and j.state in (JobState.LEASED,JobState.RUNNING)
+                j.resource_key for j in jobs
+                if j.resource_key and j.state in (JobState.LEASED,JobState.RUNNING)
                 and (j.lease_until is None or j.lease_until>=now)
             }
             for job in jobs:
@@ -39,12 +39,12 @@ class SQLiteStateStore:
                     d=job.__dict__.copy(); d['state']=job.state.value
                     self.con.execute('UPDATE jobs SET payload=? WHERE id=?',(json.dumps(d),job.id))
                 if job.state not in (JobState.READY,JobState.RETRYABLE): continue
-                if job.config_hash and job.config_hash in active_keys: continue
+                if job.resource_key and job.resource_key in active_keys: continue
                 leased=job.with_state(JobState.LEASED,lease_owner=owner,lease_until=now+lease_seconds,error=None)
                 d=leased.__dict__.copy(); d['state']=leased.state.value
                 self.con.execute('UPDATE jobs SET payload=? WHERE id=?',(json.dumps(d),job.id))
                 claimed.append(leased)
-                if leased.config_hash: active_keys.add(leased.config_hash)
+                if leased.resource_key: active_keys.add(leased.resource_key)
             self.con.commit()
             return claimed
         except Exception:
