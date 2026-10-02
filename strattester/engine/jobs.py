@@ -13,6 +13,7 @@ class Job:
     strategy_id:str|None=None
     strategy_version:str|None=None
     config_hash:str=''
+    resource_key:str=''
     state:JobState=JobState.PENDING
     attempts:int=0
     lease_owner:str|None=None
