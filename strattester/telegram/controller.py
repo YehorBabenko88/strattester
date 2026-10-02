@@ -10,6 +10,12 @@ class TelegramController:
         if cmd=='/restart': self.services.restart(); return 'RESTARTED'
         if cmd=='/drain': self.services.drain(); return 'DRAINING'
         if cmd=='/status': return self.status_provider()
+        if cmd=='/results':
+            if self.inspection is None:return 'RESULTS UNAVAILABLE'
+            parts=text.split()
+            if len(parts)!=3:return 'USAGE /results SYMBOL STRATEGY'
+            row=self.inspection.results(parts[1],parts[2])
+            return str(row) if row else 'NO RESULT'
         if cmd=='/resources':
             return str(self.inspection.resources()) if self.inspection else 'RESOURCES UNAVAILABLE'
         if cmd=='/db':
