@@ -34,3 +34,10 @@ def test_executor_accepts_ready_rich_requirements_and_context(tmp_path):
     r=execute_strategy(d,s,'BTCUSDT')
     assert r.output=={'candles':1,'mark_rows':1}
     s.close()
+
+def test_executor_respects_requested_time_range(tmp_path):
+    s=SQLiteMarketStore.open(tmp_path/'m.db')
+    s.upsert_candles([Candle('BTCUSDT','1m',i*60000,1,1,1,1,1) for i in range(5)])
+    r=execute_strategy(definition(),s,'BTCUSDT',start_ms=60000,end_ms=180000)
+    assert r.output==3
+    s.close()
