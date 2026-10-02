@@ -52,3 +52,11 @@ def test_short_limit_gapped_above_fills_at_better_open():
     s=Signal(decision_time=0,side='short',entry_kind='limit',entry_price=100.5,stop_loss=105,take_profit=98)
     t=simulate_trade(s,bars,ExecutionPolicy(bar_ms=60,fee_rate=0))
     assert t.entry_time==60 and t.entry_price==102
+
+
+def test_take_profit_gap_is_filled_at_target_not_optimistic_open():
+    bars=[_bar(0,100,101,99,100),_bar(60,100,101,99,100),_bar(120,110,111,109,110)]
+    s=Signal(decision_time=60,side='long',entry_kind='market',entry_price=None,stop_loss=95,take_profit=105)
+    t=simulate_trade(s,bars,ExecutionPolicy(bar_ms=60,fee_rate=0))
+    assert t.exit_reason=='TP_GAP'
+    assert t.exit_price==105
