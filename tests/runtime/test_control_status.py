@@ -25,3 +25,11 @@ def test_control_status_reports_resources_db_and_recent_errors(tmp_path):
     assert c.database()['exists'] is True
     assert c.resources()['disk_free']>=0
     assert c.errors(10)[0]['event']=='boom'
+
+def test_results_reads_latest_persistent_metrics(tmp_path):
+    from strattester.persistence.result_store import ResultStore
+    (tmp_path/'state').mkdir(); (tmp_path/'logs').mkdir(); (tmp_path/'results').mkdir()
+    s=ResultStore.open(tmp_path/'results'/'research_results.sqlite3')
+    s.put('r1','BTCUSDT','A','1',{'trades':7,'net_pnl':3.5},created_at=1); s.close()
+    row=ControlStatus(tmp_path).results('BTCUSDT','A')
+    assert row['run_id']=='r1' and row['metrics']['trades']==7
