@@ -173,6 +173,32 @@ class SQLiteMarketStore:
             s=self._write_scalar_rows(self.connection,'long_short_ratio',('symbol','timeframe','open_time'),('buy_ratio','sell_ratio','long_short_ratio'),parsed)
         return WriteStats(s.accepted,s.unchanged,s.rejected+rejected)
 
+    def upsert_public_trade_aggregates(self,symbol:str,rows,timeframe:str='1m')->WriteStats:
+        parsed=[]; rejected=0
+        for r in rows:
+            try:
+                ts=int(r['open_time']); buy=float(r.get('buy_volume',0)); sell=float(r.get('sell_volume',0))
+                turnover=float(r.get('turnover',0)); count=int(r.get('trade_count',0))
+                vwap=None if r.get('vwap') is None else float(r['vwap'])
+                max_trade=None if r.get('max_trade') is None else float(r['max_trade'])
+                if ts<0 or min(buy,sell,turnover,count)<0: raise ValueError
+                parsed.append(((symbol,timeframe,ts),(buy,sell,turnover,count,vwap,max_trade)))
+            except (KeyError,TypeError,ValueError):
+                rejected+=1
+        with self.connection:
+            s=self._write_scalar_rows(self.connection,'public_trade_aggregates',
+                ('symbol','timeframe','open_time'),
+                ('buy_volume','sell_volume','turnover','trade_count','vwap','max_trade'),parsed)
+        return WriteStats(s.accepted,s.unchanged,s.rejected+rejected)
+
+    def iter_public_trade_aggregates(self,symbol:str,timeframe:str='1m'):
+        cur=self.connection.execute(
+            'SELECT open_time,buy_volume,sell_volume,turnover,trade_count,vwap,max_trade FROM public_trade_aggregates WHERE symbol=? AND timeframe=? ORDER BY open_time',
+            (symbol,timeframe))
+        for ts,buy,sell,turnover,count,vwap,max_trade in cur:
+            yield {'t':ts,'open_time':ts,'buy_volume':buy,'sell_volume':sell,'delta':buy-sell,
+                   'turnover':turnover,'trade_count':count,'vwap':vwap,'max_trade':max_trade}
+
     def coverage(self,symbol:str,dataset:str='candles',timeframe:str='1m',step_ms:int=60_000)->Coverage:
         mapping={
             'candles':('candles','open_time',True),
