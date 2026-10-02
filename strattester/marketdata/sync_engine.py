@@ -72,7 +72,7 @@ class SyncEngine:
             closed=[r for r in rows if start<=int(r.get('timestamp') or r.get('time'))<=req.end_ms and int(r.get('timestamp') or r.get('time'))+step<=self.clock_ms()]
             return self.store.upsert_open_interest(req.symbol,closed,req.timeframe),rows
         if req.dataset=='funding':
-            rows=self.client.fetch_funding_history(req.symbol,start,end)
+            rows=self.client.fetch_funding(req.symbol,start,end)
             filtered=[r for r in rows if start<=int(r.get('fundingRateTimestamp'))<=req.end_ms and int(r.get('fundingRateTimestamp'))<=self.clock_ms()]
             return self.store.upsert_funding(req.symbol,filtered),rows
         if req.dataset=='long_short_ratio':
@@ -80,9 +80,13 @@ class SyncEngine:
             rows=self.client.fetch_long_short_ratio(req.symbol,start,end,period)
             filtered=[r for r in rows if start<=int(r.get('timestamp'))<=req.end_ms and int(r.get('timestamp'))+step<=self.clock_ms()]
             return self.store.upsert_long_short_ratio(req.symbol,filtered,req.timeframe),rows
+        if req.dataset=='public_trade_aggregates':
+            raise RuntimeError('historical public trades require archive provider; recent REST trades are not a historical substitute')
         raise ValueError('unsupported dataset')
 
     def sync_requirement(self,req:DataRequirement)->SyncResult:
+        if req.dataset=='public_trade_aggregates':
+            return SyncResult(SyncState.REPAIR_REQUIRED,message='historical public trades require archive provider; recent REST trades are not a historical substitute')
         if req.dataset not in ('candles','mark_price','index_price','premium_index','open_interest','funding','long_short_ratio'):
             return SyncResult(SyncState.REPAIR_REQUIRED,message='unsupported dataset')
         written=unchanged=rejected=0
