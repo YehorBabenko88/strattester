@@ -10,6 +10,19 @@ class TelegramController:
         if cmd=='/restart': self.services.restart(); return 'RESTARTED'
         if cmd=='/drain': self.services.drain(); return 'DRAINING'
         if cmd=='/status': return self.status_provider()
+        if cmd=='/resources':
+            return str(self.inspection.resources()) if self.inspection else 'RESOURCES UNAVAILABLE'
+        if cmd=='/db':
+            return str(self.inspection.database()) if self.inspection else 'DATABASE STATUS UNAVAILABLE'
+        if cmd=='/health':
+            return str(self.inspection.health()) if self.inspection else 'HEALTH UNAVAILABLE'
+        if cmd=='/errors':
+            if self.inspection is None:return 'ERROR INSPECTION UNAVAILABLE'
+            parts=text.split()
+            try: lines=int(parts[1]) if len(parts)>1 else 100
+            except ValueError:return 'INVALID LINE COUNT'
+            rows=self.inspection.errors(lines)
+            return '\n'.join(str(x) for x in rows) if rows else 'NO ERRORS'
         if cmd in ('/jobs','/progress'):
             if self.inspection is None:return 'PROGRESS UNAVAILABLE'
             return str(self.inspection.jobs())
