@@ -31,7 +31,15 @@ class SyncEngine:
         self.store=store; self.client=client; self.clock_ms=clock_ms or (lambda:int(time.time()*1000))
 
     def _step(self,req):
-        return _STEP_MS.get(req.timeframe,60_000)
+        if req.timeframe in _STEP_MS:return _STEP_MS[req.timeframe]
+        tf=str(req.timeframe).lower()
+        try:
+            if tf.endswith('m'): return int(tf[:-1])*60_000
+            if tf.endswith('h'): return int(tf[:-1])*3_600_000
+            if tf.endswith('d'): return int(tf[:-1])*86_400_000
+        except ValueError:
+            pass
+        return 60_000
 
     def _ranges(self,req,step=None):
         step=step or self._step(req)
