@@ -48,8 +48,17 @@ def simulate_trade(signal:Signal,bars,policy:ExecutionPolicy,metadata=None)->Res
         if signal.entry_kind=='market':
             entry_idx=i; raw_entry=float(b['open']); break
         p=float(signal.entry_price)
-        if float(b['low']) <= p <= float(b['high']):
-            entry_idx=i; raw_entry=p; break
+        o=float(b['open']); h=float(b['high']); l=float(b['low'])
+        if signal.side=='long':
+            if o<=p:
+                entry_idx=i; raw_entry=o; break
+            if l<=p<=h:
+                entry_idx=i; raw_entry=p; break
+        else:
+            if o>=p:
+                entry_idx=i; raw_entry=o; break
+            if l<=p<=h:
+                entry_idx=i; raw_entry=p; break
     if entry_idx is None: raise ValueError('entry not filled')
     entry=_adverse(raw_entry,signal.side,policy.slippage_bps,True)
     exit_time=None; raw_exit=None; reason=None
