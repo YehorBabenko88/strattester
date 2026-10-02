@@ -21,8 +21,9 @@ def _flow(trades,end):
     sell=sum(float(x['size']) for x in xs if x['side']=='Sell')
     return buy,sell,buy-sell
 
-def detect_absorption_proxy(trades,*,level:float,tick_size:float,known_at:int,min_aggressive_volume:float,max_penetration_ticks:float=2):
-    xs=[x for x in trades if x['t']<=known_at]
+def detect_absorption_proxy(trades,*,level:float,tick_size:float,known_at:int,min_aggressive_volume:float,max_penetration_ticks:float=2,lookback_ms:int=5_000):
+    start=known_at-lookback_ms
+    xs=[x for x in trades if start<=x['t']<=known_at]
     if not xs or tick_size<=0:return None
     buy,sell,cvd=_flow(xs,known_at)
     penetration=max(0.0,(level-min(float(x['price']) for x in xs))/tick_size)
