@@ -28,13 +28,27 @@ class WriteStats:
 class SQLiteMarketStore:
     def __init__(self,path: Path,connection: sqlite3.Connection):
         self.path=Path(path); self.connection=connection
+        cols={r[1] for r in connection.execute('PRAGMA table_info(candles)')}
+        self._legacy_candles='ts' in cols and 'open_time' not in cols
 
     @classmethod
     def open(cls,path: Path):
         path=Path(path); path.parent.mkdir(parents=True,exist_ok=True)
         con=sqlite3.connect(path)
         con.execute('PRAGMA foreign_keys=ON')
-        con.executescript(SCHEMA_SQL)
+        tables={r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        legacy=False
+        if 'candles' in tables:
+            cols={r[1] for r in con.execute('PRAGMA table_info(candles)')}
+            legacy='ts' in cols and 'open_time' not in cols
+        if legacy:
+            for statement in SCHEMA_SQL.split(';'):
+                stmt=statement.strip()
+                if not stmt or 'CREATE TABLE IF NOT EXISTS candles' in stmt or 'idx_candles_lookup' in stmt:
+                    continue
+                con.execute(stmt)
+        else:
+            con.executescript(SCHEMA_SQL)
         con.execute("INSERT OR REPLACE INTO schema_meta(key,value) VALUES('schema_version',?)",(str(SCHEMA_VERSION),))
         con.commit()
         return cls(path,con)
@@ -51,6 +65,23 @@ class SQLiteMarketStore:
             for c in records:
                 if not self._valid(c):
                     rejected+=1; continue
+                if self._legacy_candles:
+                    if c.timeframe!='1m' or not c.complete:
+                        rejected+=1; continue
+                    row=self.connection.execute(
+                        'SELECT open,high,low,close,volume,turnover FROM candles WHERE symbol=? AND ts=?',
+                        (c.symbol,c.open_time)).fetchone()
+                    values=(c.open,c.high,c.low,c.close,c.volume,c.turnover)
+                    if row is not None and tuple(row)==values:
+                        unchanged+=1; continue
+                    self.connection.execute(
+                        '''INSERT INTO candles(symbol,ts,open,high,low,close,volume,turnover)
+                        VALUES(?,?,?,?,?,?,?,?)
+                        ON CONFLICT(symbol,ts) DO UPDATE SET
+                        open=excluded.open,high=excluded.high,low=excluded.low,close=excluded.close,
+                        volume=excluded.volume,turnover=excluded.turnover''',
+                        (c.symbol,c.open_time,c.open,c.high,c.low,c.close,c.volume,c.turnover))
+                    accepted+=1; continue
                 row=self.connection.execute(
                     'SELECT open,high,low,close,volume,turnover,complete FROM candles WHERE symbol=? AND timeframe=? AND open_time=?',
                     (c.symbol,c.timeframe,c.open_time)).fetchone()
@@ -154,6 +185,14 @@ class SQLiteMarketStore:
             'public_trades':('public_trade_aggregates','open_time',True),
         }
         if dataset not in mapping: raise ValueError('unsupported dataset')
+        if dataset=='candles' and self._legacy_candles:
+            if timeframe!='1m': return Coverage(None,None,0,())
+            rows=self.connection.execute('SELECT ts FROM candles WHERE symbol=? ORDER BY ts',(symbol,)).fetchall()
+            if not rows:return Coverage(None,None,0,())
+            times=[r[0] for r in rows]; gaps=[]
+            for a,b in zip(times,times[1:]):
+                if b-a>step_ms:gaps.append(TimeRange(a+step_ms,b-step_ms))
+            return Coverage(times[0],times[-1],len(times),tuple(gaps))
         table,time_col,uses_tf=mapping[dataset]
         if uses_tf:
             rows=self.connection.execute(f'SELECT {time_col} FROM {table} WHERE symbol=? AND timeframe=? ORDER BY {time_col}',(symbol,timeframe)).fetchall()
@@ -166,6 +205,15 @@ class SQLiteMarketStore:
         return Coverage(times[0],times[-1],len(times),tuple(gaps))
 
     def iter_candles(self,symbol:str,timeframe:str='1m',batch_size:int=20_000):
+        if self._legacy_candles:
+            if timeframe!='1m': return
+            cur=self.connection.execute('SELECT symbol,ts,open,high,low,close,volume,turnover FROM candles WHERE symbol=? ORDER BY ts',(symbol,))
+            while True:
+                batch=cur.fetchmany(batch_size)
+                if not batch: break
+                for r in batch:
+                    yield Candle(r[0],'1m',r[1],r[2],r[3],r[4],r[5],r[6],r[7],True)
+            return
         cur=self.connection.execute('SELECT symbol,timeframe,open_time,open,high,low,close,volume,turnover,complete FROM candles WHERE symbol=? AND timeframe=? ORDER BY open_time',(symbol,timeframe))
         while True:
             batch=cur.fetchmany(batch_size)
