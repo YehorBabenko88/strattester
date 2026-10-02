@@ -42,8 +42,8 @@ class BybitClient:
         return data.get('result',{}).get('list',[])
 
 
-    def fetch_linear_symbols(self):
-        symbols=set()
+    def fetch_linear_instruments(self):
+        instruments=[]
         cursor=None
         while True:
             params={'category':'linear','limit':1000}
@@ -52,10 +52,13 @@ class BybitClient:
             result=data.get('result',{})
             for row in result.get('list',[]):
                 if row.get('status')=='Trading' and row.get('quoteCoin')=='USDT' and row.get('contractType')=='LinearPerpetual':
-                    symbols.add(row.get('symbol'))
+                    instruments.append(dict(row))
             cursor=result.get('nextPageCursor') or ''
             if not cursor: break
-        return symbols
+        return instruments
+
+    def fetch_linear_symbols(self):
+        return {x.get('symbol') for x in self.fetch_linear_instruments() if x.get('symbol')}
 
 
 
