@@ -34,8 +34,8 @@ class SQLiteMarketStore:
     @classmethod
     def open(cls,path: Path):
         path=Path(path); path.parent.mkdir(parents=True,exist_ok=True)
-        con=sqlite3.connect(path)
-        con.execute('PRAGMA foreign_keys=ON')
+        con=sqlite3.connect(path,timeout=60)
+        con.execute('PRAGMA foreign_keys=ON'); con.execute('PRAGMA journal_mode=WAL'); con.execute('PRAGMA busy_timeout=60000'); con.execute('PRAGMA synchronous=NORMAL')
         tables={r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         legacy=False
         if 'candles' in tables:
