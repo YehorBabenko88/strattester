@@ -39,3 +39,16 @@ def test_journal_preserves_research_metadata():
     assert row.metadata['coverage']=='COMPLETE_HISTORY'
     assert row.metadata['volatility']=='HIGH'
     assert row.metadata['poc_mode']=='TRADE_POC'
+
+
+def test_long_limit_gapped_below_fills_at_better_open():
+    bars=[_bar(0,100,101,99,100),_bar(60,98,100,97,99),_bar(120,99,102,98,101)]
+    s=Signal(decision_time=0,side='long',entry_kind='limit',entry_price=99.5,stop_loss=95,take_profit=102)
+    t=simulate_trade(s,bars,ExecutionPolicy(bar_ms=60,fee_rate=0))
+    assert t.entry_time==60 and t.entry_price==98
+
+def test_short_limit_gapped_above_fills_at_better_open():
+    bars=[_bar(0,100,101,99,100),_bar(60,102,103,100,101),_bar(120,101,102,98,99)]
+    s=Signal(decision_time=0,side='short',entry_kind='limit',entry_price=100.5,stop_loss=105,take_profit=98)
+    t=simulate_trade(s,bars,ExecutionPolicy(bar_ms=60,fee_rate=0))
+    assert t.entry_time==60 and t.entry_price==102
