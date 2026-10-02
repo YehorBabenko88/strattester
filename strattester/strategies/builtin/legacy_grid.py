@@ -261,14 +261,15 @@ def _trade_row(t):
     }
 
 def run_legacy_suite(candles,variant_names=None):
-    rows=list(candles)
     variants=legacy_variants()
     names=tuple(variant_names) if variant_names is not None else tuple(variants)
     unknown=set(names)-set(variants)
     if unknown: raise KeyError(f'unknown variants: {sorted(unknown)}')
     engines={name:BacktestEngine('HISTORY',variants[name]) for name in names}
     agg=MultiTimeframeAggregator()
-    for candle in rows:
+    count=0
+    for candle in candles:
+        count+=1
         for seed in agg.push(candle):
             for engine in engines.values():
                 if seed.level_type in engine.config.allowed_level_types:
@@ -279,7 +280,7 @@ def run_legacy_suite(candles,variant_names=None):
     for name,engine in engines.items():
         engine.close_end_of_data()
         out[name]={
-            'candles_processed':len(rows),
+            'candles_processed':count,
             'trades':[_trade_row(t) for t in engine.closed_trades],
             'levels':[{'id':x.id,'timeframe':x.timeframe,'level_type':x.level_type,'price':x.price,'available_at':x.available_at,'source_start':x.source_start,'broken':x.broken,'entries':x.entries} for x in engine.levels.values()],
         }
@@ -291,5 +292,9 @@ class LegacyGridStrategy:
     version='1.0'
     requirements=(DataRequirement('candles',('1m',)),)
     def run(self,candles,checkpoint=None):
-        rows=[MinuteCandle(c.open_time,c.open,c.high,c.low,c.close,c.volume,c.turnover or 0.0) if hasattr(c,'open_time') else c for c in candles]
-        return {'variants':run_legacy_suite(rows),'candles_processed':len(rows),'checkpoint':checkpoint}
+        def converted():
+            for c in candles:
+                yield MinuteCandle(c.open_time,c.open,c.high,c.low,c.close,c.volume,c.turnover or 0.0) if hasattr(c,'open_time') else c
+        variants=run_legacy_suite(converted())
+        processed=next(iter(variants.values()))['candles_processed'] if variants else 0
+        return {'variants':variants,'candles_processed':processed,'checkpoint':checkpoint}
