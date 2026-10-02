@@ -103,3 +103,79 @@ def simulate_trade(signal:Signal,bars,policy:ExecutionPolicy,metadata=None)->Res
     gross=(exit_price-entry)*qty if signal.side=='long' else (entry-exit_price)*qty
     fees=(entry+exit_price)*qty*policy.fee_rate
     return ResearchTrade(signal.side,rows[entry_idx]['t'],entry,exit_time,exit_price,reason,gross,fees,gross-fees,dict(metadata or {}))
+
+
+@dataclass(frozen=True)
+class ScaleSignal:
+    decision_time:int
+    side:str
+    entries:tuple[tuple[float,float],...]
+    stop_loss:float
+    take_profits:tuple[tuple[float,float],...]
+
+@dataclass(frozen=True)
+class ExecutionFill:
+    time:int
+    price:float
+    quantity:float
+    fraction:float
+
+@dataclass(frozen=True)
+class ExecutionExit:
+    time:int
+    price:float
+    quantity:float
+    reason:str
+
+@dataclass(frozen=True)
+class ScaleTrade:
+    side:str
+    fills:tuple[ExecutionFill,...]
+    exits:tuple[ExecutionExit,...]
+    gross_pnl:float
+    fees:float
+    net_pnl:float
+
+def simulate_scale_trade(signal:ScaleSignal,bars,policy:ExecutionPolicy)->ScaleTrade:
+    if signal.side not in ('long','short'): raise ValueError('side')
+    if not signal.entries or abs(sum(x[1] for x in signal.entries)-1.0)>1e-9: raise ValueError('entry fractions')
+    if not signal.take_profits or abs(sum(x[1] for x in signal.take_profits)-1.0)>1e-9: raise ValueError('target fractions')
+    rows=list(bars); fills=[]; entry_notional=0.0
+    first_allowed=signal.decision_time+policy.bar_ms
+    for price,fraction in signal.entries:
+        for b in rows:
+            if b['t']<first_allowed: continue
+            o=float(b['open']); h=float(b['high']); l=float(b['low'])
+            hit=(o<=price or l<=price<=h) if signal.side=='long' else (o>=price or l<=price<=h)
+            if not hit: continue
+            raw=o if ((signal.side=='long' and o<=price) or (signal.side=='short' and o>=price)) else float(price)
+            px=_adverse(raw,signal.side,policy.slippage_bps,True)
+            qty=(policy.position_usd*fraction)/px
+            fills.append(ExecutionFill(b['t'],px,qty,fraction)); entry_notional+=px*qty
+            break
+    if not fills: raise ValueError('entry not filled')
+    total_qty=sum(x.quantity for x in fills); remaining=total_qty; exits=[]
+    first_fill=min(x.time for x in fills)
+    targets=list(signal.take_profits)
+    for idx,(target,fraction) in enumerate(targets,1):
+        desired=total_qty*fraction
+        for b in rows:
+            if b['t']<=first_fill or remaining<=0: continue
+            o=float(b['open']); h=float(b['high']); l=float(b['low'])
+            stop_hit=(o<=signal.stop_loss or l<=signal.stop_loss) if signal.side=='long' else (o>=signal.stop_loss or h>=signal.stop_loss)
+            target_hit=(o>=target or h>=target) if signal.side=='long' else (o<=target or l<=target)
+            if stop_hit:
+                raw=o if ((signal.side=='long' and o<=signal.stop_loss) or (signal.side=='short' and o>=signal.stop_loss)) else signal.stop_loss
+                q=remaining; px=_adverse(raw,signal.side,policy.slippage_bps,False)
+                exits.append(ExecutionExit(b['t'],px,q,'SL')); remaining=0; break
+            if target_hit:
+                q=min(desired,remaining); px=_adverse(float(target),signal.side,policy.slippage_bps,False)
+                exits.append(ExecutionExit(b['t'],px,q,f'TP{idx}')); remaining-=q; break
+        if remaining<=0: break
+    if remaining>1e-12:
+        b=rows[-1]; px=_adverse(float(b['close']),signal.side,policy.slippage_bps,False)
+        exits.append(ExecutionExit(b['t'],px,remaining,'EOD')); remaining=0
+    avg_entry=sum(x.price*x.quantity for x in fills)/total_qty
+    gross=sum((x.price-avg_entry)*x.quantity if signal.side=='long' else (avg_entry-x.price)*x.quantity for x in exits)
+    fees=(sum(x.price*x.quantity for x in fills)+sum(x.price*x.quantity for x in exits))*policy.fee_rate
+    return ScaleTrade(signal.side,tuple(fills),tuple(exits),gross,fees,gross-fees)
