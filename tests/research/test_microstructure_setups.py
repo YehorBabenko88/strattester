@@ -39,3 +39,15 @@ def test_sweep_reversal_requires_return_through_level_and_sell_aggression():
     assert x is not None and x.side=='short'
     assert x.known_at==120
     assert x.sweep_pct>=.0015
+
+
+def test_absorption_proxy_does_not_accumulate_stale_aggression():
+    trades=[
+      {'t':0,'price':100.00,'size':100,'side':'Sell'},
+      {'t':9_500,'price':100.00,'size':2,'side':'Sell'},
+      {'t':9_900,'price':100.01,'size':1,'side':'Buy'},
+    ]
+    x=detect_absorption_proxy(
+        trades,level=100,tick_size=.01,known_at=10_000,
+        min_aggressive_volume=20,max_penetration_ticks=2,lookback_ms=2_000)
+    assert x is None
