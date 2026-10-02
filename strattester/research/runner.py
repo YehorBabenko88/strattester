@@ -28,4 +28,4 @@ class ResearchRunner:
         if end_ms<start:
             raise ValueError('end_ms precedes instrument availability')
         self._sync_definition(definition,symbol,start,end_ms)
-        return execute_strategy(definition,self.store,symbol,checkpoint=checkpoint)
+        return execute_strategy(definition,self.store,symbol,checkpoint=checkpoint,start_ms=start,end_ms=end_ms)
