@@ -1,6 +1,6 @@
 def _latest_known(items,entry_time):
     eligible=[x for x in items if x.known_at<=entry_time]
-    return max(eligible,key=lambda x:(x.known_at,x.event_time)) if eligible else None
+    return max(eligible,key=lambda x:(x.known_at,getattr(x,'event_time',x.known_at))) if eligible else None
 
 def attach_entry_context(*,entry_time:int,metadata:dict,volatility=(),profiles=()):
     out=dict(metadata)
