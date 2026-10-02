@@ -211,10 +211,85 @@ class BacktestEngine:
         if self.last_candle is None:return
         for t in list(self.open_positions.values()):self._close_trade(t,self.last_candle.ts,self.last_candle.close,'END_OF_DATA')
 
+
+from datetime import datetime, timezone
+
+@dataclass
+class _AggBar:
+    key:tuple
+    start_ts:int
+    open:float
+    high:float
+    low:float
+    close:float
+
+class MultiTimeframeAggregator:
+    TIMEFRAMES=('1H','1D','1M','1Y')
+    @staticmethod
+    def _dt(ts):
+        return datetime.fromtimestamp(ts/1000.0,tz=timezone.utc)
+    @classmethod
+    def _key(cls,timeframe,ts):
+        d=cls._dt(ts)
+        if timeframe=='1H': return (d.year,d.month,d.day,d.hour)
+        if timeframe=='1D': return (d.year,d.month,d.day)
+        if timeframe=='1M': return (d.year,d.month)
+        if timeframe=='1Y': return (d.year,)
+        raise ValueError(timeframe)
+    def __init__(self): self._bars={}
+    def push(self,candle):
+        created=[]
+        for tf in self.TIMEFRAMES:
+            key=self._key(tf,candle.ts); bar=self._bars.get(tf)
+            if bar is None:
+                self._bars[tf]=_AggBar(key,candle.ts,candle.open,candle.high,candle.low,candle.close); continue
+            if key!=bar.key:
+                created.append(LevelSeed(tf,'HIGH',bar.high,candle.ts,bar.start_ts))
+                created.append(LevelSeed(tf,'LOW',bar.low,candle.ts,bar.start_ts))
+                self._bars[tf]=_AggBar(key,candle.ts,candle.open,candle.high,candle.low,candle.close)
+            else:
+                bar.high=max(bar.high,candle.high); bar.low=min(bar.low,candle.low); bar.close=candle.close
+        return created
+
+def _trade_row(t):
+    return {
+        'symbol':t.symbol,'level_id':t.level_id,'timeframe':t.timeframe,'level_type':t.level_type,
+        'direction':t.direction,'entry_time':t.entry_time,'entry_price':t.entry_price,
+        'take_profit':t.take_profit,'stop_loss':t.stop_loss,'exit_time':t.exit_time,
+        'exit_price':t.exit_price,'exit_reason':t.exit_reason,'gross_pnl':t.gross_pnl,
+        'net_pnl':t.net_pnl,'fees':t.entry_fee+t.exit_fee,
+    }
+
+def run_legacy_suite(candles,variant_names=None):
+    rows=list(candles)
+    variants=legacy_variants()
+    names=tuple(variant_names) if variant_names is not None else tuple(variants)
+    unknown=set(names)-set(variants)
+    if unknown: raise KeyError(f'unknown variants: {sorted(unknown)}')
+    engines={name:BacktestEngine('HISTORY',variants[name]) for name in names}
+    agg=MultiTimeframeAggregator()
+    for candle in rows:
+        for seed in agg.push(candle):
+            for engine in engines.values():
+                if seed.level_type in engine.config.allowed_level_types:
+                    engine.add_level(seed)
+        for engine in engines.values():
+            engine.process_minute(candle)
+    out={}
+    for name,engine in engines.items():
+        engine.close_end_of_data()
+        out[name]={
+            'candles_processed':len(rows),
+            'trades':[_trade_row(t) for t in engine.closed_trades],
+            'levels':[{'id':x.id,'timeframe':x.timeframe,'level_type':x.level_type,'price':x.price,'available_at':x.available_at,'source_start':x.source_start,'broken':x.broken,'entries':x.entries} for x in engine.levels.values()],
+        }
+    return out
+
+
 class LegacyGridStrategy:
     id='legacy_grid'
     version='1.0'
     requirements=(DataRequirement('candles',('1m',)),)
     def run(self,candles,checkpoint=None):
-        # Full 28-variant level engine is ported only against pinned legacy regression fixtures.
-        return {'candles_processed':sum(1 for _ in candles),'checkpoint':checkpoint}
+        rows=[MinuteCandle(c.open_time,c.open,c.high,c.low,c.close,c.volume,c.turnover or 0.0) if hasattr(c,'open_time') else c for c in candles]
+        return {'variants':run_legacy_suite(rows),'candles_processed':len(rows),'checkpoint':checkpoint}
