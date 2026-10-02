@@ -9,8 +9,8 @@ def test_completed_level_known_only_after_period_close():
 
 def test_swing_high_known_after_right_confirmation():
     bars=[{'t':0,'high':1,'low':0},{'t':60,'high':3,'low':1},{'t':120,'high':2,'low':1}]
-    x=[x for x in confirmed_swings(bars,left=1,right=1) if x.kind=='swing_high'][0]
-    assert x.event_time==60 and x.known_at==120
+    x=[x for x in confirmed_swings(bars,left=1,right=1,bar_ms=60) if x.kind=='swing_high'][0]
+    assert x.event_time==60 and x.known_at==180
 
 def test_fvg_known_at_third_candle_close():
     bars=[{'t':0,'high':10,'low':8},{'t':60,'high':12,'low':10},{'t':120,'high':15,'low':13}]
