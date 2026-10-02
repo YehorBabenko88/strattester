@@ -26,6 +26,14 @@ class SQLiteStateStore:
         try:
             rows=list(self.con.execute('SELECT id,payload FROM jobs ORDER BY rowid'))
             jobs=[self._decode(x[1]) for x in rows]
+            normalized=[]
+            for job in jobs:
+                recovered=job.recover_stale(now)
+                normalized.append(recovered)
+                if recovered!=job:
+                    d=recovered.__dict__.copy(); d['state']=recovered.state.value
+                    self.con.execute('UPDATE jobs SET payload=? WHERE id=?',(json.dumps(d),recovered.id))
+            jobs=normalized
             active_keys={
                 j.resource_key for j in jobs
                 if j.resource_key and j.state in (JobState.LEASED,JobState.RUNNING)
@@ -33,11 +41,6 @@ class SQLiteStateStore:
             }
             for job in jobs:
                 if len(claimed)>=limit: break
-                recovered=job.recover_stale(now)
-                if recovered!=job:
-                    job=recovered
-                    d=job.__dict__.copy(); d['state']=job.state.value
-                    self.con.execute('UPDATE jobs SET payload=? WHERE id=?',(json.dumps(d),job.id))
                 if job.state not in (JobState.READY,JobState.RETRYABLE): continue
                 if job.resource_key and job.resource_key in active_keys: continue
                 leased=job.with_state(JobState.LEASED,lease_owner=owner,lease_until=now+lease_seconds,error=None)
