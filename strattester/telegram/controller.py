@@ -10,6 +10,9 @@ class TelegramController:
         if cmd=='/restart': self.services.restart(); return 'RESTARTED'
         if cmd=='/drain': self.services.drain(); return 'DRAINING'
         if cmd=='/status': return self.status_provider()
+        if cmd in ('/jobs','/progress'):
+            if self.inspection is None:return 'PROGRESS UNAVAILABLE'
+            return str(self.inspection.jobs())
         if cmd=='/logs':
             if self.inspection is None:return 'LOG INSPECTION UNAVAILABLE'
             parts=text.split(); component=parts[1] if len(parts)>1 else 'worker'
