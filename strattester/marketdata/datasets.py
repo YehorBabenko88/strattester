@@ -9,6 +9,7 @@ class DatasetKind(str, Enum):
     FUNDING='funding'
     LONG_SHORT_RATIO='long_short_ratio'
     PUBLIC_TRADES='public_trades'
+    PUBLIC_TRADE_AGGREGATES='public_trade_aggregates'
     ORDERBOOK_L2='orderbook_l2'
     LIQUIDATIONS='liquidations'
 
