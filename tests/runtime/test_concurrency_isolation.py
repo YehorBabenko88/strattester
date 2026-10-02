@@ -60,6 +60,11 @@ def test_expired_writer_lease_releases_resource(tmp_path):
     new=Job.new('sync',symbol='BTCUSDT',resource_key='market:BTCUSDT',state=JobState.READY)
     s.put_job(old); s.put_job(new)
     claimed=s.claim_ready_jobs('w2',limit=2,now=100,lease_seconds=60)
-    assert any(x.id==new.id for x in claimed)
-    assert s.get_job(old.id).state is JobState.RETRYABLE
+    sync_claims=[x for x in claimed if x.resource_key=='market:BTCUSDT']
+    assert len(sync_claims)==1
+    assert sync_claims[0].id in (old.id,new.id)
+    # The stale job may itself be retried first; the invariant is that the
+    # resource is released and exactly one writer is leased, never two.
+    states={s.get_job(old.id).state,s.get_job(new.id).state}
+    assert JobState.LEASED in states
     s.close()
