@@ -19,7 +19,7 @@ class SQLiteStateStore:
         r=self.con.execute('SELECT payload FROM jobs WHERE id=?',(job_id,)).fetchone()
         return self._decode(r[0]) if r else None
     def list_jobs(self): return [self._decode(r[0]) for r in self.con.execute('SELECT payload FROM jobs')]
-    def claim_ready_jobs(self,owner:str,limit:int=1,now:float|None=None,lease_seconds:float=300):
+    def claim_ready_jobs(self,owner:str,limit:int=1,now:float|None=None,lease_seconds:float=300,job_ids=None):
         now=time.time() if now is None else now
         claimed=[]
         self.con.execute('BEGIN IMMEDIATE')
@@ -39,8 +39,10 @@ class SQLiteStateStore:
                 if j.resource_key and j.state in (JobState.LEASED,JobState.RUNNING)
                 and (j.lease_until is None or j.lease_until>=now)
             }
+            allowed=None if job_ids is None else set(job_ids)
             for job in jobs:
                 if len(claimed)>=limit: break
+                if allowed is not None and job.id not in allowed: continue
                 if job.state not in (JobState.READY,JobState.RETRYABLE): continue
                 if job.resource_key and job.resource_key in active_keys: continue
                 leased=job.with_state(JobState.LEASED,lease_owner=owner,lease_until=now+lease_seconds,error=None)
