@@ -12,8 +12,10 @@ class StrategyResult:
 class StrategyContext:
     store:object
     symbol:str
+    start_ms:int|None=None
+    end_ms:int|None=None
     def candles(self,timeframe='1m'):
-        return self.store.iter_candles(self.symbol,timeframe)
+        return self.store.iter_candles(self.symbol,timeframe,start_ms=self.start_ms,end_ms=self.end_ms)
     def public_trade_aggregates(self,timeframe='1m'):
         return self.store.iter_public_trade_aggregates(self.symbol,timeframe)
     def coverage(self,dataset,timeframe='1m'):
@@ -29,11 +31,11 @@ def requirements_ready(definition,store,symbol):
                     return False
     return True
 
-def execute_strategy(definition,store,symbol,checkpoint=None):
+def execute_strategy(definition,store,symbol,checkpoint=None,start_ms=None,end_ms=None):
     if not requirements_ready(definition,store,symbol):
         raise RuntimeError('strategy requirements are not ready')
     impl=definition.implementation()
-    context=StrategyContext(store,symbol)
+    context=StrategyContext(store,symbol,start_ms,end_ms)
     if hasattr(impl,'run_context'):
         output=impl.run_context(context,checkpoint=checkpoint)
     else:
