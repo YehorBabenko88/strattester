@@ -23,6 +23,18 @@ class ControlStatus:
                 states[state]=states.get(state,0)+1
             return {'total':sum(states.values()),'states':states}
         finally: con.close()
+    def results(self,symbol,strategy_id):
+        p=self.root/'results'/'research_results.sqlite3'
+        if not p.exists(): return None
+        con=sqlite3.connect(f'file:{p.as_posix()}?mode=ro',uri=True)
+        try:
+            row=con.execute('''SELECT run_id,symbol,strategy_id,strategy_version,created_at,metrics
+                FROM research_results WHERE symbol=? AND strategy_id=? ORDER BY created_at DESC LIMIT 1''',
+                (symbol.upper(),strategy_id)).fetchone()
+        finally: con.close()
+        if row is None:return None
+        return {'run_id':row[0],'symbol':row[1],'strategy_id':row[2],'strategy_version':row[3],
+                'created_at':row[4],'metrics':json.loads(row[5])}
     def resources(self):
         vm=psutil.virtual_memory(); disk=shutil.disk_usage(self.root)
         return {'ram_total':vm.total,'ram_available':vm.available,'ram_percent':vm.percent,
