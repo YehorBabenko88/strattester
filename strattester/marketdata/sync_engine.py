@@ -50,13 +50,19 @@ class SyncEngine:
             pass
         return 60_000
 
+    def _bounds(self,req,step=None):
+        step=step or self._step(req)
+        return ((req.start_ms+step-1)//step)*step,(req.end_ms//step)*step
+
     def _coverage_ready(self,req,step=None):
         step=step or self._step(req)
         cov=self.store.coverage(req.symbol,req.dataset,req.timeframe,step,start_ms=req.start_ms,end_ms=req.end_ms)
         if cov.count==0:return False
         if req.dataset=='funding':return True
-        expected=((req.end_ms-req.start_ms)//step)+1
-        return cov.earliest==req.start_ms and cov.latest==req.end_ms and not cov.gaps and cov.count==expected
+        start,end=self._bounds(req,step)
+        if start>end:return False
+        expected=((end-start)//step)+1
+        return cov.earliest==start and cov.latest==end and not cov.gaps and cov.count==expected
 
     def _ranges(self,req,step=None):
         step=step or self._step(req)
