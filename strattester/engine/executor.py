@@ -44,7 +44,9 @@ def requirements_ready(definition,store,symbol,start_ms=None,end_ms=None):
         if req.required:
             for tf in timeframes:
                 cov=store.coverage(symbol,dataset,tf,step_ms=_step_ms(tf),start_ms=start_ms,end_ms=end_ms)
-                if not _complete_coverage(cov,start_ms,end_ms,_step_ms(tf)):
+                if dataset=='funding':
+                    if cov.count==0:return False
+                elif not _complete_coverage(cov,start_ms,end_ms,_step_ms(tf)):
                     return False
     return True
 
