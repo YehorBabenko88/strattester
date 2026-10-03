@@ -16,7 +16,7 @@ class WorkerRuntime:
             try:
                 self.executor(running)
             except Exception as exc:
-                self.state_store.put_job(running.with_state(JobState.RETRYABLE,error=str(exc)))
+                self.state_store.put_job(running.with_state(JobState.RETRYABLE,error=str(exc),lease_owner=None,lease_until=None))
                 self.logger.error('job failed',extra={'job_id':job.id,'symbol':job.symbol})
             else:
                 self.state_store.put_job(running.with_state(JobState.COMPLETE,error=None,lease_owner=None,lease_until=None))
