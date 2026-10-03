@@ -10,3 +10,12 @@ class StrategyRegistry:
     def set_enabled(self,strategy_id,version,enabled):
         old=self._items[(strategy_id,version)]
         self._items[(strategy_id,version)]=StrategyDefinition(old.id,old.version,old.requirements,old.implementation,enabled)
+
+
+def builtin_registry():
+    from .builtin.legacy_grid import LegacyGridStrategy
+    r=StrategyRegistry()
+    r.register(StrategyDefinition(
+        LegacyGridStrategy.id,LegacyGridStrategy.version,
+        LegacyGridStrategy.requirements,LegacyGridStrategy))
+    return r
