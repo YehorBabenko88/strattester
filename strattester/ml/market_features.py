@@ -60,22 +60,22 @@ def enrich_research_features(rows,bars,*,bar_ms=60_000,profile_window=120,level_
         out.append(replace(row,values=values))
     return tuple(out)
 
-def attach_external_series(rows,*,open_interest=(),long_short_ratio=(),funding=()):
+def attach_external_series(rows,*,open_interest=(),long_short_ratio=(),funding=(),open_interest_bar_ms=300_000,long_short_bar_ms=300_000):
     oi=sorted((dict(x) for x in open_interest),key=lambda x:int(x.get('t',x.get('open_time',0))))
     ls=sorted((dict(x) for x in long_short_ratio),key=lambda x:int(x.get('t',x.get('open_time',0))))
     fd=sorted((dict(x) for x in funding),key=lambda x:int(x.get('t',x.get('funding_time',0))))
     out=[]
     for row in rows:
         known=int(row.known_at); values=dict(row.values)
-        prior_oi=[x for x in oi if int(x.get('t',x.get('open_time',0)))<=known]
+        prior_oi=[x for x in oi if int(x.get('known_at',int(x.get('t',x.get('open_time',0)))+open_interest_bar_ms))<=known]
         if prior_oi:
             cur=float(prior_oi[-1].get('value',0.0)); prev=float(prior_oi[-2].get('value',cur)) if len(prior_oi)>1 else cur
             values['open_interest']=cur
             values['open_interest_change']=cur/prev-1.0 if prev else 0.0
-        prior_ls=[x for x in ls if int(x.get('t',x.get('open_time',0)))<=known]
+        prior_ls=[x for x in ls if int(x.get('known_at',int(x.get('t',x.get('open_time',0)))+long_short_bar_ms))<=known]
         if prior_ls:
             values['long_short_ratio']=float(prior_ls[-1].get('long_short_ratio',0.0) or 0.0)
-        prior_fd=[x for x in fd if int(x.get('t',x.get('funding_time',0)))<=known]
+        prior_fd=[x for x in fd if int(x.get('known_at',x.get('t',x.get('funding_time',0))))<=known]
         if prior_fd:
             values['funding_rate']=float(prior_fd[-1].get('rate',0.0))
         out.append(replace(row,values=values))
