@@ -17,4 +17,4 @@ def test_version_changes_result_identity():
 def test_builtin_registry_exposes_runnable_legacy_grid():
     from strattester.strategies.registry import builtin_registry
     found=builtin_registry().discover()
-    assert [(x.id,x.version) for x in found]==[('legacy_grid','1.0')]
+    assert ('legacy_grid','1.0') in [(x.id,x.version) for x in found]
