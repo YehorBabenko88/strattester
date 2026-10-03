@@ -7,6 +7,7 @@ from .validation import walk_forward_splits
 from .forecasting import attach_forecast_features
 from .market_features import enrich_research_features,attach_external_series
 from .meta import attach_strategy_features
+from .training import train_walk_forward,assert_snapshot_safe_for_simulation
 
 @dataclass(frozen=True)
 class MLSignal:
@@ -37,6 +38,7 @@ class ResearchMLPipeline:
         self.model_factory=model_factory
         self.forecast_provider=forecast_provider
         self.model=None
+        self.snapshot=None
         self.mean_up_return=0.0
         self.mean_down_return=0.0
 
@@ -55,15 +57,26 @@ class ResearchMLPipeline:
                 rows.append((f,label))
         return tuple(rows)
 
-    def fit(self,bars,public_trade_aggregates=()):
-        ds=self.dataset(bars,public_trade_aggregates)
+    def fit(self,bars,public_trade_aggregates=(),**kwargs):
+        ds=self.dataset(bars,public_trade_aggregates,**kwargs)
         if not ds:raise ValueError('not enough history for requested horizon')
         self.model=self.model_factory().fit([f.values for f,_ in ds],[y.up for _,y in ds])
         ups=[y.future_return for _,y in ds if y.up]
         downs=[y.future_return for _,y in ds if not y.up]
         self.mean_up_return=sum(ups)/len(ups) if ups else 0.0
         self.mean_down_return=sum(downs)/len(downs) if downs else 0.0
+        self.snapshot=None
         return self
+
+    def fit_walk_forward(self,bars,public_trade_aggregates=(),*,train_size=500,test_size=100,purge=None,**kwargs):
+        ds=self.dataset(bars,public_trade_aggregates,**kwargs)
+        purge=max(self.horizon,int(purge or 0))
+        report=train_walk_forward(ds,model_factory=self.model_factory,train_size=train_size,test_size=test_size,purge=purge)
+        self.snapshot=report.snapshot
+        self.model=report.snapshot.model
+        self.mean_up_return=report.snapshot.mean_up_return
+        self.mean_down_return=report.snapshot.mean_down_return
+        return report
 
     def signal(self,bars,public_trade_aggregates=()):
         if self.model is None:raise RuntimeError('pipeline is not fitted')
