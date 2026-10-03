@@ -20,20 +20,22 @@ class StrategyContext:
         return self.store.iter_public_trade_aggregates(
             self.symbol,timeframe,start_ms=self.start_ms,end_ms=self.end_ms)
     def coverage(self,dataset,timeframe='1m'):
-        return self.store.coverage(self.symbol,getattr(dataset,'value',dataset),timeframe)
+        return self.store.coverage(
+            self.symbol,getattr(dataset,'value',dataset),timeframe,
+            start_ms=self.start_ms,end_ms=self.end_ms)
 
-def requirements_ready(definition,store,symbol):
+def requirements_ready(definition,store,symbol,start_ms=None,end_ms=None):
     for req in definition.requirements:
         dataset=getattr(req.dataset,'value',req.dataset)
         timeframes=req.timeframes or ('1m',)
         if req.required:
             for tf in timeframes:
-                if store.coverage(symbol,dataset,tf).count==0:
+                if store.coverage(symbol,dataset,tf,start_ms=start_ms,end_ms=end_ms).count==0:
                     return False
     return True
 
 def execute_strategy(definition,store,symbol,checkpoint=None,start_ms=None,end_ms=None):
-    if not requirements_ready(definition,store,symbol):
+    if not requirements_ready(definition,store,symbol,start_ms=start_ms,end_ms=end_ms):
         raise RuntimeError('strategy requirements are not ready')
     impl=definition.implementation()
     context=StrategyContext(store,symbol,start_ms,end_ms)
