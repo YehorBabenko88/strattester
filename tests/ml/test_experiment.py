@@ -30,3 +30,18 @@ def test_experiment_reports_oos_baselines_and_probability_diagnostics():
     assert set(d['probability_quantiles'])=={'p01','p05','p25','p50','p75','p95','p99'}
     assert set(d['signal_counts'])=={'0.55','0.6','0.65'}
     assert d['windows']
+
+
+def test_experiment_reports_acceptance_regimes_holdout_and_timings():
+    result,_=run_experiment('BTCUSDT',bars(700),horizon=5,train_size=180,test_size=50,simulation_fraction=.20)
+    d=result.diagnostics
+    assert isinstance(d['model_accepted'],bool)
+    assert isinstance(d['rejection_reasons'],list)
+    assert set(d['timing_seconds'])=={'fit','simulation','total'}
+    assert d['timing_seconds']['fit']>=0
+    assert d['holdout']['predictions']>0
+    assert set(d['holdout']['signal_counts'])=={'0.55','0.6','0.65'}
+    assert isinstance(d['regimes'],dict)
+    if not d['model_accepted']:
+        assert d['rejection_reasons']
+        assert d['hypothetical_simulation_if_rejected'] is not None
