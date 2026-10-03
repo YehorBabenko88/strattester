@@ -63,7 +63,7 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
     ds=tuple(dataset)
     splits=walk_forward_splits(len(ds),train_size=train_size,test_size=test_size,purge=purge)
     if not splits: raise ValueError('not enough samples for walk-forward training')
-    windows=[]; all_probs=[]; all_labels=[]; coeff_windows=[]
+    windows=[]; all_probs=[]; all_labels=[]; all_regimes=[]; coeff_windows=[]
     for s in splits:
         model=model_factory().fit([ds[i][0].values for i in s.train],[ds[i][1].up for i in s.train])
         coeff=dict(model.coefficients())
@@ -72,7 +72,7 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         labels=[ds[i][1].up for i in s.test]
         acc=sum((p>=.5)==bool(y) for p,y in zip(probs,labels))/len(probs)
         brier=sum((p-y)**2 for p,y in zip(probs,labels))/len(probs)
-        all_probs.extend(probs); all_labels.extend(labels)
+        all_probs.extend(probs); all_labels.extend(labels); all_regimes.extend(str(ds[i][0].regime) for i in s.test)
         windows.append(TrainingWindowResult(
             train_start=ds[s.train[0]][0].timestamp,train_end=ds[s.train[-1]][0].timestamp,
             test_start=ds[s.test[0]][0].timestamp,test_end=ds[s.test[-1]][0].timestamp,
@@ -116,12 +116,8 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
     if accuracy<=naive_accuracy: rejection.append('oos_accuracy_not_above_naive')
     if brier>=naive_brier: rejection.append('oos_brier_not_below_naive')
     regime_buckets={}
-    for s in splits:
-        model=model_factory().fit([ds[i][0].values for i in s.train],[ds[i][1].up for i in s.train])
-        for i in s.test:
-            p=model.predict_one(ds[i][0].values).probability_up
-            y=int(ds[i][1].up); regime=str(ds[i][0].regime)
-            regime_buckets.setdefault(regime,[]).append((p,y))
+    for p,y,regime in zip(all_probs,all_labels,all_regimes):
+        regime_buckets.setdefault(regime,[]).append((p,int(y)))
     regime_metrics=[]
     for regime,items in sorted(regime_buckets.items()):
         rp=[p for p,_ in items]; ry=[y for _,y in items]
