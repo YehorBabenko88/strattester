@@ -9,6 +9,7 @@ class StrategyObservation:
     direction:int=0
     confidence:float=0.0
     expected_r:float=0.0
+    known_at:int|None=None
 
 def attach_strategy_features(rows,observations):
     by_t={}
@@ -19,6 +20,8 @@ def attach_strategy_features(rows,observations):
         values=dict(row.values)
         obs=by_t.get(int(row.timestamp),())
         for x in obs:
+            if x.known_at is not None and int(x.known_at)>int(row.known_at):
+                continue
             prefix='strategy_'+str(x.strategy_id).lower()
             values[prefix+'_direction']=float(x.direction)
             values[prefix+'_confidence']=float(x.confidence)
