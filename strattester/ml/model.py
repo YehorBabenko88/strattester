@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from math import exp
+from math import exp, isfinite
 
 @dataclass(frozen=True)
 class ModelPrediction:
@@ -18,16 +18,32 @@ class LogisticBaseline:
             z=exp(-x); return 1/(1+z)
         z=exp(x); return z/(1+z)
 
+    @staticmethod
+    def _finite_value(value, *, feature, row_index=None):
+        try:
+            value=float(value)
+        except (TypeError, ValueError) as exc:
+            where='' if row_index is None else f' in row {row_index}'
+            raise ValueError(f'feature {feature!r}{where} must be numeric') from exc
+        if not isfinite(value):
+            where='' if row_index is None else f' in row {row_index}'
+            raise ValueError(f'feature {feature!r}{where} must be finite')
+        return value
+
     def fit(self, rows, labels):
         rows=list(rows); labels=[int(x) for x in labels]
         if not rows or len(rows)!=len(labels):raise ValueError('rows and labels must be non-empty and aligned')
-        self.feature_names=tuple(sorted(rows[0]))
-        self.means={k:sum(float(r.get(k,0.0)) for r in rows)/len(rows) for k in self.feature_names}
+        self.feature_names=tuple(sorted({k for row in rows for k in row}))
+        if not self.feature_names:raise ValueError('rows must contain at least one feature')
+        clean=[]
+        for i,row in enumerate(rows):
+            clean.append({k:self._finite_value(row.get(k,0.0),feature=k,row_index=i) for k in self.feature_names})
+        self.means={k:sum(r[k] for r in clean)/len(clean) for k in self.feature_names}
         self.scales={}
         for k in self.feature_names:
-            m=self.means[k]; v=sum((float(r.get(k,0.0))-m)**2 for r in rows)/len(rows)
-            self.scales[k]=v**0.5 or 1.0
-        xs=[[ (float(r.get(k,0.0))-self.means[k])/self.scales[k] for k in self.feature_names] for r in rows]
+            mean=self.means[k]; variance=sum((r[k]-mean)**2 for r in clean)/len(clean)
+            self.scales[k]=variance**0.5 or 1.0
+        xs=[[(r[k]-self.means[k])/self.scales[k] for k in self.feature_names] for r in clean]
         self.weights=[0.0]*len(self.feature_names); self.bias=0.0
         for _ in range(self.epochs):
             gw=[0.0]*len(self.weights); gb=0.0
@@ -43,7 +59,8 @@ class LogisticBaseline:
 
     def predict_one(self,row):
         if not self.feature_names:raise RuntimeError('model is not fitted')
-        x=[(float(row.get(k,0.0))-self.means[k])/self.scales[k] for k in self.feature_names]
+        values={k:self._finite_value(row.get(k,0.0),feature=k) for k in self.feature_names}
+        x=[(values[k]-self.means[k])/self.scales[k] for k in self.feature_names]
         score=self.bias+sum(w*v for w,v in zip(self.weights,x))
         return ModelPrediction(self._sigmoid(score),score)
 
