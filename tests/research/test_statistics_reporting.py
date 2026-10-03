@@ -31,3 +31,8 @@ def test_volatility_breakdown_keeps_sample_counts_and_coverage_separate():
     assert r.by_volatility['HIGH'].trades==1
     assert r.by_volatility['LOW'].trades==1
     assert r.partial_by_volatility['HIGH'].trades==1
+
+
+def test_profit_factor_is_json_safe_when_there_are_no_losses():
+    m=evaluate_trades([T(2,2,0,0,1)])
+    assert m.profit_factor is None

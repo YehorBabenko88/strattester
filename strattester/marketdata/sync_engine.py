@@ -50,14 +50,30 @@ class SyncEngine:
             pass
         return 60_000
 
+    def _bounds(self,req,step=None):
+        step=step or self._step(req)
+        return ((req.start_ms+step-1)//step)*step,(req.end_ms//step)*step
+
+    def _coverage_ready(self,req,step=None):
+        step=step or self._step(req)
+        cov=self.store.coverage(req.symbol,req.dataset,req.timeframe,step,start_ms=req.start_ms,end_ms=req.end_ms)
+        if cov.count==0:return False
+        if req.dataset=='funding':return True
+        start,end=self._bounds(req,step)
+        if start>end:return False
+        expected=((end-start)//step)+1
+        return cov.earliest==start and cov.latest==end and not cov.gaps and cov.count==expected
+
     def _ranges(self,req,step=None):
         step=step or self._step(req)
-        cov=self.store.coverage(req.symbol,req.dataset,req.timeframe,step)
+        cov=self.store.coverage(req.symbol,req.dataset,req.timeframe,step,start_ms=req.start_ms,end_ms=req.end_ms)
+        start_bound,end_bound=self._bounds(req,step)
+        if start_bound>end_bound:return []
         ranges=[]
-        if cov.earliest is None:return [(req.start_ms,req.end_ms)]
-        if req.start_ms<cov.earliest:ranges.append((req.start_ms,cov.earliest-step))
-        ranges.extend((max(req.start_ms,g.start),min(req.end_ms,g.end)) for g in cov.gaps if g.end>=req.start_ms and g.start<=req.end_ms)
-        if cov.latest+step<=req.end_ms:ranges.append((cov.latest+step,req.end_ms))
+        if cov.earliest is None:return [(start_bound,end_bound)]
+        if start_bound<cov.earliest:ranges.append((start_bound,cov.earliest-step))
+        ranges.extend((max(start_bound,g.start),min(end_bound,g.end)) for g in cov.gaps if g.end>=start_bound and g.start<=end_bound)
+        if cov.latest+step<=end_bound:ranges.append((cov.latest+step,end_bound))
         return [(a,b) for a,b in ranges if a<=b]
 
     def _sync_rows(self,req,start,end):
@@ -94,12 +110,14 @@ class SyncEngine:
         raise ValueError('unsupported dataset')
 
     def sync_requirement(self,req:DataRequirement)->SyncResult:
+        step=self._step(req)
         if req.dataset=='public_trade_aggregates':
-            return SyncResult(SyncState.REPAIR_REQUIRED,message='historical public trades require archive provider; recent REST trades are not a historical substitute')
+            if self._coverage_ready(req,step):
+                return SyncResult(SyncState.READY)
+            return SyncResult(SyncState.REPAIR_REQUIRED,message='historical public trades are incomplete; load archive data for the requested window')
         if req.dataset not in ('candles','mark_price','index_price','premium_index','open_interest','funding','long_short_ratio'):
             return SyncResult(SyncState.REPAIR_REQUIRED,message='unsupported dataset')
         written=unchanged=rejected=0
-        step=self._step(req)
         try:
             for start,end in self._ranges(req,step):
                 page_end=end
@@ -119,7 +137,7 @@ class SyncEngine:
                     if next_end>=page_end:break
                     page_end=next_end
             remaining=self._ranges(req,step)
-            state=SyncState.READY if not remaining else SyncState.PARTIAL
+            state=SyncState.READY if self._coverage_ready(req,step) else SyncState.PARTIAL
             return SyncResult(state,written,unchanged,rejected)
         except Exception as exc:
             state=SyncState.DEGRADED if exc.__class__.__name__=='BybitAccessError' else SyncState.RETRYABLE
