@@ -32,5 +32,8 @@ if($LASTEXITCODE -ne 0){ throw "Installed environment preflight failed; services
 Step "Running isolated one-shot worker smoke test"
 & (Join-Path $venv "Scripts\python.exe") -m strattester.smoke_cli --root $InstallDir
 if($LASTEXITCODE -ne 0){ throw "Worker smoke test failed; services were not touched." }
+Step "Running isolated BTCUSDT market-data smoke test"
+& (Join-Path $venv "Scripts\python.exe") -m strattester.marketdata.download_smoke_cli --root (Join-Path $InstallDir "state") --minutes 10
+if($LASTEXITCODE -ne 0){ throw "Market-data smoke test failed; services were not touched." }
 if($NssmExe){ & "$PSScriptRoot\service\install_windows.ps1" -InstallDir $InstallDir -NssmExe $NssmExe }
 Step "Installation complete"
