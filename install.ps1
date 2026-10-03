@@ -27,7 +27,7 @@ $venv=Join-Path $InstallDir ".venv"
 if(-not(Test-Path $venv)){ & $PythonExe -m venv $venv }
 & (Join-Path $venv "Scripts\python.exe") -m pip install --upgrade pip
 & (Join-Path $venv "Scripts\python.exe") -m pip install .
-& (Join-Path $venv "Scripts\python.exe") -m strattester.preflight_cli --root $InstallDir
+& (Join-Path $venv "Scripts\python.exe") -m strattester.preflight_cli --root $InstallDir --network
 if($LASTEXITCODE -ne 0){ throw "Installed environment preflight failed; services were not touched." }
 if($NssmExe){ & "$PSScriptRoot\service\install_windows.ps1" -InstallDir $InstallDir -NssmExe $NssmExe }
 Step "Installation complete"
