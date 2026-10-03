@@ -191,10 +191,15 @@ class SQLiteMarketStore:
                 ('buy_volume','sell_volume','turnover','trade_count','vwap','max_trade'),parsed)
         return WriteStats(s.accepted,s.unchanged,s.rejected+rejected)
 
-    def iter_public_trade_aggregates(self,symbol:str,timeframe:str='1m'):
+    def iter_public_trade_aggregates(self,symbol:str,timeframe:str='1m',start_ms:int|None=None,end_ms:int|None=None):
+        where=['symbol=?','timeframe=?']; params=[symbol,timeframe]
+        if start_ms is not None:
+            where.append('open_time>=?'); params.append(int(start_ms))
+        if end_ms is not None:
+            where.append('open_time<=?'); params.append(int(end_ms))
         cur=self.connection.execute(
-            'SELECT open_time,buy_volume,sell_volume,turnover,trade_count,vwap,max_trade FROM public_trade_aggregates WHERE symbol=? AND timeframe=? ORDER BY open_time',
-            (symbol,timeframe))
+            f"SELECT open_time,buy_volume,sell_volume,turnover,trade_count,vwap,max_trade FROM public_trade_aggregates WHERE {' AND '.join(where)} ORDER BY open_time",
+            tuple(params))
         for ts,buy,sell,turnover,count,vwap,max_trade in cur:
             yield {'t':ts,'open_time':ts,'buy_volume':buy,'sell_volume':sell,'delta':buy-sell,
                    'turnover':turnover,'trade_count':count,'vwap':vwap,'max_trade':max_trade}
@@ -209,6 +214,7 @@ class SQLiteMarketStore:
             'funding':('funding','funding_time',False),
             'long_short_ratio':('long_short_ratio','open_time',True),
             'public_trades':('public_trade_aggregates','open_time',True),
+            'public_trade_aggregates':('public_trade_aggregates','open_time',True),
         }
         if dataset not in mapping: raise ValueError('unsupported dataset')
         if dataset=='candles' and self._legacy_candles:
