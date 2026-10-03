@@ -14,6 +14,7 @@ class ExperimentResult:
     stable_features:tuple[str,...]
     simulation:dict
     model_trained_until:int
+    diagnostics:dict
 
     def to_dict(self):
         d=asdict(self); d['stable_features']=list(self.stable_features); return d
@@ -40,4 +41,21 @@ def run_experiment(symbol,bars,*,horizon=15,train_size=500,test_size=100,
     return ExperimentResult(
         symbol=symbol,horizon=horizon,train_samples=report.samples,oos_accuracy=report.accuracy,
         oos_brier=report.brier,stable_features=report.stable_features,simulation=metrics,
-        model_trained_until=pipeline.snapshot.trained_until),pipeline
+        model_trained_until=pipeline.snapshot.trained_until,
+        diagnostics={
+            'positive_rate':report.positive_rate,
+            'naive_accuracy':report.naive_accuracy,
+            'naive_brier':report.naive_brier,
+            'probability_min':report.probability_min,
+            'probability_max':report.probability_max,
+            'probability_mean':report.probability_mean,
+            'probability_quantiles':dict(zip(('p01','p05','p25','p50','p75','p95','p99'),report.probability_quantiles)),
+            'signal_counts':{str(k):v for k,v in report.signal_counts},
+            'windows':[{
+                'train_start':w.train_start,'train_end':w.train_end,
+                'test_start':w.test_start,'test_end':w.test_end,'samples':w.samples,
+                'accuracy':w.accuracy,'brier':w.brier,'positive_rate':w.positive_rate,
+                'naive_accuracy':w.naive_accuracy,'naive_brier':w.naive_brier,
+                'probability_min':w.probability_min,'probability_max':w.probability_max,
+                'probability_mean':w.probability_mean} for w in report.windows],
+        }),pipeline
