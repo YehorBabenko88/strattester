@@ -5,7 +5,7 @@ from strattester.marketdata.bybit_client import BybitClient
 from strattester.marketdata.sqlite_store import SQLiteMarketStore
 from strattester.persistence.result_store import ResultStore
 from strattester.research.runner import ResearchRunner
-from strattester.strategies.registry import StrategyRegistry
+from strattester.strategies.registry import StrategyRegistry,builtin_registry
 
 def _parser():
     p=argparse.ArgumentParser(prog='strattester-research')
@@ -22,7 +22,7 @@ def _parser():
 
 def main(argv=None,*,registry=None,client=None):
     a=_parser().parse_args(argv)
-    registry=registry or StrategyRegistry()
+    registry=registry or builtin_registry()
     available={(d.id,d.version):d for d in registry.discover() if d.enabled}
     wanted=[]
     for spec in a.strategy:
