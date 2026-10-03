@@ -50,9 +50,17 @@ class SyncEngine:
             pass
         return 60_000
 
+    def _coverage_ready(self,req,step=None):
+        step=step or self._step(req)
+        cov=self.store.coverage(req.symbol,req.dataset,req.timeframe,step,start_ms=req.start_ms,end_ms=req.end_ms)
+        if cov.count==0:return False
+        if req.dataset=='funding':return True
+        expected=((req.end_ms-req.start_ms)//step)+1
+        return cov.earliest==req.start_ms and cov.latest==req.end_ms and not cov.gaps and cov.count==expected
+
     def _ranges(self,req,step=None):
         step=step or self._step(req)
-        cov=self.store.coverage(req.symbol,req.dataset,req.timeframe,step)
+        cov=self.store.coverage(req.symbol,req.dataset,req.timeframe,step,start_ms=req.start_ms,end_ms=req.end_ms)
         ranges=[]
         if cov.earliest is None:return [(req.start_ms,req.end_ms)]
         if req.start_ms<cov.earliest:ranges.append((req.start_ms,cov.earliest-step))
@@ -94,12 +102,14 @@ class SyncEngine:
         raise ValueError('unsupported dataset')
 
     def sync_requirement(self,req:DataRequirement)->SyncResult:
+        step=self._step(req)
         if req.dataset=='public_trade_aggregates':
-            return SyncResult(SyncState.REPAIR_REQUIRED,message='historical public trades require archive provider; recent REST trades are not a historical substitute')
+            if self._coverage_ready(req,step):
+                return SyncResult(SyncState.READY)
+            return SyncResult(SyncState.REPAIR_REQUIRED,message='historical public trades are incomplete; load archive data for the requested window')
         if req.dataset not in ('candles','mark_price','index_price','premium_index','open_interest','funding','long_short_ratio'):
             return SyncResult(SyncState.REPAIR_REQUIRED,message='unsupported dataset')
         written=unchanged=rejected=0
-        step=self._step(req)
         try:
             for start,end in self._ranges(req,step):
                 page_end=end
@@ -119,7 +129,7 @@ class SyncEngine:
                     if next_end>=page_end:break
                     page_end=next_end
             remaining=self._ranges(req,step)
-            state=SyncState.READY if not remaining else SyncState.PARTIAL
+            state=SyncState.READY if self._coverage_ready(req,step) else SyncState.PARTIAL
             return SyncResult(state,written,unchanged,rejected)
         except Exception as exc:
             state=SyncState.DEGRADED if exc.__class__.__name__=='BybitAccessError' else SyncState.RETRYABLE
