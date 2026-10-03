@@ -1,6 +1,5 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from math import inf
 
 @dataclass(frozen=True)
 class TradeMetrics:
@@ -12,7 +11,7 @@ class TradeMetrics:
     net_pnl:float=0.0
     fees:float=0.0
     expectancy:float=0.0
-    profit_factor:float=0.0
+    profit_factor:float|None=0.0
     max_drawdown:float=0.0
     avg_mae:float=0.0
     avg_mfe:float=0.0
@@ -26,7 +25,7 @@ def evaluate_trades(trades)->TradeMetrics:
     nets=[float(x.net_pnl) for x in xs]
     wins=[x for x in nets if x>0]; losses=[x for x in nets if x<0]
     gross_profit=sum(wins); gross_loss=-sum(losses)
-    pf=(gross_profit/gross_loss) if gross_loss>0 else (inf if gross_profit>0 else 0.0)
+    pf=(gross_profit/gross_loss) if gross_loss>0 else (None if gross_profit>0 else 0.0)
     equity=0.0; peak=0.0; max_dd=0.0; streak=0; max_streak=0
     for n in nets:
         equity+=n; peak=max(peak,equity); max_dd=max(max_dd,peak-equity)
