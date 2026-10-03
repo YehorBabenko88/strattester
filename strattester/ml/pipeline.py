@@ -42,12 +42,17 @@ class ResearchMLPipeline:
         self.mean_up_return=0.0
         self.mean_down_return=0.0
 
-    def dataset(self,bars,public_trade_aggregates=(),*,open_interest=(),long_short_ratio=(),funding=(),strategy_observations=()):
+    def feature_rows(self,bars,public_trade_aggregates=(),*,open_interest=(),long_short_ratio=(),funding=(),strategy_observations=()):
         features=build_feature_rows(bars,public_trade_aggregates)
         features=enrich_research_features(features,bars)
         features=attach_external_series(features,open_interest=open_interest,long_short_ratio=long_short_ratio,funding=funding)
         features=attach_strategy_features(features,strategy_observations)
-        features=attach_forecast_features(features,bars,self.forecast_provider,horizon=self.horizon)
+        return attach_forecast_features(features,bars,self.forecast_provider,horizon=self.horizon)
+
+    def dataset(self,bars,public_trade_aggregates=(),*,open_interest=(),long_short_ratio=(),funding=(),strategy_observations=()):
+        features=self.feature_rows(
+            bars,public_trade_aggregates,open_interest=open_interest,long_short_ratio=long_short_ratio,
+            funding=funding,strategy_observations=strategy_observations)
         labels=build_labels(bars,horizons=(self.horizon,))
         label_by_t={x.timestamp:x for x in labels}
         rows=[]
@@ -78,19 +83,21 @@ class ResearchMLPipeline:
         self.mean_down_return=report.snapshot.mean_down_return
         return report
 
-    def signal(self,bars,public_trade_aggregates=(),**kwargs):
+    def signal_from_feature_row(self,row):
         if self.model is None:raise RuntimeError('pipeline is not fitted')
-        rows=build_feature_rows(bars,public_trade_aggregates)
-        rows=enrich_research_features(rows,bars)
-        rows=attach_external_series(rows,open_interest=kwargs.get('open_interest',()),long_short_ratio=kwargs.get('long_short_ratio',()),funding=kwargs.get('funding',()))
-        rows=attach_strategy_features(rows,kwargs.get('strategy_observations',()))
-        rows=attach_forecast_features(rows,bars,self.forecast_provider,horizon=self.horizon)
-        if not rows:raise ValueError('no feature rows')
-        row=rows[-1]
         predictor=self.snapshot if self.snapshot is not None else self.model
         p=predictor.predict_one(row.values).probability_up
         expected=p*self.mean_up_return+(1-p)*self.mean_down_return
         return MLSignal(row.timestamp,row.known_at,row.regime,p,expected,abs(p-.5)*2,self.horizon,tuple(self.model.feature_importance()[:8]))
+
+    def signal(self,bars,public_trade_aggregates=(),**kwargs):
+        if self.model is None:raise RuntimeError('pipeline is not fitted')
+        rows=self.feature_rows(
+            bars,public_trade_aggregates,open_interest=kwargs.get('open_interest',()),
+            long_short_ratio=kwargs.get('long_short_ratio',()),funding=kwargs.get('funding',()),
+            strategy_observations=kwargs.get('strategy_observations',()))
+        if not rows:raise ValueError('no feature rows')
+        return self.signal_from_feature_row(rows[-1])
 
     def assert_simulation_safe(self,*,simulation_start_ms,bar_ms=60_000,purge=None):
         if self.snapshot is None:
