@@ -108,7 +108,7 @@ class ResearchHypothesisStrategy:
                 if delta==0:continue
                 side='long' if delta>0 else 'short'
                 t=self._signal_trade(bars,int(p['known_at'])+60_000,side,metadata={'cvd':p['cvd'],'delta':delta})
-                if t:trades.append(t)
+                self._append_non_overlapping(trades,t)
             return self._result(spec,trades,aggregates=len(rows),checkpoint=checkpoint)
         raise ValueError(f'unsupported hypothesis family: {spec.family}')
 
