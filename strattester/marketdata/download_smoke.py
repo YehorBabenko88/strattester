@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
-import sqlite3,tempfile,time
+import sqlite3,time
 from .bybit_client import BybitClient
 from .sqlite_store import SQLiteMarketStore,Candle
 
@@ -27,18 +27,22 @@ def run_download_smoke(root:Path,client=None,minutes=10,clock_ms=None):
     if not valid.ok:return valid
     root=Path(root); root.mkdir(parents=True,exist_ok=True)
     path=root/'market_download_smoke.sqlite3'
+    store=None
     try:
         store=SQLiteMarketStore.open(path)
         candles=[Candle('BTCUSDT','1m',int(r[0]),float(r[1]),float(r[2]),float(r[3]),float(r[4]),float(r[5]),float(r[6]),True) for r in rows if start<=int(r[0])<=end]
         stats=store.upsert_candles(candles)
         cov=store.coverage('BTCUSDT','candles','1m')
         store.close()
+        store=None
         con=sqlite3.connect(f'file:{path.as_posix()}?mode=ro',uri=True)
         try: integrity=str(con.execute('PRAGMA quick_check').fetchone()[0]).lower()
         finally: con.close()
         ok=integrity=='ok' and cov.count==valid.count and not cov.gaps and stats.rejected==0
         return DownloadSmokeResult(ok,cov.count,valid.duplicates,len(cov.gaps),f'sqlite={integrity}; {valid.detail}')
     finally:
+        if store is not None:
+            store.close()
         for suffix in ('','-wal','-shm'):
             p=Path(str(path)+suffix)
             try:p.unlink()
