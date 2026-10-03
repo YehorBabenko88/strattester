@@ -22,15 +22,15 @@ def test_research_enrichment_is_causal_and_contains_structure_features():
 def test_external_series_never_reads_after_feature_known_at():
     b=bars(3); rows=build_feature_rows(b)
     enriched=attach_external_series(rows,open_interest=[
-        {'open_time':60000,'value':100},
-        {'open_time':999999,'value':999},
+        {'open_time':0,'known_at':60000,'value':100},
+        {'open_time':999999,'known_at':999999,'value':999},
     ])
     assert enriched[0].values['open_interest']==100
     assert enriched[-1].values['open_interest']==100
 
 def test_strategy_observations_become_meta_features():
     rows=build_feature_rows(bars(4))
-    obs=[StrategyObservation(rows[1].timestamp,'smc_ob',1,.8,1.2)]
+    obs=[StrategyObservation(rows[1].timestamp,'smc_ob',1,.8,1.2,known_at=rows[1].known_at)]
     out=attach_strategy_features(rows,obs)
     assert out[1].values['strategy_smc_ob_direction']==1
     assert out[1].values['strategy_smc_ob_confidence']==.8
@@ -52,3 +52,10 @@ def test_meta_model_and_stability_report():
     d=next(x for x in stable if x.name=='delta')
     n=next(x for x in stable if x.name=='noise')
     assert d.stable and not n.stable
+
+
+def test_future_strategy_observation_is_rejected_from_feature_row():
+    rows=build_feature_rows(bars(3))
+    obs=[StrategyObservation(rows[1].timestamp,'future',1,.9,2.0,known_at=rows[1].known_at+1)]
+    out=attach_strategy_features(rows,obs)
+    assert 'strategy_future_direction' not in out[1].values
