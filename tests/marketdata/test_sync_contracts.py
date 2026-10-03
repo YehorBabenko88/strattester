@@ -19,3 +19,18 @@ def test_public_trade_aggregate_is_not_silently_faked_from_recent_rest(tmp_path)
     assert r.state is SyncState.REPAIR_REQUIRED
     assert 'archive' in r.message.lower()
     s.close()
+
+
+def test_candle_sync_uses_requested_native_bybit_interval(tmp_path):
+    s=SQLiteMarketStore.open(tmp_path/'m.db')
+    seen=[]
+    class C:
+        def fetch_klines(self,symbol,start,end,interval):
+            seen.append(interval)
+            return [['0','1','1','1','1','1','1']]
+    r=SyncEngine(s,C(),clock_ms=lambda:10_000_000).sync_requirement(
+        DataRequirement('BTCUSDT','candles','5m',0,0))
+    assert r.state is SyncState.READY
+    assert seen==['5']
+    assert list(s.iter_candles('BTCUSDT','5m'))[0].open_time==0
+    s.close()
