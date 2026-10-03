@@ -20,6 +20,8 @@ class TrainingWindowResult:
     probability_min:float=0.0
     probability_max:float=0.0
     probability_mean:float=0.0
+    beats_naive_accuracy:bool=False
+    beats_naive_brier:bool=False
 
 @dataclass(frozen=True)
 class FrozenModel:
@@ -50,6 +52,9 @@ class TrainingReport:
     probability_mean:float=0.0
     probability_quantiles:tuple[float,...]=()
     signal_counts:tuple[tuple[float,int],...]=()
+    accepted:bool=False
+    rejection_reasons:tuple[str,...]=()
+    regime_metrics:tuple[tuple[str,int,float,float,float],...]=()
 
 def _filter(values,names):
     return {k:float(values.get(k,0.0)) for k in names}
@@ -76,7 +81,9 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
             naive_accuracy=max(sum(labels)/len(labels),1.0-sum(labels)/len(labels)),
             naive_brier=(sum(labels)/len(labels))*(1.0-sum(labels)/len(labels)),
             probability_min=min(probs),probability_max=max(probs),
-            probability_mean=sum(probs)/len(probs)))
+            probability_mean=sum(probs)/len(probs),
+            beats_naive_accuracy=acc>max(sum(labels)/len(labels),1.0-sum(labels)/len(labels)),
+            beats_naive_brier=brier<(sum(labels)/len(labels))*(1.0-sum(labels)/len(labels))))
     stability=feature_stability(coeff_windows,min_windows=min_stable_windows,min_direction_share=min_direction_share)
     stable=tuple(x.name for x in stability if x.stable)
     if not stable:
@@ -103,14 +110,33 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         return ordered[lo]*(1-frac)+ordered[hi]*frac
     thresholds=(.55,.60,.65)
     signal_counts=tuple((x,sum(p>=x or p<=1.0-x for p in all_probs)) for x in thresholds)
+    naive_accuracy=max(positive_rate,1.0-positive_rate)
+    naive_brier=positive_rate*(1.0-positive_rate)
+    rejection=[]
+    if accuracy<=naive_accuracy: rejection.append('oos_accuracy_not_above_naive')
+    if brier>=naive_brier: rejection.append('oos_brier_not_below_naive')
+    regime_buckets={}
+    for s in splits:
+        model=model_factory().fit([ds[i][0].values for i in s.train],[ds[i][1].up for i in s.train])
+        for i in s.test:
+            p=model.predict_one(ds[i][0].values).probability_up
+            y=int(ds[i][1].up); regime=str(ds[i][0].regime)
+            regime_buckets.setdefault(regime,[]).append((p,y))
+    regime_metrics=[]
+    for regime,items in sorted(regime_buckets.items()):
+        rp=[p for p,_ in items]; ry=[y for _,y in items]
+        racc=sum((p>=.5)==bool(y) for p,y in items)/len(items)
+        rbrier=sum((p-y)**2 for p,y in items)/len(items)
+        regime_metrics.append((regime,len(items),sum(ry)/len(ry),racc,rbrier))
     return TrainingReport(
         tuple(windows),stable,len(all_probs),accuracy,brier,snapshot,
-        positive_rate=positive_rate,naive_accuracy=max(positive_rate,1.0-positive_rate),
-        naive_brier=positive_rate*(1.0-positive_rate),
+        positive_rate=positive_rate,naive_accuracy=naive_accuracy,
+        naive_brier=naive_brier,
         probability_min=min(all_probs),probability_max=max(all_probs),
         probability_mean=sum(all_probs)/len(all_probs),
         probability_quantiles=tuple(quantile(q) for q in (.01,.05,.25,.50,.75,.95,.99)),
-        signal_counts=signal_counts)
+        signal_counts=signal_counts,accepted=not rejection,rejection_reasons=tuple(rejection),
+        regime_metrics=tuple(regime_metrics))
 
 def assert_snapshot_safe_for_simulation(snapshot,*,simulation_start_ms:int,bar_ms:int,purge_bars:int):
     required_gap=int(bar_ms)*int(purge_bars)
