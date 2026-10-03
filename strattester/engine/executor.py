@@ -33,9 +33,12 @@ def _step_ms(timeframe):
 def _complete_coverage(cov,start_ms,end_ms,step_ms):
     if cov.count==0:return False
     if start_ms is None or end_ms is None:return True
-    if cov.earliest!=start_ms or cov.latest!=end_ms:return False
+    start=((start_ms+step_ms-1)//step_ms)*step_ms
+    end=(end_ms//step_ms)*step_ms
+    if start>end:return False
+    if cov.earliest!=start or cov.latest!=end:return False
     if cov.gaps:return False
-    return cov.count==((end_ms-start_ms)//step_ms)+1
+    return cov.count==((end-start)//step_ms)+1
 
 def requirements_ready(definition,store,symbol,start_ms=None,end_ms=None):
     for req in definition.requirements:
