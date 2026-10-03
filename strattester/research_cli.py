@@ -37,7 +37,7 @@ def main(argv=None,*,registry=None,client=None):
     else:
         instruments=[{'symbol':s,'launchTime':str(a.start_ms)} for s in a.symbol]
     runner=ResearchRunner(store,client,clock_ms=lambda:int(time.time()*1000))
-    run_id=str(uuid.uuid4()); output=[]
+    run_id=str(uuid.uuid4()); output=[]; persisted=[]
     failures=[]
     try:
         for instrument in instruments:
@@ -48,14 +48,11 @@ def main(argv=None,*,registry=None,client=None):
                     metrics={'fingerprint':r.fingerprint,'output':r.output}
                     results.put(run_id,symbol,r.strategy_id,r.strategy_version,metrics)
                     output.append({'symbol':symbol,'strategy_id':r.strategy_id,'strategy_version':r.strategy_version,'fingerprint':r.fingerprint})
+                    persisted.append({'run_id':run_id,'symbol':symbol,'strategy_id':r.strategy_id,'strategy_version':r.strategy_version,'metrics':metrics})
                 except Exception as exc:
                     failures.append({'symbol':symbol,'strategy_id':definition.id,'error':str(exc)})
                     if a.fail_fast:
                         raise
-        persisted=[]
-        for item in output:
-            row=results.latest(item['symbol'],item['strategy_id'])
-            if row:persisted.append(row)
         summary=strategy_summary(persisted)
     finally:
         results.close(); store.close()
