@@ -52,13 +52,14 @@ def main(argv=None,*,registry=None,client=None):
                     failures.append({'symbol':symbol,'strategy_id':definition.id,'error':str(exc)})
                     if a.fail_fast:
                         raise
+        persisted=[]
+        for item in output:
+            row=results.latest(item['symbol'],item['strategy_id'])
+            if row:persisted.append(row)
+        summary=strategy_summary(persisted)
     finally:
         results.close(); store.close()
-    persisted=[]
-    for item in output:
-        row=results.latest(item['symbol'],item['strategy_id'])
-        if row:persisted.append(row)
-    print(json.dumps({'run_id':run_id,'results':output,'summary':strategy_summary(persisted),'failures':failures},sort_keys=True))
+    print(json.dumps({'run_id':run_id,'results':output,'summary':summary,'failures':failures},sort_keys=True))
     return 0
 
 if __name__=='__main__':
