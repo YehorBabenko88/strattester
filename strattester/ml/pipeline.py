@@ -5,6 +5,8 @@ from .labels import build_labels
 from .model import LogisticBaseline
 from .validation import walk_forward_splits
 from .forecasting import attach_forecast_features
+from .market_features import enrich_research_features,attach_external_series
+from .meta import attach_strategy_features
 
 @dataclass(frozen=True)
 class MLSignal:
@@ -38,8 +40,11 @@ class ResearchMLPipeline:
         self.mean_up_return=0.0
         self.mean_down_return=0.0
 
-    def dataset(self,bars,public_trade_aggregates=()):
+    def dataset(self,bars,public_trade_aggregates=(),*,open_interest=(),long_short_ratio=(),funding=(),strategy_observations=()):
         features=build_feature_rows(bars,public_trade_aggregates)
+        features=enrich_research_features(features,bars)
+        features=attach_external_series(features,open_interest=open_interest,long_short_ratio=long_short_ratio,funding=funding)
+        features=attach_strategy_features(features,strategy_observations)
         features=attach_forecast_features(features,bars,self.forecast_provider,horizon=self.horizon)
         labels=build_labels(bars,horizons=(self.horizon,))
         label_by_t={x.timestamp:x for x in labels}
