@@ -56,3 +56,27 @@ def test_plain_fit_is_not_accepted_for_simulation():
     p=ResearchMLPipeline(horizon=5).fit(b)
     with pytest.raises(RuntimeError):
         simulate_frozen_pipeline(p,b[:100],b[100:])
+
+
+def test_simulation_precomputes_feature_rows_once(monkeypatch):
+    all_bars=bars(420)
+    training=all_bars[:300]
+    p=ResearchMLPipeline(horizon=5)
+    p.fit_walk_forward(training,train_size=120,test_size=30,purge=5)
+    start=p.snapshot.trained_until+5*60000
+    simulation=[x for x in all_bars if x['t']>=start][:80]
+    context=[x for x in all_bars if x['t']<start]
+    calls=0
+    original=p.feature_rows
+
+    def counted(*args,**kwargs):
+        nonlocal calls
+        calls+=1
+        return original(*args,**kwargs)
+
+    monkeypatch.setattr(p,'feature_rows',counted)
+    simulate_frozen_pipeline(
+        p,context,simulation,
+        policy=MLSimulationPolicy(probability_threshold=.50,min_confidence=0.0,bar_ms=60000),
+        simulation_start_ms=start,purge=5)
+    assert calls==1
