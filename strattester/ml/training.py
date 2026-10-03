@@ -66,8 +66,11 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
     final_rows=[_filter(f.values,stable) for f,_ in ds]
     final_model=model_factory().fit(final_rows,[y.up for _,y in ds])
     ups=[y.future_return for _,y in ds if y.up]; downs=[y.future_return for _,y in ds if not y.up]
+    step_ms=(ds[1][0].timestamp-ds[0][0].timestamp) if len(ds)>1 else 60_000
+    last_feature,last_label=ds[-1]
+    label_known_at=int(last_feature.timestamp)+(int(last_label.horizon_bars)+1)*int(step_ms)
     snapshot=FrozenModel(
-        model=final_model,trained_until=ds[-1][0].known_at,feature_names=tuple(final_model.feature_names),
+        model=final_model,trained_until=label_known_at,feature_names=tuple(final_model.feature_names),
         stable_features=stable,
         mean_up_return=sum(ups)/len(ups) if ups else 0.0,
         mean_down_return=sum(downs)/len(downs) if downs else 0.0)
