@@ -36,3 +36,35 @@ def test_different_strategy_backtests_do_not_share_trade_state(tmp_path):
     short_only=run_legacy_suite(rows,('HIGH_SHORT',))
     assert together['HIGH_BASE']==high_only['HIGH_BASE']
     assert together['HIGH_SHORT']==short_only['HIGH_SHORT']
+
+from strattester.engine.jobs import Job,JobState
+from strattester.persistence.sqlite_state_store import SQLiteStateStore
+
+def test_same_market_writer_is_exclusive_but_backtests_remain_parallel(tmp_path):
+    s=SQLiteStateStore.open(tmp_path/'state.db')
+    sync1=Job.new('sync',symbol='BTCUSDT',resource_key='market:BTCUSDT',state=JobState.READY)
+    sync2=Job.new('sync',symbol='BTCUSDT',resource_key='market:BTCUSDT',state=JobState.READY)
+    a=Job.new('backtest',symbol='BTCUSDT',strategy_id='A',state=JobState.READY)
+    b=Job.new('backtest',symbol='BTCUSDT',strategy_id='B',state=JobState.READY)
+    for j in (sync1,sync2,a,b): s.put_job(j)
+    claimed=s.claim_ready_jobs('w1',limit=4,now=100,lease_seconds=60)
+    ids={x.id for x in claimed}
+    assert a.id in ids and b.id in ids
+    assert len({sync1.id,sync2.id}&ids)==1
+    s.close()
+
+def test_expired_writer_lease_releases_resource(tmp_path):
+    s=SQLiteStateStore.open(tmp_path/'state.db')
+    old=Job.new('sync',symbol='BTCUSDT',resource_key='market:BTCUSDT',state=JobState.RUNNING,
+                lease_owner='dead',lease_until=99)
+    new=Job.new('sync',symbol='BTCUSDT',resource_key='market:BTCUSDT',state=JobState.READY)
+    s.put_job(old); s.put_job(new)
+    claimed=s.claim_ready_jobs('w2',limit=2,now=100,lease_seconds=60)
+    sync_claims=[x for x in claimed if x.resource_key=='market:BTCUSDT']
+    assert len(sync_claims)==1
+    assert sync_claims[0].id in (old.id,new.id)
+    # The stale job may itself be retried first; the invariant is that the
+    # resource is released and exactly one writer is leased, never two.
+    states={s.get_job(old.id).state,s.get_job(new.id).state}
+    assert JobState.LEASED in states
+    s.close()

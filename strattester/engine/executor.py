@@ -12,26 +12,33 @@ class StrategyResult:
 class StrategyContext:
     store:object
     symbol:str
+    start_ms:int|None=None
+    end_ms:int|None=None
     def candles(self,timeframe='1m'):
-        return self.store.iter_candles(self.symbol,timeframe)
+        return self.store.iter_candles(self.symbol,timeframe,start_ms=self.start_ms,end_ms=self.end_ms)
+    def public_trade_aggregates(self,timeframe='1m'):
+        return self.store.iter_public_trade_aggregates(
+            self.symbol,timeframe,start_ms=self.start_ms,end_ms=self.end_ms)
     def coverage(self,dataset,timeframe='1m'):
-        return self.store.coverage(self.symbol,getattr(dataset,'value',dataset),timeframe)
+        return self.store.coverage(
+            self.symbol,getattr(dataset,'value',dataset),timeframe,
+            start_ms=self.start_ms,end_ms=self.end_ms)
 
-def requirements_ready(definition,store,symbol):
+def requirements_ready(definition,store,symbol,start_ms=None,end_ms=None):
     for req in definition.requirements:
         dataset=getattr(req.dataset,'value',req.dataset)
         timeframes=req.timeframes or ('1m',)
         if req.required:
             for tf in timeframes:
-                if store.coverage(symbol,dataset,tf).count==0:
+                if store.coverage(symbol,dataset,tf,start_ms=start_ms,end_ms=end_ms).count==0:
                     return False
     return True
 
-def execute_strategy(definition,store,symbol,checkpoint=None):
-    if not requirements_ready(definition,store,symbol):
+def execute_strategy(definition,store,symbol,checkpoint=None,start_ms=None,end_ms=None):
+    if not requirements_ready(definition,store,symbol,start_ms=start_ms,end_ms=end_ms):
         raise RuntimeError('strategy requirements are not ready')
     impl=definition.implementation()
-    context=StrategyContext(store,symbol)
+    context=StrategyContext(store,symbol,start_ms,end_ms)
     if hasattr(impl,'run_context'):
         output=impl.run_context(context,checkpoint=checkpoint)
     else:

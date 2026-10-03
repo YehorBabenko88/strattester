@@ -34,3 +34,53 @@ def test_executor_accepts_ready_rich_requirements_and_context(tmp_path):
     r=execute_strategy(d,s,'BTCUSDT')
     assert r.output=={'candles':1,'mark_rows':1}
     s.close()
+
+def test_executor_respects_requested_time_range(tmp_path):
+    s=SQLiteMarketStore.open(tmp_path/'m.db')
+    s.upsert_candles([Candle('BTCUSDT','1m',i*60000,1,1,1,1,1) for i in range(5)])
+    r=execute_strategy(definition(),s,'BTCUSDT',start_ms=60000,end_ms=180000)
+    assert r.output==3
+    s.close()
+
+
+class PublicTradeWindow:
+    def run_context(self,context,checkpoint=None):
+        return [row['open_time'] for row in context.public_trade_aggregates('1m')]
+
+def test_executor_bounds_public_trade_aggregates_to_requested_time_range(tmp_path):
+    s=SQLiteMarketStore.open(tmp_path/'m.db')
+    s.upsert_public_trade_aggregates('BTCUSDT',[
+        {'open_time':0,'buy_volume':1,'sell_volume':0,'turnover':1,'trade_count':1},
+        {'open_time':60_000,'buy_volume':1,'sell_volume':0,'turnover':1,'trade_count':1},
+        {'open_time':120_000,'buy_volume':1,'sell_volume':0,'turnover':1,'trade_count':1},
+        {'open_time':180_000,'buy_volume':1,'sell_volume':0,'turnover':1,'trade_count':1},
+    ])
+    d=StrategyDefinition('orderflow-window','1',(
+        DataRequirement('public_trade_aggregates',('1m',)),
+    ),PublicTradeWindow)
+    r=execute_strategy(d,s,'BTCUSDT',start_ms=60_000,end_ms=120_000)
+    assert r.output==[60_000,120_000]
+    s.close()
+
+
+class CoverageWindow:
+    def run_context(self,context,checkpoint=None):
+        cov=context.coverage('candles','1m')
+        return cov.earliest,cov.latest,cov.count
+
+def test_context_coverage_is_bounded_to_requested_time_range(tmp_path):
+    s=SQLiteMarketStore.open(tmp_path/'m.db')
+    s.upsert_candles([Candle('BTCUSDT','1m',i*60_000,1,1,1,1,1) for i in range(5)])
+    d=StrategyDefinition('coverage-window','1',(
+        DataRequirement('candles',('1m',)),
+    ),CoverageWindow)
+    r=execute_strategy(d,s,'BTCUSDT',start_ms=60_000,end_ms=180_000)
+    assert r.output==(60_000,180_000,3)
+    s.close()
+
+def test_requirements_do_not_use_history_outside_requested_window(tmp_path):
+    s=SQLiteMarketStore.open(tmp_path/'m.db')
+    s.upsert_candles([Candle('BTCUSDT','1m',0,1,1,1,1,1)])
+    with pytest.raises(RuntimeError):
+        execute_strategy(definition(),s,'BTCUSDT',start_ms=60_000,end_ms=120_000)
+    s.close()

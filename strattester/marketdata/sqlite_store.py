@@ -191,15 +191,20 @@ class SQLiteMarketStore:
                 ('buy_volume','sell_volume','turnover','trade_count','vwap','max_trade'),parsed)
         return WriteStats(s.accepted,s.unchanged,s.rejected+rejected)
 
-    def iter_public_trade_aggregates(self,symbol:str,timeframe:str='1m'):
+    def iter_public_trade_aggregates(self,symbol:str,timeframe:str='1m',start_ms:int|None=None,end_ms:int|None=None):
+        where=['symbol=?','timeframe=?']; params=[symbol,timeframe]
+        if start_ms is not None:
+            where.append('open_time>=?'); params.append(int(start_ms))
+        if end_ms is not None:
+            where.append('open_time<=?'); params.append(int(end_ms))
         cur=self.connection.execute(
-            'SELECT open_time,buy_volume,sell_volume,turnover,trade_count,vwap,max_trade FROM public_trade_aggregates WHERE symbol=? AND timeframe=? ORDER BY open_time',
-            (symbol,timeframe))
+            f"SELECT open_time,buy_volume,sell_volume,turnover,trade_count,vwap,max_trade FROM public_trade_aggregates WHERE {' AND '.join(where)} ORDER BY open_time",
+            tuple(params))
         for ts,buy,sell,turnover,count,vwap,max_trade in cur:
             yield {'t':ts,'open_time':ts,'buy_volume':buy,'sell_volume':sell,'delta':buy-sell,
                    'turnover':turnover,'trade_count':count,'vwap':vwap,'max_trade':max_trade}
 
-    def coverage(self,symbol:str,dataset:str='candles',timeframe:str='1m',step_ms:int=60_000)->Coverage:
+    def coverage(self,symbol:str,dataset:str='candles',timeframe:str='1m',step_ms:int=60_000,start_ms:int|None=None,end_ms:int|None=None)->Coverage:
         mapping={
             'candles':('candles','open_time',True),
             'mark_price':('mark_prices','open_time',True),
@@ -209,39 +214,59 @@ class SQLiteMarketStore:
             'funding':('funding','funding_time',False),
             'long_short_ratio':('long_short_ratio','open_time',True),
             'public_trades':('public_trade_aggregates','open_time',True),
+            'public_trade_aggregates':('public_trade_aggregates','open_time',True),
         }
         if dataset not in mapping: raise ValueError('unsupported dataset')
         if dataset=='candles' and self._legacy_candles:
             if timeframe!='1m': return Coverage(None,None,0,())
-            rows=self.connection.execute('SELECT ts FROM candles WHERE symbol=? ORDER BY ts',(symbol,)).fetchall()
+            where=['symbol=?']; params=[symbol]
+            if start_ms is not None:
+                where.append('ts>=?'); params.append(int(start_ms))
+            if end_ms is not None:
+                where.append('ts<=?'); params.append(int(end_ms))
+            rows=self.connection.execute(f"SELECT ts FROM candles WHERE {' AND '.join(where)} ORDER BY ts",tuple(params)).fetchall()
             if not rows:return Coverage(None,None,0,())
             times=[r[0] for r in rows]; gaps=[]
             for a,b in zip(times,times[1:]):
                 if b-a>step_ms:gaps.append(TimeRange(a+step_ms,b-step_ms))
             return Coverage(times[0],times[-1],len(times),tuple(gaps))
         table,time_col,uses_tf=mapping[dataset]
+        where=['symbol=?']; params=[symbol]
         if uses_tf:
-            rows=self.connection.execute(f'SELECT {time_col} FROM {table} WHERE symbol=? AND timeframe=? ORDER BY {time_col}',(symbol,timeframe)).fetchall()
-        else:
-            rows=self.connection.execute(f'SELECT {time_col} FROM {table} WHERE symbol=? ORDER BY {time_col}',(symbol,)).fetchall()
+            where.append('timeframe=?'); params.append(timeframe)
+        if start_ms is not None:
+            where.append(f'{time_col}>=?'); params.append(int(start_ms))
+        if end_ms is not None:
+            where.append(f'{time_col}<=?'); params.append(int(end_ms))
+        rows=self.connection.execute(
+            f"SELECT {time_col} FROM {table} WHERE {' AND '.join(where)} ORDER BY {time_col}",
+            tuple(params)).fetchall()
         if not rows:return Coverage(None,None,0,())
         times=[r[0] for r in rows]; gaps=[]
         for a,b in zip(times,times[1:]):
             if b-a>step_ms:gaps.append(TimeRange(a+step_ms,b-step_ms))
         return Coverage(times[0],times[-1],len(times),tuple(gaps))
 
-    def iter_candles(self,symbol:str,timeframe:str='1m',batch_size:int=20_000):
+    def iter_candles(self,symbol:str,timeframe:str='1m',batch_size:int=20_000,start_ms:int|None=None,end_ms:int|None=None):
+        time_col='ts' if self._legacy_candles else 'open_time'
+        if self._legacy_candles and timeframe!='1m': return
+        where=['symbol=?']; params=[symbol]
+        if not self._legacy_candles:
+            where.append('timeframe=?'); params.append(timeframe)
+        if start_ms is not None:
+            where.append(f'{time_col}>=?'); params.append(int(start_ms))
+        if end_ms is not None:
+            where.append(f'{time_col}<=?'); params.append(int(end_ms))
         if self._legacy_candles:
-            if timeframe!='1m': return
-            cur=self.connection.execute('SELECT symbol,ts,open,high,low,close,volume,turnover FROM candles WHERE symbol=? ORDER BY ts',(symbol,))
-            while True:
-                batch=cur.fetchmany(batch_size)
-                if not batch: break
-                for r in batch:
-                    yield Candle(r[0],'1m',r[1],r[2],r[3],r[4],r[5],r[6],r[7],True)
-            return
-        cur=self.connection.execute('SELECT symbol,timeframe,open_time,open,high,low,close,volume,turnover,complete FROM candles WHERE symbol=? AND timeframe=? ORDER BY open_time',(symbol,timeframe))
+            select='symbol,ts,open,high,low,close,volume,turnover'
+        else:
+            select='symbol,timeframe,open_time,open,high,low,close,volume,turnover,complete'
+        cur=self.connection.execute(f"SELECT {select} FROM candles WHERE {' AND '.join(where)} ORDER BY {time_col}",tuple(params))
         while True:
             batch=cur.fetchmany(batch_size)
             if not batch: break
-            for r in batch: yield Candle(*r[:-1],complete=bool(r[-1]))
+            for r in batch:
+                if self._legacy_candles:
+                    yield Candle(r[0],'1m',r[1],r[2],r[3],r[4],r[5],r[6],r[7],True)
+                else:
+                    yield Candle(*r[:-1],complete=bool(r[-1]))
