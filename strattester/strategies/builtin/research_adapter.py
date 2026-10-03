@@ -36,6 +36,9 @@ class ResearchHypothesisStrategy:
         s=Signal(decision_time,side,'market',None,px-risk if side=='long' else px+risk,px+rr*risk if side=='long' else px-rr*risk)
         try:return simulate_trade(s,future,ExecutionPolicy(bar_ms=60_000),metadata=metadata)
         except ValueError:return None
+    def _append_non_overlapping(self,trades,trade):
+        if trade is not None and (not trades or trade.entry_time>trades[-1].exit_time):
+            trades.append(trade)
     def _result(self,spec,trades,**extra):
         return {'hypothesis':spec.name,'family':spec.family,'trades':[asdict(x) for x in trades],
                 'metrics':asdict(evaluate_trades(trades)),**extra}
@@ -78,7 +81,7 @@ class ResearchHypothesisStrategy:
                     elif close>=snap.vah: side='short'
                 if side:
                     t=self._signal_trade(bars,snap.known_at,side,metadata={'poc_mode':snap.mode.value})
-                    if t:trades.append(t)
+                    self._append_non_overlapping(trades,t)
             return self._result(spec,trades,snapshots=len(snaps),last_poc=snaps[-1].poc,mode=snaps[-1].mode.value,checkpoint=checkpoint)
         if spec.family=='volatility':
             from strattester.research.volatility import VolatilityObservatory
@@ -93,7 +96,7 @@ class ResearchHypothesisStrategy:
                 fire=(wanted=='compression_expansion' and snap.regime.value in ('HIGH','EXTREME')) or (wanted=='continuation' and snap.regime.value in ('HIGH','EXTREME')) or (wanted=='exhaustion' and snap.regime.value=='EXTREME')
                 if fire:
                     t=self._signal_trade(bars,snap.known_at,side if wanted!='exhaustion' else ('short' if side=='long' else 'long'),metadata={'volatility':snap.regime.value})
-                    if t:trades.append(t)
+                    self._append_non_overlapping(trades,t)
             return self._result(spec,trades,snapshots=len(snaps),last_regime=snaps[-1].regime.value if snaps else None,checkpoint=checkpoint)
         if spec.family=='orderflow':
             from strattester.research.orderflow import cumulative_delta
