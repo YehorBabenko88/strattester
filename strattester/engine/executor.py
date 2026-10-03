@@ -17,7 +17,8 @@ class StrategyContext:
     def candles(self,timeframe='1m'):
         return self.store.iter_candles(self.symbol,timeframe,start_ms=self.start_ms,end_ms=self.end_ms)
     def public_trade_aggregates(self,timeframe='1m'):
-        return self.store.iter_public_trade_aggregates(self.symbol,timeframe)
+        return self.store.iter_public_trade_aggregates(
+            self.symbol,timeframe,start_ms=self.start_ms,end_ms=self.end_ms)
     def coverage(self,dataset,timeframe='1m'):
         return self.store.coverage(self.symbol,getattr(dataset,'value',dataset),timeframe)
 
