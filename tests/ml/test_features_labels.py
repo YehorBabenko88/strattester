@@ -34,3 +34,14 @@ def test_labels_use_strictly_future_bars():
     assert y.future_return==102/100-1
     assert y.mfe==103/100-1
     assert y.mae==100/100-1
+
+
+def test_features_include_causal_multi_horizon_family():
+    rows=build_feature_rows(bars(80))
+    values=rows[-1].values
+    for name in ('return_15','return_30','return_60','realized_vol_5','realized_vol_20',
+                 'realized_vol_60','vol_ratio_5_20','volume_z20','range_z20',
+                 'price_vs_sma5','price_vs_sma20','price_vs_sma60','sma5_vs_sma20',
+                 'sma20_vs_sma60','body_pct','upper_wick_pct','lower_wick_pct'):
+        assert name in values
+        assert isinstance(values[name],float)
