@@ -80,3 +80,22 @@ def test_simulation_precomputes_feature_rows_once(monkeypatch):
         policy=MLSimulationPolicy(probability_threshold=.50,min_confidence=0.0,bar_ms=60000),
         simulation_start_ms=start,purge=5)
     assert calls==1
+
+
+def test_simulation_can_report_frozen_holdout_diagnostics():
+    all_bars=bars(420)
+    p=ResearchMLPipeline(horizon=5)
+    p.fit_walk_forward(all_bars[:300],train_size=120,test_size=30,purge=5)
+    start=p.snapshot.trained_until+5*60000
+    simulation=[x for x in all_bars if x['t']>=start][:80]
+    context=[x for x in all_bars if x['t']<start]
+    diagnostics={}
+    simulate_frozen_pipeline(
+        p,context,simulation,
+        policy=MLSimulationPolicy(probability_threshold=.60,min_confidence=.20,bar_ms=60000),
+        simulation_start_ms=start,purge=5,diagnostics=diagnostics)
+    assert diagnostics['predictions']>0
+    assert 0.0<=diagnostics['probability_min']<=diagnostics['probability_max']<=1.0
+    assert set(diagnostics['probability_quantiles'])=={'p01','p05','p25','p50','p75','p95','p99'}
+    assert set(diagnostics['signal_counts'])=={'0.55','0.6','0.65'}
+    assert diagnostics['policy_eligible']>=0
