@@ -1,6 +1,9 @@
 from __future__ import annotations
 from strattester.strategies.base import DataRequirement,StrategyDefinition
 from .research_common import HypothesisSpec
+from strattester.research.execution import ExecutionPolicy,Signal,simulate_trade
+from strattester.research.statistics import evaluate_trades
+from dataclasses import asdict
 
 def _bars(context,timeframe='1m'):
     return [
@@ -11,6 +14,19 @@ def _bars(context,timeframe='1m'):
 
 class ResearchHypothesisStrategy:
     spec:HypothesisSpec
+    def _backtest(self,bars,events):
+        trades=[]
+        for event in events:
+            kind=getattr(event,'kind','')
+            if not any(x in kind for x in ('bos','choch','liquidity_sweep')): continue
+            side='long' if kind.startswith('bullish') else 'short'
+            future=[b for b in bars if b['t']>=event.known_at]
+            if len(future)<2: continue
+            px=float(future[0]['open']); risk=max(px*.005,1e-12)
+            signal=Signal(event.known_at,side,'market',None,px-risk if side=='long' else px+risk,px+2*risk if side=='long' else px-2*risk)
+            try: trades.append(simulate_trade(signal,future,ExecutionPolicy(bar_ms=60_000)))
+            except ValueError: pass
+        return trades
     def run_context(self,context,checkpoint=None):
         spec=self.spec
         bars=_bars(context,'1m')
@@ -27,7 +43,8 @@ class ResearchHypothesisStrategy:
             elif wanted=='momentum': features=tuple(x for x in features if x.kind.endswith(('bos','choch')))
             confirm=spec.params.get('confirm')
             if confirm: features=tuple(x for x in features if confirm in x.kind or wanted=='order_block')
-            return {'hypothesis':spec.name,'family':spec.family,'features':len(features),'checkpoint':checkpoint}
+            trades=self._backtest(bars,features)
+            return {'hypothesis':spec.name,'family':spec.family,'features':len(features),'trades':[asdict(x) for x in trades],'metrics':asdict(evaluate_trades(trades)),'checkpoint':checkpoint}
         if spec.family=='poc':
             from strattester.research.volume_profile import proxy_profile
             if not bars:return {'hypothesis':spec.name,'family':spec.family,'snapshots':0,'checkpoint':checkpoint}
