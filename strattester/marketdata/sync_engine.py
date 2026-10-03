@@ -26,6 +26,15 @@ class SyncResult:
 
 _STEP_MS={'1m':60_000,'3m':180_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'2h':7_200_000,'4h':14_400_000,'6h':21_600_000,'12h':43_200_000,'1d':86_400_000}
 
+def _bybit_interval(timeframe:str)->str:
+    tf=str(timeframe).lower()
+    mapping={
+        '1m':'1','3m':'3','5m':'5','15m':'15','30m':'30',
+        '1h':'60','2h':'120','4h':'240','6h':'360','12h':'720',
+        '1d':'D',
+    }
+    return mapping.get(tf, timeframe)
+
 class SyncEngine:
     def __init__(self,store,client,clock_ms=None):
         self.store=store; self.client=client; self.clock_ms=clock_ms or (lambda:int(time.time()*1000))
@@ -54,7 +63,7 @@ class SyncEngine:
     def _sync_rows(self,req,start,end):
         step=self._step(req)
         if req.dataset=='candles':
-            rows=self.client.fetch_klines(req.symbol,start,end,'1')
+            rows=self.client.fetch_klines(req.symbol,start,end,_bybit_interval(req.timeframe))
             accepted=[]
             for row in rows:
                 ts=int(row[0])
@@ -63,7 +72,7 @@ class SyncEngine:
             return self.store.upsert_candles(accepted),rows
         if req.dataset in ('mark_price','index_price','premium_index'):
             method={'mark_price':'fetch_mark_klines','index_price':'fetch_index_klines','premium_index':'fetch_premium_klines'}[req.dataset]
-            rows=getattr(self.client,method)(req.symbol,start,end,'1')
+            rows=getattr(self.client,method)(req.symbol,start,end,_bybit_interval(req.timeframe))
             closed=[r for r in rows if start<=int(r[0])<=req.end_ms and int(r[0])+step<=self.clock_ms()]
             return self.store.upsert_price_klines(req.dataset,req.symbol,closed,req.timeframe),rows
         if req.dataset=='open_interest':
