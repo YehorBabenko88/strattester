@@ -24,13 +24,27 @@ class StrategyContext:
             self.symbol,getattr(dataset,'value',dataset),timeframe,
             start_ms=self.start_ms,end_ms=self.end_ms)
 
+def _step_ms(timeframe):
+    tf=str(timeframe).lower()
+    units={'m':60_000,'h':3_600_000,'d':86_400_000}
+    try:return int(tf[:-1])*units[tf[-1]]
+    except (ValueError,KeyError):return 60_000
+
+def _complete_coverage(cov,start_ms,end_ms,step_ms):
+    if cov.count==0:return False
+    if start_ms is None or end_ms is None:return True
+    if cov.earliest!=start_ms or cov.latest!=end_ms:return False
+    if cov.gaps:return False
+    return cov.count==((end_ms-start_ms)//step_ms)+1
+
 def requirements_ready(definition,store,symbol,start_ms=None,end_ms=None):
     for req in definition.requirements:
         dataset=getattr(req.dataset,'value',req.dataset)
         timeframes=req.timeframes or ('1m',)
         if req.required:
             for tf in timeframes:
-                if store.coverage(symbol,dataset,tf,start_ms=start_ms,end_ms=end_ms).count==0:
+                cov=store.coverage(symbol,dataset,tf,step_ms=_step_ms(tf),start_ms=start_ms,end_ms=end_ms)
+                if not _complete_coverage(cov,start_ms,end_ms,_step_ms(tf)):
                     return False
     return True
 
