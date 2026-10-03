@@ -12,3 +12,9 @@ def test_enable_disable_preserves_identity():
     assert before==after and not r.discover()[0].enabled
 def test_version_changes_result_identity():
     assert strategy_fingerprint(d('1')) != strategy_fingerprint(d('2'))
+
+
+def test_builtin_registry_exposes_runnable_legacy_grid():
+    from strattester.strategies.registry import builtin_registry
+    found=builtin_registry().discover()
+    assert [(x.id,x.version) for x in found]==[('legacy_grid','1.0')]
