@@ -6,6 +6,7 @@ from strattester.marketdata.sqlite_store import SQLiteMarketStore
 from strattester.persistence.result_store import ResultStore
 from strattester.research.runner import ResearchRunner
 from strattester.strategies.registry import StrategyRegistry,builtin_registry
+from strattester.research.comparison import strategy_summary
 
 def _parser():
     p=argparse.ArgumentParser(prog='strattester-research')
@@ -53,7 +54,11 @@ def main(argv=None,*,registry=None,client=None):
                         raise
     finally:
         results.close(); store.close()
-    print(json.dumps({'run_id':run_id,'results':output,'failures':failures},sort_keys=True))
+    persisted=[]
+    for item in output:
+        row=results.latest(item['symbol'],item['strategy_id'])
+        if row:persisted.append(row)
+    print(json.dumps({'run_id':run_id,'results':output,'summary':strategy_summary(persisted),'failures':failures},sort_keys=True))
     return 0
 
 if __name__=='__main__':
