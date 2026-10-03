@@ -61,3 +61,26 @@ def test_executor_bounds_public_trade_aggregates_to_requested_time_range(tmp_pat
     r=execute_strategy(d,s,'BTCUSDT',start_ms=60_000,end_ms=120_000)
     assert r.output==[60_000,120_000]
     s.close()
+
+
+class CoverageWindow:
+    def run_context(self,context,checkpoint=None):
+        cov=context.coverage('candles','1m')
+        return cov.earliest,cov.latest,cov.count
+
+def test_context_coverage_is_bounded_to_requested_time_range(tmp_path):
+    s=SQLiteMarketStore.open(tmp_path/'m.db')
+    s.upsert_candles([Candle('BTCUSDT','1m',i*60_000,1,1,1,1,1) for i in range(5)])
+    d=StrategyDefinition('coverage-window','1',(
+        DataRequirement('candles',('1m',)),
+    ),CoverageWindow)
+    r=execute_strategy(d,s,'BTCUSDT',start_ms=60_000,end_ms=180_000)
+    assert r.output==(60_000,180_000,3)
+    s.close()
+
+def test_requirements_do_not_use_history_outside_requested_window(tmp_path):
+    s=SQLiteMarketStore.open(tmp_path/'m.db')
+    s.upsert_candles([Candle('BTCUSDT','1m',0,1,1,1,1,1)])
+    with pytest.raises(RuntimeError):
+        execute_strategy(definition(),s,'BTCUSDT',start_ms=60_000,end_ms=120_000)
+    s.close()
