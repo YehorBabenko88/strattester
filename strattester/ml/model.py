@@ -47,5 +47,8 @@ class LogisticBaseline:
         score=self.bias+sum(w*v for w,v in zip(self.weights,x))
         return ModelPrediction(self._sigmoid(score),score)
 
+    def coefficients(self):
+        return tuple((k,w) for k,w in zip(self.feature_names,self.weights))
+
     def feature_importance(self):
-        return tuple(sorted(((k,abs(w)) for k,w in zip(self.feature_names,self.weights)),key=lambda x:x[1],reverse=True))
+        return tuple(sorted(((k,abs(w)) for k,w in self.coefficients()),key=lambda x:x[1],reverse=True))
