@@ -78,14 +78,24 @@ class ResearchMLPipeline:
         self.mean_down_return=report.snapshot.mean_down_return
         return report
 
-    def signal(self,bars,public_trade_aggregates=()):
+    def signal(self,bars,public_trade_aggregates=(),**kwargs):
         if self.model is None:raise RuntimeError('pipeline is not fitted')
         rows=build_feature_rows(bars,public_trade_aggregates)
+        rows=enrich_research_features(rows,bars)
+        rows=attach_external_series(rows,open_interest=kwargs.get('open_interest',()),long_short_ratio=kwargs.get('long_short_ratio',()),funding=kwargs.get('funding',()))
+        rows=attach_strategy_features(rows,kwargs.get('strategy_observations',()))
         rows=attach_forecast_features(rows,bars,self.forecast_provider,horizon=self.horizon)
         if not rows:raise ValueError('no feature rows')
-        row=rows[-1]; p=self.model.predict_one(row.values).probability_up
+        row=rows[-1]
+        predictor=self.snapshot if self.snapshot is not None else self.model
+        p=predictor.predict_one(row.values).probability_up
         expected=p*self.mean_up_return+(1-p)*self.mean_down_return
         return MLSignal(row.timestamp,row.known_at,row.regime,p,expected,abs(p-.5)*2,self.horizon,tuple(self.model.feature_importance()[:8]))
+
+    def assert_simulation_safe(self,*,simulation_start_ms,bar_ms=60_000,purge=None):
+        if self.snapshot is None:
+            raise RuntimeError('walk-forward frozen snapshot is required for simulation safety checks')
+        return assert_snapshot_safe_for_simulation(self.snapshot,simulation_start_ms=int(simulation_start_ms),bar_ms=int(bar_ms),purge_bars=max(self.horizon,int(purge or 0)))
 
     def walk_forward(self,bars,public_trade_aggregates=(), *, train_size=500,test_size=100,purge=None):
         ds=self.dataset(bars,public_trade_aggregates)
