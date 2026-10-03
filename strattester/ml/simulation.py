@@ -22,13 +22,26 @@ def simulate_frozen_pipeline(pipeline,context_bars,simulation_bars,*,policy=MLSi
     start=int(simulation_start_ms if simulation_start_ms is not None else sim[0]['t'])
     pipeline.assert_simulation_safe(simulation_start_ms=start,bar_ms=policy.bar_ms,purge=purge)
     base=[dict(x) for x in context_bars if int(x['t'])<start]
+    # Build causal features once for the complete replay. Each FeatureRow carries
+    # its own known_at boundary, so later market/external observations are not
+    # exposed to earlier predictions. This avoids rebuilding the entire history
+    # for every simulated bar.
+    replay_bars=base+sim
+    feature_rows=pipeline.feature_rows(
+        replay_bars,public_trade_aggregates,
+        open_interest=feature_kwargs.get('open_interest',()),
+        long_short_ratio=feature_kwargs.get('long_short_ratio',()),
+        funding=feature_kwargs.get('funding',()),
+        strategy_observations=feature_kwargs.get('strategy_observations',()))
+    features_by_t={int(row.timestamp):row for row in feature_rows}
     trades=[]; busy_until=-1
     execution=ExecutionPolicy(
         bar_ms=policy.bar_ms,fee_rate=policy.fee_rate,slippage_bps=policy.slippage_bps,
         position_usd=policy.position_usd)
     for i,current in enumerate(sim):
-        history=base+sim[:i+1]
-        ml=pipeline.signal(history,public_trade_aggregates,**feature_kwargs)
+        row=features_by_t.get(int(current['t']))
+        if row is None:continue
+        ml=pipeline.signal_from_feature_row(row)
         if ml.confidence<policy.min_confidence:continue
         if ml.probability_up>=policy.probability_threshold:
             side='long'
