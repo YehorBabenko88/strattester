@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from .model import LogisticBaseline
+from .model import LogisticBaseline,BalancedLogisticBaseline
 from .validation import walk_forward_splits
 from .stability import feature_stability
 
@@ -55,6 +55,8 @@ class TrainingReport:
     accepted:bool=False
     rejection_reasons:tuple[str,...]=()
     regime_metrics:tuple[tuple[str,int,float,float,float],...]=()
+    model_name:str='logistic'
+    candidates:tuple[tuple[str,float,float],...]=()
 
 def _filter(values,names):
     return {k:float(values.get(k,0.0)) for k in names}
@@ -63,9 +65,23 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
     ds=tuple(dataset)
     splits=walk_forward_splits(len(ds),train_size=train_size,test_size=test_size,purge=purge)
     if not splits: raise ValueError('not enough samples for walk-forward training')
+    candidate_factories=[('logistic',model_factory)]
+    if model_factory is LogisticBaseline:
+        candidate_factories.append(('balanced_logistic',BalancedLogisticBaseline))
+    candidate_scores=[]
+    for candidate_name,candidate_factory in candidate_factories:
+        cp=[]; cy=[]
+        for s in splits:
+            cm=candidate_factory().fit([ds[i][0].values for i in s.train],[ds[i][1].up for i in s.train])
+            for i in s.test:
+                cp.append(cm.predict_one(ds[i][0].values).probability_up); cy.append(ds[i][1].up)
+        ca=sum((p>=.5)==bool(y) for p,y in zip(cp,cy))/len(cp)
+        cb=sum((p-y)**2 for p,y in zip(cp,cy))/len(cp)
+        candidate_scores.append((candidate_name,ca,cb,candidate_factory))
+    selected_name,_,_,selected_factory=min(candidate_scores,key=lambda x:(x[2],-x[1]))
     windows=[]; all_probs=[]; all_labels=[]; all_regimes=[]; coeff_windows=[]
     for s in splits:
-        model=model_factory().fit([ds[i][0].values for i in s.train],[ds[i][1].up for i in s.train])
+        model=selected_factory().fit([ds[i][0].values for i in s.train],[ds[i][1].up for i in s.train])
         coeff=dict(model.coefficients())
         coeff_windows.append(coeff)
         probs=[model.predict_one(ds[i][0].values).probability_up for i in s.test]
@@ -90,7 +106,7 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         ranked=sorted(stability,key=lambda x:x.mean_importance,reverse=True)
         stable=tuple(x.name for x in ranked[:min(8,len(ranked))])
     final_rows=[_filter(f.values,stable) for f,_ in ds]
-    final_model=model_factory().fit(final_rows,[y.up for _,y in ds])
+    final_model=selected_factory().fit(final_rows,[y.up for _,y in ds])
     ups=[y.future_return for _,y in ds if y.up]; downs=[y.future_return for _,y in ds if not y.up]
     step_ms=(ds[1][0].timestamp-ds[0][0].timestamp) if len(ds)>1 else 60_000
     last_feature,last_label=ds[-1]
@@ -132,7 +148,8 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         probability_mean=sum(all_probs)/len(all_probs),
         probability_quantiles=tuple(quantile(q) for q in (.01,.05,.25,.50,.75,.95,.99)),
         signal_counts=signal_counts,accepted=not rejection,rejection_reasons=tuple(rejection),
-        regime_metrics=tuple(regime_metrics))
+        regime_metrics=tuple(regime_metrics),model_name=selected_name,
+        candidates=tuple((name,acc,score) for name,acc,score,_ in candidate_scores))
 
 def assert_snapshot_safe_for_simulation(snapshot,*,simulation_start_ms:int,bar_ms:int,purge_bars:int):
     required_gap=int(bar_ms)*int(purge_bars)
