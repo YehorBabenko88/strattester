@@ -14,6 +14,12 @@ class TrainingWindowResult:
     accuracy:float
     brier:float
     coefficients:dict[str,float]
+    positive_rate:float=0.0
+    naive_accuracy:float=0.0
+    naive_brier:float=0.0
+    probability_min:float=0.0
+    probability_max:float=0.0
+    probability_mean:float=0.0
 
 @dataclass(frozen=True)
 class FrozenModel:
@@ -36,6 +42,14 @@ class TrainingReport:
     accuracy:float
     brier:float
     snapshot:FrozenModel
+    positive_rate:float=0.0
+    naive_accuracy:float=0.0
+    naive_brier:float=0.0
+    probability_min:float=0.0
+    probability_max:float=0.0
+    probability_mean:float=0.0
+    probability_quantiles:tuple[float,...]=()
+    signal_counts:tuple[tuple[float,int],...]=()
 
 def _filter(values,names):
     return {k:float(values.get(k,0.0)) for k in names}
@@ -57,7 +71,12 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         windows.append(TrainingWindowResult(
             train_start=ds[s.train[0]][0].timestamp,train_end=ds[s.train[-1]][0].timestamp,
             test_start=ds[s.test[0]][0].timestamp,test_end=ds[s.test[-1]][0].timestamp,
-            samples=len(s.test),accuracy=acc,brier=brier,coefficients=coeff))
+            samples=len(s.test),accuracy=acc,brier=brier,coefficients=coeff,
+            positive_rate=sum(labels)/len(labels),
+            naive_accuracy=max(sum(labels)/len(labels),1.0-sum(labels)/len(labels)),
+            naive_brier=(sum(labels)/len(labels))*(1.0-sum(labels)/len(labels)),
+            probability_min=min(probs),probability_max=max(probs),
+            probability_mean=sum(probs)/len(probs)))
     stability=feature_stability(coeff_windows,min_windows=min_stable_windows,min_direction_share=min_direction_share)
     stable=tuple(x.name for x in stability if x.stable)
     if not stable:
@@ -76,7 +95,22 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         mean_down_return=sum(downs)/len(downs) if downs else 0.0)
     accuracy=sum((p>=.5)==bool(y) for p,y in zip(all_probs,all_labels))/len(all_probs)
     brier=sum((p-y)**2 for p,y in zip(all_probs,all_labels))/len(all_probs)
-    return TrainingReport(tuple(windows),stable,len(all_probs),accuracy,brier,snapshot)
+    positive_rate=sum(all_labels)/len(all_labels)
+    ordered=sorted(all_probs)
+    def quantile(q):
+        if not ordered:return 0.0
+        pos=(len(ordered)-1)*q; lo=int(pos); hi=min(lo+1,len(ordered)-1); frac=pos-lo
+        return ordered[lo]*(1-frac)+ordered[hi]*frac
+    thresholds=(.55,.60,.65)
+    signal_counts=tuple((x,sum(p>=x or p<=1.0-x for p in all_probs)) for x in thresholds)
+    return TrainingReport(
+        tuple(windows),stable,len(all_probs),accuracy,brier,snapshot,
+        positive_rate=positive_rate,naive_accuracy=max(positive_rate,1.0-positive_rate),
+        naive_brier=positive_rate*(1.0-positive_rate),
+        probability_min=min(all_probs),probability_max=max(all_probs),
+        probability_mean=sum(all_probs)/len(all_probs),
+        probability_quantiles=tuple(quantile(q) for q in (.01,.05,.25,.50,.75,.95,.99)),
+        signal_counts=signal_counts)
 
 def assert_snapshot_safe_for_simulation(snapshot,*,simulation_start_ms:int,bar_ms:int,purge_bars:int):
     required_gap=int(bar_ms)*int(purge_bars)
