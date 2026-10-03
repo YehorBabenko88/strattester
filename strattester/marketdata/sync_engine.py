@@ -67,11 +67,13 @@ class SyncEngine:
     def _ranges(self,req,step=None):
         step=step or self._step(req)
         cov=self.store.coverage(req.symbol,req.dataset,req.timeframe,step,start_ms=req.start_ms,end_ms=req.end_ms)
+        start_bound,end_bound=self._bounds(req,step)
+        if start_bound>end_bound:return []
         ranges=[]
-        if cov.earliest is None:return [(req.start_ms,req.end_ms)]
-        if req.start_ms<cov.earliest:ranges.append((req.start_ms,cov.earliest-step))
-        ranges.extend((max(req.start_ms,g.start),min(req.end_ms,g.end)) for g in cov.gaps if g.end>=req.start_ms and g.start<=req.end_ms)
-        if cov.latest+step<=req.end_ms:ranges.append((cov.latest+step,req.end_ms))
+        if cov.earliest is None:return [(start_bound,end_bound)]
+        if start_bound<cov.earliest:ranges.append((start_bound,cov.earliest-step))
+        ranges.extend((max(start_bound,g.start),min(end_bound,g.end)) for g in cov.gaps if g.end>=start_bound and g.start<=end_bound)
+        if cov.latest+step<=end_bound:ranges.append((cov.latest+step,end_bound))
         return [(a,b) for a,b in ranges if a<=b]
 
     def _sync_rows(self,req,start,end):
