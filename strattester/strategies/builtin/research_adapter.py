@@ -15,16 +15,18 @@ def _bars(context,timeframe='1m'):
 class ResearchHypothesisStrategy:
     spec:HypothesisSpec
     def _backtest(self,bars,events):
-        trades=[]
+        trades=[]; busy_until=-1
         for event in events:
             kind=getattr(event,'kind','')
             if not any(x in kind for x in ('bos','choch','liquidity_sweep')): continue
             side='long' if kind.startswith('bullish') else 'short'
             future=[b for b in bars if b['t']>=event.known_at]
-            if len(future)<2: continue
+            if len(future)<2 or event.known_at<=busy_until: continue
             px=float(future[0]['open']); risk=max(px*.005,1e-12)
             signal=Signal(event.known_at,side,'market',None,px-risk if side=='long' else px+risk,px+2*risk if side=='long' else px-2*risk)
-            try: trades.append(simulate_trade(signal,future,ExecutionPolicy(bar_ms=60_000)))
+            try:
+                trade=simulate_trade(signal,future,ExecutionPolicy(bar_ms=60_000))
+                trades.append(trade); busy_until=trade.exit_time
             except ValueError: pass
         return trades
     def _signal_trade(self,bars,decision_time,side,risk_pct=.005,rr=2.0,metadata=None):
