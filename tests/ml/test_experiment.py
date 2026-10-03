@@ -45,3 +45,13 @@ def test_experiment_reports_acceptance_regimes_holdout_and_timings():
     if not d['model_accepted']:
         assert d['rejection_reasons']
         assert d['hypothetical_simulation_if_rejected'] is not None
+
+
+def test_experiment_compares_candidate_models():
+    result,_=run_experiment('BTCUSDT',bars(700),horizon=5,train_size=180,test_size=50,simulation_fraction=.20)
+    d=result.diagnostics
+    assert d['model_name'] in d['candidate_models']
+    assert 'logistic' in d['candidate_models']
+    assert 'balanced_logistic' in d['candidate_models']
+    selected=d['candidate_models'][d['model_name']]
+    assert selected['brier']==min(x['brier'] for x in d['candidate_models'].values())
