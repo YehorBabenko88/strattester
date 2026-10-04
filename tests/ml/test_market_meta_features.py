@@ -1,5 +1,5 @@
 from strattester.ml.features import build_feature_rows
-from strattester.ml.market_features import enrich_research_features,attach_external_series
+from strattester.ml.market_features import enrich_research_features,attach_external_series,attach_live_microstructure
 from strattester.ml.meta import StrategyObservation,attach_strategy_features,StrategyMetaModel
 from strattester.ml.stability import feature_stability
 
@@ -59,3 +59,28 @@ def test_future_strategy_observation_is_rejected_from_feature_row():
     obs=[StrategyObservation(rows[1].timestamp,'future',1,.9,2.0,known_at=rows[1].known_at+1)]
     out=attach_strategy_features(rows,obs)
     assert 'strategy_future_direction' not in out[1].values
+
+
+def test_live_microstructure_is_causal_and_marks_missing_and_stale():
+    rows=build_feature_rows(bars(4))
+    snaps=[{
+        't':rows[1].timestamp,'known_at':rows[1].known_at,
+        'bid':100.0,'ask':100.1,'bid_depth_1':10,'ask_depth_1':5,
+        'bid_depth_5':30,'ask_depth_5':20,'bid_depth_25':100,'ask_depth_25':80,
+        'buy_volume':12,'sell_volume':4,'trade_count':8,
+        'large_buy_volume':5,'large_sell_volume':1,
+        'added_bid':7,'added_ask':2,'removed_bid':1,'removed_ask':6,
+    }]
+    out=attach_live_microstructure(rows,snaps,max_age_ms=60000)
+    assert out[0].values['micro_available']==0.0
+    assert out[1].values['micro_available']==1.0
+    assert out[1].values['micro_trade_imbalance']>0
+    assert out[1].values['micro_depth_imbalance_1']>0
+    assert out[3].values['micro_available']==0.0
+    assert out[3].values['micro_stale']==1.0
+
+def test_future_microstructure_snapshot_is_never_read():
+    rows=build_feature_rows(bars(2))
+    future={'t':0,'known_at':rows[0].known_at+1,'bid':100,'ask':101}
+    out=attach_live_microstructure(rows,[future])
+    assert out[0].values['micro_available']==0.0
