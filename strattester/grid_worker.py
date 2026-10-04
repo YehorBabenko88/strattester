@@ -23,7 +23,9 @@ def _execute(job):
     if job_type=="probe":
         return {"probe":spec,"pid":os.getpid()},{}
 
-    if job_type not in ("history_sync","strategy_backtest"):
+    if job_type=="history_sync":
+        raise ValueError("history_sync is Grid-owned for distributed runs")
+    if job_type!="strategy_backtest":
         raise ValueError(f"unsupported Grid job_type: {job_type}")
 
     db_path=Path(spec["local_market_db"])
@@ -36,11 +38,6 @@ def _execute(job):
         start_ms=int(spec["start_ms"]); end_ms=int(spec["end_ms"])
         instrument={"symbol":symbol,"launchTime":str(start_ms)}
         runner=ResearchRunner(store,client)
-        if job_type=="history_sync":
-            synced=runner._sync_definition(definition,symbol,start_ms,end_ms)
-            result={"symbol":symbol,"strategy":definition.id,"requirements":len(synced)}
-            return result,{"requirements":len(synced)}
-
         results_path=Path(spec["local_results_db"])
         results_path.parent.mkdir(parents=True,exist_ok=True)
         results=ResultStore.open(results_path)
