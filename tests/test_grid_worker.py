@@ -38,3 +38,13 @@ def test_grid_worker_rejects_mutated_input_before_execution(tmp_path):
         assert "input hash mismatch" in str(exc)
     else:
         raise AssertionError("mutated input was accepted")
+
+
+def test_probe_result_hash_is_machine_independent(tmp_path):
+    from strattester.grid_bridge import digest
+    from strattester.grid_worker import _execute
+    payload={"job_type":"probe","input_spec":{"symbol":"BTCUSDT","part":1}}
+    first,_=_execute({"payload":payload})
+    second,_=_execute({"payload":payload})
+    assert first==second=={"probe":{"symbol":"BTCUSDT","part":1}}
+    assert digest(first)==digest(second)
