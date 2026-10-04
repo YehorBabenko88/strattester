@@ -17,6 +17,7 @@ class TrainingWindowResult:
     positive_rate:float=0.0
     naive_accuracy:float=0.0
     naive_brier:float=0.0
+    train_positive_rate:float=0.0
     probability_min:float=0.0
     probability_max:float=0.0
     probability_mean:float=0.0
@@ -57,6 +58,8 @@ class TrainingReport:
     regime_metrics:tuple[tuple[str,int,float,float,float],...]=()
     model_name:str='logistic'
     candidates:tuple[tuple[str,float,float],...]=()
+    calibration:tuple[tuple[float,float,int],...]=()
+    feature_ablation:tuple[tuple[str,int,float,float],...]=()
 
 def _filter(values,names):
     return {k:float(values.get(k,0.0)) for k in names}
@@ -65,9 +68,16 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
     ds=tuple(dataset)
     splits=walk_forward_splits(len(ds),train_size=train_size,test_size=test_size,purge=purge)
     if not splits: raise ValueError('not enough samples for walk-forward training')
-    candidate_factories=[('logistic',model_factory)]
+    candidate_factories=[('logistic_l2_1e-4',model_factory)]
     if model_factory is LogisticBaseline:
-        candidate_factories.append(('balanced_logistic',BalancedLogisticBaseline))
+        candidate_factories=[
+            ('logistic_l2_1e-4',lambda:LogisticBaseline(l2=1e-4)),
+            ('logistic_l2_1e-3',lambda:LogisticBaseline(l2=1e-3)),
+            ('logistic_l2_1e-2',lambda:LogisticBaseline(l2=1e-2)),
+            ('balanced_l2_1e-4',lambda:BalancedLogisticBaseline(l2=1e-4)),
+            ('balanced_l2_1e-3',lambda:BalancedLogisticBaseline(l2=1e-3)),
+            ('balanced_l2_1e-2',lambda:BalancedLogisticBaseline(l2=1e-2)),
+        ]
     candidate_scores=[]
     for candidate_name,candidate_factory in candidate_factories:
         cp=[]; cy=[]
@@ -86,6 +96,11 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         coeff_windows.append(coeff)
         probs=[model.predict_one(ds[i][0].values).probability_up for i in s.test]
         labels=[ds[i][1].up for i in s.test]
+        train_labels=[int(ds[i][1].up) for i in s.train]
+        train_rate=sum(train_labels)/len(train_labels)
+        baseline_probs=[train_rate]*len(labels)
+        baseline_acc=sum((p>=.5)==bool(y) for p,y in zip(baseline_probs,labels))/len(labels)
+        baseline_brier=sum((p-y)**2 for p,y in zip(baseline_probs,labels))/len(labels)
         acc=sum((p>=.5)==bool(y) for p,y in zip(probs,labels))/len(probs)
         brier=sum((p-y)**2 for p,y in zip(probs,labels))/len(probs)
         all_probs.extend(probs); all_labels.extend(labels); all_regimes.extend(str(ds[i][0].regime) for i in s.test)
@@ -94,12 +109,13 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
             test_start=ds[s.test[0]][0].timestamp,test_end=ds[s.test[-1]][0].timestamp,
             samples=len(s.test),accuracy=acc,brier=brier,coefficients=coeff,
             positive_rate=sum(labels)/len(labels),
-            naive_accuracy=max(sum(labels)/len(labels),1.0-sum(labels)/len(labels)),
-            naive_brier=(sum(labels)/len(labels))*(1.0-sum(labels)/len(labels)),
+            naive_accuracy=baseline_acc,
+            naive_brier=baseline_brier,
+            train_positive_rate=train_rate,
             probability_min=min(probs),probability_max=max(probs),
             probability_mean=sum(probs)/len(probs),
-            beats_naive_accuracy=acc>max(sum(labels)/len(labels),1.0-sum(labels)/len(labels)),
-            beats_naive_brier=brier<(sum(labels)/len(labels))*(1.0-sum(labels)/len(labels))))
+            beats_naive_accuracy=acc>baseline_acc,
+            beats_naive_brier=brier<baseline_brier))
     stability=feature_stability(coeff_windows,min_windows=min_stable_windows,min_direction_share=min_direction_share)
     stable=tuple(x.name for x in stability if x.stable)
     if not stable:
@@ -126,8 +142,8 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         return ordered[lo]*(1-frac)+ordered[hi]*frac
     thresholds=(.55,.60,.65)
     signal_counts=tuple((x,sum(p>=x or p<=1.0-x for p in all_probs)) for x in thresholds)
-    naive_accuracy=max(positive_rate,1.0-positive_rate)
-    naive_brier=positive_rate*(1.0-positive_rate)
+    naive_accuracy=sum(w.naive_accuracy*w.samples for w in windows)/sum(w.samples for w in windows)
+    naive_brier=sum(w.naive_brier*w.samples for w in windows)/sum(w.samples for w in windows)
     rejection=[]
     if accuracy<=naive_accuracy: rejection.append('oos_accuracy_not_above_naive')
     if brier>=naive_brier: rejection.append('oos_brier_not_below_naive')
@@ -140,6 +156,28 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         racc=sum((p>=.5)==bool(y) for p,y in items)/len(items)
         rbrier=sum((p-y)**2 for p,y in items)/len(items)
         regime_metrics.append((regime,len(items),sum(ry)/len(ry),racc,rbrier))
+    calibration=[]
+    for lo in tuple(x/10 for x in range(10)):
+        hi=lo+.1
+        bucket=[(p,int(y)) for p,y in zip(all_probs,all_labels) if lo<=p<(hi if hi<1 else 1.0000001)]
+        if bucket:
+            calibration.append((sum(p for p,_ in bucket)/len(bucket),sum(y for _,y in bucket)/len(bucket),len(bucket)))
+    groups={
+        'momentum':('return_','price_vs_','sma'),
+        'volatility':('realized_vol','vol_','range_'),
+        'candle':('body_pct','upper_wick_pct','lower_wick_pct'),
+        'volume_flow':('volume','turnover','delta','cvd'),
+        'structure':('smc_','distance_','value_area_'),
+        'external':('open_interest','long_short_ratio','funding_rate'),
+        'strategy':('strategy_',),
+        'forecast':('forecast_',),
+    }
+    all_feature_names=tuple(sorted({k for f,_ in ds for k in f.values}))
+    feature_ablation=tuple(
+        (name,sum(any(k.startswith(prefix) for prefix in prefixes) for k in all_feature_names),
+         sum(any(k.startswith(prefix) for prefix in prefixes) for k in stable)/max(1,len(stable)),
+         sum(abs(v) for k,v in final_model.coefficients() if any(k.startswith(prefix) for prefix in prefixes)))
+        for name,prefixes in groups.items())
     return TrainingReport(
         tuple(windows),stable,len(all_probs),accuracy,brier,snapshot,
         positive_rate=positive_rate,naive_accuracy=naive_accuracy,
@@ -149,7 +187,8 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         probability_quantiles=tuple(quantile(q) for q in (.01,.05,.25,.50,.75,.95,.99)),
         signal_counts=signal_counts,accepted=not rejection,rejection_reasons=tuple(rejection),
         regime_metrics=tuple(regime_metrics),model_name=selected_name,
-        candidates=tuple((name,acc,score) for name,acc,score,_ in candidate_scores))
+        candidates=tuple((name,acc,score) for name,acc,score,_ in candidate_scores),
+        calibration=tuple(calibration),feature_ablation=feature_ablation)
 
 def assert_snapshot_safe_for_simulation(snapshot,*,simulation_start_ms:int,bar_ms:int,purge_bars:int):
     required_gap=int(bar_ms)*int(purge_bars)
