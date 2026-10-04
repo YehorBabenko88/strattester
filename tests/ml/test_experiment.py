@@ -51,7 +51,22 @@ def test_experiment_compares_candidate_models():
     result,_=run_experiment('BTCUSDT',bars(700),horizon=5,train_size=180,test_size=50,simulation_fraction=.20)
     d=result.diagnostics
     assert d['model_name'] in d['candidate_models']
-    assert 'logistic' in d['candidate_models']
-    assert 'balanced_logistic' in d['candidate_models']
+    assert 'logistic_l2_1e-4' in d['candidate_models']
+    assert 'balanced_l2_1e-4' in d['candidate_models']
+    assert len(d['candidate_models'])==6
     selected=d['candidate_models'][d['model_name']]
     assert selected['brier']==min(x['brier'] for x in d['candidate_models'].values())
+
+
+def test_experiment_reports_causal_baselines_calibration_and_input_audit():
+    result,_=run_experiment('BTCUSDT',bars(700),horizon=5,train_size=180,test_size=50,simulation_fraction=.20)
+    d=result.diagnostics
+    assert d['calibration']
+    assert d['input_sources']['bars']==700
+    assert d['input_sources']['bar_ms']==60000
+    assert d['input_sources']['open_interest']==0
+    assert d['input_sources']['forecast_provider'] is False
+    assert d['feature_family_usage']
+    for w in d['windows']:
+        assert 0.0<=w['train_positive_rate']<=1.0
+        assert 0.0<=w['naive_brier']<=1.0
