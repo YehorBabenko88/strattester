@@ -59,7 +59,7 @@ class TrainingReport:
     model_name:str='logistic'
     candidates:tuple[tuple[str,float,float],...]=()
     calibration:tuple[tuple[float,float,int],...]=()
-    feature_ablation:tuple[tuple[str,int,float,float],...]=()
+    feature_family_usage:tuple[tuple[str,int,float,float],...]=()
 
 def _filter(values,names):
     return {k:float(values.get(k,0.0)) for k in names}
@@ -173,7 +173,7 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         'forecast':('forecast_',),
     }
     all_feature_names=tuple(sorted({k for f,_ in ds for k in f.values}))
-    feature_ablation=tuple(
+    feature_family_usage=tuple(
         (name,sum(any(k.startswith(prefix) for prefix in prefixes) for k in all_feature_names),
          sum(any(k.startswith(prefix) for prefix in prefixes) for k in stable)/max(1,len(stable)),
          sum(abs(v) for k,v in final_model.coefficients() if any(k.startswith(prefix) for prefix in prefixes)))
@@ -188,7 +188,7 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         signal_counts=signal_counts,accepted=not rejection,rejection_reasons=tuple(rejection),
         regime_metrics=tuple(regime_metrics),model_name=selected_name,
         candidates=tuple((name,acc,score) for name,acc,score,_ in candidate_scores),
-        calibration=tuple(calibration),feature_ablation=feature_ablation)
+        calibration=tuple(calibration),feature_family_usage=feature_family_usage)
 
 def assert_snapshot_safe_for_simulation(snapshot,*,simulation_start_ms:int,bar_ms:int,purge_bars:int):
     required_gap=int(bar_ms)*int(purge_bars)
