@@ -80,3 +80,54 @@ def attach_external_series(rows,*,open_interest=(),long_short_ratio=(),funding=(
             values['funding_rate']=float(prior_fd[-1].get('rate',0.0))
         out.append(replace(row,values=values))
     return tuple(out)
+
+
+def attach_live_microstructure(rows,snapshots=(),*,max_age_ms=15000):
+    """Attach only snapshots known by row. Missing/stale data are explicit, never silently zero-valued."""
+    snaps=sorted((dict(x) for x in snapshots),key=lambda x:int(x.get('known_at',x.get('t',0))))
+    out=[]; j=-1
+    def ratio(a,b): return a/b if b else 0.0
+    def imb(a,b): return ratio(a-b,a+b)
+    for row in rows:
+        known=int(row.known_at)
+        while j+1<len(snaps) and int(snaps[j+1].get('known_at',snaps[j+1].get('t',0)))<=known: j+=1
+        values=dict(row.values)
+        if j<0:
+            values.update({'micro_available':0.0,'micro_stale':0.0,'micro_age_ms':-1.0})
+        else:
+            s=snaps[j]; sk=int(s.get('known_at',s.get('t',0))); age=known-sk
+            if age>int(max_age_ms):
+                values.update({'micro_available':0.0,'micro_stale':1.0,'micro_age_ms':float(age)})
+            else:
+                bid=float(s.get('bid',0)); ask=float(s.get('ask',0)); mid=(bid+ask)/2 if bid and ask else 0.0
+                b1=float(s.get('bid_depth_1',0)); a1=float(s.get('ask_depth_1',0))
+                b5=float(s.get('bid_depth_5',0)); a5=float(s.get('ask_depth_5',0))
+                b25=float(s.get('bid_depth_25',0)); a25=float(s.get('ask_depth_25',0))
+                buy=float(s.get('buy_volume',0)); sell=float(s.get('sell_volume',0)); total=buy+sell
+                lb=float(s.get('large_buy_volume',0)); ls=float(s.get('large_sell_volume',0)); large=lb+ls
+                addb=float(s.get('added_bid',0)); adda=float(s.get('added_ask',0))
+                remb=float(s.get('removed_bid',0)); rema=float(s.get('removed_ask',0))
+                values.update({
+                    'micro_available':1.0,'micro_stale':0.0,'micro_age_ms':float(age),
+                    'micro_book_reset':float(bool(s.get('book_reset',False))),
+                    'micro_book_gap':float(bool(s.get('book_gap',False))),
+                    'micro_trade_gap':float(bool(s.get('trade_gap',False))),
+                    'micro_spread_pct':ratio(ask-bid,mid),
+                    'micro_depth_imbalance_1':imb(b1,a1),'micro_depth_imbalance_5':imb(b5,a5),
+                    'micro_depth_imbalance_25':imb(b25,a25),
+                    'micro_trade_delta':buy-sell,'micro_trade_imbalance':ratio(buy-sell,total),
+                    'micro_trade_count':float(s.get('trade_count',0)),
+                    'micro_large_trade_share':ratio(large,total),
+                    'micro_large_trade_imbalance':ratio(lb-ls,large),
+                    'micro_added_liquidity_imbalance':imb(addb,adda),
+                    'micro_removed_liquidity_imbalance':imb(remb,rema),
+                    'micro_book_pressure':imb(b1+.5*b5,a1+.5*a5),
+                    'micro_buy_absorption':ratio(buy,rema+adda),
+                    'micro_sell_absorption':ratio(sell,remb+addb),
+                })
+                if mid and b1+a1:
+                    mp=(ask*b1+bid*a1)/(b1+a1)
+                    values['micro_microprice_vs_mid']=ratio(mp-mid,mid)
+                else: values['micro_microprice_vs_mid']=0.0
+        out.append(replace(row,values=values))
+    return tuple(out)
