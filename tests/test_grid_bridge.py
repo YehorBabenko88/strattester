@@ -19,3 +19,7 @@ def test_grid_handoff_fences_wrong_job():
       code_version="c",config={},input_spec={})
     with pytest.raises(ValueError,match="job_id mismatch"):
         validate_manifest(m,{"job_id":"other"})
+
+
+def test_protocol_hash_test_vector():
+    assert digest({"a":1,"b":[2,"x"],"nested":{"z":True}})=="74c101bd59c7cf137e69768c60e479eda10d578af171fa8f5192ba68858a8d96"
