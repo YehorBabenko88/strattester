@@ -68,6 +68,8 @@ def test_experiment_reports_causal_baselines_calibration_and_input_audit():
     assert d['input_sources']['bar_ms']==60000
     assert d['input_sources']['open_interest']==0
     assert d['input_sources']['forecast_provider'] is False
+    assert d['input_sources']['microstructure']==0
+    assert d['feature_family_usage']['microstructure']['available_features']>=1
     assert d['feature_family_usage']
     for w in d['windows']:
         assert 0.0<=w['train_positive_rate']<=1.0
