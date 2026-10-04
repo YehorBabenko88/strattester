@@ -33,7 +33,10 @@ def simulate_frozen_pipeline(pipeline,context_bars,simulation_bars,*,policy=MLSi
         open_interest=feature_kwargs.get('open_interest',()),
         long_short_ratio=feature_kwargs.get('long_short_ratio',()),
         funding=feature_kwargs.get('funding',()),
-        strategy_observations=feature_kwargs.get('strategy_observations',()))
+        strategy_observations=feature_kwargs.get('strategy_observations',()),
+        bar_ms=feature_kwargs.get('bar_ms',policy.bar_ms),
+        open_interest_bar_ms=feature_kwargs.get('open_interest_bar_ms',300_000),
+        long_short_bar_ms=feature_kwargs.get('long_short_bar_ms',300_000))
     features_by_t={int(row.timestamp):row for row in feature_rows}
     trades=[]; busy_until=-1
     prediction_rows=[]
