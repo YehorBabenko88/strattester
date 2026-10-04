@@ -58,4 +58,5 @@ def test_real_strategy_backtest_is_stable_across_independent_worker_stores(tmp_p
         assert by_id_local[shard_id]["result"]==by_id_remote[shard_id]["result"]
         assert by_id_local[shard_id]["metrics"]==by_id_remote[shard_id]["metrics"]
         assert by_id_local[shard_id]["result_hash"]==by_id_remote[shard_id]["result_hash"]
+        assert by_id_local[shard_id]["input_hash"]==by_id_remote[shard_id]["input_hash"]
     assert aggregate_fingerprint(local)==aggregate_fingerprint(distributed)
