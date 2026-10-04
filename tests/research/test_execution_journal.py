@@ -60,3 +60,12 @@ def test_take_profit_gap_is_filled_at_target_not_optimistic_open():
     t=simulate_trade(s,bars,ExecutionPolicy(bar_ms=60,fee_rate=0))
     assert t.exit_reason=='TP_GAP'
     assert t.exit_price==105
+
+
+def test_trade_records_realized_mae_mfe_and_r_multiple():
+    bars=[_bar(0,100,101,99,100),_bar(60,100,102,98,101),_bar(120,101,106,100,105)]
+    s=Signal(decision_time=60,side='long',entry_kind='market',entry_price=None,stop_loss=95,take_profit=105)
+    t=simulate_trade(s,bars,ExecutionPolicy(bar_ms=60,fee_rate=0))
+    assert t.metadata['mae']<0
+    assert t.metadata['mfe']>0
+    assert t.metadata['r_multiple']==1.0

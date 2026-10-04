@@ -99,10 +99,23 @@ def simulate_trade(signal:Signal,bars,policy:ExecutionPolicy,metadata=None)->Res
     if reason is None:
         b=rows[-1]; raw_exit=float(b['close']); exit_time=b['t']; reason='EOD'
     exit_price=_adverse(float(raw_exit),signal.side,policy.slippage_bps,False)
+    path=rows[entry_idx:next((i for i,b in enumerate(rows) if b['t']==exit_time),len(rows)-1)+1]
+    if signal.side=='long':
+        mae=min((float(b['low'])-entry)/entry for b in path)
+        mfe=max((float(b['high'])-entry)/entry for b in path)
+        initial_r=entry-float(signal.stop_loss)
+        r_multiple=(exit_price-entry)/initial_r if initial_r>0 else 0.0
+    else:
+        mae=min((entry-float(b['high']))/entry for b in path)
+        mfe=max((entry-float(b['low']))/entry for b in path)
+        initial_r=float(signal.stop_loss)-entry
+        r_multiple=(entry-exit_price)/initial_r if initial_r>0 else 0.0
     qty=policy.position_usd/entry if entry else 0.0
     gross=(exit_price-entry)*qty if signal.side=='long' else (entry-exit_price)*qty
     fees=(entry+exit_price)*qty*policy.fee_rate
-    return ResearchTrade(signal.side,rows[entry_idx]['t'],entry,exit_time,exit_price,reason,gross,fees,gross-fees,dict(metadata or {}))
+    md=dict(metadata or {})
+    md.update({'mae':mae,'mfe':mfe,'r_multiple':r_multiple})
+    return ResearchTrade(signal.side,rows[entry_idx]['t'],entry,exit_time,exit_price,reason,gross,fees,gross-fees,md)
 
 
 @dataclass(frozen=True)
