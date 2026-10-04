@@ -24,8 +24,10 @@ def test_experiment_reports_oos_baselines_and_probability_diagnostics():
     result,_=run_experiment('BTCUSDT',b,horizon=5,train_size=180,test_size=50,simulation_fraction=.20)
     d=result.diagnostics
     assert 0.0<=d['positive_rate']<=1.0
-    assert d['naive_accuracy']>=0.5
-    assert 0.0<=d['naive_brier']<=0.25
+    # A causal constant-class baseline is chosen from each train window.
+    # It can score below 0.5 accuracy and above 0.25 Brier on a shifted test window.
+    assert 0.0<=d['naive_accuracy']<=1.0
+    assert 0.0<=d['naive_brier']<=1.0
     assert d['probability_min']<=d['probability_mean']<=d['probability_max']
     assert set(d['probability_quantiles'])=={'p01','p05','p25','p50','p75','p95','p99'}
     assert set(d['signal_counts'])=={'0.55','0.6','0.65'}
