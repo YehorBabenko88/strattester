@@ -48,7 +48,7 @@ class ResearchMLPipeline:
         features=enrich_research_features(features,bars,bar_ms=bar_ms)
         features=attach_external_series(
             features,open_interest=open_interest,long_short_ratio=long_short_ratio,funding=funding,
-            open_interest_bar_ms=open_interest_bar_ms,long_short_bar_ms=long_short_bar_ms,microstructure=microstructure,micro_max_age_ms=micro_max_age_ms)
+            open_interest_bar_ms=open_interest_bar_ms,long_short_bar_ms=long_short_bar_ms)
         features=attach_strategy_features(features,strategy_observations)
         features=attach_live_microstructure(features,microstructure,max_age_ms=micro_max_age_ms)
         return attach_forecast_features(features,bars,self.forecast_provider,horizon=self.horizon)
