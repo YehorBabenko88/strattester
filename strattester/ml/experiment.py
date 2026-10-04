@@ -21,14 +21,16 @@ class ExperimentResult:
         d=asdict(self); d['stable_features']=list(self.stable_features); return d
 
 def run_experiment(symbol,bars,*,horizon=15,train_size=500,test_size=100,
-                   simulation_fraction=.20,policy=None,public_trade_aggregates=(),**feature_kwargs):
+                   simulation_fraction=.20,policy=None,public_trade_aggregates=(),forecast_provider=None,**feature_kwargs):
     rows=sorted((dict(x) for x in bars),key=lambda x:int(x['t']))
     if len(rows)<max(train_size+test_size+horizon+10,100):
         raise ValueError('not enough bars for experiment')
     cut=max(1,min(len(rows)-1,int(len(rows)*(1.0-float(simulation_fraction)))))
     training=rows[:cut]
-    pipeline=ResearchMLPipeline(horizon=horizon)
     effective_policy=policy or MLSimulationPolicy()
+    feature_kwargs=dict(feature_kwargs)
+    feature_kwargs.setdefault('bar_ms',effective_policy.bar_ms)
+    pipeline=ResearchMLPipeline(horizon=horizon,forecast_provider=forecast_provider)
     fit_started=perf_counter()
     report=pipeline.fit_walk_forward(
         training,public_trade_aggregates,train_size=train_size,test_size=test_size,purge=horizon,**feature_kwargs)
@@ -53,6 +55,18 @@ def run_experiment(symbol,bars,*,horizon=15,train_size=500,test_size=100,
         oos_brier=report.brier,stable_features=report.stable_features,simulation=metrics,
         model_trained_until=pipeline.snapshot.trained_until,
         diagnostics={
+            'input_sources':{
+                'bars':len(rows),
+                'public_trade_aggregates':len(public_trade_aggregates),
+                'open_interest':len(feature_kwargs.get('open_interest',())),
+                'long_short_ratio':len(feature_kwargs.get('long_short_ratio',())),
+                'funding':len(feature_kwargs.get('funding',())),
+                'strategy_observations':len(feature_kwargs.get('strategy_observations',())),
+                'forecast_provider':forecast_provider is not None,
+                'bar_ms':feature_kwargs.get('bar_ms'),
+                'open_interest_bar_ms':feature_kwargs.get('open_interest_bar_ms',300_000),
+                'long_short_bar_ms':feature_kwargs.get('long_short_bar_ms',300_000),
+            },
             'positive_rate':report.positive_rate,
             'naive_accuracy':report.naive_accuracy,
             'naive_brier':report.naive_brier,
