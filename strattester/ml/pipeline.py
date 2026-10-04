@@ -42,17 +42,22 @@ class ResearchMLPipeline:
         self.mean_up_return=0.0
         self.mean_down_return=0.0
 
-    def feature_rows(self,bars,public_trade_aggregates=(),*,open_interest=(),long_short_ratio=(),funding=(),strategy_observations=()):
-        features=build_feature_rows(bars,public_trade_aggregates)
-        features=enrich_research_features(features,bars)
-        features=attach_external_series(features,open_interest=open_interest,long_short_ratio=long_short_ratio,funding=funding)
+    def feature_rows(self,bars,public_trade_aggregates=(),*,open_interest=(),long_short_ratio=(),funding=(),strategy_observations=(),
+                     bar_ms=60_000,open_interest_bar_ms=300_000,long_short_bar_ms=300_000):
+        features=build_feature_rows(bars,public_trade_aggregates,bar_ms=bar_ms)
+        features=enrich_research_features(features,bars,bar_ms=bar_ms)
+        features=attach_external_series(
+            features,open_interest=open_interest,long_short_ratio=long_short_ratio,funding=funding,
+            open_interest_bar_ms=open_interest_bar_ms,long_short_bar_ms=long_short_bar_ms)
         features=attach_strategy_features(features,strategy_observations)
         return attach_forecast_features(features,bars,self.forecast_provider,horizon=self.horizon)
 
-    def dataset(self,bars,public_trade_aggregates=(),*,open_interest=(),long_short_ratio=(),funding=(),strategy_observations=()):
+    def dataset(self,bars,public_trade_aggregates=(),*,open_interest=(),long_short_ratio=(),funding=(),strategy_observations=(),
+                bar_ms=60_000,open_interest_bar_ms=300_000,long_short_bar_ms=300_000):
         features=self.feature_rows(
             bars,public_trade_aggregates,open_interest=open_interest,long_short_ratio=long_short_ratio,
-            funding=funding,strategy_observations=strategy_observations)
+            funding=funding,strategy_observations=strategy_observations,bar_ms=bar_ms,
+            open_interest_bar_ms=open_interest_bar_ms,long_short_bar_ms=long_short_bar_ms)
         labels=build_labels(bars,horizons=(self.horizon,))
         label_by_t={x.timestamp:x for x in labels}
         rows=[]
@@ -95,7 +100,9 @@ class ResearchMLPipeline:
         rows=self.feature_rows(
             bars,public_trade_aggregates,open_interest=kwargs.get('open_interest',()),
             long_short_ratio=kwargs.get('long_short_ratio',()),funding=kwargs.get('funding',()),
-            strategy_observations=kwargs.get('strategy_observations',()))
+            strategy_observations=kwargs.get('strategy_observations',()),bar_ms=kwargs.get('bar_ms',60_000),
+            open_interest_bar_ms=kwargs.get('open_interest_bar_ms',300_000),
+            long_short_bar_ms=kwargs.get('long_short_bar_ms',300_000))
         if not rows:raise ValueError('no feature rows')
         return self.signal_from_feature_row(rows[-1])
 
