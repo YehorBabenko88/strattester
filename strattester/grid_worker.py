@@ -1,7 +1,7 @@
 from __future__ import annotations
 import argparse,json,os,sys
 from pathlib import Path
-from strattester.grid_bridge import make_manifest,digest
+from strattester.grid_bridge import make_manifest,digest,input_digest
 from strattester.marketdata.bybit_client import BybitClient
 from strattester.marketdata.sqlite_store import SQLiteMarketStore
 from strattester.persistence.result_store import ResultStore
@@ -69,7 +69,7 @@ def main(argv=None):
 
     if digest(config)!=str(payload.get("config_hash")):
         raise SystemExit("config hash mismatch before execution")
-    if digest(spec)!=str(payload.get("input_hash")):
+    if input_digest(spec)!=str(payload.get("input_hash")):
         raise SystemExit("input hash mismatch before execution")
 
     result,metrics=_execute(job)
