@@ -21,7 +21,9 @@ def _execute(job):
     spec=dict(payload.get("input_spec") or {})
     job_type=str(payload.get("job_type") or "")
     if job_type=="probe":
-        return {"probe":spec,"pid":os.getpid()},{}
+        # Protocol-level probe must be deterministic across machines/processes.
+        # Runtime diagnostics such as PID belong in logs/heartbeat, never in result_hash.
+        return {"probe":spec},{}
 
     if job_type=="history_sync":
         raise ValueError("history_sync is Grid-owned for distributed runs")
