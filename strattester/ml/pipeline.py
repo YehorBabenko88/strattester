@@ -5,7 +5,7 @@ from .labels import build_labels
 from .model import LogisticBaseline
 from .validation import walk_forward_splits
 from .forecasting import attach_forecast_features
-from .market_features import enrich_research_features,attach_external_series
+from .market_features import enrich_research_features,attach_external_series,attach_live_microstructure
 from .meta import attach_strategy_features
 from .training import train_walk_forward,assert_snapshot_safe_for_simulation
 
@@ -43,17 +43,18 @@ class ResearchMLPipeline:
         self.mean_down_return=0.0
 
     def feature_rows(self,bars,public_trade_aggregates=(),*,open_interest=(),long_short_ratio=(),funding=(),strategy_observations=(),
-                     bar_ms=60_000,open_interest_bar_ms=300_000,long_short_bar_ms=300_000):
+                     bar_ms=60_000,open_interest_bar_ms=300_000,long_short_bar_ms=300_000,microstructure=(),micro_max_age_ms=15_000):
         features=build_feature_rows(bars,public_trade_aggregates,bar_ms=bar_ms)
         features=enrich_research_features(features,bars,bar_ms=bar_ms)
         features=attach_external_series(
             features,open_interest=open_interest,long_short_ratio=long_short_ratio,funding=funding,
-            open_interest_bar_ms=open_interest_bar_ms,long_short_bar_ms=long_short_bar_ms)
+            open_interest_bar_ms=open_interest_bar_ms,long_short_bar_ms=long_short_bar_ms,microstructure=microstructure,micro_max_age_ms=micro_max_age_ms)
         features=attach_strategy_features(features,strategy_observations)
+        features=attach_live_microstructure(features,microstructure,max_age_ms=micro_max_age_ms)
         return attach_forecast_features(features,bars,self.forecast_provider,horizon=self.horizon)
 
     def dataset(self,bars,public_trade_aggregates=(),*,open_interest=(),long_short_ratio=(),funding=(),strategy_observations=(),
-                bar_ms=60_000,open_interest_bar_ms=300_000,long_short_bar_ms=300_000):
+                bar_ms=60_000,open_interest_bar_ms=300_000,long_short_bar_ms=300_000,microstructure=(),micro_max_age_ms=15_000):
         features=self.feature_rows(
             bars,public_trade_aggregates,open_interest=open_interest,long_short_ratio=long_short_ratio,
             funding=funding,strategy_observations=strategy_observations,bar_ms=bar_ms,
@@ -102,7 +103,8 @@ class ResearchMLPipeline:
             long_short_ratio=kwargs.get('long_short_ratio',()),funding=kwargs.get('funding',()),
             strategy_observations=kwargs.get('strategy_observations',()),bar_ms=kwargs.get('bar_ms',60_000),
             open_interest_bar_ms=kwargs.get('open_interest_bar_ms',300_000),
-            long_short_bar_ms=kwargs.get('long_short_bar_ms',300_000))
+            long_short_bar_ms=kwargs.get('long_short_bar_ms',300_000),microstructure=kwargs.get('microstructure',()),
+            micro_max_age_ms=kwargs.get('micro_max_age_ms',15_000))
         if not rows:raise ValueError('no feature rows')
         return self.signal_from_feature_row(rows[-1])
 
