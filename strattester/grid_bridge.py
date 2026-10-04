@@ -42,3 +42,14 @@ def validate_manifest(manifest,expected=None):
                    "artifacts":manifest.get("artifacts") or []})
     if actual!=manifest["result_hash"]: raise ValueError("handoff result hash mismatch")
     return True
+
+
+def aggregate_fingerprint(manifests):
+    """Stable research fingerprint independent of worker identity/completion order."""
+    pairs=[]
+    for manifest in manifests:
+        validate_manifest(manifest)
+        pairs.append((str(manifest["job_id"]),str(manifest["result_hash"])))
+    ids=[x[0] for x in pairs]
+    if len(ids)!=len(set(ids)):raise ValueError("duplicate shard job_id in aggregate")
+    return digest(sorted(pairs))
