@@ -171,6 +171,7 @@ def train_walk_forward(dataset,*,model_factory=LogisticBaseline,train_size=500,t
         'external':('open_interest','long_short_ratio','funding_rate'),
         'strategy':('strategy_',),
         'forecast':('forecast_',),
+        'microstructure':('micro_',),
     }
     all_feature_names=tuple(sorted({k for f,_ in ds for k in f.values}))
     feature_family_usage=tuple(
