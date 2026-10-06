@@ -181,13 +181,12 @@ class BacktestEngine:
             if c.open<level.price:self._mark_broken(level,c.ts); continue
             entry,intrabar=(c.open,False) if c.open<=trigger else (trigger,True)
             self._open_trade(level,c,entry,intrabar)
-            if not intrabar:
-                t=self.open_positions.get(lid)
-                if t:
-                    sl_hit=c.low<=t.stop_loss if t.direction=='LONG' else c.high>=t.stop_loss
-                    tp_hit=c.high>=t.take_profit if t.direction=='LONG' else c.low<=t.take_profit
-                    if sl_hit:self._close_trade(t,c.ts,t.stop_loss,'SL')
-                    elif tp_hit:self._close_trade(t,c.ts,t.take_profit,'TP')
+            t=self.open_positions.get(lid)
+            if t:
+                sl_hit=c.low<=t.stop_loss if t.direction=='LONG' else c.high>=t.stop_loss
+                tp_hit=c.high>=t.take_profit if t.direction=='LONG' else c.low<=t.take_profit
+                if sl_hit:self._close_trade(t,c.ts,t.stop_loss,'SL')
+                elif tp_hit:self._close_trade(t,c.ts,t.take_profit,'TP')
 
     def _break_intraminute(self,c):
         while self._high_break_heap and self._high_break_heap[0][0]<c.high:
