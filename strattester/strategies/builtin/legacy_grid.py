@@ -169,13 +169,12 @@ class BacktestEngine:
             if c.open>level.price:self._mark_broken(level,c.ts); continue
             entry,intrabar=(c.open,False) if c.open>=trigger else (trigger,True)
             self._open_trade(level,c,entry,intrabar)
-            if not intrabar:
-                t=self.open_positions.get(lid)
-                if t:
-                    sl_hit=c.low<=t.stop_loss if t.direction=='LONG' else c.high>=t.stop_loss
-                    tp_hit=c.high>=t.take_profit if t.direction=='LONG' else c.low<=t.take_profit
-                    if sl_hit:self._close_trade(t,c.ts,t.stop_loss,'SL')
-                    elif tp_hit:self._close_trade(t,c.ts,t.take_profit,'TP')
+            t=self.open_positions.get(lid)
+            if t:
+                sl_hit=c.low<=t.stop_loss if t.direction=='LONG' else c.high>=t.stop_loss
+                tp_hit=c.high>=t.take_profit if t.direction=='LONG' else c.low<=t.take_profit
+                if sl_hit:self._close_trade(t,c.ts,t.stop_loss,'SL')
+                elif tp_hit:self._close_trade(t,c.ts,t.take_profit,'TP')
         while self._low_entry_heap and -self._low_entry_heap[0][0]>=c.low:
             n,lid=heapq.heappop(self._low_entry_heap); trigger=-n; level=self.levels[lid]
             if level.broken or level.in_position or not level.armed or not math.isclose(level.trigger,trigger,rel_tol=1e-12,abs_tol=1e-12):continue
