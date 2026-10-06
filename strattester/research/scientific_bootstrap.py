@@ -10,6 +10,7 @@ from .volatility import VolatilityObservatory
 from .orderflow import cumulative_delta
 from .volume_profile import proxy_profile
 from .smc import market_structure
+from .scalp_bootstrap import historical_scalp_events
 
 HISTORICAL_CAPABILITIES={
     "candles":True,
@@ -40,6 +41,7 @@ def build_symbol_science(store,symbol,start_ms=None,end_ms=None):
     vol=VolatilityObservatory(window=20,percentile_lookback=252).snapshots(bars,bar_ms=60000)
     flow=cumulative_delta(trades) if trades else ()
     smc=market_structure(bars,bar_ms=60000)
+    scalp=historical_scalp_events(bars,trades,symbol=symbol,bar_ms=60000)
     poc=None
     try:poc=asdict(proxy_profile(bars,known_at=bars[-1]["t"]))
     except ValueError:pass
@@ -64,6 +66,7 @@ def build_symbol_science(store,symbol,start_ms=None,end_ms=None):
         "volatility":[asdict(x) for x in vol[-512:]],
         "orderflow":[dict(x) for x in flow[-1024:]],
         "smc":[asdict(x) for x in smc[-512:]],
+        "scalp_events":scalp[-2048:],
       },
     }
 
