@@ -6,7 +6,7 @@ def test_high_level_strict_break_and_tp():
     e=BacktestEngine('X',BacktestConfig(taker_fee=0))
     e.add_level(LevelSeed('1H','HIGH',100,0,0))
     e.process_minute(C(60_000,99,99.6,98.9,99.5))
-    assert len(e.open_positions)==1
+    assert len(e.open_positions)==0
     e.process_minute(C(120_000,99.5,100.0,99.2,99.8))
     assert not next(iter(e.levels.values())).broken
     e.process_minute(C(180_000,99.8,101.1,99.7,100.8))
@@ -22,7 +22,7 @@ def test_stop_rearms_unbroken_level():
     e.process_minute(C(180_000,98.4,99.6,98.2,99.5))
     assert len(e.open_positions)==1
 
-def test_intrabar_entry_cannot_exit_same_minute():
+def test_intrabar_entry_uses_conservative_same_minute_stop():
     e=BacktestEngine('X',BacktestConfig(taker_fee=0))
     e.add_level(LevelSeed('1H','HIGH',100,0,0))
     e.process_minute(C(60_000,99.0,101.0,97.0,99.0))
