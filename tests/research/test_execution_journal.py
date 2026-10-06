@@ -4,12 +4,12 @@ from strattester.research.journal import TradeJournal
 def _bar(t,o,h,l,c):
     return {'t':t,'open':o,'high':h,'low':l,'close':c}
 
-def test_market_signal_enters_on_next_eligible_bar_and_not_same_bar_exit():
+def test_market_signal_checks_stop_on_entry_bar():
     bars=[_bar(0,100,101,99,100),_bar(60,100,103,99,102),_bar(120,102,104,101,103)]
     s=Signal(decision_time=60,side='long',entry_kind='market',entry_price=None,stop_loss=99,take_profit=103)
     t=simulate_trade(s,bars,ExecutionPolicy(bar_ms=60,fee_rate=0))
     assert t.entry_time==60 and t.entry_price==100
-    assert t.exit_time==120 and t.exit_price==103 and t.exit_reason=='TP'
+    assert t.exit_time==60 and t.exit_price==99 and t.exit_reason=='SL'
 
 def test_ambiguous_bar_uses_conservative_stop_first():
     bars=[_bar(0,100,101,99,100),_bar(60,100,101,99,100),_bar(120,100,106,94,100)]
