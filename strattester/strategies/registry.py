@@ -9,4 +9,4 @@ class StrategyRegistry:
     def discover(self): return list(self._items.values())
     def set_enabled(self,strategy_id,version,enabled):
         old=self._items[(strategy_id,version)]
-        self._items[(strategy_id,version)]=StrategyDefinition(old.id,old.version,old.requirements,old.implementation,enabled)
+        self._items[(strategy_id,version)]=StrategyDefinition(old.id,old.version,old.requirements,old.implementation,enabled,old.feature_versions)
