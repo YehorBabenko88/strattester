@@ -62,7 +62,7 @@ def simulate_trade(signal:Signal,bars,policy:ExecutionPolicy,metadata=None)->Res
     if entry_idx is None: raise ValueError('entry not filled')
     entry=_adverse(raw_entry,signal.side,policy.slippage_bps,True)
     exit_time=None; raw_exit=None; reason=None
-    for b in rows[entry_idx+1:]:
+    for b in rows[entry_idx:]:
         o=float(b['open']); h=float(b['high']); l=float(b['low'])
         if signal.side=='long':
             if o <= signal.stop_loss:
@@ -156,9 +156,9 @@ def simulate_scale_trade(signal:ScaleSignal,bars,policy:ExecutionPolicy)->ScaleT
             qty=(policy.position_usd*fraction)/px
             fills.append(ExecutionFill(b['t'],px,qty,fraction)); remaining_qty+=qty; filled_now=True
         pending=still
-        # With OHLC data the order of entry/SL/TP inside the same bar is unknowable.
-        # Skip exits on every bar that creates a new fill.
-        if filled_now or remaining_qty<=0: continue
+        # With OHLC data the path inside a fill bar is unknowable. Do not grant
+        # optimistic survival: evaluate the stop on the fill bar (SL-first).
+        if remaining_qty<=0: continue
         stop_gap=(o<=active_stop) if signal.side=='long' else (o>=active_stop)
         stop_hit=(l<=active_stop) if signal.side=='long' else (h>=active_stop)
         if stop_gap or stop_hit:
