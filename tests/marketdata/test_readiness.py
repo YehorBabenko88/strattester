@@ -74,3 +74,14 @@ def test_zero_delivery_time_does_not_truncate_perpetual_instrument():
     instrument={"symbol":"BTCUSDT","launchTime":"0","deliveryTime":"0","fundingInterval":"480"}
     req=requirements_for_instrument(instrument,end_ms=900000)
     assert req and all(x.end_ms==900000 for x in req)
+
+
+def test_dataset_windows_align_to_their_own_sampling_grid():
+    instrument={"symbol":"XUSDT","launchTime":"61000","deliveryTime":"899999",
+                "fundingInterval":"8","supportsOpenInterest":True,"supportsFunding":True,
+                "supportsLongShortRatio":True}
+    req={x.dataset:x for x in requirements_for_instrument(instrument,end_ms=999999)}
+    assert req['candles'].start_ms==120000 and req['candles'].end_ms==840000
+    assert req['open_interest'].start_ms==300000 and req['open_interest'].end_ms==600000
+    assert req['long_short_ratio'].start_ms==300000 and req['long_short_ratio'].end_ms==600000
+    assert req['funding'].start_ms==480000 and req['funding'].end_ms==480000
