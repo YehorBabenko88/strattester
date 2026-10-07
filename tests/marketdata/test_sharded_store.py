@@ -185,10 +185,9 @@ def test_restart_resumes_partial_full_dataset_migration_idempotently(tmp_path):
     second.close(); legacy.close()
 
 
-def test_routed_store_close_also_closes_owned_legacy(tmp_path):
+def test_routed_wrapper_close_does_not_destroy_external_legacy_backend(tmp_path):
     legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
     store=ShardedMarketStore(tmp_path/'shards',legacy_store=legacy)
     store.close()
-    import sqlite3,pytest
-    with pytest.raises(sqlite3.ProgrammingError):
-        legacy.connection.execute('SELECT 1')
+    assert legacy.connection.execute('SELECT 1').fetchone()[0]==1
+    legacy.close()
