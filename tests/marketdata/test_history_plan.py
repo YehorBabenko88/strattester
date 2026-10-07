@@ -6,5 +6,5 @@ def test_instrument_history_plan_starts_at_launch_and_uses_dataset_cadence():
     assert reqs['candles'].start_ms==60_000 and reqs['candles'].timeframe=='1m'
     assert reqs['mark_price'].timeframe=='1m'
     assert reqs['open_interest'].timeframe=='5m'
-    assert reqs['funding'].timeframe=='480m'
+    assert 'funding' not in reqs  # requested horizon contains no complete 480m funding bucket
     assert reqs['long_short_ratio'].timeframe=='5m'
