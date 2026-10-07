@@ -161,3 +161,25 @@ def test_symbol_with_auxiliary_data_but_no_candles_is_not_promoted_empty(tmp_pat
     assert shard.coverage('BTCUSDT','funding').count==1
     assert store._dataset_fingerprints(legacy,'BTCUSDT')==store._dataset_fingerprints(shard,'BTCUSDT')
     store.close(); legacy.close()
+
+
+def test_restart_resumes_partial_full_dataset_migration_idempotently(tmp_path):
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+    legacy.upsert_candles([candle('BTCUSDT',0),candle('BTCUSDT',60_000),candle('BTCUSDT',120_000)])
+    legacy.upsert_funding('BTCUSDT',[{'fundingRateTimestamp':0,'fundingRate':'0.0001'}])
+    root=tmp_path/'shards'
+    first=ShardedMarketStore(root,legacy_store=legacy)
+    shard=first.for_symbol('BTCUSDT')
+    shard.upsert_candles([candle('BTCUSDT',0)])
+    first.manifest.set('BTCUSDT','MIGRATING',rows_copied=1)
+    shard.checkpoint_wal('FULL')
+    first.close()
+    second=ShardedMarketStore(root,legacy_store=legacy)
+    assert not second.manifest.ready('BTCUSDT')
+    second.migrate_legacy_candles('BTCUSDT',batch_size=1)
+    resumed=second.for_symbol('BTCUSDT')
+    assert second.manifest.ready('BTCUSDT')
+    assert resumed.coverage('BTCUSDT').count==3
+    assert resumed.coverage('BTCUSDT','funding').count==1
+    assert second._dataset_fingerprints(legacy,'BTCUSDT')==second._dataset_fingerprints(resumed,'BTCUSDT')
+    second.close(); legacy.close()
