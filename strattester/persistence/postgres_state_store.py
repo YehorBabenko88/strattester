@@ -13,6 +13,7 @@ class PostgresStateStore:
         con=psycopg.connect(dsn)
         with con.cursor() as cur:
             cur.execute('CREATE TABLE IF NOT EXISTS strattester_jobs(id TEXT PRIMARY KEY,payload JSONB NOT NULL)')
+            cur.execute('CREATE TABLE IF NOT EXISTS strattester_nodes(node_id TEXT PRIMARY KEY,last_seen DOUBLE PRECISION NOT NULL,meta JSONB NOT NULL DEFAULT \'{}\'::jsonb)')
         con.commit(); return cls(con)
     @staticmethod
     def _encode(job):
@@ -108,5 +109,25 @@ class PostgresStateStore:
             self.con.commit(); return True
         except Exception:
             self.con.rollback(); raise
+
+    def heartbeat_node(self,node_id,now=None,meta=None):
+        now=time.time() if now is None else float(now)
+        payload=json.dumps(meta or {})
+        try:
+            with self.con.cursor() as cur:
+                cur.execute('''INSERT INTO strattester_nodes(node_id,last_seen,meta)
+                    VALUES(%s,%s,%s::jsonb)
+                    ON CONFLICT(node_id) DO UPDATE SET last_seen=excluded.last_seen,meta=excluded.meta''',
+                    (str(node_id),now,payload))
+            self.con.commit()
+        except Exception:
+            self.con.rollback(); raise
+
+    def live_nodes(self,stale_after=30,now=None):
+        now=time.time() if now is None else float(now)
+        cutoff=now-float(stale_after)
+        with self.con.cursor() as cur:
+            cur.execute('SELECT node_id FROM strattester_nodes WHERE last_seen>=%s ORDER BY node_id',(cutoff,))
+            return tuple(r[0] for r in cur.fetchall())
 
     def close(self): self.con.close()
