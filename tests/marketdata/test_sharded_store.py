@@ -149,3 +149,15 @@ def test_promotion_copies_and_verifies_all_auxiliary_datasets(tmp_path):
                        ('public_trade_aggregates','1m')]:
         assert shard.coverage('BTCUSDT',dataset,tf).count==1
     store.close(); legacy.close()
+
+
+def test_symbol_with_auxiliary_data_but_no_candles_is_not_promoted_empty(tmp_path):
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+    legacy.upsert_funding('BTCUSDT',[{'fundingRateTimestamp':0,'fundingRate':'0.0001'}])
+    store=ShardedMarketStore(tmp_path/'shards',legacy_store=legacy)
+    store.migrate_legacy_candles('BTCUSDT')
+    shard=store.for_symbol('BTCUSDT')
+    assert store.manifest.ready('BTCUSDT')
+    assert shard.coverage('BTCUSDT','funding').count==1
+    assert store._dataset_fingerprints(legacy,'BTCUSDT')==store._dataset_fingerprints(shard,'BTCUSDT')
+    store.close(); legacy.close()
