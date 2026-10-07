@@ -191,8 +191,4 @@ class ShardedMarketStore:
         self._stores.clear()
         try: self.manifest.close()
         except Exception as exc: errors.append(exc)
-        if self.legacy_store is not None:
-            try: self.legacy_store.close()
-            except Exception as exc: errors.append(exc)
-            self.legacy_store=None
         if errors: raise errors[0]
