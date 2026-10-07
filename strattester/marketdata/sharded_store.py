@@ -3,6 +3,7 @@ from hashlib import sha256
 from pathlib import Path
 import re
 from .sqlite_store import SQLiteMarketStore,Candle
+from .shard_manifest import ShardManifest,ShardState
 
 _SAFE=re.compile(r'[^A-Za-z0-9_.-]+')
 
@@ -18,12 +19,13 @@ class ShardedMarketStore:
     Existing monolithic databases remain untouched and may be supplied as
     legacy_store for read fallback while new/repair writes go to shards.
     """
-    def __init__(self,root:Path,legacy_store=None,buckets:int=64):
+    def __init__(self,root:Path,legacy_store=None,buckets:int=64,manifest=None):
         self.root=Path(root)
         self.root.mkdir(parents=True,exist_ok=True)
         self.legacy_store=legacy_store
         self.buckets=max(1,int(buckets))
         self._stores={}
+        self.manifest=manifest or ShardManifest.open(self.root/'manifest.sqlite3')
 
     def shard_path(self,symbol:str)->Path:
         name=safe_symbol(symbol)
@@ -41,7 +43,7 @@ class ShardedMarketStore:
 
     def _read_store(self,symbol,dataset='candles',timeframe='1m',step_ms=60_000,start_ms=None,end_ms=None):
         shard_path=self.shard_path(symbol)
-        if shard_path.exists():
+        if shard_path.exists() and self.manifest.ready(symbol):
             shard=self.for_symbol(symbol)
             cov=shard.coverage(symbol,dataset,timeframe,step_ms,start_ms,end_ms)
             if cov.count:
@@ -63,7 +65,10 @@ class ShardedMarketStore:
             raise RuntimeError('legacy store is not configured')
         shard=self.for_symbol(symbol)
         source_cov=self.legacy_store.coverage(symbol,'candles',timeframe)
+        previous=self.manifest.get(symbol)
+        self.manifest.set(symbol,ShardState.MIGRATING,rows_copied=previous.rows_copied if previous else 0)
         if source_cov.count==0:
+            self.manifest.set(symbol,ShardState.SHARD_READY,rows_copied=0)
             return 0
         batch=[]; copied=0
         for row in self.legacy_store.iter_candles(symbol,timeframe,batch_size=batch_size):
@@ -74,8 +79,11 @@ class ShardedMarketStore:
             copied+=shard.upsert_candles(batch).accepted
         target_cov=shard.coverage(symbol,'candles',timeframe)
         if (target_cov.count!=source_cov.count or target_cov.earliest!=source_cov.earliest
-                or target_cov.latest!=source_cov.latest or target_cov.gaps!=source_cov.gaps):
+                or target_cov.latest!=source_cov.latest or target_cov.gaps!=source_cov.gaps
+                or not shard.integrity_check()):
+            self.manifest.set(symbol,ShardState.FAILED,rows_copied=target_cov.count,error='shard migration validation failed')
             raise RuntimeError('shard migration validation failed')
+        self.manifest.set(symbol,ShardState.SHARD_READY,rows_copied=target_cov.count)
         return copied
 
     def promote_symbol(self,symbol:str):
@@ -119,4 +127,6 @@ class ShardedMarketStore:
             try: store.close()
             except Exception as exc: errors.append(exc)
         self._stores.clear()
+        try: self.manifest.close()
+        except Exception as exc: errors.append(exc)
         if errors: raise errors[0]
