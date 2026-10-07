@@ -21,6 +21,10 @@ class ResultStore:
         con.execute('''CREATE TABLE IF NOT EXISTS staged_research_results(
             stage_id TEXT PRIMARY KEY,run_id TEXT NOT NULL,symbol TEXT NOT NULL,strategy_id TEXT NOT NULL,
             strategy_version TEXT NOT NULL,created_at REAL NOT NULL,metrics TEXT NOT NULL,job_id TEXT,lease_token INTEGER NOT NULL DEFAULT 0,node_generation INTEGER NOT NULL DEFAULT 0)''')
+        staged_cols={r[1] for r in con.execute('PRAGMA table_info(staged_research_results)')}
+        if 'job_id' not in staged_cols:con.execute('ALTER TABLE staged_research_results ADD COLUMN job_id TEXT')
+        if 'lease_token' not in staged_cols:con.execute('ALTER TABLE staged_research_results ADD COLUMN lease_token INTEGER NOT NULL DEFAULT 0')
+        if 'node_generation' not in staged_cols:con.execute('ALTER TABLE staged_research_results ADD COLUMN node_generation INTEGER NOT NULL DEFAULT 0')
         con.commit(); return cls(p,con)
     def put(self,run_id,symbol,strategy_id,strategy_version,metrics,created_at=None):
         created_at=time.time() if created_at is None else float(created_at)
@@ -55,6 +59,16 @@ class ResultStore:
                 VALUES(?,?,?,?,?,?,?,?,?)''',row)
             self.con.execute('DELETE FROM staged_research_results WHERE stage_id=?',(stage_id,))
             return True
+
+    def recover_staged(self,lease_validator):
+        """Revalidate every crash-left stage; never publish merely because it survived reboot."""
+        rows=self.con.execute('SELECT stage_id,job_id,lease_token,node_generation FROM staged_research_results ORDER BY stage_id').fetchall()
+        promoted=discarded=0
+        for stage_id,job_id,lease_token,node_generation in rows:
+            valid=lambda j=job_id,t=lease_token,g=node_generation: bool(lease_validator(j,int(t or 0),int(g or 0)))
+            if self.promote(stage_id,valid):promoted+=1
+            else:discarded+=1
+        return {'promoted':promoted,'discarded':discarded}
 
     def discard_stage(self,stage_id):
         with self.con:
