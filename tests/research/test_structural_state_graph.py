@@ -36,3 +36,21 @@ def test_graph_rejects_out_of_order_state_sequence():
     try:g.observe_state("B",regime="R",sequence=9)
     except ValueError as e:assert "non-monotonic" in str(e)
     else:raise AssertionError("out-of-order state accepted")
+
+
+def test_one_deterministic_transition_is_not_high_confidence():
+    g=StructuralStateGraph(min_transition_samples=5,min_confidence=.65)
+    g.observe("A",regime="R");g.observe("B",regime="R")
+    f=g.forecast("A")
+    assert f.samples==1 and f.confidence<.5 and not f.familiar
+
+def test_confidence_requires_repeated_transition_evidence():
+    g=StructuralStateGraph(min_transition_samples=5,min_confidence=.45)
+    for s in ["A","B","A","B","A","B","A","B","A","B","A","B"]:g.observe(s,regime="R")
+    f=g.forecast("A")
+    assert f.samples>=5 and f.confidence>=.45 and f.familiar
+
+def test_invalid_prior_strength_fails_closed():
+    try:StructuralStateGraph(prior_strength=0)
+    except ValueError:pass
+    else:raise AssertionError("invalid prior accepted")
