@@ -17,6 +17,8 @@ from .timescale_memory import MultiTimescaleMemory
 from .stability_landscape import PlasticityGate
 from .structural_mathematics import StructuralReport
 from .structural_memory import StructuralMemory,StructuralExperience
+from .structural_state_graph import StructuralStateGraph,TransitionForecast
+from .agent_communication import SelfOrganizingCommunicationFabric
 
 @dataclass(frozen=True)
 class OrganismDecision:
@@ -28,6 +30,8 @@ class OrganismDecision:
     stability:StabilityReport|None
     reasons:tuple[str,...]
     structural_experience:StructuralExperience|None=None
+    transition_forecast:TransitionForecast|None=None
+    communication_health:Mapping[str,object]|None=None
 
 class ScientificOrganismController:
     def __init__(self,brain:NeuroDecisionController|None=None,
@@ -38,7 +42,9 @@ class ScientificOrganismController:
                  credit_assigner:CreditAssigner|None=None,
                  timescale_memory:MultiTimescaleMemory|None=None,
                  plasticity_gate:PlasticityGate|None=None,
-                 structural_memory:StructuralMemory|None=None):
+                 structural_memory:StructuralMemory|None=None,
+                 structural_state_graph:StructuralStateGraph|None=None,
+                 communication_fabric:SelfOrganizingCommunicationFabric|None=None):
         self.brain=brain or NeuroDecisionController()
         self.homeostasis=homeostasis or HomeostaticSupervisor(self.brain)
         self.landscape=landscape or BrainStabilityLandscape()
@@ -48,6 +54,8 @@ class ScientificOrganismController:
         self.timescale_memory=timescale_memory or MultiTimescaleMemory()
         self.plasticity_gate=plasticity_gate or PlasticityGate()
         self.structural_memory=structural_memory or StructuralMemory()
+        self.structural_state_graph=structural_state_graph or StructuralStateGraph()
+        self.communication_fabric=communication_fabric or SelfOrganizingCommunicationFabric()
         self.history:list[OrganismDecision]=[]
 
     def establish_native(self,validation_score:float):
@@ -59,7 +67,9 @@ class ScientificOrganismController:
                alternative_state_score:float=0.0,
                structural_report:StructuralReport|None=None,
                structural_signature:str|None=None,
-               require_structural_familiarity:bool=False):
+               require_structural_familiarity:bool=False,
+               require_transition_familiarity:bool=False,
+               require_communication_health:bool=True):
         pop=self.population_guard.assess(models)
         reasons=list(pop.reasons)
         signals=signals_from_artifacts(artifacts)
@@ -77,6 +87,18 @@ class ScientificOrganismController:
                 if not structural_ok:
                     permission=False;reasons.extend(structural_reasons)
 
+        transition_forecast=None
+        if structural_signature is not None:
+            transition_forecast=self.structural_state_graph.forecast(structural_signature)
+            if require_transition_familiarity:
+                transition_ok,transition_reasons=self.structural_state_graph.execution_permission(structural_signature)
+                if not transition_ok:
+                    permission=False;reasons.extend(transition_reasons)
+
+        communication_health=self.communication_fabric.topology_health()
+        if require_communication_health and not communication_health["healthy"]:
+            permission=False;reasons.append("communication_topology_unhealthy")
+
         stability=None
         if self.landscape.native is not None:
             stability=self.landscape.assess(self.brain,alternative_score=alternative_state_score)
@@ -92,7 +114,9 @@ class ScientificOrganismController:
                                      structural_report=structural_report)
         reasons.extend(home.vetoes)
         action=home.decision.action if home.permitted else "HOLD"
-        out=OrganismDecision(action,home.permitted,home.decision,home,pop,stability,tuple(dict.fromkeys(reasons)),structural_experience)
+        out=OrganismDecision(action,home.permitted,home.decision,home,pop,stability,
+                             tuple(dict.fromkeys(reasons)),structural_experience,
+                             transition_forecast,communication_health)
         self.history.append(out)
         return out
 
