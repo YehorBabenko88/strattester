@@ -33,3 +33,16 @@ def test_write_batch_cannot_cross_symbol_shards(tmp_path):
     else:
         raise AssertionError('mixed-symbol write must be rejected')
     s.close()
+
+
+def test_legacy_symbol_migration_is_validated_before_shard_use(tmp_path):
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+    legacy.upsert_candles([candle('BTCUSDT',i*60_000) for i in range(5)])
+    s=ShardedMarketStore(tmp_path/'shards',legacy_store=legacy)
+    copied=s.migrate_legacy_candles('BTCUSDT')
+    assert copied==5
+    shard=s.for_symbol('BTCUSDT')
+    assert shard.coverage('BTCUSDT').count==5
+    assert shard.integrity_check()
+    assert [x.open_time for x in s.iter_candles('BTCUSDT')]==[i*60_000 for i in range(5)]
+    s.close(); legacy.close()
