@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import sqlite3
 from typing import Iterable
+from .storage_health import storage_health
 from .coverage import Coverage, TimeRange
 from .schema import SCHEMA_SQL, SCHEMA_VERSION
 
@@ -34,6 +35,10 @@ class SQLiteMarketStore:
     @classmethod
     def open(cls,path: Path):
         path=Path(path); path.parent.mkdir(parents=True,exist_ok=True)
+        if path.exists():
+            health=storage_health(path,min_free_bytes=0)
+            if not health.integrity_ok:
+                raise sqlite3.DatabaseError(f'market database integrity failure: {health.message}')
         con=sqlite3.connect(path,timeout=60)
         con.execute('PRAGMA foreign_keys=ON'); con.execute('PRAGMA journal_mode=WAL'); con.execute('PRAGMA busy_timeout=60000'); con.execute('PRAGMA synchronous=FULL'); con.execute('PRAGMA wal_autocheckpoint=1000')
         tables={r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
