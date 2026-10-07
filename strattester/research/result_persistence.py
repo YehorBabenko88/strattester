@@ -15,3 +15,14 @@ def persist_report(store,run_id,symbol,strategy_result,report):
     metrics['coverage']='COMPLETE_HISTORY'
     store.put(run_id,symbol,strategy_result.strategy_id,strategy_result.strategy_version,metrics)
     return metrics
+
+
+def persist_report_fenced(store,stage_id,run_id,symbol,strategy_result,report,lease_validator):
+    """Persist scientific output without allowing a stale worker to publish it."""
+    metrics=_metrics(report.primary)
+    metrics['fingerprint']=strategy_result.fingerprint
+    metrics['coverage']='COMPLETE_HISTORY'
+    store.stage(stage_id,run_id,symbol,strategy_result.strategy_id,strategy_result.strategy_version,metrics)
+    if not store.promote(stage_id,lease_validator):
+        raise RuntimeError('result publication fenced: job lease is no longer valid')
+    return metrics
