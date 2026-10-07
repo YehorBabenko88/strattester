@@ -43,3 +43,19 @@ def test_completed_job_is_never_reassigned(tmp_path):
     assert report.reassigned==()
     assert s.get_job(job.id).target_node=='PC1'
     s.close()
+
+
+def test_recovery_is_idempotent_after_first_move(tmp_path):
+    s=SQLiteStateStore.open(tmp_path/'state.db')
+    job=Job.new('sync',symbol='BTCUSDT',target_node='PC1',resource_key='market:PC1:BTCUSDT',
+                state=JobState.RETRYABLE)
+    s.put_job(job)
+    recovery=ClusterRecovery(ClusterState(s,('PC2',)))
+    first=recovery.reconcile(now=100)
+    second=recovery.reconcile(now=101)
+    assert first.reassigned==(job.id,)
+    assert second.reassigned==()
+    moved=s.get_job(job.id)
+    assert moved.target_node=='PC2'
+    assert moved.resource_key=='market:PC2:BTCUSDT'
+    s.close()
