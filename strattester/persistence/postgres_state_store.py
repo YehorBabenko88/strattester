@@ -29,6 +29,8 @@ class PostgresStateStore:
             cur.execute('''CREATE TABLE IF NOT EXISTS strattester_brain_lease(
                 singleton BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK(singleton),
                 holder TEXT NOT NULL, epoch BIGINT NOT NULL, expires_at DOUBLE PRECISION NOT NULL)''')
+            cur.execute("""INSERT INTO strattester_brain_lease(singleton,holder,epoch,expires_at)
+                VALUES(TRUE,'',0,0) ON CONFLICT(singleton) DO NOTHING""")
             cur.execute('''CREATE TABLE IF NOT EXISTS strattester_learning_events(
                 event_id TEXT PRIMARY KEY, decision_id TEXT NOT NULL, horizon TEXT NOT NULL,
                 applied_at DOUBLE PRECISION NOT NULL, meta JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -211,30 +213,39 @@ class PostgresStateStore:
             cur.execute('SELECT node_id FROM strattester_nodes WHERE last_seen>=%s ORDER BY node_id',(cutoff,))
             return tuple(r[0] for r in cur.fetchall())
 
+    def _db_now(self,cur):
+        cur.execute("SELECT EXTRACT(EPOCH FROM clock_timestamp())")
+        return float(cur.fetchone()[0])
+
     def acquire_brain_lease(self,holder,lease_seconds=30,now=None):
-        now=time.time() if now is None else float(now)
+        holder=str(holder);lease_seconds=float(lease_seconds)
+        if not holder or lease_seconds<=0:raise ValueError("invalid brain lease request")
         try:
             with self.con.cursor() as cur:
                 cur.execute('SELECT holder,epoch,expires_at FROM strattester_brain_lease WHERE singleton=TRUE FOR UPDATE')
                 row=cur.fetchone()
-                if row is not None and row[2]>now and row[0]!=holder:
+                if row is None:raise RuntimeError("brain lease singleton missing")
+                db_now=float(now) if now is not None else self._db_now(cur)
+                if row[2]>db_now and row[0]!=holder:
                     self.con.rollback(); return None
-                epoch=1 if row is None else int(row[1])+(0 if row[0]==holder and row[2]>now else 1)
-                cur.execute('''INSERT INTO strattester_brain_lease(singleton,holder,epoch,expires_at)
-                    VALUES(TRUE,%s,%s,%s)
-                    ON CONFLICT(singleton) DO UPDATE SET holder=excluded.holder,epoch=excluded.epoch,expires_at=excluded.expires_at''',
-                    (str(holder),epoch,now+float(lease_seconds)))
-            self.con.commit(); return {"holder":str(holder),"epoch":epoch,"expires_at":now+float(lease_seconds)}
+                epoch=int(row[1])+(0 if row[0]==holder and row[2]>db_now else 1)
+                expires=db_now+lease_seconds
+                cur.execute('''UPDATE strattester_brain_lease
+                    SET holder=%s,epoch=%s,expires_at=%s WHERE singleton=TRUE''',
+                    (holder,epoch,expires))
+            self.con.commit(); return {"holder":holder,"epoch":epoch,"expires_at":expires}
         except Exception:
             self.con.rollback(); raise
 
     def renew_brain_lease(self,holder,epoch,lease_seconds=30,now=None):
-        now=time.time() if now is None else float(now)
+        holder=str(holder);epoch=int(epoch);lease_seconds=float(lease_seconds)
+        if not holder or epoch<1 or lease_seconds<=0:raise ValueError("invalid brain lease renewal")
         try:
             with self.con.cursor() as cur:
+                db_now=float(now) if now is not None else self._db_now(cur)
                 cur.execute('''UPDATE strattester_brain_lease SET expires_at=%s
                     WHERE singleton=TRUE AND holder=%s AND epoch=%s AND expires_at>%s''',
-                    (now+float(lease_seconds),str(holder),int(epoch),now))
+                    (db_now+lease_seconds,holder,epoch,db_now))
                 ok=cur.rowcount==1
             self.con.commit(); return ok
         except Exception:
