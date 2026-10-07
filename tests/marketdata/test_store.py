@@ -91,3 +91,30 @@ def test_wal_checkpoint_and_reopen_preserve_integrity(tmp_path):
     assert reopened.coverage('BTCUSDT').count==10
     assert reopened.integrity_check()
     reopened.close()
+
+
+def test_uncommitted_wal_transaction_disappears_after_reopen(tmp_path):
+    path=tmp_path/'crash.db'
+    s=SQLiteMarketStore.open(path)
+    s.connection.execute('BEGIN IMMEDIATE')
+    s.connection.execute(
+        '''INSERT INTO candles(symbol,timeframe,open_time,open,high,low,close,volume,turnover,complete)
+           VALUES(?,?,?,?,?,?,?,?,?,?)''',
+        ('BTCUSDT','1m',0,1,1.1,.9,1,10,100,1))
+    # Simulate abrupt process death: close the underlying connection without commit.
+    s.connection.close()
+    reopened=SQLiteMarketStore.open(path)
+    assert reopened.coverage('BTCUSDT').count==0
+    assert reopened.integrity_check()
+    reopened.close()
+
+def test_committed_wal_data_survives_reopen_without_manual_checkpoint(tmp_path):
+    path=tmp_path/'committed.db'
+    s=SQLiteMarketStore.open(path)
+    s.upsert_candles([c(i*60_000) for i in range(25)])
+    # Do not call the store's graceful close/checkpoint path.
+    s.connection.close()
+    reopened=SQLiteMarketStore.open(path)
+    assert reopened.coverage('BTCUSDT').count==25
+    assert reopened.integrity_check()
+    reopened.close()
