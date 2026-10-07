@@ -17,13 +17,20 @@ class WorkerRuntime:
         self.max_attempts=max(1,int(max_attempts))
         self.cluster_recovery=ClusterRecovery(state_store) if hasattr(state_store,'live_nodes') else None
         self.control_plane_healthy=True
+        self.node_generation=None
         self.background_tasks=list(background_tasks or ())
         self.resources=list(resources or ())
 
     def _heartbeat_node(self):
         if self.node_id is not None and hasattr(self.state_store,'heartbeat_node'):
             try:
-                self.state_store.heartbeat_node(self.node_id,meta={'worker_id':self.worker_id})
+                if self.node_generation is None and hasattr(self.state_store,'register_node_generation'):
+                    self.node_generation=self.state_store.register_node_generation(
+                        self.node_id,meta={'worker_id':self.worker_id})
+                kwargs={'meta':{'worker_id':self.worker_id,'generation':self.node_generation}}
+                if self.node_generation is not None:kwargs['generation']=self.node_generation
+                ok=self.state_store.heartbeat_node(self.node_id,**kwargs)
+                if ok is False:raise RuntimeError('node generation fenced')
             except Exception:
                 self.control_plane_healthy=False
                 if hasattr(self.state_store,'reconnect'):
