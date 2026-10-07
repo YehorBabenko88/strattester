@@ -36,6 +36,8 @@ def test_anticipation_does_not_create_dense_mesh():
     pred={f"a{i}":1/(i+1) for i in range(10)}
     out=f.anticipate_links("brain",pred,pred)
     assert len(out)==3
+    assert len(f.links)==3
+    assert set(f.links)=={("brain",r.target) for r in out}
 
 def test_topology_detects_single_link_dominance():
     f=SelfOrganizingCommunicationFabric()
@@ -43,3 +45,21 @@ def test_topology_detects_single_link_dominance():
     f.link("b","brain").weight=.15
     h=f.topology_health()
     assert h["dominance"]>.55 and not h["healthy"]
+
+
+def test_route_scoring_unknown_candidate_has_no_side_effect():
+    f=SelfOrganizingCommunicationFabric()
+    assert f.route_score("a","b")>0
+    assert f.links=={}
+
+def test_neighbors_do_not_materialize_candidates():
+    f=SelfOrganizingCommunicationFabric(max_neighbors=2)
+    out=f.neighbors("a",["b","c","d"])
+    assert len(out)==2 and f.links=={}
+
+def test_invalid_delivery_numbers_fail_closed():
+    f=SelfOrganizingCommunicationFabric()
+    for latency,useful in [(float("nan"),1),(-1,1),(1,float("inf"))]:
+        try:f.observe_delivery("a","b",success=True,latency_ms=latency,useful=useful)
+        except ValueError:pass
+        else:raise AssertionError("invalid communication metric accepted")
