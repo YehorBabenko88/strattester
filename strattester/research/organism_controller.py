@@ -20,6 +20,7 @@ from .structural_memory import StructuralMemory,StructuralExperience
 from .structural_state_graph import StructuralStateGraph,TransitionForecast
 from .agent_communication import SelfOrganizingCommunicationFabric
 from .topology_recovery import RecoveryReport
+from .brain_quorum import QuorumReport
 
 @dataclass(frozen=True)
 class OrganismDecision:
@@ -35,6 +36,7 @@ class OrganismDecision:
     communication_health:Mapping[str,object]|None=None
     recovery:RecoveryReport|None=None
     effective_uncertainty:float=0.0
+    quorum:QuorumReport|None=None
 
 class ScientificOrganismController:
     def __init__(self,brain:NeuroDecisionController|None=None,
@@ -73,7 +75,8 @@ class ScientificOrganismController:
                require_structural_familiarity:bool=False,
                require_transition_familiarity:bool=False,
                require_communication_health:bool=True,
-               recovery_report:RecoveryReport|None=None):
+               recovery_report:RecoveryReport|None=None,
+               quorum_report:QuorumReport|None=None):
         pop=self.population_guard.assess(models)
         reasons=list(pop.reasons)
         signals=signals_from_artifacts(artifacts)
@@ -108,6 +111,11 @@ class ScientificOrganismController:
             if not recovery_report.execution_allowed:
                 permission=False;reasons.extend(f"recovery:{r}" for r in recovery_report.reasons)
 
+        if quorum_report is not None and not quorum_report.execution_allowed:
+            permission=False;reasons.extend(f"quorum:{r}" for r in quorum_report.reasons)
+            # Partition uncertainty is epistemic as well as operational.
+            uncertainty=min(1.0,uncertainty+.25)
+
         stability=None
         if self.landscape.native is not None:
             stability=self.landscape.assess(self.brain,alternative_score=alternative_state_score)
@@ -125,7 +133,7 @@ class ScientificOrganismController:
         action=home.decision.action if home.permitted else "HOLD"
         out=OrganismDecision(action,home.permitted,home.decision,home,pop,stability,
                              tuple(dict.fromkeys(reasons)),structural_experience,
-                             transition_forecast,communication_health,recovery_report,uncertainty)
+                             transition_forecast,communication_health,recovery_report,uncertainty,quorum_report)
         self.history.append(out)
         return out
 
