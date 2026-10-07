@@ -8,8 +8,8 @@ class Cursor:
         s=" ".join(sql.split());self.rowcount=0;self.result=None
         if s.startswith("SELECT holder,epoch,expires_at FROM strattester_brain_lease"):
             self.result=self.con.lease
-        elif s.startswith("INSERT INTO strattester_brain_lease"):
-            self.con.lease=(args[0],args[1],args[2]);self.rowcount=1
+        elif s.startswith("UPDATE strattester_brain_lease SET holder"):
+            holder,epoch,expires=args;self.con.lease=(holder,epoch,expires);self.rowcount=1
         elif s.startswith("UPDATE strattester_brain_lease SET expires_at"):
             exp,holder,epoch,now=args
             if self.con.lease and self.con.lease[0]==holder and self.con.lease[1]==epoch and self.con.lease[2]>now:
@@ -24,7 +24,7 @@ class Cursor:
     def fetchone(self):return self.result
 
 class Con:
-    def __init__(self):self.lease=None;self.events={}
+    def __init__(self):self.lease=('',0,0);self.events={}
     def cursor(self):return Cursor(self)
     def commit(self):pass
     def rollback(self):pass
@@ -48,3 +48,17 @@ def test_learning_claim_is_exactly_once_per_decision_horizon():
     assert s.claim_learning_event("e1","d1","1h",now=1)
     assert not s.claim_learning_event("e2","d1","1h",now=2)
     assert s.learning_event_applied("d1","1h")
+
+
+def test_same_live_holder_renews_without_epoch_increment():
+    s=PostgresStateStore(Con())
+    a=s.acquire_brain_lease("a",10,now=0)
+    again=s.acquire_brain_lease("a",10,now=5)
+    assert a["epoch"]==again["epoch"]==1
+
+def test_invalid_brain_lease_parameters_fail_closed():
+    s=PostgresStateStore(Con())
+    for holder,seconds in [("",10),("a",0),("a",-1)]:
+        try:s.acquire_brain_lease(holder,seconds,now=0)
+        except ValueError:pass
+        else:raise AssertionError("invalid lease accepted")
