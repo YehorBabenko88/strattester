@@ -140,9 +140,21 @@ class WorkerRuntime:
             self._run_parallel(running)
         return len(running)
 
+    def close(self):
+        errors=[]
+        resources=self.resources
+        self.resources=[]
+        for resource in reversed(resources):
+            try: resource.close()
+            except Exception as exc: errors.append(exc)
+        if errors: raise errors[0]
+
     def run(self,poll_seconds=2):
-        while not self.lifecycle.stopping:
-            self.run_once()
-            if self.lifecycle.draining: break
-            time.sleep(poll_seconds)
-        return 0
+        try:
+            while not self.lifecycle.stopping:
+                self.run_once()
+                if self.lifecycle.draining: break
+                time.sleep(poll_seconds)
+            return 0
+        finally:
+            self.close()
