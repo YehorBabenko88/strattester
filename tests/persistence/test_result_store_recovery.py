@@ -18,7 +18,7 @@ def test_failed_result_transaction_does_not_replace_previous_result(tmp_path):
     s.put('r1','BTCUSDT','A','1',{'pnl':1},created_at=1)
     with pytest.raises(sqlite3.IntegrityError):
         with s.con:
-            s.con.execute('INSERT INTO research_results VALUES(?,?,?,?,?,?)',
+            s.con.execute('INSERT INTO research_results(run_id,symbol,strategy_id,strategy_version,created_at,metrics) VALUES(?,?,?,?,?,?)',
                           (None,'BTCUSDT','A','1',2,'{}'))
     assert s.latest('BTCUSDT','A')['run_id']=='r1'
     assert s.integrity_check()
