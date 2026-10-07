@@ -62,6 +62,7 @@ class ScientificOrganismController:
         self.structural_state_graph=structural_state_graph or StructuralStateGraph()
         self.communication_fabric=communication_fabric or SelfOrganizingCommunicationFabric()
         self.history:list[OrganismDecision]=[]
+        self.applied_learning_events:set[str]=set()
 
     def establish_native(self,validation_score:float):
         return self.landscape.establish_native(self.brain,validation_score)
@@ -141,7 +142,17 @@ class ScientificOrganismController:
         self.decision_memory.remember(trace)
 
     def learn_decision(self,outcome:ObservedOutcome,channel_attribution:Mapping[str,float],*,
-                       regime:str,counterfactuals:Sequence[CounterfactualEstimate]=()):
+                       regime:str,counterfactuals:Sequence[CounterfactualEstimate]=(),
+                       learning_store=None,event_id:str|None=None):
+        key=f"{outcome.decision_id}:{outcome.horizon}"
+        if key in self.applied_learning_events:
+            return {}
+        durable_id=event_id or key
+        if learning_store is not None and not learning_store.claim_learning_event(
+                durable_id,outcome.decision_id,outcome.horizon,
+                meta={"regime":regime}):
+            self.applied_learning_events.add(key)
+            return {}
         self.decision_memory.observe(outcome)
         for cf in counterfactuals:self.decision_memory.estimate(cf)
         signal=self.decision_memory.learning_signal(outcome.decision_id,outcome.horizon)
@@ -156,6 +167,7 @@ class ScientificOrganismController:
             if self.plasticity_gate.confirm(key,confirmed):
                 # Permanent change is based on conservative credit, not raw outcome.
                 self.plasticity_gate.consolidate(self.brain,key,report.modulation)
+        self.applied_learning_events.add(key)
         return reports
 
     def learn_from_outcomes(self,outcomes:Mapping[str,float],rate=.05):
