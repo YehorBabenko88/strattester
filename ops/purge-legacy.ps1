@@ -23,14 +23,14 @@ foreach($n in $nodes){
  $payload=[pscustomobject]@{Apply=[bool]$Apply;Services=$p.Services;Tasks=$p.Tasks;Paths=$p.Paths}|ConvertTo-Json -Compress
  $remote=@'
 param([string]$PlanJson)
-$ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+$ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue';$InformationPreference='SilentlyContinue'
 $plan=$PlanJson|ConvertFrom-Json
 $manifestDir='C:\ProgramData\Strattester\commissioning\legacy'
 New-Item -ItemType Directory -Force -Path $manifestDir|Out-Null
 $stamp=Get-Date -Format 'yyyyMMdd-HHmmss'
-$foundServices=@();foreach($name in $plan.Services){$s=Get-CimInstance Win32_Service -Filter "Name='$name'" -EA SilentlyContinue;if($s){$foundServices+=$s|select Name,State,StartMode,PathName}}
-$foundTasks=@();foreach($name in $plan.Tasks){$t=Get-ScheduledTask -TaskName $name -EA SilentlyContinue;if($t){$foundTasks+=$t|select TaskName,TaskPath,State,@{N='Actions';E={($_.Actions|%{$_.Execute+' '+$_.Arguments}) -join '; '}}}}
-$foundPaths=@($plan.Paths|?{Test-Path $_})
+$foundServices=@();if(@($plan.Services).Count -gt 0){foreach($name in $plan.Services){$s=Get-CimInstance Win32_Service -Filter "Name='$name'" -EA SilentlyContinue;if($s){$foundServices+=$s|select Name,State,StartMode,PathName}}}
+$foundTasks=@();if(@($plan.Tasks).Count -gt 0){foreach($name in $plan.Tasks){$t=Get-ScheduledTask -TaskName $name -EA SilentlyContinue;if($t){$foundTasks+=$t|select TaskName,TaskPath,State,@{N='Actions';E={($_.Actions|%{$_.Execute+' '+$_.Arguments}) -join '; '}}}}}
+$foundPaths=@();if(@($plan.Paths).Count -gt 0){$foundPaths=@($plan.Paths|?{Test-Path $_})}
 $manifest=[pscustomobject]@{Hostname=(hostname);Timestamp=$stamp;Services=$foundServices;Tasks=$foundTasks;Paths=$foundPaths}
 $manifestPath=Join-Path $manifestDir "purge-$stamp.json"
 $manifest|ConvertTo-Json -Depth 8|Set-Content $manifestPath -Encoding UTF8
