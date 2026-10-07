@@ -74,9 +74,12 @@ class WorkerRuntime:
     def run_once(self):
         if self.lifecycle.draining or self.lifecycle.stopping:return 0
         snapshot=self.snapshot_provider()
-        candidates=self.scheduler.ready_jobs(snapshot)
-        if self.node_id is not None:
-            candidates=[j for j in candidates if j.target_node in (None,self.node_id)]
+        try:
+            candidates=self.scheduler.ready_jobs(snapshot,node_id=self.node_id)
+        except TypeError:
+            candidates=self.scheduler.ready_jobs(snapshot)
+            if self.node_id is not None:
+                candidates=[j for j in candidates if j.target_node in (None,self.node_id)]
         if not candidates:return 0
         jobs=self.state_store.claim_ready_jobs(
             self.worker_id,limit=len(candidates),lease_seconds=self.lease_seconds,
