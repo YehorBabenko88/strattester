@@ -6,6 +6,12 @@ from strattester.engine.resource_manager import ResourceSnapshot
 from strattester.persistence.sqlite_state_store import SQLiteStateStore
 import logging
 GB=1024**3
+
+def _picklable_cpu_executor(job):
+    total=0
+    for i in range(20000):
+        total += (i*i) % 97
+    return job.symbol,total
 def test_one_failure_is_retryable_and_next_job_completes(tmp_path):
     s=SQLiteStateStore.open(tmp_path/'s.db')
     a=Job.new('x',symbol='BAD',state=JobState.READY); b=Job.new('x',symbol='GOOD',state=JobState.READY)
@@ -63,5 +69,19 @@ def test_worker_runs_independent_jobs_concurrently(tmp_path):
         execution_mode='thread')
     assert w.run_once()==4
     assert peak>=2
+    assert all(s.get_job(j.id).state is JobState.COMPLETE for j in jobs)
+    s.close()
+
+
+def test_auto_mode_can_use_process_pool_for_picklable_executor(tmp_path):
+    s=SQLiteStateStore.open(tmp_path/'s.db')
+    jobs=[Job.new('backtest',symbol=f'S{i}',state=JobState.READY) for i in range(2)]
+    for j in jobs: s.put_job(j)
+    w=WorkerRuntime(
+        s,Scheduler(s),_picklable_cpu_executor,Lifecycle(),logging.getLogger('test'),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB,0,4),
+        execution_mode='auto')
+    assert w._pool_kind()=='process'
+    assert w.run_once()==2
     assert all(s.get_job(j.id).state is JobState.COMPLETE for j in jobs)
     s.close()
