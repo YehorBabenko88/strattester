@@ -9,7 +9,7 @@ from strattester.runtime.logging import build_logger
 from strattester.runtime.system_resources import snapshot
 from strattester.runtime.worker import WorkerRuntime
 from strattester.runtime.background_migration import BackgroundShardMigration
-from strattester.marketdata.sqlite_store import SQLiteMarketStore
+from strattester.marketdata.store_factory import open_market_store
 from strattester.marketdata.sharded_store import ShardedMarketStore
 from strattester.marketdata.shard_migrator import ShardMigrator
 from strattester.engine.distribution import assign_node
@@ -21,8 +21,8 @@ def build_worker(root:Path,executor):
     logger=build_logger(b.config.logs_dir/'worker.jsonl','strattester.worker')
     background=[]
     if b.config.market_db.exists() and b.config.market_shards_dir is not None:
-        legacy=SQLiteMarketStore.open(b.config.market_db)
-        shards=ShardedMarketStore(b.config.market_shards_dir,legacy_store=legacy)
+        shards=open_market_store(b.config.market_db,b.config.market_shards_dir)
+        legacy=shards.legacy_store
         def assigned_symbols():
             connection=getattr(legacy,'connection',None)
             symbols=connection.execute("SELECT DISTINCT symbol FROM candles ORDER BY symbol").fetchall()
