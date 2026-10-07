@@ -34,3 +34,15 @@ def test_two_node_cluster_requires_both_members():
     assert q.quorum_size==2
     v=PartitionView("a",frozenset({"a"}),1,0)
     assert not q.assess(v,BrainLease("a",1,10)).execution_allowed
+
+
+def test_old_membership_generation_is_fenced_even_with_majority_and_lease():
+    q=BrainQuorumFence(["a","b","c"],membership_generation=9)
+    v=PartitionView("a",frozenset({"a","b","c"}),7,100,membership_generation=8)
+    r=q.assess(v,BrainLease("a",7,200))
+    assert not r.execution_allowed and "stale_membership_generation" in r.reasons
+
+def test_current_membership_generation_allows_normal_quorum():
+    q=BrainQuorumFence(["a","b","c"],membership_generation=9)
+    v=PartitionView("a",frozenset({"a","b"}),7,100,membership_generation=9)
+    assert q.assess(v,BrainLease("a",7,200)).execution_allowed
