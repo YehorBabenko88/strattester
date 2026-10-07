@@ -151,7 +151,7 @@ c=sqlite3.connect(sys.argv[1])
 c.execute('PRAGMA journal_mode=WAL')
 c.execute('PRAGMA synchronous=FULL')
 c.execute('BEGIN IMMEDIATE')
-c.execute("INSERT INTO candles(symbol,timeframe,ts,open,high,low,close,volume,turnover,closed) VALUES('BTCUSDT','1m',60000,1,1,1,1,1,NULL,1)")
+c.execute("INSERT INTO candles(symbol,timeframe,open_time,open,high,low,close,volume,turnover,complete) VALUES('BTCUSDT','1m',60000,1,1,1,1,1,NULL,1)")
 os._exit(41)
 """
     child=subprocess.run([sys.executable,'-c',script,str(db)])
