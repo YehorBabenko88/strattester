@@ -72,7 +72,7 @@ def test_late_decode_failure_leaves_live_organism_unchanged(tmp_path):
 def test_checkpoint_replace_failure_preserves_previous_checkpoint_and_cleans_tmp(tmp_path,monkeypatch):
     import os
     from strattester.research.organism_checkpoint import save_checkpoint
-    org=_organism()
+    org=ScientificOrganismController();org.brain._channel('m').conductance=1.1
     path=tmp_path/'brain.json'
     first=save_checkpoint(org,path);before=path.read_bytes()
     real_replace=os.replace
