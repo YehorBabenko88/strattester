@@ -41,5 +41,5 @@ def build_worker(root:Path,executor):
         node_id=b.config.node_id,
         execution_mode=b.config.execution_mode,
         background_tasks=background,
-        resources=[shards] if background else [])
+        resources=([shards,legacy] if background and legacy is not None else ([shards] if background else [])))
     return b,state,runtime
