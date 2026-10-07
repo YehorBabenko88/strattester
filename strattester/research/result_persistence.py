@@ -17,12 +17,12 @@ def persist_report(store,run_id,symbol,strategy_result,report):
     return metrics
 
 
-def persist_report_fenced(store,stage_id,run_id,symbol,strategy_result,report,lease_validator,job_id=None,lease_token=0):
+def persist_report_fenced(store,stage_id,run_id,symbol,strategy_result,report,lease_validator,job_id=None,lease_token=0,node_generation=0):
     """Persist scientific output without allowing a stale worker to publish it."""
     metrics=_metrics(report.primary)
     metrics['fingerprint']=strategy_result.fingerprint
     metrics['coverage']='COMPLETE_HISTORY'
-    store.stage(stage_id,run_id,symbol,strategy_result.strategy_id,strategy_result.strategy_version,metrics,job_id=job_id,lease_token=lease_token)
+    store.stage(stage_id,run_id,symbol,strategy_result.strategy_id,strategy_result.strategy_version,metrics,job_id=job_id,lease_token=lease_token,node_generation=node_generation)
     if not store.promote(stage_id,lease_validator):
-        raise RuntimeError('result publication fenced: job lease is no longer valid')
+        raise RuntimeError('result publication fenced: execution authority is no longer valid')
     return metrics
