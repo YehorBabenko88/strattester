@@ -65,6 +65,15 @@ class PostgresStateStore:
                     if job.target_node is not None and node_id is None: continue
                     if job.state not in (JobState.READY,JobState.RETRYABLE): continue
                     if job.resource_key and job.resource_key in active_keys: continue
+                    if job.resource_key:
+                        cur.execute("SELECT pg_try_advisory_xact_lock(hashtextextended(%s,0))",(job.resource_key,))
+                        if not bool(cur.fetchone()[0]): continue
+                        cur.execute("""SELECT payload FROM strattester_jobs
+                            WHERE payload->>'resource_key'=%s
+                              AND payload->>'state' IN ('LEASED','RUNNING')
+                              AND COALESCE((payload->>'lease_until')::double precision,0)>=%s
+                              AND id<>%s LIMIT 1""",(job.resource_key,now,job.id))
+                        if cur.fetchone() is not None: continue
                     leased=job.with_state(JobState.LEASED,lease_owner=owner,lease_until=now+lease_seconds,
                                           lease_token=job.lease_token+1,error=None)
                     cur.execute('UPDATE strattester_jobs SET payload=%s::jsonb WHERE id=%s',
