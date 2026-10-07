@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 import os
 
-
 @dataclass(frozen=True)
 class AppConfig:
     root: Path
@@ -15,11 +14,17 @@ class AppConfig:
     market_db: Path
     telegram_token: str | None = field(default=None, repr=False)
     telegram_chat_id: str | None = None
+    postgres_dsn: str | None = field(default=None, repr=False)
+    node_id: str | None = None
+    execution_mode: str = 'auto'
 
     @classmethod
     def load(cls, root: Path) -> 'AppConfig':
         root = Path(root).expanduser().resolve()
         data_dir = root / 'data'
+        mode=(os.getenv('STRATTESTER_EXECUTION_MODE') or 'auto').strip().lower()
+        if mode not in ('auto','process','thread'):
+            mode='auto'
         return cls(
             root=root,
             data_dir=data_dir,
@@ -29,6 +34,9 @@ class AppConfig:
             market_db=data_dir / 'bybit_1m.sqlite3',
             telegram_token=os.getenv('STRATTESTER_TELEGRAM_TOKEN'),
             telegram_chat_id=os.getenv('STRATTESTER_TELEGRAM_CHAT_ID'),
+            postgres_dsn=os.getenv('STRATTESTER_POSTGRES_DSN'),
+            node_id=os.getenv('STRATTESTER_NODE_ID'),
+            execution_mode=mode,
         )
 
     def ensure_directories(self) -> None:
