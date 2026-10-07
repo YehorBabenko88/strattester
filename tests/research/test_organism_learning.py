@@ -42,3 +42,28 @@ def test_orphan_outcome_cannot_train_organism():
     try:o.learn_decision(ObservedOutcome("ghost","1h",1,1),{"m":1},regime="R")
     except ValueError:pass
     else:raise AssertionError("orphan outcome trained brain")
+
+
+def test_same_outcome_retry_is_applied_only_once():
+    o=make();o.remember_decision(DecisionTrace("same",1,"LONG",(),"R"))
+    out=ObservedOutcome("same","1h",1,2)
+    o.learn_decision(out,{"m":1},regime="R")
+    samples=o.timescale_memory.state("m","R").regime_samples
+    assert o.learn_decision(out,{"m":1},regime="R")=={}
+    assert o.timescale_memory.state("m","R").regime_samples==samples
+    assert "same:1h" in o.applied_learning_events
+
+class RejectDuplicateStore:
+    def __init__(self):self.claims=set()
+    def claim_learning_event(self,event_id,decision_id,horizon,meta=None):
+        k=(decision_id,horizon)
+        if k in self.claims:return False
+        self.claims.add(k);return True
+
+def test_durable_store_blocks_duplicate_across_controller_restart():
+    store=RejectDuplicateStore()
+    a=make();a.remember_decision(DecisionTrace("d",1,"LONG",(),"R"))
+    a.learn_decision(ObservedOutcome("d","1h",1,2),{"m":1},regime="R",learning_store=store)
+    b=make();b.remember_decision(DecisionTrace("d",1,"LONG",(),"R"))
+    assert b.learn_decision(ObservedOutcome("d","1h",1,2),{"m":1},regime="R",learning_store=store)=={}
+    assert b.timescale_memory.state("m","R").regime_samples==0
