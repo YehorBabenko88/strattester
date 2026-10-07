@@ -85,3 +85,15 @@ def test_one_unavailable_dataset_is_isolated_from_other_requirements(tmp_path):
     assert good.state is SyncState.READY
     assert bad.state is SyncState.UNAVAILABLE
     store.close()
+
+
+def test_empty_exchange_page_never_marks_missing_history_ready(tmp_path):
+    class C:
+        def fetch_klines(self,*a):return []
+    store=SQLiteMarketStore.open(tmp_path/'m.db')
+    result=SyncEngine(store,C(),clock_ms=lambda:999999).sync_requirement(
+        DataRequirement('EMPTY','candles','1m',0,120000))
+    assert result.state is SyncState.PARTIAL
+    assert "incomplete" in result.message
+    assert store.coverage('EMPTY','candles','1m').count==0
+    store.close()
