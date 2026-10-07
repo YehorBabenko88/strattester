@@ -1,6 +1,6 @@
 """Deterministic checkpointing for scientific-organism adaptive state."""
 from __future__ import annotations
-import hashlib,json
+import hashlib,json,math,copy
 from dataclasses import dataclass
 from pathlib import Path
 from .homeostasis import ChannelLifecycle
@@ -53,19 +53,40 @@ def save_checkpoint(org,path:Path):
     tmp.write_text(_canonical(envelope),encoding="utf-8");tmp.replace(path)
     return envelope["sha256"]
 
+def _validate_payload(payload):
+    if payload.get("schema_version")!=SCHEMA_VERSION:raise ValueError("unsupported brain checkpoint schema")
+    brain=payload.get("brain",{});potential=float(brain["potential"])
+    if not math.isfinite(potential):raise ValueError("non-finite brain potential")
+    for v in brain.get("channels",{}).values():
+        vals=(float(v["conductance"]),float(v["adaptation"]),float(v["last_drive"]))
+        if not all(math.isfinite(x) for x in vals):raise ValueError("non-finite channel state")
+        if not .25<=vals[0]<=2.0:raise ValueError("unsafe conductance")
+        if not 0<=vals[1]<=1.0:raise ValueError("unsafe adaptation")
+    for v in payload.get("health",{}).values():
+        ChannelLifecycle(v["lifecycle"])
+        if any(int(v[k])<0 for k in ("age","autonomous_drive","failures","successes","mutations")):
+            raise ValueError("negative health counter")
+        if not math.isfinite(float(v["anomaly_score"])):raise ValueError("non-finite anomaly score")
+    learning=payload.get("learning",{})
+    if int(learning.get("last_applied_sequence",0))<0:raise ValueError("negative learning boundary")
+    for section in ("credit_scores","short_memory","long_memory"):
+        for values in learning.get(section,{}).values():
+            if any(not math.isfinite(float(x)) for x in values):raise ValueError("non-finite adaptive memory")
+    return True
+
 def load_checkpoint(org,path:Path):
+    load_checkpoint._live_target=org
     envelope=json.loads(Path(path).read_text(encoding="utf-8"))
     payload=envelope.get("payload");expected=envelope.get("sha256")
     if not isinstance(payload,dict) or not expected:raise ValueError("invalid brain checkpoint")
     actual=hashlib.sha256(_canonical(payload).encode()).hexdigest()
     if actual!=expected:raise ValueError("brain checkpoint checksum mismatch")
-    if payload.get("schema_version")!=SCHEMA_VERSION:raise ValueError("unsupported brain checkpoint schema")
-    # Validate fully before mutating live state.
+    _validate_payload(payload)
+    # Apply to a deep copy first: malformed nested provenance can never leave
+    # the live organism half-restored.
+    target=copy.deepcopy(org)
     channels=payload.get("brain",{}).get("channels",{})
-    for key,v in channels.items():
-        if not .25<=float(v["conductance"])<=2.0:raise ValueError("unsafe conductance")
-        if not 0<=float(v["adaptation"])<=1.0:raise ValueError("unsafe adaptation")
-    for key,v in payload.get("health",{}).items():ChannelLifecycle(v["lifecycle"])
+    org=target
     org.brain.potential=float(payload["brain"]["potential"])
     for key,v in channels.items():
         ch=org.brain._channel(key);ch.conductance=float(v["conductance"])
@@ -104,4 +125,8 @@ def load_checkpoint(org,path:Path):
     for k,v in learning.get("short_memory",{}).items():org.timescale_memory._short[str(k)].extend(map(float,v))
     for k,r,v in learning.get("regime_memory",[]):org.timescale_memory._regime[(str(k),str(r))].extend(map(float,v))
     for k,v in learning.get("long_memory",{}).items():org.timescale_memory._long[str(k)].extend(map(float,v))
+    original=locals().get('target')
+    # Commit the fully decoded state only after every reconstruction succeeded.
+    live=load_checkpoint._live_target
+    live.__dict__.clear();live.__dict__.update(org.__dict__)
     return actual
