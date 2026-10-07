@@ -46,3 +46,34 @@ def test_legacy_symbol_migration_is_validated_before_shard_use(tmp_path):
     assert shard.integrity_check()
     assert [x.open_time for x in s.iter_candles('BTCUSDT')]==[i*60_000 for i in range(5)]
     s.close(); legacy.close()
+
+
+def test_partial_shard_is_never_authoritative_after_restart(tmp_path):
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+    legacy.upsert_candles([candle('BTCUSDT',i*60_000) for i in range(5)])
+    root=tmp_path/'shards'
+    first=ShardedMarketStore(root,legacy_store=legacy)
+    first.for_symbol('BTCUSDT').upsert_candles([candle('BTCUSDT',0),candle('BTCUSDT',60_000)])
+    first.manifest.set('BTCUSDT','MIGRATING',rows_copied=2)
+    first.close()
+    second=ShardedMarketStore(root,legacy_store=legacy)
+    assert second.manifest.ready('BTCUSDT') is False
+    assert second.coverage('BTCUSDT').count==5
+    assert [x.open_time for x in second.iter_candles('BTCUSDT')]==[i*60_000 for i in range(5)]
+    second.close(); legacy.close()
+
+def test_migration_resume_is_idempotent_and_promotes_only_after_validation(tmp_path):
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+    legacy.upsert_candles([candle('BTCUSDT',i*60_000) for i in range(5)])
+    root=tmp_path/'shards'
+    first=ShardedMarketStore(root,legacy_store=legacy)
+    first.for_symbol('BTCUSDT').upsert_candles([candle('BTCUSDT',0),candle('BTCUSDT',60_000)])
+    first.manifest.set('BTCUSDT','MIGRATING',rows_copied=2)
+    first.close()
+    second=ShardedMarketStore(root,legacy_store=legacy)
+    copied=second.migrate_legacy_candles('BTCUSDT',batch_size=2)
+    assert copied==3
+    record=second.manifest.get('BTCUSDT')
+    assert record.state.value=='SHARD_READY' and record.rows_copied==5
+    assert second.coverage('BTCUSDT').count==5
+    second.close(); legacy.close()
