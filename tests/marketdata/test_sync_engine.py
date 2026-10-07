@@ -71,3 +71,17 @@ def test_retry_after_interrupted_page_is_idempotent(tmp_path):
     assert s.coverage('BTCUSDT').count==3
     assert s.integrity_check()
     s.close()
+
+
+def test_one_unavailable_dataset_is_isolated_from_other_requirements(tmp_path):
+    class DatasetUnavailableError(RuntimeError):pass
+    class C:
+        def fetch_klines(self,*a):return [['0','1','1','1','1','1','1']]
+        def fetch_open_interest(self,*a):raise DatasetUnavailableError("not available for this symbol")
+    store=SQLiteMarketStore.open(tmp_path/'m.db')
+    engine=SyncEngine(store,C(),clock_ms=lambda:999999)
+    good=engine.sync_requirement(DataRequirement('X','candles','1m',0,0))
+    bad=engine.sync_requirement(DataRequirement('X','open_interest','5m',0,0))
+    assert good.state is SyncState.READY
+    assert bad.state is SyncState.UNAVAILABLE
+    store.close()
