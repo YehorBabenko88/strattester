@@ -23,21 +23,25 @@ def ensure_history(store,client,requirements,clock_ms=None):
     return tuple(engine.sync_requirement(req) for req in requirements)
 
 
+def dataset_capabilities(instrument:dict):
+    """Explicit per-instrument datasets. Unknown metadata stays conservative."""
+    caps={"candles","mark_price","index_price","premium_index"}
+    if instrument.get("supportsOpenInterest",True):caps.add("open_interest")
+    if instrument.get("supportsFunding",instrument.get("fundingInterval") is not None):caps.add("funding")
+    if instrument.get("supportsLongShortRatio",True):caps.add("long_short_ratio")
+    return frozenset(caps)
+
 def requirements_for_instrument(instrument:dict,*,end_ms:int):
     from strattester.marketdata.sync_engine import DataRequirement
     symbol=instrument['symbol']
     launch=int(instrument.get('launchTime') or 0)
     launch=(launch//60_000)*60_000
     funding_minutes=int(instrument.get('fundingInterval') or 480)
-    return (
-        DataRequirement(symbol,'candles','1m',launch,end_ms),
-        DataRequirement(symbol,'mark_price','1m',launch,end_ms),
-        DataRequirement(symbol,'index_price','1m',launch,end_ms),
-        DataRequirement(symbol,'premium_index','1m',launch,end_ms),
-        DataRequirement(symbol,'open_interest','5m',launch,end_ms),
-        DataRequirement(symbol,'funding',f'{funding_minutes}m',launch,end_ms),
-        DataRequirement(symbol,'long_short_ratio','5m',launch,end_ms),
-    )
+    caps=dataset_capabilities(instrument)
+    specs=(('candles','1m'),('mark_price','1m'),('index_price','1m'),('premium_index','1m'),
+           ('open_interest','5m'),('funding',f'{funding_minutes}m'),('long_short_ratio','5m'))
+    return tuple(DataRequirement(symbol,dataset,timeframe,launch,end_ms)
+                 for dataset,timeframe in specs if dataset in caps)
 
 def ensure_instrument_history(store,client,instrument,*,end_ms:int,clock_ms=None):
     return ensure_history(store,client,requirements_for_instrument(instrument,end_ms=end_ms),clock_ms=clock_ms)
