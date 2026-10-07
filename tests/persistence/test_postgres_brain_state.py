@@ -14,6 +14,12 @@ class Cursor:
             exp,holder,epoch,now=args
             if self.con.lease and self.con.lease[0]==holder and self.con.lease[1]==epoch and self.con.lease[2]>now:
                 self.con.lease=(holder,epoch,exp);self.rowcount=1
+        elif s.startswith("SELECT sequence,event_id,payload_hash,payload FROM strattester_learning_log"):
+            self.result=self.con.log.get(tuple(args))
+        elif s.startswith("INSERT INTO strattester_learning_log"):
+            event,decision,horizon,payload,digest,_=args;self.con.seq+=1
+            import json
+            self.con.log[(decision,horizon)]=(self.con.seq,event,digest,json.loads(payload));self.result=(self.con.seq,);self.rowcount=1
         elif s.startswith("INSERT INTO strattester_learning_events"):
             event,decision,horizon,_,_=args
             key=(decision,horizon)
@@ -24,7 +30,7 @@ class Cursor:
     def fetchone(self):return self.result
 
 class Con:
-    def __init__(self):self.lease=('',0,0);self.events={}
+    def __init__(self):self.lease=('',0,0);self.events={};self.log={};self.seq=0
     def cursor(self):return Cursor(self)
     def commit(self):pass
     def rollback(self):pass
@@ -62,3 +68,13 @@ def test_invalid_brain_lease_parameters_fail_closed():
         try:s.acquire_brain_lease(holder,seconds,now=0)
         except ValueError:pass
         else:raise AssertionError("invalid lease accepted")
+
+
+def test_immutable_learning_log_is_idempotent_and_detects_collision():
+    s=PostgresStateStore(Con());payload={"utility":1.0,"attribution":{"m":.5}}
+    a,new=s.append_learning_log("e1","d1","1h",payload,now=1)
+    b,new2=s.append_learning_log("e1","d1","1h",payload,now=2)
+    assert new and not new2 and a["sequence"]==b["sequence"]==1
+    try:s.append_learning_log("e1","d1","1h",{"utility":-9},now=3)
+    except ValueError as e:assert "collision" in str(e)
+    else:raise AssertionError("conflicting durable learning event accepted")
