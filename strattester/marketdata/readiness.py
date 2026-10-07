@@ -37,7 +37,6 @@ def requirements_for_instrument(instrument:dict,*,end_ms:int):
     from strattester.marketdata.sync_engine import DataRequirement
     symbol=instrument['symbol']
     launch=int(instrument.get('launchTime') or 0)
-    launch=(launch//60_000)*60_000
     end_ms=int(end_ms)
     delist=instrument.get('deliveryTime') or instrument.get('delistTime')
     if delist not in (None,'',0,'0'):
