@@ -276,3 +276,30 @@ def test_sqlite_disk_full_message_is_resource_exhaustion():
     import sqlite3
     assert WorkerRuntime._is_resource_exhaustion(sqlite3.OperationalError('database or disk is full'))
     assert not WorkerRuntime._is_resource_exhaustion(sqlite3.OperationalError('database is locked'))
+
+
+def test_generation_loss_during_batch_never_completes_inflight_job(tmp_path):
+    import time
+    base=SQLiteStateStore.open(tmp_path/'s.db')
+    job=Job.new('backtest',symbol='BTCUSDT',target_node='PC4',state=JobState.READY);base.put_job(job)
+    class Store:
+        def __init__(self):self.beats=0
+        def register_node_generation(self,*a,**k):return 1
+        def heartbeat_node(self,*a,**k):self.beats+=1;return self.beats==1
+        def reconnect(self):return False
+        def live_nodes(self,*a,**k):return ('PC4',)
+        def list_jobs(self):return base.list_jobs()
+        def claim_ready_jobs(self,*a,**k):return base.claim_ready_jobs(*a,**k)
+        def transition_claimed(self,*a,**k):return base.transition_claimed(*a,**k)
+        def get_job(self,*a,**k):return base.get_job(*a,**k)
+        def renew_lease(self,*a,**k):return base.renew_lease(*a,**k)
+    def slow(j):time.sleep(.03)
+    w=WorkerRuntime(Store(),Scheduler(Store()),slow,Lifecycle(),logging.getLogger('test'),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB,0,2),node_id='PC4',
+        execution_mode='thread',lease_heartbeat_seconds=.005)
+    # Scheduler must share the same state facade.
+    w.scheduler=Scheduler(w.state_store)
+    assert w.run_once()==1
+    assert base.get_job(job.id).state is JobState.RUNNING
+    assert not w.control_plane_healthy
+    base.close()
