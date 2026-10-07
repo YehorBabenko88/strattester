@@ -48,3 +48,25 @@ def test_role_is_reallocated_to_independent_live_nodes():
     r.heartbeat("a",200);r.heartbeat("c",200)
     x=r.reconcile(ns,req,now_ms=200)
     assert set(x.plan.placements["risk"].nodes)=={"a","c"}
+
+
+def test_stale_heartbeat_cannot_move_clock_backwards():
+    r=ScientificTopologyRecovery()
+    assert r.heartbeat("a",100)
+    assert not r.heartbeat("a",90)
+    assert r._last_seen["a"]==100
+
+def test_loss_of_noncritical_spare_does_not_permanently_block_execution():
+    r=ScientificTopologyRecovery(stabilization_cycles=1)
+    nodes=[WorkerNode("a",frozenset({"risk"}),domain="d1"),
+           WorkerNode("b",frozenset({"risk"}),domain="d2"),
+           WorkerNode("spare",frozenset({"other"}),domain="d3")]
+    for n in nodes:r.heartbeat(n.node_id,100)
+    req=[RoleRequest("risk","risk",critical=True)]
+    assert r.reconcile(nodes,req,now_ms=100).execution_allowed
+    r.heartbeat("a",200);r.heartbeat("b",200)
+    report=r.reconcile(nodes,req,now_ms=20000)
+    assert "spare" in report.lost_nodes
+    assert report.plan.execution_healthy
+    assert report.execution_allowed
+    assert report.uncertainty_addon>0
