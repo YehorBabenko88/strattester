@@ -255,3 +255,24 @@ def test_fenced_generation_refuses_new_work():
         lambda:ResourceSnapshot(100*GB,100*GB,10*GB),node_id="ls5")
     assert w.run_once()==0
     assert not w.control_plane_healthy
+
+
+def test_disk_full_is_terminal_and_quarantines_worker_until_cleared(tmp_path):
+    import errno
+    s=SQLiteStateStore.open(tmp_path/'s.db')
+    first=Job.new('sync',symbol='A',state=JobState.READY);s.put_job(first)
+    def full(j):raise OSError(errno.ENOSPC,'No space left on device')
+    w=WorkerRuntime(s,Scheduler(s),full,Lifecycle(),logging.getLogger('test'),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB),execution_mode='thread',max_attempts=9)
+    assert w.run_once()==1
+    assert s.get_job(first.id).state is JobState.FAILED
+    second=Job.new('sync',symbol='B',state=JobState.READY);s.put_job(second)
+    assert w.run_once()==0 and s.get_job(second.id).state is JobState.READY
+    w.clear_resource_exhaustion();w.executor=lambda j:None
+    assert w.run_once()==1 and s.get_job(second.id).state is JobState.COMPLETE
+    s.close()
+
+def test_sqlite_disk_full_message_is_resource_exhaustion():
+    import sqlite3
+    assert WorkerRuntime._is_resource_exhaustion(sqlite3.OperationalError('database or disk is full'))
+    assert not WorkerRuntime._is_resource_exhaustion(sqlite3.OperationalError('database is locked'))
