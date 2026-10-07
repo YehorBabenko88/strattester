@@ -43,3 +43,25 @@ def test_retryable_failure_releases_worker_lease(tmp_path):
     assert failed.state==JobState.RETRYABLE
     assert failed.lease_owner is None and failed.lease_until is None
     s.close()
+
+
+def test_worker_runs_independent_jobs_concurrently(tmp_path):
+    import threading,time
+    s=SQLiteStateStore.open(tmp_path/'s.db')
+    jobs=[Job.new('x',symbol=f'S{i}',state=JobState.READY) for i in range(4)]
+    for j in jobs: s.put_job(j)
+    lock=threading.Lock(); active=0; peak=0
+    def execute(j):
+        nonlocal active,peak
+        with lock:
+            active+=1; peak=max(peak,active)
+        time.sleep(0.05)
+        with lock: active-=1
+    w=WorkerRuntime(
+        s,Scheduler(s),execute,Lifecycle(),logging.getLogger('test'),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB,0,8),
+        execution_mode='thread')
+    assert w.run_once()==4
+    assert peak>=2
+    assert all(s.get_job(j.id).state is JobState.COMPLETE for j in jobs)
+    s.close()
