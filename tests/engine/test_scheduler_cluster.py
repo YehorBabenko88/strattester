@@ -15,3 +15,16 @@ def test_node_filter_happens_before_parallel_slot_limit(tmp_path):
     selected=Scheduler(s).ready_jobs(snap,node_id='PC2')
     assert {j.id for j in selected}=={j.id for j in mine}
     s.close()
+
+def test_sync_jobs_are_capped_but_backtests_fill_remaining_slots(tmp_path):
+    s=SQLiteStateStore.open(tmp_path/'state.db')
+    for i in range(10):
+        s.put_job(Job.new('sync',symbol=f'S{i}',target_node='PC1',state=JobState.READY))
+    for i in range(10):
+        s.put_job(Job.new('backtest',symbol=f'B{i}',target_node='PC1',state=JobState.READY))
+    snap=ResourceSnapshot(64*GB,48*GB,100*GB,0,8)
+    selected=Scheduler(s,max_sync_jobs_per_node=3).ready_jobs(snap,node_id='PC1')
+    assert sum(j.job_type=='sync' for j in selected)==3
+    assert sum(j.job_type=='backtest' for j in selected)==4
+    assert len(selected)==7
+    s.close()
