@@ -41,4 +41,5 @@ def test_recovery_uncertainty_is_added_to_brain_decision():
     o=organism();rr=report(cycles=2,passes=1)
     d=o.decide([artifact("x"),artifact("y")],models(),external_permission=True,
                uncertainty=.1,recovery_report=rr)
-    assert d.brain.uncertainty>=.1
+    assert d.effective_uncertainty>.1
+    assert d.effective_uncertainty==min(1.0,.1+rr.uncertainty_addon)
