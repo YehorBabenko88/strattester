@@ -54,3 +54,16 @@ def test_legacy_staged_table_gets_generation_fence_columns(tmp_path):
     cols={r[1] for r in s.con.execute('PRAGMA table_info(staged_research_results)')}
     assert {'job_id','lease_token','node_generation'}<=cols
     s.close()
+
+
+def test_staged_cleanup_is_age_bounded_and_never_deletes_published_results(tmp_path):
+    s=ResultStore.open(tmp_path/'results.db')
+    s.put('published','BTCUSDT','A','1',{'pnl':1},created_at=1)
+    s.stage('old1','x1','X','A','1',{},created_at=1)
+    s.stage('old2','x2','X','A','1',{},created_at=2)
+    s.stage('new','x3','X','A','1',{},created_at=100)
+    assert s.cleanup_staged(50,limit=1)==1
+    assert s.cleanup_staged(50,limit=10)==1
+    assert s.latest('BTCUSDT','A')['run_id']=='published'
+    assert s.con.execute('SELECT stage_id FROM staged_research_results').fetchall()==[('new',)]
+    s.close()
