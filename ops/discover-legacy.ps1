@@ -6,6 +6,8 @@ param(
 $ErrorActionPreference="Stop"
 $nodes=(Get-Content $Inventory -Raw|ConvertFrom-Json).nodes
 $probe=@'
+$ProgressPreference='SilentlyContinue'
+$InformationPreference='SilentlyContinue'
 $servicePattern='Bybit|ClusterGrid|MetaScalp'; $pathPattern='Bybit|ClusterGrid|MetaScalp|bybit-trading-system|\\SQL\\test|\\poc\\'
 $services=@(Get-CimInstance Win32_Service|?{$_.Name -match $servicePattern -or $_.PathName -match $pathPattern}|select Name,State,StartMode,PathName)
 $tasks=@(Get-ScheduledTask -EA SilentlyContinue|?{$_.TaskName -match $servicePattern -or (($_.Actions.Execute+' '+$_.Actions.Arguments) -match $pathPattern)}|select TaskName,TaskPath,State,@{N='Actions';E={($_.Actions|%{$_.Execute+' '+$_.Arguments}) -join '; '}})
@@ -45,7 +47,18 @@ foreach($n in $nodes){
    continue
   }
   $out=(Get-Content $stdout -Raw -EA SilentlyContinue);$err=(Get-Content $stderr -Raw -EA SilentlyContinue)
+  # Windows PowerShell over SSH may emit CLIXML progress records on stderr.
+  # A valid JSON payload is authoritative for discovery; do not discard it
+  # solely because the remoting process returned a non-zero exit code.
+  $payload=$out.Trim()
+  if($payload -match '(?s)(\{"Hostname".*\})\s*
+ } finally {Remove-Item $stdout,$stderr -Force -EA SilentlyContinue}
+}
+){$payload=$Matches[1]}
+  if($payload){
+    try{$null=$payload|ConvertFrom-Json; $payload; continue}catch{}
+  }
   if($p.ExitCode -ne 0){Write-Warning "$($n.id) discovery failed: $err$out";continue}
-  if($out){$out.Trim()}
+  Write-Warning "$($n.id) returned no valid discovery JSON"
  } finally {Remove-Item $stdout,$stderr -Force -EA SilentlyContinue}
 }
