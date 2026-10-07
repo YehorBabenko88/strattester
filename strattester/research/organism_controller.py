@@ -34,6 +34,7 @@ class OrganismDecision:
     transition_forecast:TransitionForecast|None=None
     communication_health:Mapping[str,object]|None=None
     recovery:RecoveryReport|None=None
+    effective_uncertainty:float=0.0
 
 class ScientificOrganismController:
     def __init__(self,brain:NeuroDecisionController|None=None,
@@ -124,7 +125,7 @@ class ScientificOrganismController:
         action=home.decision.action if home.permitted else "HOLD"
         out=OrganismDecision(action,home.permitted,home.decision,home,pop,stability,
                              tuple(dict.fromkeys(reasons)),structural_experience,
-                             transition_forecast,communication_health,recovery_report)
+                             transition_forecast,communication_health,recovery_report,uncertainty)
         self.history.append(out)
         return out
 
