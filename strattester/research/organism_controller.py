@@ -19,6 +19,7 @@ from .structural_mathematics import StructuralReport
 from .structural_memory import StructuralMemory,StructuralExperience
 from .structural_state_graph import StructuralStateGraph,TransitionForecast
 from .agent_communication import SelfOrganizingCommunicationFabric
+from .topology_recovery import RecoveryReport
 
 @dataclass(frozen=True)
 class OrganismDecision:
@@ -32,6 +33,7 @@ class OrganismDecision:
     structural_experience:StructuralExperience|None=None
     transition_forecast:TransitionForecast|None=None
     communication_health:Mapping[str,object]|None=None
+    recovery:RecoveryReport|None=None
 
 class ScientificOrganismController:
     def __init__(self,brain:NeuroDecisionController|None=None,
@@ -69,7 +71,8 @@ class ScientificOrganismController:
                structural_signature:str|None=None,
                require_structural_familiarity:bool=False,
                require_transition_familiarity:bool=False,
-               require_communication_health:bool=True):
+               require_communication_health:bool=True,
+               recovery_report:RecoveryReport|None=None):
         pop=self.population_guard.assess(models)
         reasons=list(pop.reasons)
         signals=signals_from_artifacts(artifacts)
@@ -99,6 +102,11 @@ class ScientificOrganismController:
         if require_communication_health and not communication_health["healthy"]:
             permission=False;reasons.append("communication_topology_unhealthy")
 
+        if recovery_report is not None:
+            uncertainty=min(1.0,max(0.0,uncertainty+recovery_report.uncertainty_addon))
+            if not recovery_report.execution_allowed:
+                permission=False;reasons.extend(f"recovery:{r}" for r in recovery_report.reasons)
+
         stability=None
         if self.landscape.native is not None:
             stability=self.landscape.assess(self.brain,alternative_score=alternative_state_score)
@@ -116,7 +124,7 @@ class ScientificOrganismController:
         action=home.decision.action if home.permitted else "HOLD"
         out=OrganismDecision(action,home.permitted,home.decision,home,pop,stability,
                              tuple(dict.fromkeys(reasons)),structural_experience,
-                             transition_forecast,communication_health)
+                             transition_forecast,communication_health,recovery_report)
         self.history.append(out)
         return out
 
