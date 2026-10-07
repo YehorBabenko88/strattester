@@ -54,7 +54,28 @@ foreach($path in $foundPaths){Remove-Item -LiteralPath $path -Recurse -Force -EA
  if($n.local){Write-Warning "No LS5 purge plan exists; active Grid is protected.";continue}
  $receiver='$b=[Console]::In.ReadToEnd();$s=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($b));&([scriptblock]::Create($s))'
  $receiver64=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($receiver))
- $out=$script64 | & ssh -o BatchMode=yes -o PasswordAuthentication=no -o ConnectTimeout=8 -i $IdentityFile "$($n.user)@$($n.ssh_host)" "powershell.exe -NoProfile -NonInteractive -EncodedCommand $receiver64" 2>&1
- if($LASTEXITCODE -ne 0){throw "Purge failed on $($n.id) with SSH exit code $LASTEXITCODE"}
+ $psi=New-Object System.Diagnostics.ProcessStartInfo
+ $psi.FileName='ssh.exe'
+ $psi.UseShellExecute=$false
+ $psi.RedirectStandardInput=$true
+ $psi.RedirectStandardOutput=$true
+ $psi.RedirectStandardError=$true
+ $psi.CreateNoWindow=$true
+ $psi.Arguments="-o BatchMode=yes -o PasswordAuthentication=no -o ConnectTimeout=8 -i `"$IdentityFile`" $($n.user)@$($n.ssh_host) powershell.exe -NoProfile -NonInteractive -EncodedCommand $receiver64"
+ $proc=New-Object System.Diagnostics.Process
+ $proc.StartInfo=$psi
+ if(!$proc.Start()){throw "Failed to start SSH for $($n.id)"}
+ $proc.StandardInput.Write($script64)
+ $proc.StandardInput.Close()
+ if(!$proc.WaitForExit($NodeTimeoutSeconds*1000)){
+  try{$proc.Kill()}catch{}
+  try{$proc.WaitForExit(5000)|Out-Null}catch{}
+  throw "Purge timed out on $($n.id) after $NodeTimeoutSeconds seconds"
+ }
+ $stdout=$proc.StandardOutput.ReadToEnd()
+ $stderr=$proc.StandardError.ReadToEnd()
+ if($proc.ExitCode -ne 0){throw "Purge failed on $($n.id) with SSH exit code $($proc.ExitCode): $stderr"}
+ if($stderr.Trim()){Write-Warning "$($n.id) stderr: $($stderr.Trim())"}
+ $out=@($stdout -split "[`r`n]+"|?{$_})
  $out
 }
