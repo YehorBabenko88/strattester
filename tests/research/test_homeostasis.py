@@ -55,3 +55,22 @@ def test_slow_modulation_cannot_run_away():
     h=HomeostaticSupervisor(NeuroDecisionController(),max_conductance=1.3)
     for _ in range(100):h.bounded_slow_modulate({"a":1},rate=1)
     assert h.controller.channels["a"].conductance==1.3
+
+def test_unhealthy_structural_report_is_independent_veto():
+    from strattester.research.structural_mathematics import StructuralReport
+    h=HomeostaticSupervisor(NeuroDecisionController(threshold=.2,leak=0))
+    structural=StructuralReport(.2,1,1,1,False,("transformation_fragility",))
+    d=h.decide([s("a")],external_permission=True,structural_report=structural)
+    assert d.permitted is False
+    assert d.decision.action=="HOLD"
+    assert "structural:transformation_fragility" in d.vetoes
+    assert d.structural is structural
+
+def test_healthy_structural_report_does_not_block_execution():
+    from strattester.research.structural_mathematics import StructuralReport
+    h=HomeostaticSupervisor(NeuroDecisionController(threshold=.5,leak=0),clone_share_limit=.8)
+    structural=StructuralReport(1,1,1,1,True,())
+    d=h.decide([s("a",1,.4),s("b",1,.4)],external_permission=True,
+               structural_report=structural)
+    assert d.permitted is True
+    assert d.decision.action=="LONG"
