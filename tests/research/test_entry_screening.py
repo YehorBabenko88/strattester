@@ -22,4 +22,7 @@ def test_stable_oos_pattern_can_survive():
 
 def test_spec_only_hypotheses_cannot_enter_executable_ranking():
     hs=scalp_hypotheses()
-    assert hs and executable_hypotheses(hs)==()
+    executable=executable_hypotheses(hs)
+    assert executable
+    assert all(x.execution_status=="EXECUTABLE" and x.signal_generator for x in executable)
+    assert all(x not in executable for x in hs if x.execution_status=="SPEC_ONLY")
