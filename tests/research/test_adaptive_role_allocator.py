@@ -36,3 +36,26 @@ def test_execution_health_fails_closed_for_degraded_critical_role():
                   [WorkerNode("a",frozenset({"risk"}))])
     ok,reasons=a.execution_health(ps,["risk"])
     assert not ok and reasons
+
+
+def test_multi_role_allocation_reserves_capacity():
+    a=AdaptiveRoleAllocator(max_load=.9)
+    ns=[WorkerNode("a",frozenset({"x"}),load=.55,capacity_cost=.25),
+        WorkerNode("b",frozenset({"x"}),load=.60,capacity_cost=.25)]
+    ps=a.allocate([RoleRequest("r1","x"),RoleRequest("r2","x")],ns)
+    assert ps["r1"].nodes==("a",)
+    assert ps["r2"].nodes==("b",)
+
+def test_communication_quality_affects_placement():
+    a=AdaptiveRoleAllocator()
+    ns=[WorkerNode("poor-link",frozenset({"x"}),communication_quality=.2),
+        WorkerNode("good-link",frozenset({"x"}),communication_quality=.95,latency_ms=20)]
+    assert a.place(RoleRequest("r","x"),ns).nodes==("good-link",)
+
+def test_invalid_node_telemetry_is_excluded():
+    a=AdaptiveRoleAllocator()
+    bad=[WorkerNode("neg-load",frozenset({"x"}),load=-.1),
+         WorkerNode("nan",frozenset({"x"}),latency_ms=float("nan")),
+         WorkerNode("bad-failure",frozenset({"x"}),failure_rate=2)]
+    p=a.place(RoleRequest("r","x"),bad)
+    assert p.degraded and not p.nodes
