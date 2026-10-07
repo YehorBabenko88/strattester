@@ -60,6 +60,43 @@ class ShardedMarketStore:
         return self._read_store(symbol,dataset,timeframe,step_ms,start_ms,end_ms).coverage(
             symbol,dataset,timeframe,step_ms,start_ms,end_ms)
 
+
+    _DATASET_TABLES=(
+        ('mark_prices',('symbol','timeframe','open_time','open','high','low','close','complete')),
+        ('index_prices',('symbol','timeframe','open_time','open','high','low','close','complete')),
+        ('premium_index',('symbol','timeframe','open_time','open','high','low','close','complete')),
+        ('open_interest',('symbol','timeframe','open_time','value','complete')),
+        ('funding',('symbol','funding_time','rate')),
+        ('long_short_ratio',('symbol','timeframe','open_time','buy_ratio','sell_ratio','long_short_ratio')),
+        ('public_trade_aggregates',('symbol','timeframe','open_time','buy_volume','sell_volume','turnover','trade_count','vwap','max_trade')),
+    )
+
+    def _copy_auxiliary_datasets(self,symbol,shard,batch_size):
+        copied=0
+        for table,columns in self._DATASET_TABLES:
+            cols=','.join(columns)
+            placeholders=','.join('?' for _ in columns)
+            updates=','.join(f'{x}=excluded.{x}' for x in columns if x!='symbol')
+            pk={'funding':'symbol,funding_time'}.get(table,'symbol,timeframe,open_time')
+            cur=self.legacy_store.connection.execute(
+                f"SELECT {cols} FROM {table} WHERE symbol=? ORDER BY rowid",(symbol,))
+            while True:
+                rows=cur.fetchmany(batch_size)
+                if not rows: break
+                with shard.connection:
+                    shard.connection.executemany(
+                        f"INSERT INTO {table}({cols}) VALUES({placeholders}) "
+                        f"ON CONFLICT({pk}) DO UPDATE SET {updates}",rows)
+                copied+=len(rows)
+        return copied
+
+    def _dataset_counts(self,store,symbol):
+        result={}
+        for table,_ in self._DATASET_TABLES:
+            result[table]=store.connection.execute(
+                f"SELECT COUNT(*) FROM {table} WHERE symbol=?",(symbol,)).fetchone()[0]
+        return result
+
     def migrate_legacy_candles(self,symbol:str,timeframe='1m',batch_size=20_000):
         if self.legacy_store is None:
             raise RuntimeError('legacy store is not configured')
@@ -81,8 +118,11 @@ class ShardedMarketStore:
         # in legacy while MIGRATING; if the source moved, do not promote this
         # pass. A later idempotent pass copies the tail and validates again.
         final_source_cov=self.legacy_store.coverage(symbol,'candles',timeframe)
+        copied+=self._copy_auxiliary_datasets(symbol,shard,batch_size)
+        source_counts=self._dataset_counts(self.legacy_store,symbol)
+        target_counts=self._dataset_counts(shard,symbol)
         target_cov=shard.coverage(symbol,'candles',timeframe)
-        if (target_cov.count!=final_source_cov.count or target_cov.earliest!=final_source_cov.earliest
+        if (source_counts!=target_counts or target_cov.count!=final_source_cov.count or target_cov.earliest!=final_source_cov.earliest
                 or target_cov.latest!=final_source_cov.latest or target_cov.gaps!=final_source_cov.gaps
                 or not shard.integrity_check()):
             if final_source_cov!=source_cov:
