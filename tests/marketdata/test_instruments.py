@@ -1,3 +1,4 @@
+import pytest
 from strattester.marketdata.instruments import InstrumentRegistry,InstrumentStatus
 
 def test_new_symbol_is_ineligible_before_first_seen(tmp_path):
