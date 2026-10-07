@@ -12,6 +12,10 @@ def _picklable_cpu_executor(job):
     for i in range(20000):
         total += (i*i) % 97
     return job.symbol,total
+
+def _hard_exit_executor(job):
+    import os
+    os._exit(41)
 def test_one_failure_is_retryable_and_next_job_completes(tmp_path):
     s=SQLiteStateStore.open(tmp_path/'s.db')
     a=Job.new('x',symbol='BAD',state=JobState.READY); b=Job.new('x',symbol='GOOD',state=JobState.READY)
@@ -206,3 +210,20 @@ def test_worker_close_releases_owned_resources_once(tmp_path):
     runtime.close()
     assert resource.closed==1
     state.close()
+
+
+def test_process_pool_child_hard_exit_never_completes_job(tmp_path):
+    s=SQLiteStateStore.open(tmp_path/'hard-exit.db')
+    job=Job.new('backtest',symbol='BTCUSDT',state=JobState.READY)
+    s.put_job(job)
+    w=WorkerRuntime(s,Scheduler(s),_hard_exit_executor,Lifecycle(),
+        logging.getLogger('test.process.hard_exit'),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB,10,4),
+        execution_mode='process',max_attempts=3)
+    assert w.run_once()==1
+    saved=s.get_job(job.id)
+    assert saved.state==JobState.RETRYABLE
+    assert saved.state!=JobState.COMPLETE
+    assert saved.lease_owner is None
+    assert saved.lease_until is None
+    w.close(); s.close()
