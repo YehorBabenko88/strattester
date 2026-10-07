@@ -11,6 +11,7 @@ from .orderflow import cumulative_delta
 from .volume_profile import proxy_profile
 from .smc import market_structure
 from .scalp_bootstrap import historical_scalp_events
+from .scientific_graph import ScientificGraph,observation_artifact,volatility_artifact,nonlinear_evidence_artifact,regime_artifact
 
 HISTORICAL_CAPABILITIES={
     "candles":True,
@@ -50,6 +51,11 @@ def build_symbol_science(store,symbol,start_ms=None,end_ms=None):
         returns.append((b["close"]/a["close"]-1.0) if a["close"] else 0.0)
     def mean(xs):return sum(xs)/len(xs) if xs else 0.0
     delta=[float(x.get("delta",0)) for x in flow]
+    graph=ScientificGraph()
+    obs=graph.add(observation_artifact(returns))
+    vol_model=graph.add(volatility_artifact(obs,returns))
+    nonlinear=graph.add(nonlinear_evidence_artifact(obs,returns))
+    regime=graph.add(regime_artifact(vol_model,nonlinear))
     return {
       "symbol":symbol,"status":"READY","samples":len(bars),
       "from_ms":bars[0]["t"],"through_ms":bars[-1]["t"],
@@ -62,6 +68,7 @@ def build_symbol_science(store,symbol,start_ms=None,end_ms=None):
         "smc_events":len(smc),
         "latest_poc_proxy":poc,
       },
+      "scientific_layers":[{"id":x.artifact_id,"method":x.method,"layer":x.layer,"inputs":x.inputs,"payload":dict(x.payload),"confidence":x.confidence,"warnings":x.warnings} for x in graph.artifacts()],
       "features":{
         "volatility":[asdict(x) for x in vol[-512:]],
         "orderflow":[dict(x) for x in flow[-1024:]],
