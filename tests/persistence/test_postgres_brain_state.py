@@ -6,7 +6,7 @@ class Cursor:
     def __exit__(self,*a):pass
     def execute(self,sql,args=None):
         s=" ".join(sql.split());self.rowcount=0;self.result=None
-        if s.startswith("SELECT holder,epoch,expires_at FROM strattester_brain_lease"):
+        if s.startswith("SELECT holder,epoch,expires_at FROM strattester_brain_lease WHERE singleton=TRUE"):
             self.result=self.con.lease
         elif s.startswith("UPDATE strattester_brain_lease SET holder"):
             holder,epoch,expires=args;self.con.lease=(holder,epoch,expires);self.rowcount=1
