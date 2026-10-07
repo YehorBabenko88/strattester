@@ -110,11 +110,9 @@ class ShardedMarketStore:
             raise RuntimeError('legacy store is not configured')
         shard=self.for_symbol(symbol)
         source_cov=self.legacy_store.coverage(symbol,'candles',timeframe)
+        initial_aux=self._dataset_fingerprints(self.legacy_store,symbol)
         previous=self.manifest.get(symbol)
         self.manifest.set(symbol,ShardState.MIGRATING,rows_copied=previous.rows_copied if previous else 0)
-        if source_cov.count==0:
-            self.manifest.set(symbol,ShardState.SHARD_READY,rows_copied=0)
-            return 0
         batch=[]; copied=0
         for row in self.legacy_store.iter_candles(symbol,timeframe,batch_size=batch_size):
             batch.append(row)
@@ -130,7 +128,7 @@ class ShardedMarketStore:
         source_fingerprints=self._dataset_fingerprints(self.legacy_store,symbol)
         target_fingerprints=self._dataset_fingerprints(shard,symbol)
         target_cov=shard.coverage(symbol,'candles',timeframe)
-        if final_source_cov!=source_cov:
+        if final_source_cov!=source_cov or source_fingerprints!=initial_aux:
             self.manifest.set(symbol,ShardState.MIGRATING,rows_copied=target_cov.count,error='source changed during migration; retry required')
             raise RuntimeError('legacy source changed during migration; retry required')
         if (source_fingerprints!=target_fingerprints or target_cov.count!=final_source_cov.count or target_cov.earliest!=final_source_cov.earliest
