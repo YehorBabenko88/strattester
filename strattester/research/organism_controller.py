@@ -63,6 +63,7 @@ class ScientificOrganismController:
         self.communication_fabric=communication_fabric or SelfOrganizingCommunicationFabric()
         self.history:list[OrganismDecision]=[]
         self.applied_learning_events:set[str]=set()
+        self.last_applied_learning_sequence:int=0
 
     def establish_native(self,validation_score:float):
         return self.landscape.establish_native(self.brain,validation_score)
