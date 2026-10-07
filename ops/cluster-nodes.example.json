@@ -1,0 +1,9 @@
+{
+  "nodes": [
+    {"id":"LS5","ssh_host":"ls5","windows_hostname":"LS5","user":"LS-5","tailscale_ip":"100.103.160.110","role":"control-worker","local":true},
+    {"id":"PC1","ssh_host":"pc1","windows_hostname":"PC1","user":"Easy","tailscale_ip":"100.85.5.16","role":"worker","local":false},
+    {"id":"PC2","ssh_host":"pc2","windows_hostname":"PC2","user":"Leitstelle1","tailscale_ip":"100.89.249.115","role":"worker","local":false},
+    {"id":"PC3","ssh_host":"pc3","windows_hostname":"PC3","user":"LS03e","tailscale_ip":"100.98.89.43","role":"worker","local":false},
+    {"id":"PC4","ssh_host":"pc4-3","windows_hostname":"PC4","user":"LS4","tailscale_ip":"100.91.48.20","role":"worker","local":false}
+  ]
+}
