@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json,time
+import json,time,hashlib
 from strattester.engine.jobs import Job,JobState
 
 _ACTIVE=(JobState.LEASED,JobState.RUNNING)
@@ -38,6 +38,11 @@ class PostgresStateStore:
                 UNIQUE(decision_id,horizon))''')
             cur.execute("ALTER TABLE strattester_learning_events ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'APPLIED'")
             cur.execute('ALTER TABLE strattester_learning_events ADD COLUMN IF NOT EXISTS claimed_at DOUBLE PRECISION')
+            cur.execute('''CREATE TABLE IF NOT EXISTS strattester_learning_log(
+                sequence BIGSERIAL PRIMARY KEY,event_id TEXT NOT NULL UNIQUE,
+                decision_id TEXT NOT NULL,horizon TEXT NOT NULL,payload JSONB NOT NULL,
+                payload_hash TEXT NOT NULL,created_at DOUBLE PRECISION NOT NULL,
+                UNIQUE(decision_id,horizon))''')
         con.commit(); return cls(con,dsn)
     @staticmethod
     def _encode(job):
@@ -256,6 +261,51 @@ class PostgresStateStore:
             cur.execute('SELECT holder,epoch,expires_at FROM strattester_brain_lease WHERE singleton=TRUE')
             row=cur.fetchone()
         return None if row is None else {"holder":row[0],"epoch":int(row[1]),"expires_at":float(row[2])}
+
+    @staticmethod
+    def _canonical_payload(payload):
+        raw=json.dumps(payload,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False)
+        return raw,hashlib.sha256(raw.encode('utf-8')).hexdigest()
+
+    def append_learning_log(self,event_id,decision_id,horizon,payload,now=None,brain_holder=None,brain_epoch=None):
+        event_id=str(event_id);decision_id=str(decision_id);horizon=str(horizon)
+        if not event_id or not decision_id or not horizon:raise ValueError("learning log identity required")
+        raw,digest=self._canonical_payload(payload)
+        try:
+            with self.con.cursor() as cur:
+                db_now=float(now) if now is not None else self._db_now(cur)
+                if brain_holder is not None or brain_epoch is not None:
+                    cur.execute('''SELECT 1 FROM strattester_brain_lease
+                        WHERE singleton=TRUE AND holder=%s AND epoch=%s AND expires_at>%s FOR SHARE''',
+                        (str(brain_holder),int(brain_epoch or 0),db_now))
+                    if cur.fetchone() is None:
+                        self.con.rollback();return None,False
+                cur.execute('''SELECT sequence,event_id,payload_hash,payload FROM strattester_learning_log
+                    WHERE decision_id=%s AND horizon=%s FOR UPDATE''',(decision_id,horizon))
+                existing=cur.fetchone()
+                if existing is not None:
+                    if str(existing[1])!=event_id or str(existing[2])!=digest:
+                        raise ValueError("learning log collision")
+                    self.con.commit();return {"sequence":int(existing[0]),"event_id":str(existing[1]),"payload":existing[3]},False
+                cur.execute('''INSERT INTO strattester_learning_log
+                    (event_id,decision_id,horizon,payload,payload_hash,created_at)
+                    VALUES(%s,%s,%s,%s::jsonb,%s,%s) RETURNING sequence''',
+                    (event_id,decision_id,horizon,raw,digest,db_now))
+                seq=int(cur.fetchone()[0])
+            self.con.commit();return {"sequence":seq,"event_id":event_id,"payload":payload},True
+        except Exception:
+            self.con.rollback();raise
+
+    def learning_log_after(self,sequence=0,limit=1000):
+        sequence=int(sequence);limit=int(limit)
+        if sequence<0 or not 1<=limit<=10000:raise ValueError("invalid learning log query")
+        with self.con.cursor() as cur:
+            cur.execute('''SELECT sequence,event_id,decision_id,horizon,payload,payload_hash
+                FROM strattester_learning_log WHERE sequence>%s ORDER BY sequence LIMIT %s''',
+                (sequence,limit))
+            rows=cur.fetchall()
+        return tuple({"sequence":int(r[0]),"event_id":r[1],"decision_id":r[2],
+                      "horizon":r[3],"payload":r[4],"payload_hash":r[5]} for r in rows)
 
     def claim_learning_event(self,event_id,decision_id,horizon,now=None,meta=None):
         now=time.time() if now is None else float(now)
