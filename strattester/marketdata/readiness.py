@@ -32,10 +32,17 @@ def dataset_capabilities(instrument:dict):
     return frozenset(caps)
 
 def requirements_for_instrument(instrument:dict,*,end_ms:int):
+    """Build only physically meaningful history windows for the instrument."""
+
     from strattester.marketdata.sync_engine import DataRequirement
     symbol=instrument['symbol']
     launch=int(instrument.get('launchTime') or 0)
     launch=(launch//60_000)*60_000
+    end_ms=int(end_ms)
+    delist=instrument.get('deliveryTime') or instrument.get('delistTime')
+    if delist not in (None,'',0,'0'):
+        end_ms=min(end_ms,int(delist))
+    if end_ms<launch:return ()
     funding_minutes=int(instrument.get('fundingInterval') or 480)
     caps=dataset_capabilities(instrument)
     specs=(('candles','1m'),('mark_price','1m'),('index_price','1m'),('premium_index','1m'),
