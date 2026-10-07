@@ -23,6 +23,8 @@ class InstrumentRegistry:
     def get(self,symbol):
         row=self.conn.execute("SELECT symbol,status,first_seen,last_seen,delisted_at FROM instruments WHERE symbol=?",(symbol,)).fetchone()
         return None if row is None else InstrumentRecord(row[0],InstrumentStatus(row[1]),row[2],row[3],row[4])
+    def active_symbols(self):
+        return {r[0] for r in self.conn.execute("SELECT symbol FROM instruments WHERE status=?",(InstrumentStatus.ACTIVE.value,))}
     def intervals(self,symbol):
         return self.conn.execute("SELECT start_time,end_time FROM instrument_intervals WHERE symbol=? ORDER BY start_time",(symbol,)).fetchall()
     def eligible_at(self,symbol,timestamp):
