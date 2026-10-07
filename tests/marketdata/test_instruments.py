@@ -75,3 +75,11 @@ def test_missing_confirmation_survives_reboot_before_delist(tmp_path):
     r=InstrumentRegistry.open(p);r.reconcile(set(),3000)
     assert r.get('XUSDT').status is InstrumentStatus.DELISTED
     assert r.get('XUSDT').delisted_at==3000
+
+
+def test_universe_time_cannot_regress_and_corrupt_intervals(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db');r.reconcile({'BTCUSDT'},2000)
+    try:r.reconcile(set(),1000)
+    except ValueError as e:assert "non-monotonic" in str(e)
+    else:raise AssertionError("time-regressing universe accepted")
+    assert r.get('BTCUSDT').status is InstrumentStatus.ACTIVE
