@@ -11,6 +11,10 @@ from .neuro_controller import NeuroDecisionController,signals_from_artifacts,Bra
 from .homeostasis import HomeostaticSupervisor,HomeostaticDecision
 from .stability_landscape import BrainStabilityLandscape,StabilityReport
 from .population_guard import ModelIdentity,ModelPopulationGuard,PopulationReport
+from .decision_memory import DecisionMemory,DecisionTrace,ObservedOutcome,CounterfactualEstimate
+from .credit_assignment import CreditAssigner
+from .timescale_memory import MultiTimescaleMemory
+from .stability_landscape import PlasticityGate
 
 @dataclass(frozen=True)
 class OrganismDecision:
@@ -26,11 +30,19 @@ class ScientificOrganismController:
     def __init__(self,brain:NeuroDecisionController|None=None,
                  homeostasis:HomeostaticSupervisor|None=None,
                  landscape:BrainStabilityLandscape|None=None,
-                 population_guard:ModelPopulationGuard|None=None):
+                 population_guard:ModelPopulationGuard|None=None,
+                 decision_memory:DecisionMemory|None=None,
+                 credit_assigner:CreditAssigner|None=None,
+                 timescale_memory:MultiTimescaleMemory|None=None,
+                 plasticity_gate:PlasticityGate|None=None):
         self.brain=brain or NeuroDecisionController()
         self.homeostasis=homeostasis or HomeostaticSupervisor(self.brain)
         self.landscape=landscape or BrainStabilityLandscape()
         self.population_guard=population_guard or ModelPopulationGuard()
+        self.decision_memory=decision_memory or DecisionMemory()
+        self.credit_assigner=credit_assigner or CreditAssigner()
+        self.timescale_memory=timescale_memory or MultiTimescaleMemory()
+        self.plasticity_gate=plasticity_gate or PlasticityGate()
         self.history:list[OrganismDecision]=[]
 
     def establish_native(self,validation_score:float):
@@ -67,7 +79,29 @@ class ScientificOrganismController:
         self.history.append(out)
         return out
 
+    def remember_decision(self,trace:DecisionTrace):
+        self.decision_memory.remember(trace)
+
+    def learn_decision(self,outcome:ObservedOutcome,channel_attribution:Mapping[str,float],*,
+                       regime:str,counterfactuals:Sequence[CounterfactualEstimate]=()):
+        self.decision_memory.observe(outcome)
+        for cf in counterfactuals:self.decision_memory.estimate(cf)
+        signal=self.decision_memory.learning_signal(outcome.decision_id,outcome.horizon)
+        reports={}
+        for key,attribution in channel_attribution.items():
+            self.homeostasis.note_outcome(key,signal.realized_utility*float(attribution))
+            self.timescale_memory.add(key,signal.realized_utility*float(attribution),regime)
+            self.credit_assigner.add(key,signal,attribution=float(attribution))
+            report=self.credit_assigner.assess(key);reports[key]=report
+            candidate=self.timescale_memory.consolidation_candidate(key,regime)
+            confirmed=report.verdict in ("BENEFICIAL","HARMFUL") and candidate is not None
+            if self.plasticity_gate.confirm(key,confirmed):
+                # Permanent change is based on conservative credit, not raw outcome.
+                self.plasticity_gate.consolidate(self.brain,key,report.modulation)
+        return reports
+
     def learn_from_outcomes(self,outcomes:Mapping[str,float],rate=.05):
+        """Legacy bounded feedback path; prefer learn_decision for provenance-safe learning."""
         for key,score in outcomes.items():
             self.homeostasis.note_outcome(key,float(score))
         return self.homeostasis.bounded_slow_modulate(outcomes,rate=rate)
