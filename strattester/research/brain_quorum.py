@@ -20,6 +20,7 @@ class PartitionView:
     visible_nodes:frozenset[str]
     epoch:int
     now_ms:int
+    membership_generation:int=0
 
 @dataclass(frozen=True)
 class QuorumReport:
@@ -31,11 +32,13 @@ class QuorumReport:
     fenced:bool
     execution_allowed:bool
     reasons:tuple[str,...]
+    membership_generation:int=0
 
 class BrainQuorumFence:
-    def __init__(self,members:Iterable[str]):
-        self.members=frozenset(members)
-        if not self.members:raise ValueError("members required")
+    def __init__(self,members:Iterable[str],membership_generation:int=0):
+        self.members=frozenset(map(str,members));self.membership_generation=int(membership_generation)
+        if not self.members or any(not x for x in self.members):raise ValueError("members required")
+        if self.membership_generation<0:raise ValueError("invalid membership generation")
 
     @property
     def quorum_size(self):
@@ -46,6 +49,8 @@ class BrainQuorumFence:
         majority=visible>=self.quorum_size
         reasons=[]
         if view.node_id not in self.members:reasons.append("unknown_member")
+        generation_valid=view.membership_generation==self.membership_generation
+        if not generation_valid:reasons.append("stale_membership_generation")
         if not majority:reasons.append("no_majority_quorum")
         lease_valid=bool(lease and lease.holder==view.node_id and
                          lease.epoch==view.epoch and view.now_ms<lease.expires_ms)
@@ -53,13 +58,13 @@ class BrainQuorumFence:
         elif lease.epoch!=view.epoch:reasons.append("stale_epoch")
         elif lease.holder!=view.node_id:reasons.append("not_lease_holder")
         elif view.now_ms>=lease.expires_ms:reasons.append("lease_expired")
-        fenced=not (majority and lease_valid and view.node_id in self.members)
+        fenced=not (majority and lease_valid and generation_valid and view.node_id in self.members)
         return QuorumReport(view.node_id,self.quorum_size,visible,majority,lease_valid,
-                            fenced,not fenced,tuple(reasons))
+                            fenced,not fenced,tuple(reasons),self.membership_generation)
 
     def can_renew(self,view:PartitionView,current:BrainLease|None):
         report=self.assess(view,current)
-        return report.majority and view.node_id in self.members and (
+        return report.majority and not report.fenced and view.node_id in self.members and (
             current is None or current.holder==view.node_id or view.now_ms>=current.expires_ms)
 
     def next_epoch(self,current:BrainLease|None):
