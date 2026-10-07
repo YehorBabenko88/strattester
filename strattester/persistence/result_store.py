@@ -20,6 +20,9 @@ class ResultStore:
         with self.con:
             self.con.execute('INSERT OR REPLACE INTO research_results VALUES(?,?,?,?,?,?)',
                 (run_id,symbol,strategy_id,strategy_version,created_at,json.dumps(metrics,sort_keys=True)))
+    def integrity_check(self):
+        row=self.con.execute('PRAGMA quick_check').fetchone()
+        return bool(row and str(row[0]).lower()=='ok')
     def latest(self,symbol,strategy_id):
         row=self.con.execute('''SELECT run_id,symbol,strategy_id,strategy_version,created_at,metrics
             FROM research_results WHERE symbol=? AND strategy_id=? ORDER BY created_at DESC LIMIT 1''',
