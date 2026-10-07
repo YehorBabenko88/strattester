@@ -9,8 +9,9 @@ two-stage specificity gate.
 from __future__ import annotations
 from dataclasses import dataclass,field
 from enum import Enum
-from typing import Mapping,Sequence
+from typing import Mapping,Sequence,Optional
 from .neuro_controller import EvidenceSignal,BrainDecision,NeuroDecisionController
+from .structural_mathematics import StructuralReport
 
 class ChannelLifecycle(str,Enum):
     ACTIVE="ACTIVE"; SENESCENT="SENESCENT"; RETIRED="RETIRED"; QUARANTINED="QUARANTINED"
@@ -32,6 +33,7 @@ class HomeostaticDecision:
     vetoes:tuple[str,...]
     quarantined:tuple[str,...]
     retired:tuple[str,...]
+    structural:Optional[StructuralReport]=None
 
 class HomeostaticSupervisor:
     def __init__(self,controller:NeuroDecisionController,*,max_conductance=1.6,
@@ -90,13 +92,19 @@ class HomeostaticSupervisor:
         return bool(shares and max(shares)>self.clone_share_limit and len(signals)>1)
 
     def decide(self,signals:Sequence[EvidenceSignal],*,external_permission:bool,
-               inhibitory_veto:bool=False,risk=0.0,uncertainty=0.0):
+               inhibitory_veto:bool=False,risk=0.0,uncertainty=0.0,
+               structural_report:Optional[StructuralReport]=None):
         self.inspect_autonomy(signals,external_permission)
         quarantined=self.immune_surveillance(signals)
         active=self._filter(signals)
         vetoes=[]
         if not external_permission:vetoes.append("missing_external_permission")
         if inhibitory_veto:vetoes.append("inhibitory_checkpoint")
+        # Structural mathematics is an independent safety sieve. A fragile,
+        # unbalanced, incomplete or collapsed scientific structure may be
+        # observed and learned from, but it may not actuate the Brain.
+        if structural_report is not None and not structural_report.healthy:
+            vetoes.extend(f"structural:{r}" for r in structural_report.reasons)
         if self._clone_dominance_veto(active):vetoes.append("clone_dominance")
         raw=self.controller.integrate(active,risk=risk,uncertainty=uncertainty)
         # Second sieve: activation is necessary but not sufficient for execution.
@@ -107,7 +115,7 @@ class HomeostaticSupervisor:
                               raw.excitation,raw.inhibition,raw.confidence,
                               raw.reasons+tuple(vetoes))
         retired=tuple(k for k,h in self.health.items() if h.lifecycle==ChannelLifecycle.RETIRED)
-        return HomeostaticDecision(raw,permitted,tuple(vetoes),quarantined,retired)
+        return HomeostaticDecision(raw,permitted,tuple(vetoes),quarantined,retired,structural_report)
 
     def bounded_slow_modulate(self,outcomes:Mapping[str,float],rate=.05):
         values=self.controller.slow_modulate(outcomes,rate)
