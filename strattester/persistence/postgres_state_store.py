@@ -1,6 +1,9 @@
 from __future__ import annotations
-import json
+import json,time
 from strattester.engine.jobs import Job,JobState
+
+_ACTIVE=(JobState.LEASED,JobState.RUNNING)
+
 class PostgresStateStore:
     def __init__(self,connection): self.con=connection
     @classmethod
@@ -8,20 +11,102 @@ class PostgresStateStore:
         try: import psycopg
         except ImportError as exc: raise RuntimeError('PostgreSQL support requires psycopg') from exc
         con=psycopg.connect(dsn)
-        with con.cursor() as cur: cur.execute('CREATE TABLE IF NOT EXISTS strattester_jobs(id TEXT PRIMARY KEY,payload JSONB NOT NULL)')
+        with con.cursor() as cur:
+            cur.execute('CREATE TABLE IF NOT EXISTS strattester_jobs(id TEXT PRIMARY KEY,payload JSONB NOT NULL)')
         con.commit(); return cls(con)
-    def put_job(self,job):
+    @staticmethod
+    def _encode(job):
         d=job.__dict__.copy(); d['state']=job.state.value
-        with self.con.cursor() as cur: cur.execute('INSERT INTO strattester_jobs(id,payload) VALUES(%s,%s::jsonb) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload',(job.id,json.dumps(d)))
+        return d
+    def put_job(self,job):
+        with self.con.cursor() as cur:
+            cur.execute('INSERT INTO strattester_jobs(id,payload) VALUES(%s,%s::jsonb) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload',
+                        (job.id,json.dumps(self._encode(job))))
         self.con.commit()
     @staticmethod
     def _decode(d):
         if isinstance(d,str): d=json.loads(d)
-        d=dict(d); d['state']=JobState(d['state']); return Job(**d)
+        d=dict(d); d['state']=JobState(d['state'])
+        d.setdefault('lease_token',0); d.setdefault('target_node',None)
+        return Job(**d)
     def get_job(self,job_id):
-        with self.con.cursor() as cur: cur.execute('SELECT payload FROM strattester_jobs WHERE id=%s',(job_id,)); r=cur.fetchone()
+        with self.con.cursor() as cur:
+            cur.execute('SELECT payload FROM strattester_jobs WHERE id=%s',(job_id,)); r=cur.fetchone()
         return self._decode(r[0]) if r else None
     def list_jobs(self):
-        with self.con.cursor() as cur: cur.execute('SELECT payload FROM strattester_jobs'); rows=cur.fetchall()
+        with self.con.cursor() as cur: cur.execute('SELECT payload FROM strattester_jobs ORDER BY id'); rows=cur.fetchall()
         return [self._decode(r[0]) for r in rows]
+
+    def claim_ready_jobs(self,owner:str,limit:int=1,now:float|None=None,lease_seconds:float=300,job_ids=None,node_id=None):
+        now=time.time() if now is None else float(now)
+        allowed=None if job_ids is None else set(job_ids)
+        claimed=[]
+        try:
+            with self.con.cursor() as cur:
+                cur.execute('SELECT id,payload FROM strattester_jobs FOR UPDATE SKIP LOCKED')
+                rows=cur.fetchall()
+                jobs=[]
+                for job_id,payload in rows:
+                    job=self._decode(payload)
+                    recovered=job.recover_stale(now)
+                    if recovered!=job:
+                        cur.execute('UPDATE strattester_jobs SET payload=%s::jsonb WHERE id=%s',
+                                    (json.dumps(self._encode(recovered)),job_id))
+                    jobs.append(recovered)
+                active_keys={
+                    j.resource_key for j in jobs
+                    if j.resource_key and j.state in _ACTIVE and (j.lease_until is None or j.lease_until>=now)
+                }
+                for job in jobs:
+                    if len(claimed)>=limit: break
+                    if allowed is not None and job.id not in allowed: continue
+                    if job.target_node is not None and node_id is not None and job.target_node!=node_id: continue
+                    if job.target_node is not None and node_id is None: continue
+                    if job.state not in (JobState.READY,JobState.RETRYABLE): continue
+                    if job.resource_key and job.resource_key in active_keys: continue
+                    leased=job.with_state(JobState.LEASED,lease_owner=owner,lease_until=now+lease_seconds,
+                                          lease_token=job.lease_token+1,error=None)
+                    cur.execute('UPDATE strattester_jobs SET payload=%s::jsonb WHERE id=%s',
+                                (json.dumps(self._encode(leased)),job.id))
+                    claimed.append(leased)
+                    if leased.resource_key: active_keys.add(leased.resource_key)
+            self.con.commit(); return claimed
+        except Exception:
+            self.con.rollback(); raise
+
+    def renew_lease(self,job_id,owner,lease_token,lease_seconds=300,now=None):
+        now=time.time() if now is None else float(now)
+        try:
+            with self.con.cursor() as cur:
+                cur.execute('SELECT payload FROM strattester_jobs WHERE id=%s FOR UPDATE',(job_id,))
+                row=cur.fetchone()
+                if row is None:
+                    self.con.rollback(); return False
+                job=self._decode(row[0])
+                if job.lease_owner!=owner or job.lease_token!=lease_token or job.state not in _ACTIVE:
+                    self.con.rollback(); return False
+                renewed=job.with_state(job.state,lease_until=now+lease_seconds)
+                cur.execute('UPDATE strattester_jobs SET payload=%s::jsonb WHERE id=%s',
+                            (json.dumps(self._encode(renewed)),job_id))
+            self.con.commit(); return True
+        except Exception:
+            self.con.rollback(); raise
+
+    def transition_claimed(self,job_id,owner,lease_token,state,**changes):
+        try:
+            with self.con.cursor() as cur:
+                cur.execute('SELECT payload FROM strattester_jobs WHERE id=%s FOR UPDATE',(job_id,))
+                row=cur.fetchone()
+                if row is None:
+                    self.con.rollback(); return False
+                job=self._decode(row[0])
+                if job.lease_owner!=owner or job.lease_token!=lease_token:
+                    self.con.rollback(); return False
+                updated=job.with_state(state,**changes)
+                cur.execute('UPDATE strattester_jobs SET payload=%s::jsonb WHERE id=%s',
+                            (json.dumps(self._encode(updated)),job_id))
+            self.con.commit(); return True
+        except Exception:
+            self.con.rollback(); raise
+
     def close(self): self.con.close()
