@@ -6,6 +6,7 @@ have independent backups, but clone concentration and unhealthy nodes are avoide
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable,Mapping
+from math import isfinite
 
 @dataclass(frozen=True)
 class WorkerNode:
@@ -16,6 +17,8 @@ class WorkerNode:
     latency_ms:float=0.0
     failure_rate:float=0.0
     domain:str="default"
+    capacity_cost:float=0.15
+    communication_quality:float=1.0
 
 @dataclass(frozen=True)
 class RoleRequest:
@@ -36,10 +39,16 @@ class AdaptiveRoleAllocator:
     def __init__(self,*,max_load=.9,max_failure_rate=.25,latency_scale_ms=500):
         self.max_load=float(max_load);self.max_failure_rate=float(max_failure_rate)
         self.latency_scale_ms=float(latency_scale_ms)
+        if not all(isfinite(x) for x in (self.max_load,self.max_failure_rate,self.latency_scale_ms)) or not 0<self.max_load<=1 or not 0<=self.max_failure_rate<=1 or self.latency_scale_ms<=0:
+            raise ValueError("invalid allocator thresholds")
 
-    def _score(self,n:WorkerNode):
-        if not n.healthy or n.load>=self.max_load or n.failure_rate>self.max_failure_rate:return -1.0
-        return (1-n.load)*(1-n.failure_rate)/(1+n.latency_ms/max(1,self.latency_scale_ms))
+    def _score(self,n:WorkerNode,load_override:float|None=None):
+        vals=(n.load,n.latency_ms,n.failure_rate,n.capacity_cost,n.communication_quality)
+        if not all(isfinite(float(x)) for x in vals) or not 0<=n.load<=1 or n.latency_ms<0 or not 0<=n.failure_rate<=1 or not 0<n.capacity_cost<=1 or not 0<=n.communication_quality<=1:
+            return -1.0
+        load=n.load if load_override is None else float(load_override)
+        if not n.healthy or load>=self.max_load or n.failure_rate>self.max_failure_rate:return -1.0
+        return (1-load)*(1-n.failure_rate)*n.communication_quality/(1+n.latency_ms/max(1,self.latency_scale_ms))
 
     def place(self,request:RoleRequest,nodes:Iterable[WorkerNode]):
         eligible=[n for n in nodes if request.capability in n.capabilities and self._score(n)>=0]
@@ -64,8 +73,15 @@ class AdaptiveRoleAllocator:
         return RolePlacement(request.role,tuple(n.node_id for n in chosen),score,degraded,tuple(reasons))
 
     def allocate(self,requests:Iterable[RoleRequest],nodes:Iterable[WorkerNode]):
-        ns=tuple(nodes)
-        return {r.role:self.place(r,ns) for r in requests}
+        ns=tuple(nodes);reserved={n.node_id:float(n.load) for n in ns};out={}
+        for r in requests:
+            projected=tuple(WorkerNode(n.node_id,n.capabilities,n.healthy,reserved[n.node_id],
+                n.latency_ms,n.failure_rate,n.domain,n.capacity_cost,n.communication_quality) for n in ns)
+            p=self.place(r,projected);out[r.role]=p
+            by_id={n.node_id:n for n in ns}
+            for node_id in p.nodes:
+                n=by_id[node_id];reserved[node_id]=min(1.0,reserved[node_id]+n.capacity_cost)
+        return out
 
     def execution_health(self,placements:Mapping[str,RolePlacement],critical_roles:Iterable[str]):
         reasons=[]
