@@ -34,3 +34,40 @@ def test_403_degrades_one_requirement(tmp_path):
     r=SyncEngine(s,Forbidden()).sync_requirement(DataRequirement('BTCUSDT',start_ms=0,end_ms=0))
     assert r.state==SyncState.DEGRADED
     s.close()
+
+
+def test_failover_node_repairs_only_missing_local_history(tmp_path):
+    s=SQLiteMarketStore.open(tmp_path/'new-node.db')
+    s.upsert_candles([
+        Candle('BTCUSDT','1m',0,1,1,1,1,1),
+        Candle('BTCUSDT','1m',120000,1,1,1,1,1),
+    ])
+    client=Client([row(60000)])
+    result=SyncEngine(s,client,clock_ms=lambda:999999).sync_requirement(
+        DataRequirement('BTCUSDT',start_ms=0,end_ms=120000))
+    assert result.state is SyncState.READY
+    assert client.calls==[(60000,60000)]
+    assert s.coverage('BTCUSDT',start_ms=0,end_ms=120000).count==3
+    s.close()
+
+def test_retry_after_interrupted_page_is_idempotent(tmp_path):
+    class InterruptOnce(Client):
+        def __init__(self,rows):
+            super().__init__(rows); self.failed=False
+        def fetch_klines(self,symbol,start,end,interval):
+            self.calls.append((start,end))
+            if not self.failed:
+                self.failed=True
+                raise ConnectionError('simulated node/network loss')
+            return [r for r in self.rows if start<=int(r[0])<=end]
+    s=SQLiteMarketStore.open(tmp_path/'m.db')
+    client=InterruptOnce([row(0),row(60000),row(120000)])
+    engine=SyncEngine(s,client,clock_ms=lambda:999999)
+    req=DataRequirement('BTCUSDT',start_ms=0,end_ms=120000)
+    first=engine.sync_requirement(req)
+    assert first.state is SyncState.RETRYABLE
+    second=engine.sync_requirement(req)
+    assert second.state is SyncState.READY
+    assert s.coverage('BTCUSDT').count==3
+    assert s.integrity_check()
+    s.close()
