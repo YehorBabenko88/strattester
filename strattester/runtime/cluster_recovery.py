@@ -32,6 +32,12 @@ class ClusterRecovery:
                 deferred.append(job.id)
                 continue
             moved=reassign_unavailable(job.recover_stale(now),live)
-            self.state_store.put_job(moved)
-            reassigned.append(job.id)
+            if hasattr(self.state_store,'compare_and_swap_job'):
+                if self.state_store.compare_and_swap_job(job,moved):
+                    reassigned.append(job.id)
+                else:
+                    deferred.append(job.id)
+            else:
+                self.state_store.put_job(moved)
+                reassigned.append(job.id)
         return RecoveryReport(live,tuple(reassigned),tuple(deferred))
