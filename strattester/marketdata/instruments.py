@@ -5,18 +5,20 @@ import sqlite3
 from pathlib import Path
 
 class InstrumentStatus(str,Enum):
-    PRE_LISTING='PRE_LISTING'; ACTIVE='ACTIVE'; SUSPENDED='SUSPENDED'; DELISTED='DELISTED'
+    PRE_LISTING='PRE_LISTING'; ACTIVE='ACTIVE'; SUSPENDED='SUSPENDED'; MISSING='MISSING'; DELISTED='DELISTED'
 
 @dataclass(frozen=True)
 class InstrumentRecord:
     symbol:str; status:InstrumentStatus; first_seen:int; last_seen:int; delisted_at:int|None=None
 
 class InstrumentRegistry:
-    def __init__(self,conn): self.conn=conn
+    def __init__(self,conn,missing_confirmations:int=2): self.conn=conn;self.missing_confirmations=max(1,int(missing_confirmations))
     @classmethod
     def open(cls,path:Path):
         c=sqlite3.connect(path)
-        c.execute("CREATE TABLE IF NOT EXISTS instruments(symbol TEXT PRIMARY KEY,status TEXT NOT NULL,first_seen INTEGER NOT NULL,last_seen INTEGER NOT NULL,delisted_at INTEGER)")
+        c.execute("CREATE TABLE IF NOT EXISTS instruments(symbol TEXT PRIMARY KEY,status TEXT NOT NULL,first_seen INTEGER NOT NULL,last_seen INTEGER NOT NULL,delisted_at INTEGER,missing_count INTEGER NOT NULL DEFAULT 0)")
+        cols={r[1] for r in c.execute("PRAGMA table_info(instruments)")}
+        if "missing_count" not in cols:c.execute("ALTER TABLE instruments ADD COLUMN missing_count INTEGER NOT NULL DEFAULT 0")
         c.execute("CREATE TABLE IF NOT EXISTS instrument_intervals(symbol TEXT NOT NULL,start_time INTEGER NOT NULL,end_time INTEGER,PRIMARY KEY(symbol,start_time))")
         c.commit(); return cls(c)
     def close(self): self.conn.close()
@@ -42,13 +44,23 @@ class InstrumentRegistry:
         known={r[0]:InstrumentStatus(r[1]) for r in self.conn.execute("SELECT symbol,status FROM instruments")}
         for symbol in sorted(exchange_snapshot):
             if symbol not in known:
-                self.conn.execute("INSERT INTO instruments VALUES(?,?,?,?,NULL)",(symbol,InstrumentStatus.ACTIVE.value,observed_at,observed_at))
+                self.conn.execute("INSERT INTO instruments(symbol,status,first_seen,last_seen,delisted_at,missing_count) VALUES(?,?,?,?,NULL,0)",(symbol,InstrumentStatus.ACTIVE.value,observed_at,observed_at))
                 self.conn.execute("INSERT INTO instrument_intervals VALUES(?,?,NULL)",(symbol,observed_at))
             elif known[symbol] is not InstrumentStatus.ACTIVE:
                 self.set_status(symbol,InstrumentStatus.ACTIVE,observed_at)
             else:
-                self.conn.execute("UPDATE instruments SET last_seen=? WHERE symbol=?",(observed_at,symbol))
+                self.conn.execute("UPDATE instruments SET last_seen=?,missing_count=0 WHERE symbol=?",(observed_at,symbol))
         for symbol,status in known.items():
-            if status is InstrumentStatus.ACTIVE and symbol not in exchange_snapshot:
-                self.set_status(symbol,InstrumentStatus.DELISTED,observed_at)
+            if symbol in exchange_snapshot:continue
+            if status in (InstrumentStatus.ACTIVE,InstrumentStatus.MISSING):
+                row=self.conn.execute("SELECT missing_count FROM instruments WHERE symbol=?",(symbol,)).fetchone()
+                count=int(row[0] or 0)+1
+                if count>=self.missing_confirmations:
+                    self.conn.execute("UPDATE instruments SET missing_count=? WHERE symbol=?",(count,symbol))
+                    self.set_status(symbol,InstrumentStatus.DELISTED,observed_at)
+                else:
+                    if status is InstrumentStatus.ACTIVE:
+                        self.conn.execute("UPDATE instrument_intervals SET end_time=? WHERE symbol=? AND end_time IS NULL",(observed_at,symbol))
+                    self.conn.execute("UPDATE instruments SET status=?,missing_count=? WHERE symbol=?",
+                                      (InstrumentStatus.MISSING.value,count,symbol))
         self.conn.commit()
