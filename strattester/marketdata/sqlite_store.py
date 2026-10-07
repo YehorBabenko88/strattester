@@ -69,10 +69,17 @@ class SQLiteMarketStore:
         return bool(row and str(row[0]).lower()=='ok')
 
     def close(self):
+        if getattr(self,'_closed',False):
+            return
         try:
             self.checkpoint_wal('PASSIVE')
+        except sqlite3.ProgrammingError:
+            # Connection may already have been closed by an owning routed
+            # store during repeated shutdown/cleanup.
+            pass
         finally:
-            self.connection.close()
+            try: self.connection.close()
+            finally: self._closed=True
 
     @staticmethod
     def _valid(c: Candle) -> bool:
