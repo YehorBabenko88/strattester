@@ -18,6 +18,8 @@ class BybitClient:
         self.base_url=base_url.rstrip('/'); self.session=session or requests.Session(); self.sleep=sleep; self.retry=retry
 
     def get(self,path,params=None):
+        if self.retry.attempts<1 or self.retry.base_delay<0 or self.retry.max_delay<0:
+            raise ValueError("invalid retry policy")
         last=None
         for attempt in range(self.retry.attempts):
             try:
@@ -28,13 +30,25 @@ class BybitClient:
                 if r.status_code==403: raise BybitAccessError('Bybit access forbidden (HTTP 403)')
                 if r.status_code==429 or 500<=r.status_code<600:
                     last=RetryableBybitError(f'Bybit temporary HTTP {r.status_code}')
+                    retry_after=None
+                    try: retry_after=float(r.headers.get('Retry-After')) if r.headers.get('Retry-After') else None
+                    except (TypeError,ValueError): retry_after=None
                 elif r.status_code>=400: raise BybitResponseError(f'Bybit HTTP {r.status_code}')
                 else:
                     data=r.json()
-                    if data.get('retCode',0)!=0: raise BybitResponseError(str(data.get('retMsg','Bybit error')))
-                    return data
+                    code=int(data.get('retCode',0) or 0)
+                    if code in (10006,10429):
+                        last=RetryableBybitError(str(data.get('retMsg','Bybit rate limit')))
+                        retry_after=None
+                    elif code!=0:
+                        raise BybitResponseError(str(data.get('retMsg','Bybit error')))
+                    else:
+                        return data
             if attempt+1<self.retry.attempts:
-                self.sleep(min(self.retry.base_delay*(2**attempt),self.retry.max_delay))
+                exponential=self.retry.base_delay*(2**attempt)
+                hinted=retry_after if 'retry_after' in locals() and retry_after is not None and retry_after>=0 else 0
+                self.sleep(min(max(exponential,hinted),self.retry.max_delay))
+                retry_after=None
         raise last or RetryableBybitError('Bybit request failed')
 
     def fetch_klines(self,symbol,start_ms,end_ms,interval='1',limit=1000):
