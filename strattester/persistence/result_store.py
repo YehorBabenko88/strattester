@@ -70,6 +70,16 @@ class ResultStore:
             else:discarded+=1
         return {'promoted':promoted,'discarded':discarded}
 
+    def cleanup_staged(self,older_than,limit=1000):
+        older_than=float(older_than);limit=int(limit)
+        if limit<1:raise ValueError('cleanup limit must be positive')
+        with self.con:
+            ids=[r[0] for r in self.con.execute(
+                'SELECT stage_id FROM staged_research_results WHERE created_at<? ORDER BY created_at LIMIT ?',
+                (older_than,limit)).fetchall()]
+            if ids:self.con.executemany('DELETE FROM staged_research_results WHERE stage_id=?',((x,) for x in ids))
+        return len(ids)
+
     def discard_stage(self,stage_id):
         with self.con:
             self.con.execute('DELETE FROM staged_research_results WHERE stage_id=?',(stage_id,))
