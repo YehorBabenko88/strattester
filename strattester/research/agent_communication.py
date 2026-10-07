@@ -85,6 +85,18 @@ class SelfOrganizingCommunicationFabric:
         l.weight=max(self.min_weight,min(self.max_weight,l.weight*exp(delta)))
         return l
 
+    def observe_preparation_outcome(self,source:str,target:str,*,useful:float,redundant:bool=False):
+        """Adapt prewarm utility without pretending a network delivery occurred."""
+        useful=float(useful)
+        if not isfinite(useful):raise ValueError("invalid preparation utility")
+        l=self.link(source,target)
+        positive=max(-1,min(1,useful))*l.reliability
+        redundancy_cost=self.redundancy_penalty if redundant else 0.0
+        delta=self.learning_rate*(positive-redundancy_cost)
+        l.weight=max(self.min_weight,min(self.max_weight,l.weight*exp(delta)))
+        if redundant:l.redundant+=1
+        return l
+
     def route_score(self,source:str,target:str):
         # Scoring candidates must never mutate topology.
         l=self.links.get((source,target),LinkState())
