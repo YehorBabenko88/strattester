@@ -84,3 +84,13 @@ def test_requirements_do_not_use_history_outside_requested_window(tmp_path):
     with pytest.raises(RuntimeError):
         execute_strategy(definition(),s,'BTCUSDT',start_ms=60_000,end_ms=120_000)
     s.close()
+
+def test_requirements_reject_internal_gap_even_when_rows_exist(tmp_path):
+    s=SQLiteMarketStore.open(tmp_path/'m.db')
+    s.upsert_candles([
+        Candle('BTCUSDT','1m',60_000,1,1,1,1,1),
+        Candle('BTCUSDT','1m',180_000,1,1,1,1,1),
+    ])
+    with pytest.raises(RuntimeError):
+        execute_strategy(definition(),s,'BTCUSDT',start_ms=60_000,end_ms=180_000)
+    s.close()
