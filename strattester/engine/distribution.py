@@ -33,4 +33,5 @@ def reassign_unavailable(job,available_node_ids):
     if job.target_node in set(available):
         return job
     node=assign_node(job.symbol or job.id,available)
-    return job.with_state(JobState.RETRYABLE,target_node=node,lease_owner=None,lease_until=None,error='target node unavailable; reassigned')
+    resource_key=(f'market:{node}:{job.symbol}' if job.job_type=='sync' and job.symbol else job.resource_key)
+    return job.with_state(JobState.RETRYABLE,target_node=node,resource_key=resource_key,lease_owner=None,lease_until=None,error='target node unavailable; reassigned')
