@@ -5,7 +5,18 @@ from strattester.engine.jobs import Job,JobState
 _ACTIVE=(JobState.LEASED,JobState.RUNNING)
 
 class PostgresStateStore:
-    def __init__(self,connection): self.con=connection
+    def __init__(self,connection,dsn=None): self.con=connection; self.dsn=dsn
+    def reconnect(self):
+        if not self.dsn:
+            return False
+        try:
+            import psycopg
+            try: self.con.close()
+            except Exception: pass
+            self.con=psycopg.connect(self.dsn)
+            return True
+        except Exception:
+            return False
     @classmethod
     def connect(cls,dsn):
         try: import psycopg
@@ -14,7 +25,7 @@ class PostgresStateStore:
         with con.cursor() as cur:
             cur.execute('CREATE TABLE IF NOT EXISTS strattester_jobs(id TEXT PRIMARY KEY,payload JSONB NOT NULL)')
             cur.execute('CREATE TABLE IF NOT EXISTS strattester_nodes(node_id TEXT PRIMARY KEY,last_seen DOUBLE PRECISION NOT NULL,meta JSONB NOT NULL DEFAULT \'{}\'::jsonb)')
-        con.commit(); return cls(con)
+        con.commit(); return cls(con,dsn)
     @staticmethod
     def _encode(job):
         d=job.__dict__.copy(); d['state']=job.state.value
