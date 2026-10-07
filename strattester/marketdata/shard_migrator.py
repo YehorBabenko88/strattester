@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from .shard_manifest import ShardState
+from .storage_health import storage_health
 
 @dataclass(frozen=True)
 class MigrationBatchResult:
@@ -12,8 +13,11 @@ class MigrationBatchResult:
 class ShardMigrator:
     def __init__(self,store):
         self.store=store
-    def migrate_batch(self,symbols,limit=8,batch_size=20_000):
+    def migrate_batch(self,symbols,limit=8,batch_size=20_000,min_free_bytes=2*1024**3):
         attempted=ready=failed=copied=0
+        health=storage_health(self.store.root,min_free_bytes=min_free_bytes)
+        if not health.ok:
+            return MigrationBatchResult(0,0,0,0)
         for symbol in list(symbols)[:max(0,int(limit))]:
             if self.store.manifest.ready(symbol):
                 continue
