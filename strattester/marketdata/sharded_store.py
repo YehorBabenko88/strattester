@@ -77,10 +77,17 @@ class ShardedMarketStore:
                 copied+=shard.upsert_candles(batch).accepted; batch.clear()
         if batch:
             copied+=shard.upsert_candles(batch).accepted
+        # Re-read source coverage after copying. Live writes deliberately stay
+        # in legacy while MIGRATING; if the source moved, do not promote this
+        # pass. A later idempotent pass copies the tail and validates again.
+        final_source_cov=self.legacy_store.coverage(symbol,'candles',timeframe)
         target_cov=shard.coverage(symbol,'candles',timeframe)
-        if (target_cov.count!=source_cov.count or target_cov.earliest!=source_cov.earliest
-                or target_cov.latest!=source_cov.latest or target_cov.gaps!=source_cov.gaps
+        if (target_cov.count!=final_source_cov.count or target_cov.earliest!=final_source_cov.earliest
+                or target_cov.latest!=final_source_cov.latest or target_cov.gaps!=final_source_cov.gaps
                 or not shard.integrity_check()):
+            if final_source_cov!=source_cov:
+                self.manifest.set(symbol,ShardState.MIGRATING,rows_copied=target_cov.count,error='source changed during migration; retry required')
+                raise RuntimeError('legacy source changed during migration; retry required')
             self.manifest.set(symbol,ShardState.FAILED,rows_copied=target_cov.count,error='shard migration validation failed')
             raise RuntimeError('shard migration validation failed')
         self.manifest.set(symbol,ShardState.SHARD_READY,rows_copied=target_cov.count)
