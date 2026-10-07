@@ -26,6 +26,7 @@ def learning_event_id(outcome:ObservedOutcome)->str:
     return hashlib.sha256(raw).hexdigest()
 
 class LearningEventLog:
+    SCHEMA_VERSION=1
     def __init__(self):
         self._events:dict[tuple[str,str],LearningEvent]={}
         self._next=1
@@ -52,7 +53,34 @@ class LearningEventLog:
                             key=lambda e:e.sequence))
 
     def export(self):
-        return [{"sequence":e.sequence,"event_id":e.event_id,"decision_id":e.decision_id,
-                 "horizon":e.horizon,"utility":e.utility,"timestamp_ms":e.timestamp_ms,
-                 "regime":e.regime,"attribution":list(e.attribution)}
-                for e in self.events()]
+        return {"schema_version":self.SCHEMA_VERSION,"events":[
+            {"sequence":e.sequence,"event_id":e.event_id,"decision_id":e.decision_id,
+             "horizon":e.horizon,"utility":e.utility,"timestamp_ms":e.timestamp_ms,
+             "regime":e.regime,"attribution":list(e.attribution),
+             "counterfactuals":[{"decision_id":x.decision_id,"horizon":x.horizon,
+                "alternative_action":x.alternative_action,"estimated_utility":x.estimated_utility,
+                "confidence":x.confidence,"estimator":x.estimator,"assumptions":list(x.assumptions)}
+                for x in e.counterfactuals]}
+            for e in self.events()]}
+
+    @classmethod
+    def restore(cls,payload):
+        if int(payload.get("schema_version",-1))!=cls.SCHEMA_VERSION:raise ValueError("unsupported learning log schema")
+        log=cls();last=0
+        for raw in payload.get("events",[]):
+            seq=int(raw["sequence"])
+            if seq<=last:raise ValueError("non-monotonic learning log sequence")
+            cfs=tuple(CounterfactualEstimate(**{**x,"assumptions":tuple(x.get("assumptions",()))})
+                      for x in raw.get("counterfactuals",[]))
+            outcome=ObservedOutcome(str(raw["decision_id"]),str(raw["horizon"]),
+                                    float(raw["utility"]),int(raw["timestamp_ms"]))
+            attrs={str(k):float(v) for k,v in raw.get("attribution",[])}
+            event,new=log.append(outcome,attrs,regime=str(raw["regime"]),counterfactuals=cfs)
+            if event.event_id!=str(raw["event_id"]):raise ValueError("learning event id mismatch")
+            # Preserve durable sequence numbers; gaps are allowed for DB sequences.
+            log._events[(event.decision_id,event.horizon)]=LearningEvent(
+                seq,event.event_id,event.decision_id,event.horizon,event.utility,event.timestamp_ms,
+                event.regime,event.attribution,event.counterfactuals)
+            last=seq
+        log._next=last+1
+        return log
