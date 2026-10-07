@@ -28,3 +28,30 @@ def test_suspension_can_resume_without_erasing_interval(tmp_path):
     assert r.eligible_at('XUSDT',2100)
     assert len(r.intervals('XUSDT'))==2
     r.close()
+
+def test_delisted_state_survives_registry_reopen(tmp_path):
+    path=tmp_path/'i.db'
+    r=InstrumentRegistry.open(path)
+    r.reconcile({'OLDUSDT'},1000)
+    r.reconcile(set(),2000)
+    r.close()
+
+    reopened=InstrumentRegistry.open(path)
+    assert reopened.get('OLDUSDT').status is InstrumentStatus.DELISTED
+    assert reopened.intervals('OLDUSDT')==[(1000,2000)]
+    assert reopened.eligible_at('OLDUSDT',1500)
+    assert not reopened.eligible_at('OLDUSDT',2500)
+    reopened.close()
+
+def test_new_symbol_after_reopen_gets_fresh_active_interval(tmp_path):
+    path=tmp_path/'i.db'
+    r=InstrumentRegistry.open(path)
+    r.reconcile({'BTCUSDT'},1000)
+    r.close()
+
+    reopened=InstrumentRegistry.open(path)
+    reopened.reconcile({'BTCUSDT','NEWUSDT'},3000)
+    assert reopened.get('NEWUSDT').status is InstrumentStatus.ACTIVE
+    assert not reopened.eligible_at('NEWUSDT',2999)
+    assert reopened.eligible_at('NEWUSDT',3000)
+    reopened.close()
