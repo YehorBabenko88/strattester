@@ -6,7 +6,7 @@ from .sqlite_store import Candle
 
 class SyncState(str,Enum):
     UNKNOWN='UNKNOWN'; CHECKING='CHECKING'; PARTIAL='PARTIAL'; SYNCING='SYNCING'
-    VALIDATING='VALIDATING'; READY='READY'; DEGRADED='DEGRADED'; RETRYABLE='RETRYABLE'; REPAIR_REQUIRED='REPAIR_REQUIRED'
+    VALIDATING='VALIDATING'; READY='READY'; DEGRADED='DEGRADED'; RETRYABLE='RETRYABLE'; UNAVAILABLE='UNAVAILABLE'; REPAIR_REQUIRED='REPAIR_REQUIRED'
 
 @dataclass(frozen=True)
 class DataRequirement:
@@ -122,5 +122,12 @@ class SyncEngine:
             state=SyncState.READY if not remaining else SyncState.PARTIAL
             return SyncResult(state,written,unchanged,rejected)
         except Exception as exc:
-            state=SyncState.DEGRADED if exc.__class__.__name__=='BybitAccessError' else SyncState.RETRYABLE
+            name=exc.__class__.__name__
+            text=str(exc).lower()
+            if name in ('DatasetUnavailableError','NotSupportedError') or any(x in text for x in ('not supported','not available for this symbol','unsupported dataset')):
+                state=SyncState.UNAVAILABLE
+            elif name=='BybitAccessError':
+                state=SyncState.DEGRADED
+            else:
+                state=SyncState.RETRYABLE
             return SyncResult(state,written,unchanged,rejected,str(exc))
