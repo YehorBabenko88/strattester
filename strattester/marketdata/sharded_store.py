@@ -92,7 +92,9 @@ class ShardedMarketStore:
 
     def upsert_candles(self,records):
         records=list(records)
-        if not records: return self.for_symbol('_EMPTY').upsert_candles(())
+        if not records:
+            from .sqlite_store import WriteStats
+            return WriteStats()
         symbols={r.symbol for r in records}
         if len(symbols)!=1: raise ValueError('one shard write must contain exactly one symbol')
         return self.for_symbol(next(iter(symbols))).upsert_candles(records)
