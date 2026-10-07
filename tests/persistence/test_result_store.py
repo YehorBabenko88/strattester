@@ -52,3 +52,20 @@ def test_result_store_migrates_legacy_schema_for_fencing(tmp_path):
     s.stage('new','old','BTCUSDT','A','1',{'net_pnl':1},job_id='job',lease_token=1)
     assert s.promote('new',lambda:True)
     s.close()
+
+
+def test_result_records_worker_generation_provenance(tmp_path):
+    s=ResultStore.open(tmp_path/'results.sqlite3')
+    s.stage('g','run-g','BTCUSDT','A','1',{'net_pnl':1},job_id='j',lease_token=4,node_generation=12)
+    assert s.promote('g',lambda:True)
+    row=s.con.execute("SELECT lease_token,node_generation FROM research_results WHERE run_id='run-g'").fetchone()
+    assert row==(4,12)
+    s.close()
+
+def test_generation_validator_can_fence_stale_incarnation(tmp_path):
+    s=ResultStore.open(tmp_path/'results.sqlite3')
+    s.stage('old-gen','run-g','BTCUSDT','A','1',{'net_pnl':999},job_id='j',lease_token=5,node_generation=11)
+    current_generation=12
+    assert not s.promote('old-gen',lambda:11==current_generation)
+    assert s.latest('BTCUSDT','A') is None
+    s.close()
