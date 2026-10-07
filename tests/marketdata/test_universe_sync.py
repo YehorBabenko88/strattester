@@ -22,12 +22,27 @@ def test_bybit_discovers_only_trading_usdt_linear_perpetuals():
 
 def test_universe_sync_retains_disappeared_instrument(tmp_path):
     class C:
-        def __init__(self): self.symbols={'AUSDT'}
+        def __init__(self): self.symbols={'AUSDT','BUSDT'}
         def fetch_linear_symbols(self): return set(self.symbols)
     c=C(); reg=InstrumentRegistry.open(tmp_path/'i.db'); u=UniverseSynchronizer(reg,c)
-    u.sync(1000); c.symbols=set(); u.sync(2000)
+    u.sync(1000); c.symbols={'BUSDT'}; u.sync(2000)
     assert reg.get('AUSDT').status is InstrumentStatus.DELISTED
     assert reg.eligible_at('AUSDT',1500)
+    reg.close()
+
+def test_empty_exchange_snapshot_does_not_mass_delist(tmp_path):
+    from strattester.marketdata.universe_sync import UniverseSnapshotError
+    class C:
+        def __init__(self): self.symbols={'AUSDT','BUSDT'}
+        def fetch_linear_symbols(self): return set(self.symbols)
+    c=C(); reg=InstrumentRegistry.open(tmp_path/'i.db'); u=UniverseSynchronizer(reg,c)
+    u.sync(1000); c.symbols=set()
+    try:
+        u.sync(2000)
+        assert False, 'expected suspicious snapshot rejection'
+    except UniverseSnapshotError:
+        pass
+    assert reg.active_symbols()=={'AUSDT','BUSDT'}
     reg.close()
 
 def test_reverse_chronological_pages_do_not_skip_middle(tmp_path):
