@@ -1,6 +1,7 @@
 from __future__ import annotations
 import concurrent.futures,pickle,time,uuid
 from strattester.engine.jobs import JobState
+from strattester.runtime.cluster_recovery import ClusterRecovery
 
 def _invoke_executor(executor,job):
     return executor(job)
@@ -13,6 +14,7 @@ class WorkerRuntime:
         self.lease_heartbeat_seconds=lease_heartbeat_seconds or max(1,min(60,lease_seconds/3))
         self.node_id=node_id
         self.execution_mode=execution_mode
+        self.cluster_recovery=ClusterRecovery(state_store) if hasattr(state_store,'live_nodes') else None
 
     def _heartbeat_node(self):
         if self.node_id is not None and hasattr(self.state_store,'heartbeat_node'):
@@ -83,6 +85,11 @@ class WorkerRuntime:
     def run_once(self):
         if self.lifecycle.draining or self.lifecycle.stopping:return 0
         self._heartbeat_node()
+        if self.cluster_recovery is not None:
+            try:
+                self.cluster_recovery.reconcile()
+            except Exception:
+                self.logger.exception('cluster recovery failed')
         snapshot=self.snapshot_provider()
         try:
             candidates=self.scheduler.ready_jobs(snapshot,node_id=self.node_id)
