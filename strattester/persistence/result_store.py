@@ -14,12 +14,37 @@ class ResultStore:
             created_at REAL NOT NULL,metrics TEXT NOT NULL,
             PRIMARY KEY(run_id,symbol,strategy_id,strategy_version))''')
         con.execute('CREATE INDEX IF NOT EXISTS ix_results_latest ON research_results(symbol,strategy_id,created_at DESC)')
+        con.execute('''CREATE TABLE IF NOT EXISTS staged_research_results(
+            stage_id TEXT PRIMARY KEY,run_id TEXT NOT NULL,symbol TEXT NOT NULL,strategy_id TEXT NOT NULL,
+            strategy_version TEXT NOT NULL,created_at REAL NOT NULL,metrics TEXT NOT NULL)''')
         con.commit(); return cls(p,con)
     def put(self,run_id,symbol,strategy_id,strategy_version,metrics,created_at=None):
         created_at=time.time() if created_at is None else float(created_at)
         with self.con:
             self.con.execute('INSERT OR REPLACE INTO research_results VALUES(?,?,?,?,?,?)',
                 (run_id,symbol,strategy_id,strategy_version,created_at,json.dumps(metrics,sort_keys=True)))
+    def stage(self,stage_id,run_id,symbol,strategy_id,strategy_version,metrics,created_at=None):
+        created_at=time.time() if created_at is None else float(created_at)
+        with self.con:
+            self.con.execute('INSERT OR REPLACE INTO staged_research_results VALUES(?,?,?,?,?,?,?)',
+                (stage_id,run_id,symbol,strategy_id,strategy_version,created_at,json.dumps(metrics,sort_keys=True)))
+
+    def promote(self,stage_id,lease_validator):
+        """Publish a staged result only while its external job lease is valid."""
+        with self.con:
+            row=self.con.execute('SELECT run_id,symbol,strategy_id,strategy_version,created_at,metrics FROM staged_research_results WHERE stage_id=?',(stage_id,)).fetchone()
+            if row is None: return False
+            if not lease_validator():
+                self.con.execute('DELETE FROM staged_research_results WHERE stage_id=?',(stage_id,))
+                return False
+            self.con.execute('INSERT OR REPLACE INTO research_results VALUES(?,?,?,?,?,?)',row)
+            self.con.execute('DELETE FROM staged_research_results WHERE stage_id=?',(stage_id,))
+            return True
+
+    def discard_stage(self,stage_id):
+        with self.con:
+            self.con.execute('DELETE FROM staged_research_results WHERE stage_id=?',(stage_id,))
+
     def integrity_check(self):
         row=self.con.execute('PRAGMA quick_check').fetchone()
         return bool(row and str(row[0]).lower()=='ok')
