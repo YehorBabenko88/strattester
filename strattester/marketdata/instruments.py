@@ -41,6 +41,12 @@ class InstrumentRegistry:
         delisted=observed_at if status is InstrumentStatus.DELISTED else (None if status is InstrumentStatus.ACTIVE else rec.delisted_at)
         self.conn.execute("UPDATE instruments SET status=?,last_seen=?,delisted_at=? WHERE symbol=?",(status.value,observed_at,delisted,symbol)); self.conn.commit()
     def reconcile(self,exchange_snapshot:set[str],observed_at:int):
+        observed_at=int(observed_at)
+        symbols={str(x).strip() for x in exchange_snapshot}
+        if any(not x for x in symbols):raise ValueError("empty instrument symbol")
+        last=self.conn.execute("SELECT MAX(last_seen) FROM instruments").fetchone()[0]
+        if last is not None and observed_at<int(last):raise ValueError("non-monotonic universe observation")
+        exchange_snapshot=symbols
         known={r[0]:InstrumentStatus(r[1]) for r in self.conn.execute("SELECT symbol,status FROM instruments")}
         for symbol in sorted(exchange_snapshot):
             if symbol not in known:
