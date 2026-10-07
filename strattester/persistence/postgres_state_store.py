@@ -31,7 +31,10 @@ class PostgresStateStore:
             cur.execute('''CREATE TABLE IF NOT EXISTS strattester_learning_events(
                 event_id TEXT PRIMARY KEY, decision_id TEXT NOT NULL, horizon TEXT NOT NULL,
                 applied_at DOUBLE PRECISION NOT NULL, meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+                status TEXT NOT NULL DEFAULT 'APPLIED', claimed_at DOUBLE PRECISION,
                 UNIQUE(decision_id,horizon))''')
+            cur.execute("ALTER TABLE strattester_learning_events ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'APPLIED'")
+            cur.execute('ALTER TABLE strattester_learning_events ADD COLUMN IF NOT EXISTS claimed_at DOUBLE PRECISION')
         con.commit(); return cls(con,dsn)
     @staticmethod
     def _encode(job):
@@ -225,6 +228,42 @@ class PostgresStateStore:
             self.con.commit(); return claimed
         except Exception:
             self.con.rollback(); raise
+
+    def begin_learning_event(self,event_id,decision_id,horizon,now=None,meta=None):
+        now=time.time() if now is None else float(now)
+        try:
+            with self.con.cursor() as cur:
+                cur.execute('''INSERT INTO strattester_learning_events
+                    (event_id,decision_id,horizon,applied_at,meta,status,claimed_at)
+                    VALUES(%s,%s,%s,%s,%s::jsonb,'CLAIMED',%s) ON CONFLICT DO NOTHING''',
+                    (str(event_id),str(decision_id),str(horizon),0.0,json.dumps(meta or {}),now))
+                claimed=cur.rowcount==1
+            self.con.commit(); return claimed
+        except Exception:
+            self.con.rollback(); raise
+
+    def complete_learning_event(self,event_id,now=None):
+        now=time.time() if now is None else float(now)
+        try:
+            with self.con.cursor() as cur:
+                cur.execute("""UPDATE strattester_learning_events SET status='APPLIED',applied_at=%s
+                    WHERE event_id=%s AND status='CLAIMED'""",(now,str(event_id)))
+                ok=cur.rowcount==1
+            self.con.commit(); return ok
+        except Exception:
+            self.con.rollback(); raise
+
+    def learning_event_status(self,event_id):
+        with self.con.cursor() as cur:
+            cur.execute('SELECT status FROM strattester_learning_events WHERE event_id=%s',(str(event_id),))
+            row=cur.fetchone()
+        return None if row is None else row[0]
+
+    def pending_learning_events(self):
+        with self.con.cursor() as cur:
+            cur.execute("""SELECT event_id,decision_id,horizon FROM strattester_learning_events
+                WHERE status='CLAIMED' ORDER BY claimed_at,event_id""")
+            return tuple({"event_id":r[0],"decision_id":r[1],"horizon":r[2]} for r in cur.fetchall())
 
     def learning_event_applied(self,decision_id,horizon):
         with self.con.cursor() as cur:
