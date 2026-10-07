@@ -64,7 +64,7 @@ def test_loss_of_noncritical_spare_does_not_permanently_block_execution():
     for n in nodes:r.heartbeat(n.node_id,100)
     req=[RoleRequest("risk","risk",critical=True)]
     assert r.reconcile(nodes,req,now_ms=100).execution_allowed
-    r.heartbeat("a",200);r.heartbeat("b",200)
+    r.heartbeat("a",19000);r.heartbeat("b",19000)
     report=r.reconcile(nodes,req,now_ms=20000)
     assert "spare" in report.lost_nodes
     assert report.plan.execution_healthy
