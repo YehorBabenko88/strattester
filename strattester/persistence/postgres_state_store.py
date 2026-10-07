@@ -194,6 +194,16 @@ class PostgresStateStore:
         except Exception:
             self.con.rollback(); raise
 
+    def node_generation_valid(self,node_id,generation):
+        if generation is None:return False
+        with self.con.cursor() as cur:
+            cur.execute('SELECT generation FROM strattester_nodes WHERE node_id=%s',(str(node_id),))
+            row=cur.fetchone()
+        return bool(row is not None and int(row[0])==int(generation))
+
+    def execution_fence_valid(self,job_id,owner,lease_token,node_id,generation,now=None):
+        return self.lease_valid(job_id,owner,lease_token,now=now) and self.node_generation_valid(node_id,generation)
+
     def live_nodes(self,stale_after=30,now=None):
         now=time.time() if now is None else float(now)
         cutoff=now-float(stale_after)
