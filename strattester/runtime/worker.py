@@ -135,9 +135,17 @@ class WorkerRuntime:
 
     def run_once(self):
         if self.lifecycle.draining or self.lifecycle.stopping or self.resource_exhausted:return 0
-        # Schedule is enforced at the claim boundary. Existing jobs are allowed to\n        # finish/checkpoint naturally; only acquisition of new work is blocked.\n        if not can_accept_new_work(self.node_id):\n            self.logger.info('work schedule blocks new claims',extra={'node_id':self.node_id})\n            return 0\n        self._heartbeat_node()
+        # Identity/fencing is authoritative and is checked even when the local
+        # work schedule is closed. If heartbeat fails, this cycle stays closed;
+        # a reconnect can only make a later poll eligible for work.
+        self._heartbeat_node()
         if self.node_id is not None and hasattr(self.state_store,'heartbeat_node') and not self.control_plane_healthy:
             self.logger.error('control plane unavailable; refusing new work',extra={'node_id':self.node_id})
+            return 0
+        # Enforce the local schedule after fencing and before scheduler/claim.
+        # Existing running jobs are allowed to finish/checkpoint naturally.
+        if not can_accept_new_work(self.node_id):
+            self.logger.info('work schedule blocks new claims',extra={'node_id':self.node_id})
             return 0
         if self.cluster_recovery is not None:
             try:
