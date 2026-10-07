@@ -24,6 +24,9 @@ class WorkerRuntime:
                 self.state_store.heartbeat_node(self.node_id,meta={'worker_id':self.worker_id})
             except Exception:
                 self.control_plane_healthy=False
+                if hasattr(self.state_store,'reconnect'):
+                    try: self.state_store.reconnect()
+                    except Exception: pass
                 self.logger.exception('node heartbeat failed',extra={'node_id':self.node_id})
             else:
                 self.control_plane_healthy=True
