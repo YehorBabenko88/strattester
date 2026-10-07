@@ -227,3 +227,31 @@ def test_process_pool_child_hard_exit_never_completes_job(tmp_path):
     assert saved.lease_owner is None
     assert saved.lease_until is None
     w.close(); s.close()
+
+
+def test_worker_registers_generation_once_and_sends_it_on_heartbeat():
+    class Store:
+        def __init__(self):self.registers=0;self.beats=[]
+        def register_node_generation(self,node_id,meta=None):
+            self.registers+=1;return 7
+        def heartbeat_node(self,node_id,meta=None,generation=None):
+            self.beats.append((node_id,generation,meta));return True
+    class EmptyScheduler:
+        def ready_jobs(self,snapshot,node_id=None):return []
+    s=Store()
+    w=WorkerRuntime(s,EmptyScheduler(),lambda j:None,Lifecycle(),logging.getLogger("test"),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB),node_id="pc4")
+    assert w.run_once()==0 and w.run_once()==0
+    assert s.registers==1
+    assert all(x[1]==7 for x in s.beats)
+
+def test_fenced_generation_refuses_new_work():
+    class Store:
+        def register_node_generation(self,node_id,meta=None):return 3
+        def heartbeat_node(self,node_id,meta=None,generation=None):return False
+    class ShouldNotSchedule:
+        def ready_jobs(self,*a,**k):raise AssertionError("fenced worker reached scheduler")
+    w=WorkerRuntime(Store(),ShouldNotSchedule(),lambda j:None,Lifecycle(),logging.getLogger("test"),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB),node_id="ls5")
+    assert w.run_once()==0
+    assert not w.control_plane_healthy
