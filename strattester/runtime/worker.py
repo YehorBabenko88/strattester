@@ -100,6 +100,11 @@ class WorkerRuntime:
                 return len(jobs)
             pending=set(futures)
             while pending:
+                if self.lifecycle.stopping:
+                    for f in tuple(pending): f.cancel()
+                    for j in (futures[f] for f in tuple(pending)): lease_valid[j.id]=False
+                    self.logger.warning('worker stopping; pending execution results fenced',extra={'jobs':len(pending)})
+                    break
                 done,pending=concurrent.futures.wait(
                     pending,timeout=self.lease_heartbeat_seconds,
                     return_when=concurrent.futures.FIRST_COMPLETED)
@@ -108,6 +113,9 @@ class WorkerRuntime:
                     self._finish_future(j,f,lease_valid[j.id])
                 if pending:
                     self._heartbeat_node()
+                    if self.node_id is not None and hasattr(self.state_store,'heartbeat_node') and not self.control_plane_healthy:
+                        for f in tuple(pending):
+                            lease_valid[futures[f].id]=False
                     for f in tuple(pending):
                         j=futures[f]
                         if not lease_valid[j.id]: continue
