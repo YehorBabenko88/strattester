@@ -4,8 +4,10 @@ import hashlib,json
 from dataclasses import dataclass
 from pathlib import Path
 from .homeostasis import ChannelLifecycle
+from .decision_memory import DecisionTrace,ObservedOutcome,CounterfactualEstimate
+from .structural_memory import StructuralObservation
 
-SCHEMA_VERSION=3
+SCHEMA_VERSION=4
 
 def _canonical(x):return json.dumps(x,sort_keys=True,separators=(",",":"),ensure_ascii=True)
 
@@ -19,6 +21,22 @@ def export_state(org):
                     "failures":v.failures,"successes":v.successes,"mutations":v.mutations,
                     "anomaly_score":v.anomaly_score} for k,v in sorted(org.homeostasis.health.items())},
       "plasticity":{"pending":dict(sorted(org.plasticity_gate.pending.items()))},
+      "decision_memory":{
+        "traces":[vars(v) for _,v in sorted(org.decision_memory.traces.items())],
+        "outcomes":[vars(v) for _,v in sorted(org.decision_memory.outcomes.items())],
+        "counterfactuals":[vars(v) for _,v in sorted(org.decision_memory.counterfactuals.items())]},
+      "structural_memory":{
+        "observations":[vars(o) for sig in sorted(org.structural_memory._obs) for o in org.structural_memory._obs[sig]],
+        "transitions":[[a,b,n] for (a,b),n in sorted(org.structural_memory._transitions.items())],
+        "last":org.structural_memory._last,"last_sequence":org.structural_memory._last_sequence,
+        "outcome_ids":sorted(org.structural_memory._outcome_ids)},
+      "structural_graph":{
+        "visits":dict(sorted(org.structural_state_graph._visits.items())),
+        "utility":{k:list(v) for k,v in sorted(org.structural_state_graph._utility.items())},
+        "regimes":{k:sorted(v) for k,v in sorted(org.structural_state_graph._regimes.items())},
+        "edges":[[a,b,n] for (a,b),n in sorted(org.structural_state_graph._edges.items())],
+        "last":org.structural_state_graph._last,"last_sequence":org.structural_state_graph._last_sequence,
+        "outcome_ids":sorted(org.structural_state_graph._outcome_ids)},
       "learning":{"applied_events":sorted(org.applied_learning_events),
                   "last_applied_sequence":int(org.last_applied_learning_sequence),
                   "credit_scores":{str(k):list(v) for k,v in sorted(org.credit_assigner._scores.items(),key=lambda x:str(x[0]))},
@@ -58,6 +76,26 @@ def load_checkpoint(org,path:Path):
         h.successes=int(v["successes"]);h.mutations=int(v["mutations"]);h.anomaly_score=float(v["anomaly_score"])
     org.plasticity_gate.pending={str(k):int(v) for k,v in payload.get("plasticity",{}).get("pending",{}).items()}
     learning=payload.get("learning",{})
+    dm=payload.get("decision_memory",{})
+    org.decision_memory.traces={x["decision_id"]:DecisionTrace(**{**x,"reasons":tuple(x["reasons"])}) for x in dm.get("traces",[])}
+    org.decision_memory.outcomes={(x["decision_id"],x["horizon"]):ObservedOutcome(**x) for x in dm.get("outcomes",[])}
+    org.decision_memory.counterfactuals={(x["decision_id"],x["horizon"],x["alternative_action"]):
+        CounterfactualEstimate(**{**x,"assumptions":tuple(x.get("assumptions",()))}) for x in dm.get("counterfactuals",[])}
+    sm=payload.get("structural_memory",{});org.structural_memory._obs.clear()
+    for x in sm.get("observations",[]):org.structural_memory._obs[x["signature"]].append(StructuralObservation(**x))
+    org.structural_memory._transitions.clear()
+    for a,b,n in sm.get("transitions",[]):org.structural_memory._transitions[(a,b)]=int(n)
+    org.structural_memory._last=sm.get("last");org.structural_memory._last_sequence=sm.get("last_sequence")
+    org.structural_memory._outcome_ids=set(map(str,sm.get("outcome_ids",[])))
+    sg=payload.get("structural_graph",{});g=org.structural_state_graph
+    g._visits.clear();g._visits.update({str(k):int(v) for k,v in sg.get("visits",{}).items()})
+    g._utility.clear()
+    for k,v in sg.get("utility",{}).items():g._utility[str(k)].extend(map(float,v))
+    g._regimes.clear()
+    for k,v in sg.get("regimes",{}).items():g._regimes[str(k)].update(map(str,v))
+    g._edges.clear()
+    for a,b,n in sg.get("edges",[]):g._edges[(a,b)]=int(n)
+    g._last=sg.get("last");g._last_sequence=sg.get("last_sequence");g._outcome_ids=set(map(str,sg.get("outcome_ids",[])))
     org.applied_learning_events=set(map(str,learning.get("applied_events",[])))
     org.last_applied_learning_sequence=int(learning.get("last_applied_sequence",0))
     org.credit_assigner._scores.clear()
