@@ -2,7 +2,7 @@ from __future__ import annotations
 from hashlib import sha256
 from pathlib import Path
 import re
-from .sqlite_store import SQLiteMarketStore
+from .sqlite_store import SQLiteMarketStore,Candle
 
 _SAFE=re.compile(r'[^A-Za-z0-9_.-]+')
 
@@ -58,12 +58,28 @@ class ShardedMarketStore:
         return self._read_store(symbol,dataset,timeframe,step_ms,start_ms,end_ms).coverage(
             symbol,dataset,timeframe,step_ms,start_ms,end_ms)
 
-    def promote_symbol(self,symbol:str):
-        """Copying legacy history is intentionally not implicit.
+    def migrate_legacy_candles(self,symbol:str,timeframe='1m',batch_size=20_000):
+        if self.legacy_store is None:
+            raise RuntimeError('legacy store is not configured')
+        shard=self.for_symbol(symbol)
+        source_cov=self.legacy_store.coverage(symbol,'candles',timeframe)
+        if source_cov.count==0:
+            return 0
+        batch=[]; copied=0
+        for row in self.legacy_store.iter_candles(symbol,timeframe,batch_size=batch_size):
+            batch.append(row)
+            if len(batch)>=batch_size:
+                copied+=shard.upsert_candles(batch).accepted; batch.clear()
+        if batch:
+            copied+=shard.upsert_candles(batch).accepted
+        target_cov=shard.coverage(symbol,'candles',timeframe)
+        if (target_cov.count!=source_cov.count or target_cov.earliest!=source_cov.earliest
+                or target_cov.latest!=source_cov.latest or target_cov.gaps!=source_cov.gaps):
+            raise RuntimeError('shard migration validation failed')
+        return copied
 
-        A symbol becomes shard-authoritative only after the caller has synced
-        and validated the requested history in its shard.
-        """
+    def promote_symbol(self,symbol:str):
+        """Return the shard only after its data has been explicitly populated."""
         return self.for_symbol(symbol)
 
     def iter_candles(self,symbol,timeframe='1m',batch_size=20_000,start_ms=None,end_ms=None):
