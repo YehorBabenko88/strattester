@@ -67,3 +67,18 @@ def test_late_decode_failure_leaves_live_organism_unchanged(tmp_path):
     live=ScientificOrganismController();live.brain.potential=.123
     with pytest.raises(ValueError,match="non-finite adaptive memory"):load_checkpoint(live,p)
     assert live.brain.potential==.123 and not live.credit_assigner._scores
+
+
+def test_checkpoint_replace_failure_preserves_previous_checkpoint_and_cleans_tmp(tmp_path,monkeypatch):
+    import os
+    from strattester.research.organism_checkpoint import save_checkpoint
+    org=_organism()
+    path=tmp_path/'brain.json'
+    first=save_checkpoint(org,path);before=path.read_bytes()
+    real_replace=os.replace
+    def fail(src,dst):raise OSError('simulated power-loss boundary')
+    monkeypatch.setattr(os,'replace',fail)
+    with pytest.raises(OSError):save_checkpoint(org,path)
+    assert path.read_bytes()==before
+    assert not (tmp_path/'brain.json.tmp').exists()
+    monkeypatch.setattr(os,'replace',real_replace)
