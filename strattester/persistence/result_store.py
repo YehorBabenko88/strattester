@@ -87,6 +87,19 @@ class ResultStore:
     def integrity_check(self):
         row=self.con.execute('PRAGMA quick_check').fetchone()
         return bool(row and str(row[0]).lower()=='ok')
+    def latest_fenced(self,symbol,strategy_id,authority_validator):
+        rows=self.con.execute('''SELECT run_id,symbol,strategy_id,strategy_version,created_at,metrics,job_id,lease_token,node_generation
+            FROM research_results WHERE symbol=? AND strategy_id=? ORDER BY created_at DESC''',
+            (symbol,strategy_id)).fetchall()
+        for row in rows:
+            # Legacy/unfenced rows are never silently trusted by distributed consumers.
+            if row[6] is None:continue
+            if authority_validator(row[6],int(row[7] or 0),int(row[8] or 0)):
+                return {'run_id':row[0],'symbol':row[1],'strategy_id':row[2],'strategy_version':row[3],
+                        'created_at':row[4],'metrics':json.loads(row[5]),'job_id':row[6],
+                        'lease_token':int(row[7] or 0),'node_generation':int(row[8] or 0)}
+        return None
+
     def latest(self,symbol,strategy_id):
         row=self.con.execute('''SELECT run_id,symbol,strategy_id,strategy_version,created_at,metrics
             FROM research_results WHERE symbol=? AND strategy_id=? ORDER BY created_at DESC LIMIT 1''',
