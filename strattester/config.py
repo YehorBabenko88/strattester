@@ -17,6 +17,8 @@ class AppConfig:
     postgres_dsn: str | None = field(default=None, repr=False)
     node_id: str | None = None
     execution_mode: str = 'auto'
+    market_shards_dir: Path | None = None
+    min_free_disk_bytes: int = 5 * 1024**3
 
     @classmethod
     def load(cls, root: Path) -> 'AppConfig':
@@ -37,6 +39,8 @@ class AppConfig:
             postgres_dsn=os.getenv('STRATTESTER_POSTGRES_DSN'),
             node_id=os.getenv('STRATTESTER_NODE_ID'),
             execution_mode=mode,
+            market_shards_dir=data_dir / 'shards',
+            min_free_disk_bytes=int(os.getenv('STRATTESTER_MIN_FREE_DISK_BYTES') or 5 * 1024**3),
         )
 
     def ensure_directories(self) -> None:
