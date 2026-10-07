@@ -2,10 +2,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import sqlite3
+import threading
 from typing import Iterable
 from .storage_health import storage_health
 from .coverage import Coverage, TimeRange
 from .schema import SCHEMA_SQL, SCHEMA_VERSION
+
+_OPEN_LOCK=threading.RLock()
 
 @dataclass(frozen=True)
 class Candle:
@@ -35,27 +38,35 @@ class SQLiteMarketStore:
     @classmethod
     def open(cls,path: Path):
         path=Path(path); path.parent.mkdir(parents=True,exist_ok=True)
-        if path.exists():
-            health=storage_health(path,min_free_bytes=0)
-            if not health.integrity_ok:
-                raise sqlite3.DatabaseError(f'market database integrity failure: {health.message}')
-        con=sqlite3.connect(path,timeout=60)
-        con.execute('PRAGMA foreign_keys=ON'); con.execute('PRAGMA journal_mode=WAL'); con.execute('PRAGMA busy_timeout=60000'); con.execute('PRAGMA synchronous=FULL'); con.execute('PRAGMA wal_autocheckpoint=1000')
-        tables={r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        legacy=False
-        if 'candles' in tables:
-            cols={r[1] for r in con.execute('PRAGMA table_info(candles)')}
-            legacy='ts' in cols and 'open_time' not in cols
-        if legacy:
-            for statement in SCHEMA_SQL.split(';'):
-                stmt=statement.strip()
-                if not stmt or 'CREATE TABLE IF NOT EXISTS candles' in stmt or 'idx_candles_lookup' in stmt:
-                    continue
-                con.execute(stmt)
-        else:
-            con.executescript(SCHEMA_SQL)
-        con.execute("INSERT OR REPLACE INTO schema_meta(key,value) VALUES('schema_version',?)",(str(SCHEMA_VERSION),))
-        con.commit()
+        # Windows can transiently reject a second opener while another thread is
+        # switching/initializing WAL sidecars. Serialize only the integrity/schema
+        # bootstrap; normal SQLite reads/writes remain concurrent afterwards.
+        with _OPEN_LOCK:
+            if path.exists():
+                health=storage_health(path,min_free_bytes=0)
+                if not health.integrity_ok:
+                    raise sqlite3.DatabaseError(f'market database integrity failure: {health.message}')
+            con=sqlite3.connect(path,timeout=60)
+            try:
+                con.execute('PRAGMA foreign_keys=ON'); con.execute('PRAGMA journal_mode=WAL'); con.execute('PRAGMA busy_timeout=60000'); con.execute('PRAGMA synchronous=FULL'); con.execute('PRAGMA wal_autocheckpoint=1000')
+                tables={r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                legacy=False
+                if 'candles' in tables:
+                    cols={r[1] for r in con.execute('PRAGMA table_info(candles)')}
+                    legacy='ts' in cols and 'open_time' not in cols
+                if legacy:
+                    for statement in SCHEMA_SQL.split(';'):
+                        stmt=statement.strip()
+                        if not stmt or 'CREATE TABLE IF NOT EXISTS candles' in stmt or 'idx_candles_lookup' in stmt:
+                            continue
+                        con.execute(stmt)
+                else:
+                    con.executescript(SCHEMA_SQL)
+                con.execute("INSERT OR REPLACE INTO schema_meta(key,value) VALUES('schema_version',?)",(str(SCHEMA_VERSION),))
+                con.commit()
+            except Exception:
+                con.close()
+                raise
         return cls(path,con)
 
     def checkpoint_wal(self,mode='PASSIVE'):
