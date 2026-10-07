@@ -68,3 +68,30 @@ def test_expired_writer_lease_releases_resource(tmp_path):
     states={s.get_job(old.id).state,s.get_job(new.id).state}
     assert JobState.LEASED in states
     s.close()
+
+
+def test_stale_worker_cannot_complete_after_takeover(tmp_path):
+    s=SQLiteStateStore.open(tmp_path/'state.db')
+    job=Job.new('backtest',symbol='BTCUSDT',state=JobState.READY)
+    s.put_job(job)
+    first=s.claim_ready_jobs('w1',limit=1,now=100,lease_seconds=10)[0]
+    assert s.transition_claimed(first.id,'w1',first.lease_token,JobState.RUNNING)
+    second=s.claim_ready_jobs('w2',limit=1,now=111,lease_seconds=10)[0]
+    assert second.lease_token==first.lease_token+1
+    assert not s.transition_claimed(first.id,'w1',first.lease_token,JobState.COMPLETE,
+                                    lease_owner=None,lease_until=None)
+    assert s.transition_claimed(second.id,'w2',second.lease_token,JobState.COMPLETE,
+                                lease_owner=None,lease_until=None)
+    assert s.get_job(job.id).state is JobState.COMPLETE
+    s.close()
+
+def test_live_lease_renewal_prevents_takeover(tmp_path):
+    p=tmp_path/'state.db'
+    a=SQLiteStateStore.open(p); b=SQLiteStateStore.open(p)
+    job=Job.new('backtest',symbol='BTCUSDT',state=JobState.READY)
+    a.put_job(job)
+    first=a.claim_ready_jobs('w1',limit=1,now=100,lease_seconds=10)[0]
+    assert a.transition_claimed(first.id,'w1',first.lease_token,JobState.RUNNING)
+    assert a.renew_lease(first.id,'w1',first.lease_token,lease_seconds=10,now=108)
+    assert b.claim_ready_jobs('w2',limit=1,now=111,lease_seconds=10)==[]
+    a.close(); b.close()
