@@ -64,7 +64,10 @@ def test_requirements_stop_at_delisting_boundary():
     instrument={"symbol":"OLDUSDT","launchTime":"60000","deliveryTime":"600000",
                 "fundingInterval":"480","supportsOpenInterest":True,"supportsFunding":True}
     req=requirements_for_instrument(instrument,end_ms=900000)
-    assert req and all(x.start_ms==60000 and x.end_ms==600000 for x in req)
+    by={x.dataset:x for x in req}
+    assert by['candles'].start_ms==60000 and by['candles'].end_ms==600000
+    assert by['open_interest'].start_ms==300000 and by['open_interest'].end_ms==600000
+    assert 'funding' not in by  # no complete 480m observation exists inside lifetime
 
 def test_requirements_empty_before_instrument_launch():
     instrument={"symbol":"NEWUSDT","launchTime":"600000","fundingInterval":"480"}
@@ -73,7 +76,10 @@ def test_requirements_empty_before_instrument_launch():
 def test_zero_delivery_time_does_not_truncate_perpetual_instrument():
     instrument={"symbol":"BTCUSDT","launchTime":"0","deliveryTime":"0","fundingInterval":"480"}
     req=requirements_for_instrument(instrument,end_ms=900000)
-    assert req and all(x.end_ms==900000 for x in req)
+    by={x.dataset:x for x in req}
+    assert by['candles'].end_ms==900000
+    assert by['open_interest'].end_ms==900000
+    assert by['funding'].end_ms==0
 
 
 def test_dataset_windows_align_to_their_own_sampling_grid():
