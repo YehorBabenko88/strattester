@@ -31,6 +31,11 @@ class PostgresStateStore:
                 holder TEXT NOT NULL, epoch BIGINT NOT NULL, expires_at DOUBLE PRECISION NOT NULL)''')
             cur.execute("""INSERT INTO strattester_brain_lease(singleton,holder,epoch,expires_at)
                 VALUES(TRUE,'',0,0) ON CONFLICT(singleton) DO NOTHING""")
+            cur.execute('''CREATE TABLE IF NOT EXISTS strattester_membership(
+                singleton BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK(singleton),
+                generation BIGINT NOT NULL,members JSONB NOT NULL)''')
+            cur.execute("""INSERT INTO strattester_membership(singleton,generation,members)
+                VALUES(TRUE,0,'[]'::jsonb) ON CONFLICT(singleton) DO NOTHING""")
             cur.execute('''CREATE TABLE IF NOT EXISTS strattester_learning_events(
                 event_id TEXT PRIMARY KEY, decision_id TEXT NOT NULL, horizon TEXT NOT NULL,
                 applied_at DOUBLE PRECISION NOT NULL, meta JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -217,6 +222,31 @@ class PostgresStateStore:
         with self.con.cursor() as cur:
             cur.execute('SELECT node_id FROM strattester_nodes WHERE last_seen>=%s ORDER BY node_id',(cutoff,))
             return tuple(r[0] for r in cur.fetchall())
+
+    def membership(self):
+        with self.con.cursor() as cur:
+            cur.execute('SELECT generation,members FROM strattester_membership WHERE singleton=TRUE')
+            row=cur.fetchone()
+        if row is None:raise RuntimeError("membership singleton missing")
+        members=json.loads(row[1]) if isinstance(row[1],str) else row[1]
+        return {"generation":int(row[0]),"members":tuple(map(str,members))}
+
+    def replace_membership(self,members,expected_generation):
+        normalized=tuple(sorted(set(map(str,members))))
+        if not normalized or any(not x for x in normalized):raise ValueError("members required")
+        try:
+            with self.con.cursor() as cur:
+                cur.execute('SELECT generation FROM strattester_membership WHERE singleton=TRUE FOR UPDATE')
+                row=cur.fetchone()
+                if row is None:raise RuntimeError("membership singleton missing")
+                if int(row[0])!=int(expected_generation):
+                    self.con.rollback();return None
+                generation=int(row[0])+1
+                cur.execute('UPDATE strattester_membership SET generation=%s,members=%s::jsonb WHERE singleton=TRUE',
+                            (generation,json.dumps(normalized)))
+            self.con.commit();return {"generation":generation,"members":normalized}
+        except Exception:
+            self.con.rollback();raise
 
     def _db_now(self,cur):
         cur.execute("SELECT EXTRACT(EPOCH FROM clock_timestamp())")
