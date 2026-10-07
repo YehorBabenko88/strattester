@@ -53,8 +53,18 @@ class ShardedMarketStore:
         return self.for_symbol(symbol)
 
     def coverage(self,symbol,dataset='candles',timeframe='1m',step_ms=60_000,start_ms=None,end_ms=None):
+        # During migration a symbol must have a single authoritative source.
+        # Never merge two independently mutable SQLite files implicitly.
         return self._read_store(symbol,dataset,timeframe,step_ms,start_ms,end_ms).coverage(
             symbol,dataset,timeframe,step_ms,start_ms,end_ms)
+
+    def promote_symbol(self,symbol:str):
+        """Copying legacy history is intentionally not implicit.
+
+        A symbol becomes shard-authoritative only after the caller has synced
+        and validated the requested history in its shard.
+        """
+        return self.for_symbol(symbol)
 
     def iter_candles(self,symbol,timeframe='1m',batch_size=20_000,start_ms=None,end_ms=None):
         store=self._read_store(symbol,'candles',timeframe,60_000,start_ms,end_ms)
