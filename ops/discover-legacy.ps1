@@ -61,11 +61,3 @@ foreach($n in $nodes){
   Write-Warning "$($n.id) returned no valid discovery JSON"
  } finally {Remove-Item $stdout,$stderr -Force -EA SilentlyContinue}
 }
-){$payload=$Matches[1]}
-  if($payload){
-    try{$null=$payload|ConvertFrom-Json; $payload; continue}catch{}
-  }
-  if($p.ExitCode -ne 0){Write-Warning "$($n.id) discovery failed: $err$out";continue}
-  Write-Warning "$($n.id) returned no valid discovery JSON"
- } finally {Remove-Item $stdout,$stderr -Force -EA SilentlyContinue}
-}
