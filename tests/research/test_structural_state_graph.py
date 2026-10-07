@@ -22,3 +22,17 @@ def test_novel_transition_is_maximally_surprising():
     g=StructuralStateGraph(min_transition_samples=1,min_confidence=0)
     for s in ["A","B","A","B"]:g.observe(s,regime="R")
     assert g.transition_surprise("A","C")==1.0
+
+
+def test_delayed_graph_outcome_cannot_rewrite_transition_order():
+    g=StructuralStateGraph(min_transition_samples=1,min_confidence=0)
+    g.observe_state("A",regime="R",sequence=1);g.observe_state("B",regime="R",sequence=2)
+    g.observe_outcome("A",utility=5,outcome_id="late")
+    assert g.forecast("A").ranked[0][0]=="B"
+    assert not g.forecast("B").ranked
+
+def test_graph_rejects_out_of_order_state_sequence():
+    g=StructuralStateGraph();g.observe_state("A",regime="R",sequence=10)
+    try:g.observe_state("B",regime="R",sequence=9)
+    except ValueError as e:assert "non-monotonic" in str(e)
+    else:raise AssertionError("out-of-order state accepted")
