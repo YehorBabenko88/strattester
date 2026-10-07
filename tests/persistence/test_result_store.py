@@ -69,3 +69,30 @@ def test_generation_validator_can_fence_stale_incarnation(tmp_path):
     assert not s.promote('old-gen',lambda:11==current_generation)
     assert s.latest('BTCUSDT','A') is None
     s.close()
+
+
+def test_fenced_read_revalidates_authority_after_publication(tmp_path):
+    s=ResultStore.open(tmp_path/'results.sqlite3')
+    s.stage('s','r','BTCUSDT','A','1',{'net_pnl':7},job_id='job',lease_token=9,node_generation=4)
+    assert s.promote('s',lambda:True)
+    assert s.latest_fenced('BTCUSDT','A',lambda j,t,g:(j,t,g)==('job',9,4))['run_id']=='r'
+    assert s.latest_fenced('BTCUSDT','A',lambda j,t,g:False) is None
+    s.close()
+
+def test_fenced_read_never_trusts_legacy_unfenced_result(tmp_path):
+    s=ResultStore.open(tmp_path/'results.sqlite3')
+    s.put('legacy','BTCUSDT','A','1',{'net_pnl':999})
+    called=[]
+    assert s.latest_fenced('BTCUSDT','A',lambda *a:called.append(a) or True) is None
+    assert called==[]
+    s.close()
+
+def test_fenced_read_can_skip_stale_newer_row_and_use_valid_older_row(tmp_path):
+    s=ResultStore.open(tmp_path/'results.sqlite3')
+    s.stage('old','old','BTCUSDT','A','1',{'net_pnl':1},created_at=1,job_id='j1',lease_token=1,node_generation=1)
+    s.promote('old',lambda:True)
+    s.stage('new','new','BTCUSDT','A','1',{'net_pnl':2},created_at=2,job_id='j2',lease_token=2,node_generation=2)
+    s.promote('new',lambda:True)
+    row=s.latest_fenced('BTCUSDT','A',lambda j,t,g:j=='j1')
+    assert row['run_id']=='old' and row['metrics']['net_pnl']==1
+    s.close()
