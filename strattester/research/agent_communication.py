@@ -7,7 +7,7 @@ negative-feedback costs so no route can monopolize the network.
 from __future__ import annotations
 from dataclasses import dataclass
 from collections import defaultdict,deque
-from math import exp
+from math import exp,isfinite
 from typing import Mapping,Iterable
 
 @dataclass(frozen=True)
@@ -56,6 +56,9 @@ class SelfOrganizingCommunicationFabric:
         self.min_weight=float(min_weight);self.max_weight=float(max_weight)
         self.learning_rate=float(learning_rate);self.latency_scale_ms=float(latency_scale_ms)
         self.redundancy_penalty=float(redundancy_penalty);self.max_neighbors=int(max_neighbors)
+        vals=(self.min_weight,self.max_weight,self.learning_rate,self.latency_scale_ms,self.redundancy_penalty)
+        if not all(isfinite(x) for x in vals) or self.min_weight<=0 or self.max_weight<self.min_weight or self.learning_rate<0 or self.latency_scale_ms<=0 or self.redundancy_penalty<0 or self.max_neighbors<1:
+            raise ValueError("invalid communication parameters")
         self.links:dict[tuple[str,str],LinkState]={}
         self.blackboard=StigmergicBlackboard()
 
@@ -64,6 +67,9 @@ class SelfOrganizingCommunicationFabric:
 
     def observe_delivery(self,source:str,target:str,*,success:bool,latency_ms:float,
                          useful:float,redundant:bool=False):
+        latency_ms=float(latency_ms);useful=float(useful)
+        if not isfinite(latency_ms) or latency_ms<0 or not isfinite(useful):
+            raise ValueError("invalid delivery observation")
         l=self.link(source,target);l.uses+=1
         if success:l.successes+=1
         else:l.failures+=1
@@ -80,7 +86,8 @@ class SelfOrganizingCommunicationFabric:
         return l
 
     def route_score(self,source:str,target:str):
-        l=self.link(source,target)
+        # Scoring candidates must never mutate topology.
+        l=self.links.get((source,target),LinkState())
         latency_factor=1/(1+l.latency_ms/max(1,self.latency_scale_ms))
         failure_penalty=l.failures/max(1,l.uses)
         redundancy_penalty=self.redundancy_penalty*(l.redundant/max(1,l.uses))
@@ -108,7 +115,10 @@ class SelfOrganizingCommunicationFabric:
             prior=self.route_score(source,target)
             ranked.append(RouteChoice(source,target,float(p)*(0.5+0.5*prior),"forecast_preconnect"))
         ranked.sort(key=lambda x:(-x.score,x.target))
-        return tuple(ranked[:self.max_neighbors])
+        selected=tuple(ranked[:self.max_neighbors])
+        # Anticipation intentionally materializes only selected sparse links.
+        for choice in selected:self.link(source,choice.target)
+        return selected
 
     def topology_health(self):
         if not self.links:return {"density":0.0,"dominance":0.0,"healthy":True}
