@@ -81,6 +81,12 @@ class SQLiteStateStore:
         except Exception:
             self.con.rollback(); raise
 
+    def lease_valid(self,job_id,owner,lease_token,now=None):
+        now=time.time() if now is None else float(now)
+        job=self.get_job(job_id)
+        return bool(job and job.lease_owner==owner and job.lease_token==lease_token
+                    and job.state in _ACTIVE and (job.lease_until is None or job.lease_until>=now))
+
     def transition_claimed(self,job_id,owner,lease_token,state,**changes):
         self.con.execute('BEGIN IMMEDIATE')
         try:
