@@ -16,3 +16,4 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: python -m pip install -e .[dev]
       - run: python -m pytest -v
+      - name: Parse PowerShell scripts\n        if: runner.os == 'Windows'\n        shell: pwsh\n        run: |\n          $failed = $false\n          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {\n            $tokens = $null; $errors = $null\n            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null\n            if ($errors.Count) { $failed = $true; $errors | ForEach-Object { Write-Error \"$($_.Extent.File):$($_.Extent.StartLineNumber): $($_.Message)\" } }\n          }\n          if ($failed) { exit 1 }\n
