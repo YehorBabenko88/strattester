@@ -130,12 +130,12 @@ class ShardedMarketStore:
         source_fingerprints=self._dataset_fingerprints(self.legacy_store,symbol)
         target_fingerprints=self._dataset_fingerprints(shard,symbol)
         target_cov=shard.coverage(symbol,'candles',timeframe)
+        if final_source_cov!=source_cov:
+            self.manifest.set(symbol,ShardState.MIGRATING,rows_copied=target_cov.count,error='source changed during migration; retry required')
+            raise RuntimeError('legacy source changed during migration; retry required')
         if (source_fingerprints!=target_fingerprints or target_cov.count!=final_source_cov.count or target_cov.earliest!=final_source_cov.earliest
                 or target_cov.latest!=final_source_cov.latest or target_cov.gaps!=final_source_cov.gaps
                 or not shard.integrity_check()):
-            if final_source_cov!=source_cov:
-                self.manifest.set(symbol,ShardState.MIGRATING,rows_copied=target_cov.count,error='source changed during migration; retry required')
-                raise RuntimeError('legacy source changed during migration; retry required')
             self.manifest.set(symbol,ShardState.FAILED,rows_copied=target_cov.count,error='shard migration validation failed')
             raise RuntimeError('shard migration validation failed')
         self.manifest.set(symbol,ShardState.SHARD_READY,rows_copied=target_cov.count)
