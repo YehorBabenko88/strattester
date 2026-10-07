@@ -85,3 +85,41 @@ def test_auto_mode_can_use_process_pool_for_picklable_executor(tmp_path):
     assert w.run_once()==2
     assert all(s.get_job(j.id).state is JobState.COMPLETE for j in jobs)
     s.close()
+
+
+def test_permanent_failure_stops_after_max_attempts(tmp_path):
+    s=SQLiteStateStore.open(tmp_path/'s.db')
+    job=Job.new('backtest',symbol='BROKEN',state=JobState.READY)
+    s.put_job(job)
+    def fail(j): raise RuntimeError('deterministic failure')
+    w=WorkerRuntime(
+        s,Scheduler(s),fail,Lifecycle(),logging.getLogger('test'),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB,0,4),
+        execution_mode='thread',max_attempts=3)
+    assert w.run_once()==1
+    assert s.get_job(job.id).state is JobState.RETRYABLE
+    assert w.run_once()==1
+    assert s.get_job(job.id).state is JobState.RETRYABLE
+    assert w.run_once()==1
+    failed=s.get_job(job.id)
+    assert failed.state is JobState.FAILED
+    assert failed.attempts==3
+    assert w.run_once()==0
+    s.close()
+
+def test_broken_job_does_not_block_other_symbols(tmp_path):
+    s=SQLiteStateStore.open(tmp_path/'s.db')
+    bad=Job.new('backtest',symbol='BAD',state=JobState.READY)
+    good=Job.new('backtest',symbol='GOOD',state=JobState.READY)
+    s.put_job(bad); s.put_job(good)
+    def execute(j):
+        if j.symbol=='BAD': raise OSError('simulated local database failure')
+        return 'ok'
+    w=WorkerRuntime(
+        s,Scheduler(s),execute,Lifecycle(),logging.getLogger('test'),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB,0,4),
+        execution_mode='thread',max_attempts=1)
+    assert w.run_once()==2
+    assert s.get_job(bad.id).state is JobState.FAILED
+    assert s.get_job(good.id).state is JobState.COMPLETE
+    s.close()
