@@ -2,9 +2,11 @@ from __future__ import annotations
 from dataclasses import dataclass,replace
 from enum import Enum
 import time,uuid
+
 class JobState(str,Enum):
     PENDING='PENDING'; BLOCKED='BLOCKED'; READY='READY'; LEASED='LEASED'; RUNNING='RUNNING'
     CHECKPOINTED='CHECKPOINTED'; RETRYABLE='RETRYABLE'; FAILED='FAILED'; COMPLETE='COMPLETE'; CANCELLED='CANCELLED'
+
 @dataclass(frozen=True)
 class Job:
     id:str
@@ -18,6 +20,8 @@ class Job:
     attempts:int=0
     lease_owner:str|None=None
     lease_until:float|None=None
+    lease_token:int=0
+    target_node:str|None=None
     checkpoint:str|None=None
     error:str|None=None
     @classmethod
