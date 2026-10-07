@@ -269,10 +269,27 @@ class PostgresStateStore:
         except Exception:
             self.con.rollback(); raise
 
-    def begin_learning_event(self,event_id,decision_id,horizon,now=None,meta=None):
+    def brain_authority_valid(self,holder,epoch,now=None):
+        holder=str(holder);epoch=int(epoch)
+        if not holder or epoch<1:return False
+        with self.con.cursor() as cur:
+            db_now=float(now) if now is not None else self._db_now(cur)
+            cur.execute('''SELECT 1 FROM strattester_brain_lease
+                WHERE singleton=TRUE AND holder=%s AND epoch=%s AND expires_at>%s''',
+                (holder,epoch,db_now))
+            return cur.fetchone() is not None
+
+    def begin_learning_event(self,event_id,decision_id,horizon,now=None,meta=None,brain_holder=None,brain_epoch=None):
         now=time.time() if now is None else float(now)
         try:
             with self.con.cursor() as cur:
+                if brain_holder is not None or brain_epoch is not None:
+                    db_now=float(now) if now is not None else self._db_now(cur)
+                    cur.execute('''SELECT 1 FROM strattester_brain_lease
+                        WHERE singleton=TRUE AND holder=%s AND epoch=%s AND expires_at>%s FOR SHARE''',
+                        (str(brain_holder),int(brain_epoch or 0),db_now))
+                    if cur.fetchone() is None:
+                        self.con.rollback();return False
                 cur.execute('''INSERT INTO strattester_learning_events
                     (event_id,decision_id,horizon,applied_at,meta,status,claimed_at)
                     VALUES(%s,%s,%s,%s,%s::jsonb,'CLAIMED',%s) ON CONFLICT DO NOTHING''',
