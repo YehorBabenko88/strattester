@@ -40,5 +40,6 @@ def build_worker(root:Path,executor):
         lambda:snapshot(b.config.root),
         node_id=b.config.node_id,
         execution_mode=b.config.execution_mode,
-        background_tasks=background)
+        background_tasks=background,
+        resources=[shards] if background else [])
     return b,state,runtime
