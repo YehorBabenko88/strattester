@@ -1,5 +1,5 @@
 from __future__ import annotations
-import concurrent.futures,pickle,time,uuid
+import concurrent.futures,pickle,time,uuid,errno,sqlite3
 from strattester.engine.jobs import JobState
 from strattester.runtime.cluster_recovery import ClusterRecovery
 
@@ -17,6 +17,7 @@ class WorkerRuntime:
         self.max_attempts=max(1,int(max_attempts))
         self.cluster_recovery=ClusterRecovery(state_store) if hasattr(state_store,'live_nodes') else None
         self.control_plane_healthy=True
+        self.resource_exhausted=False
         self.node_generation=None
         self.background_tasks=list(background_tasks or ())
         self.resources=list(resources or ())
@@ -50,12 +51,24 @@ class WorkerRuntime:
             return 'thread'
         return 'process'
 
+    @staticmethod
+    def _is_resource_exhaustion(exc):
+        if isinstance(exc,OSError) and getattr(exc,'errno',None) in (errno.ENOSPC,errno.EDQUOT):
+            return True
+        text=str(exc).lower()
+        return isinstance(exc,sqlite3.Error) and any(x in text for x in ('database or disk is full','disk i/o error'))
+
+    def clear_resource_exhaustion(self):
+        self.resource_exhausted=False
+
     def _finish_future(self,job,future,lease_valid):
         try:
             future.result()
         except BaseException as exc:
+            exhausted=self._is_resource_exhaustion(exc)
+            if exhausted:self.resource_exhausted=True
             if lease_valid:
-                terminal=job.attempts>=self.max_attempts
+                terminal=exhausted or job.attempts>=self.max_attempts
                 self.state_store.transition_claimed(
                     job.id,self.worker_id,job.lease_token,
                     JobState.FAILED if terminal else JobState.RETRYABLE,
@@ -112,7 +125,7 @@ class WorkerRuntime:
         return len(jobs)
 
     def run_once(self):
-        if self.lifecycle.draining or self.lifecycle.stopping:return 0
+        if self.lifecycle.draining or self.lifecycle.stopping or self.resource_exhausted:return 0
         self._heartbeat_node()
         if self.node_id is not None and hasattr(self.state_store,'heartbeat_node') and not self.control_plane_healthy:
             self.logger.error('control plane unavailable; refusing new work',extra={'node_id':self.node_id})
