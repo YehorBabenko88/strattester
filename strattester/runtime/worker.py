@@ -2,6 +2,7 @@ from __future__ import annotations
 import concurrent.futures,pickle,time,uuid,errno,sqlite3
 from strattester.engine.jobs import JobState
 from strattester.runtime.cluster_recovery import ClusterRecovery
+from strattester.runtime.work_schedule import can_accept_new_work
 
 def _invoke_executor(executor,job):
     return executor(job)
@@ -134,7 +135,7 @@ class WorkerRuntime:
 
     def run_once(self):
         if self.lifecycle.draining or self.lifecycle.stopping or self.resource_exhausted:return 0
-        self._heartbeat_node()
+        # Schedule is enforced at the claim boundary. Existing jobs are allowed to\n        # finish/checkpoint naturally; only acquisition of new work is blocked.\n        if not can_accept_new_work(self.node_id):\n            self.logger.info('work schedule blocks new claims',extra={'node_id':self.node_id})\n            return 0\n        self._heartbeat_node()
         if self.node_id is not None and hasattr(self.state_store,'heartbeat_node') and not self.control_plane_healthy:
             self.logger.error('control plane unavailable; refusing new work',extra={'node_id':self.node_id})
             return 0
