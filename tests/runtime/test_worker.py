@@ -144,3 +144,32 @@ def test_cluster_worker_refuses_new_work_when_control_plane_heartbeat_fails(tmp_
     assert base.get_job(job.id).state is JobState.READY
     assert not w.control_plane_healthy
     base.close()
+
+
+def test_cluster_worker_recovers_after_control_plane_returns(tmp_path):
+    base=SQLiteStateStore.open(tmp_path/'s.db')
+    job=Job.new('backtest',symbol='BTCUSDT',target_node='PC1',state=JobState.READY)
+    base.put_job(job)
+    class FlakyControlPlane:
+        def __init__(self): self.up=False
+        def heartbeat_node(self,*a,**k):
+            if not self.up: raise ConnectionError('postgres unavailable')
+        def reconnect(self): self.up=True; return True
+        def live_nodes(self,*a,**k): return ('PC1',)
+        def list_jobs(self): return base.list_jobs()
+        def put_job(self,j): return base.put_job(j)
+        def claim_ready_jobs(self,*a,**k): return base.claim_ready_jobs(*a,**k)
+        def transition_claimed(self,*a,**k): return base.transition_claimed(*a,**k)
+        def get_job(self,*a,**k): return base.get_job(*a,**k)
+        def renew_lease(self,*a,**k): return base.renew_lease(*a,**k)
+    state=FlakyControlPlane()
+    w=WorkerRuntime(
+        state,Scheduler(state),lambda j:None,Lifecycle(),logging.getLogger('test'),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB,0,4),
+        node_id='PC1',execution_mode='thread')
+    assert w.run_once()==0
+    assert base.get_job(job.id).state is JobState.READY
+    assert w.run_once()==1
+    assert base.get_job(job.id).state is JobState.COMPLETE
+    assert w.control_plane_healthy
+    base.close()
