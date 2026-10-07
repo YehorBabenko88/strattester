@@ -15,3 +15,8 @@ def open_market_store(market_db:Path,shards_dir:Path|None=None):
         return SQLiteMarketStore.open(market_db)
     legacy=SQLiteMarketStore.open(market_db) if market_db.exists() else None
     return ShardedMarketStore(Path(shards_dir),legacy_store=legacy)
+
+
+def open_configured_market_store(config):
+    """Canonical production entry point for sync/research market storage."""
+    return open_market_store(config.market_db,getattr(config,'market_shards_dir',None))
