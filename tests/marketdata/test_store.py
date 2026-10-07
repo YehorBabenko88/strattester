@@ -118,3 +118,9 @@ def test_committed_wal_data_survives_reopen_without_manual_checkpoint(tmp_path):
     assert reopened.coverage('BTCUSDT').count==25
     assert reopened.integrity_check()
     reopened.close()
+
+
+def test_market_store_close_is_idempotent(tmp_path):
+    store=SQLiteMarketStore.open(tmp_path/'market.db')
+    store.close()
+    store.close()
