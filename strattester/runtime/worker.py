@@ -8,7 +8,7 @@ def _invoke_executor(executor,job):
 
 class WorkerRuntime:
     def __init__(self,state_store,scheduler,executor,lifecycle,logger,snapshot_provider,worker_id=None,
-                 lease_seconds=300,lease_heartbeat_seconds=None,node_id=None,execution_mode='auto',max_attempts=5,background_tasks=None):
+                 lease_seconds=300,lease_heartbeat_seconds=None,node_id=None,execution_mode='auto',max_attempts=5,background_tasks=None,resources=None):
         self.state_store=state_store; self.scheduler=scheduler; self.executor=executor; self.lifecycle=lifecycle; self.logger=logger; self.snapshot_provider=snapshot_provider
         self.worker_id=worker_id or f'worker-{uuid.uuid4()}'; self.lease_seconds=lease_seconds
         self.lease_heartbeat_seconds=lease_heartbeat_seconds or max(1,min(60,lease_seconds/3))
@@ -18,6 +18,7 @@ class WorkerRuntime:
         self.cluster_recovery=ClusterRecovery(state_store) if hasattr(state_store,'live_nodes') else None
         self.control_plane_healthy=True
         self.background_tasks=list(background_tasks or ())
+        self.resources=list(resources or ())
 
     def _heartbeat_node(self):
         if self.node_id is not None and hasattr(self.state_store,'heartbeat_node'):
