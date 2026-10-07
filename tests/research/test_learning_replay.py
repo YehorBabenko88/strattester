@@ -31,3 +31,16 @@ def test_missing_decision_trace_fails_before_advancing_boundary():
     except ValueError as e:assert "missing decision trace" in str(e)
     else:raise AssertionError("orphan replay accepted")
     assert o.last_applied_learning_sequence==0
+
+
+def test_late_orphan_event_does_not_partially_apply_earlier_events():
+    o=ScientificOrganismController()
+    o.remember_decision(DecisionTrace("good",1,"LONG",(),"R"))
+    log=LearningEventLog()
+    log.append(ObservedOutcome("good","1h",1,2),{"m":1},regime="R")
+    log.append(ObservedOutcome("missing","1h",1,3),{"m":1},regime="R")
+    try:LearningReplayEngine().replay(o,log.events())
+    except ValueError as e:assert "missing decision trace" in str(e)
+    else:raise AssertionError("orphan replay accepted")
+    assert o.last_applied_learning_sequence==0
+    assert o.timescale_memory.state("m","R").regime_samples==0
