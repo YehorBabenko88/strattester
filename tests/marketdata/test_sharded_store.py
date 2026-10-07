@@ -78,3 +78,27 @@ def test_migration_resume_is_idempotent_and_promotes_only_after_validation(tmp_p
     assert record.state.value=='SHARD_READY' and record.rows_copied==5
     assert second.coverage('BTCUSDT').count==5
     second.close(); legacy.close()
+
+
+def test_live_writes_stay_visible_in_legacy_until_promotion(tmp_path):
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+    legacy.upsert_candles([candle('BTCUSDT',0)])
+    store=ShardedMarketStore(tmp_path/'shards',legacy_store=legacy)
+    store.manifest.set('BTCUSDT','MIGRATING')
+    store.upsert_candles([candle('BTCUSDT',60_000)])
+    assert legacy.coverage('BTCUSDT').count==2
+    assert store.coverage('BTCUSDT').count==2
+    assert store.for_symbol('BTCUSDT').coverage('BTCUSDT').count==0
+    store.close(); legacy.close()
+
+def test_writes_switch_to_shard_only_after_ready(tmp_path):
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+    legacy.upsert_candles([candle('BTCUSDT',0)])
+    store=ShardedMarketStore(tmp_path/'shards',legacy_store=legacy)
+    store.migrate_legacy_candles('BTCUSDT')
+    assert store.manifest.ready('BTCUSDT')
+    store.upsert_candles([candle('BTCUSDT',60_000)])
+    assert legacy.coverage('BTCUSDT').count==1
+    assert store.for_symbol('BTCUSDT').coverage('BTCUSDT').count==2
+    assert store.coverage('BTCUSDT').count==2
+    store.close(); legacy.close()
