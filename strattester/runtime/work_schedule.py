@@ -41,11 +41,13 @@ class WorkSchedule:
 
 
 UNRESTRICTED = None
+SCHEDULED_WORKERS = frozenset({"PC1", "PC2"})
 
 
 def schedule_for_node(node_id: str | None) -> WorkSchedule | None:
-    # PC1 is intentionally constrained by the physical-host operating window.
-    if (node_id or "").strip().upper() == "PC1":
+    # PC1 and PC2 share the physical-host operating window:
+    # Mon-Sat 15:00-05:00 Europe/Berlin, Sunday 24h.
+    if (node_id or "").strip().upper() in SCHEDULED_WORKERS:
         return WorkSchedule()
     return UNRESTRICTED
 
