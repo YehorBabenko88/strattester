@@ -156,7 +156,8 @@ class SQLiteMarketStore:
         parsed=[]; rejected=0
         for r in rows:
             try:
-                ts=int(r.get('timestamp') or r.get('time')); value=float(r.get('openInterest'))
+                raw_ts=r.get('timestamp') if r.get('timestamp') is not None else r.get('time')
+                ts=int(raw_ts); value=float(r.get('openInterest'))
                 if ts<0 or value<0: raise ValueError
                 parsed.append(((symbol,timeframe,ts),(value,1)))
             except (AttributeError,TypeError,ValueError):
