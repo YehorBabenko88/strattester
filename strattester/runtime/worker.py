@@ -8,12 +8,13 @@ def _invoke_executor(executor,job):
 
 class WorkerRuntime:
     def __init__(self,state_store,scheduler,executor,lifecycle,logger,snapshot_provider,worker_id=None,
-                 lease_seconds=300,lease_heartbeat_seconds=None,node_id=None,execution_mode='auto'):
+                 lease_seconds=300,lease_heartbeat_seconds=None,node_id=None,execution_mode='auto',max_attempts=5):
         self.state_store=state_store; self.scheduler=scheduler; self.executor=executor; self.lifecycle=lifecycle; self.logger=logger; self.snapshot_provider=snapshot_provider
         self.worker_id=worker_id or f'worker-{uuid.uuid4()}'; self.lease_seconds=lease_seconds
         self.lease_heartbeat_seconds=lease_heartbeat_seconds or max(1,min(60,lease_seconds/3))
         self.node_id=node_id
         self.execution_mode=execution_mode
+        self.max_attempts=max(1,int(max_attempts))
         self.cluster_recovery=ClusterRecovery(state_store) if hasattr(state_store,'live_nodes') else None
 
     def _heartbeat_node(self):
@@ -38,10 +39,12 @@ class WorkerRuntime:
             future.result()
         except BaseException as exc:
             if lease_valid:
+                terminal=job.attempts>=self.max_attempts
                 self.state_store.transition_claimed(
-                    job.id,self.worker_id,job.lease_token,JobState.RETRYABLE,
+                    job.id,self.worker_id,job.lease_token,
+                    JobState.FAILED if terminal else JobState.RETRYABLE,
                     error=str(exc),lease_owner=None,lease_until=None)
-            self.logger.error('job failed',extra={'job_id':job.id,'symbol':job.symbol})
+            self.logger.error('job failed',extra={'job_id':job.id,'symbol':job.symbol,'attempts':job.attempts})
         else:
             if lease_valid:
                 self.state_store.transition_claimed(
