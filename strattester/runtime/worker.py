@@ -65,7 +65,17 @@ class WorkerRuntime:
         self._heartbeat_node()
         self.logger.info('parallel batch started',extra={'jobs':len(jobs),'mode':kind})
         with pool_cls(max_workers=max(1,len(jobs))) as pool:
-            futures={pool.submit(_invoke_executor,self.executor,j):j for j in jobs}
+            futures={}
+            for j in jobs:
+                try:
+                    futures[pool.submit(_invoke_executor,self.executor,j)]=j
+                except BaseException as exc:
+                    self.state_store.transition_claimed(
+                        j.id,self.worker_id,j.lease_token,JobState.RETRYABLE,
+                        error=f'worker pool submission failed: {exc}',lease_owner=None,lease_until=None)
+                    self.logger.error('worker pool submission failed',extra={'job_id':j.id,'symbol':j.symbol})
+            if not futures:
+                return len(jobs)
             pending=set(futures)
             while pending:
                 done,pending=concurrent.futures.wait(
