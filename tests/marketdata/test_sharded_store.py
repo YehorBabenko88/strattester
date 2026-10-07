@@ -61,7 +61,7 @@ def test_partial_shard_is_never_authoritative_after_restart(tmp_path):
     assert second.manifest.ready('BTCUSDT') is False
     assert second.coverage('BTCUSDT').count==5
     assert [x.open_time for x in second.iter_candles('BTCUSDT')]==[i*60_000 for i in range(5)]
-    second.close(); legacy.close()
+    second.close()
 
 def test_migration_resume_is_idempotent_and_promotes_only_after_validation(tmp_path):
     legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
@@ -183,3 +183,12 @@ def test_restart_resumes_partial_full_dataset_migration_idempotently(tmp_path):
     assert resumed.coverage('BTCUSDT','funding').count==1
     assert second._dataset_fingerprints(legacy,'BTCUSDT')==second._dataset_fingerprints(resumed,'BTCUSDT')
     second.close(); legacy.close()
+
+
+def test_routed_store_close_also_closes_owned_legacy(tmp_path):
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+    store=ShardedMarketStore(tmp_path/'shards',legacy_store=legacy)
+    store.close()
+    import sqlite3,pytest
+    with pytest.raises(sqlite3.ProgrammingError):
+        legacy.connection.execute('SELECT 1')
