@@ -49,3 +49,17 @@ def quarantine_database(path:Path,quarantine_dir:Path)->Path:
         if side.exists():
             side.replace(Path(str(target)+suffix))
     return target
+
+
+def sqlite_footprint(path:Path)->int:
+    path=Path(path)
+    return sum(p.stat().st_size for p in (path,Path(str(path)+'-wal'),Path(str(path)+'-shm')) if p.exists())
+
+def safe_checkpoint(connection,*,free_bytes:int,db_footprint:int,minimum_headroom:int=256*1024**2):
+    """Checkpoint only with bounded disk headroom; never VACUUM automatically."""
+    free_bytes=int(free_bytes);db_footprint=max(0,int(db_footprint));minimum_headroom=max(0,int(minimum_headroom))
+    required=max(minimum_headroom,min(db_footprint,2*1024**3))
+    if free_bytes<required:
+        return False,'insufficient headroom for safe WAL checkpoint'
+    row=connection.execute('PRAGMA wal_checkpoint(PASSIVE)').fetchone()
+    return True,row
