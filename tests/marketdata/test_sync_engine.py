@@ -137,3 +137,33 @@ def test_restart_after_partial_backfill_requests_only_persisted_gap(tmp_path):
     assert reopened.coverage('BTCUSDT','candles','1m').count==5
     assert reopened.integrity_check()
     reopened.close()
+
+
+def test_hard_crash_mid_market_transaction_recovers_wal_without_phantom_page(tmp_path):
+    import os,sqlite3,subprocess,sys
+    db=tmp_path/'crash.db'
+    store=SQLiteMarketStore.open(db)
+    store.upsert_candles([Candle('BTCUSDT','1m',0,1,1,1,1,1)])
+    store.close()
+    script=r"""
+import os,sqlite3,sys
+c=sqlite3.connect(sys.argv[1])
+c.execute('PRAGMA journal_mode=WAL')
+c.execute('PRAGMA synchronous=FULL')
+c.execute('BEGIN IMMEDIATE')
+c.execute("INSERT INTO candles(symbol,timeframe,ts,open,high,low,close,volume,turnover,closed) VALUES('BTCUSDT','1m',60000,1,1,1,1,1,NULL,1)")
+os._exit(41)
+"""
+    child=subprocess.run([sys.executable,'-c',script,str(db)])
+    assert child.returncode==41
+    reopened=SQLiteMarketStore.open(db)
+    cov=reopened.coverage('BTCUSDT','candles','1m')
+    assert cov.count==1 and cov.earliest==0 and cov.latest==0
+    assert reopened.integrity_check()
+    client=Client([row(60000)])
+    result=SyncEngine(reopened,client,clock_ms=lambda:999999).sync_requirement(
+        DataRequirement('BTCUSDT','candles','1m',0,60000))
+    assert result.state is SyncState.READY
+    assert client.calls==[(60000,60000)]
+    assert reopened.coverage('BTCUSDT','candles','1m').count==2
+    reopened.close()
