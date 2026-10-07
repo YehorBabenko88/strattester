@@ -26,6 +26,8 @@ def test_universe_sync_retains_disappeared_instrument(tmp_path):
         def fetch_linear_symbols(self): return set(self.symbols)
     c=C(); reg=InstrumentRegistry.open(tmp_path/'i.db'); u=UniverseSynchronizer(reg,c)
     u.sync(1000); c.symbols={'BUSDT'}; u.sync(2000)
+    assert reg.get('AUSDT').status is InstrumentStatus.MISSING
+    u.sync(3000)
     assert reg.get('AUSDT').status is InstrumentStatus.DELISTED
     assert reg.eligible_at('AUSDT',1500)
     reg.close()
