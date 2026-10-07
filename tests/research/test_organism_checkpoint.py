@@ -9,13 +9,18 @@ def test_checkpoint_roundtrip_restores_adaptive_state(tmp_path):
     ch.conductance=1.3;ch.adaptation=.4;ch.last_drive=.7;a.brain.potential=.2
     h=a.homeostasis._h("m");h.lifecycle=ChannelLifecycle.SENESCENT;h.successes=9
     a.plasticity_gate.pending["m"]=2
-    a.applied_learning_events.update({"d1:1h","d2:4h"})
+    a.applied_learning_events.update({"d1:1h","d2:4h"});a.last_applied_learning_sequence=17
+    a.credit_assigner._scores["m"].extend([.2,.4])
+    a.timescale_memory.add("m",.3,"R");a.timescale_memory.add("m",.5,"R")
     p=tmp_path/"brain.json";digest=save_checkpoint(a,p)
     b=ScientificOrganismController();assert load_checkpoint(b,p)==digest
     assert b.brain.channels["m"].conductance==1.3
     assert b.homeostasis.health["m"].lifecycle==ChannelLifecycle.SENESCENT
     assert b.homeostasis.health["m"].successes==9 and b.plasticity_gate.pending["m"]==2
     assert b.applied_learning_events=={"d1:1h","d2:4h"}
+    assert b.last_applied_learning_sequence==17
+    assert b.credit_assigner._scores["m"]==[.2,.4]
+    assert b.timescale_memory.state("m","R").regime_samples==2
 
 def test_tampered_checkpoint_is_rejected_before_mutation(tmp_path):
     a=ScientificOrganismController();a.brain._channel("m").conductance=1.2
