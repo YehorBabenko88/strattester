@@ -24,7 +24,8 @@ def build_worker(root:Path,executor):
         legacy=SQLiteMarketStore.open(b.config.market_db)
         shards=ShardedMarketStore(b.config.market_shards_dir,legacy_store=legacy)
         def assigned_symbols():
-            symbols=legacy.con.execute("SELECT DISTINCT symbol FROM candles ORDER BY symbol").fetchall()
+            connection=getattr(legacy,'connection',None)
+            symbols=connection.execute("SELECT DISTINCT symbol FROM candles ORDER BY symbol").fetchall()
             names=[r[0] for r in symbols]
             if not b.config.node_id or not hasattr(state,'live_nodes'):
                 return names
