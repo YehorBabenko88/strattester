@@ -98,25 +98,34 @@ class ShardedMarketStore:
         store=self._read_store(symbol,'public_trade_aggregates',timeframe,60_000,start_ms,end_ms)
         return store.iter_public_trade_aggregates(symbol,timeframe,start_ms,end_ms)
 
+    def _write_store(self,symbol):
+        # Keep exactly one authoritative writer during migration.  Until the
+        # manifest is promoted, live/repair writes stay in legacy so readers
+        # cannot miss data that arrived while a historical copy was running.
+        if self.manifest.ready(symbol) or self.legacy_store is None:
+            return self.for_symbol(symbol)
+        return self.legacy_store
+
     def upsert_candles(self,records):
         records=list(records)
         if not records:
             from .sqlite_store import WriteStats
             return WriteStats()
         symbols={r.symbol for r in records}
-        if len(symbols)!=1: raise ValueError('one shard write must contain exactly one symbol')
-        return self.for_symbol(next(iter(symbols))).upsert_candles(records)
+        if len(symbols)!=1: raise ValueError('one routed write must contain exactly one symbol')
+        symbol=next(iter(symbols))
+        return self._write_store(symbol).upsert_candles(records)
 
     def upsert_price_klines(self,dataset,symbol,rows,timeframe='1m'):
-        return self.for_symbol(symbol).upsert_price_klines(dataset,symbol,rows,timeframe)
+        return self._write_store(symbol).upsert_price_klines(dataset,symbol,rows,timeframe)
     def upsert_open_interest(self,symbol,rows,timeframe='5m'):
-        return self.for_symbol(symbol).upsert_open_interest(symbol,rows,timeframe)
+        return self._write_store(symbol).upsert_open_interest(symbol,rows,timeframe)
     def upsert_funding(self,symbol,rows):
-        return self.for_symbol(symbol).upsert_funding(symbol,rows)
+        return self._write_store(symbol).upsert_funding(symbol,rows)
     def upsert_long_short_ratio(self,symbol,rows,timeframe='5m'):
-        return self.for_symbol(symbol).upsert_long_short_ratio(symbol,rows,timeframe)
+        return self._write_store(symbol).upsert_long_short_ratio(symbol,rows,timeframe)
     def upsert_public_trade_aggregates(self,symbol,rows,timeframe='1m'):
-        return self.for_symbol(symbol).upsert_public_trade_aggregates(symbol,rows,timeframe)
+        return self._write_store(symbol).upsert_public_trade_aggregates(symbol,rows,timeframe)
 
     def integrity_check(self):
         return all(store.integrity_check() for store in self._stores.values())
