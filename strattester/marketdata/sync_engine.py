@@ -106,7 +106,10 @@ class SyncEngine:
                 while page_end>=start:
                     stats,rows=self._sync_rows(req,start,page_end)
                     written+=stats.accepted; unchanged+=stats.unchanged; rejected+=stats.rejected
-                    if not rows:break
+                    if not rows:
+                        # Empty pages are not evidence of coverage. Leave the
+                        # requested range missing so the result cannot become READY.
+                        break
                     timestamps=[]
                     for row in rows:
                         if isinstance(row,dict):
@@ -120,7 +123,8 @@ class SyncEngine:
                     page_end=next_end
             remaining=self._ranges(req,step)
             state=SyncState.READY if not remaining else SyncState.PARTIAL
-            return SyncResult(state,written,unchanged,rejected)
+            message='' if not remaining else 'requested history remains incomplete'
+            return SyncResult(state,written,unchanged,rejected,message)
         except Exception as exc:
             name=exc.__class__.__name__
             text=str(exc).lower()
