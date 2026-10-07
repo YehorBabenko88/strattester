@@ -25,6 +25,7 @@ class PostgresStateStore:
         with con.cursor() as cur:
             cur.execute('CREATE TABLE IF NOT EXISTS strattester_jobs(id TEXT PRIMARY KEY,payload JSONB NOT NULL)')
             cur.execute('CREATE TABLE IF NOT EXISTS strattester_nodes(node_id TEXT PRIMARY KEY,last_seen DOUBLE PRECISION NOT NULL,meta JSONB NOT NULL DEFAULT \'{}\'::jsonb)')
+            cur.execute("ALTER TABLE strattester_nodes ADD COLUMN IF NOT EXISTS generation BIGINT NOT NULL DEFAULT 0")
             cur.execute('''CREATE TABLE IF NOT EXISTS strattester_brain_lease(
                 singleton BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK(singleton),
                 holder TEXT NOT NULL, epoch BIGINT NOT NULL, expires_at DOUBLE PRECISION NOT NULL)''')
@@ -162,16 +163,34 @@ class PostgresStateStore:
         except Exception:
             self.con.rollback(); raise
 
-    def heartbeat_node(self,node_id,now=None,meta=None):
-        now=time.time() if now is None else float(now)
-        payload=json.dumps(meta or {})
+    def register_node_generation(self,node_id,now=None,meta=None):
+        now=time.time() if now is None else float(now);payload=json.dumps(meta or {})
         try:
             with self.con.cursor() as cur:
-                cur.execute('''INSERT INTO strattester_nodes(node_id,last_seen,meta)
-                    VALUES(%s,%s,%s::jsonb)
-                    ON CONFLICT(node_id) DO UPDATE SET last_seen=excluded.last_seen,meta=excluded.meta''',
+                cur.execute('''INSERT INTO strattester_nodes(node_id,last_seen,meta,generation)
+                    VALUES(%s,%s,%s::jsonb,1)
+                    ON CONFLICT(node_id) DO UPDATE SET last_seen=excluded.last_seen,meta=excluded.meta,
+                    generation=strattester_nodes.generation+1 RETURNING generation''',
                     (str(node_id),now,payload))
-            self.con.commit()
+                generation=int(cur.fetchone()[0])
+            self.con.commit();return generation
+        except Exception:
+            self.con.rollback();raise
+
+    def heartbeat_node(self,node_id,now=None,meta=None,generation=None):
+        now=time.time() if now is None else float(now);payload=json.dumps(meta or {})
+        try:
+            with self.con.cursor() as cur:
+                if generation is None:
+                    cur.execute('''INSERT INTO strattester_nodes(node_id,last_seen,meta)
+                        VALUES(%s,%s,%s::jsonb)
+                        ON CONFLICT(node_id) DO UPDATE SET last_seen=excluded.last_seen,meta=excluded.meta''',
+                        (str(node_id),now,payload));ok=True
+                else:
+                    cur.execute('''UPDATE strattester_nodes SET last_seen=%s,meta=%s::jsonb
+                        WHERE node_id=%s AND generation=%s AND last_seen<=%s''',
+                        (now,payload,str(node_id),int(generation),now));ok=cur.rowcount==1
+            self.con.commit();return ok
         except Exception:
             self.con.rollback(); raise
 
