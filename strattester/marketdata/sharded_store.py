@@ -1,5 +1,6 @@
 from __future__ import annotations
 from hashlib import sha256
+import json
 from pathlib import Path
 import re
 from .sqlite_store import SQLiteMarketStore,Candle
@@ -90,11 +91,18 @@ class ShardedMarketStore:
                 copied+=len(rows)
         return copied
 
-    def _dataset_counts(self,store,symbol):
+    def _dataset_fingerprints(self,store,symbol):
         result={}
-        for table,_ in self._DATASET_TABLES:
-            result[table]=store.connection.execute(
-                f"SELECT COUNT(*) FROM {table} WHERE symbol=?",(symbol,)).fetchone()[0]
+        for table,columns in self._DATASET_TABLES:
+            cols=','.join(columns)
+            order='funding_time' if table=='funding' else 'timeframe,open_time'
+            h=sha256(); count=0
+            cur=store.connection.execute(
+                f"SELECT {cols} FROM {table} WHERE symbol=? ORDER BY {order}",(symbol,))
+            for row in cur:
+                h.update(json.dumps(row,separators=(',',':'),ensure_ascii=False).encode('utf-8'))
+                h.update(b'\n'); count+=1
+            result[table]=(count,h.hexdigest())
         return result
 
     def migrate_legacy_candles(self,symbol:str,timeframe='1m',batch_size=20_000):
@@ -119,10 +127,10 @@ class ShardedMarketStore:
         # pass. A later idempotent pass copies the tail and validates again.
         final_source_cov=self.legacy_store.coverage(symbol,'candles',timeframe)
         copied+=self._copy_auxiliary_datasets(symbol,shard,batch_size)
-        source_counts=self._dataset_counts(self.legacy_store,symbol)
-        target_counts=self._dataset_counts(shard,symbol)
+        source_fingerprints=self._dataset_fingerprints(self.legacy_store,symbol)
+        target_fingerprints=self._dataset_fingerprints(shard,symbol)
         target_cov=shard.coverage(symbol,'candles',timeframe)
-        if (source_counts!=target_counts or target_cov.count!=final_source_cov.count or target_cov.earliest!=final_source_cov.earliest
+        if (source_fingerprints!=target_fingerprints or target_cov.count!=final_source_cov.count or target_cov.earliest!=final_source_cov.earliest
                 or target_cov.latest!=final_source_cov.latest or target_cov.gaps!=final_source_cov.gaps
                 or not shard.integrity_check()):
             if final_source_cov!=source_cov:
