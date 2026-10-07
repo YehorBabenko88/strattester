@@ -53,3 +53,17 @@ def test_unsafe_but_rechecksummed_state_is_rejected(tmp_path):
     x=json.loads(p.read_text());x["payload"]["brain"]["channels"]["m"]["conductance"]=99
     x["sha256"]=hashlib.sha256(_canonical(x["payload"]).encode()).hexdigest();p.write_text(json.dumps(x))
     with pytest.raises(ValueError,match="unsafe conductance"):load_checkpoint(ScientificOrganismController(),p)
+
+
+def test_late_decode_failure_leaves_live_organism_unchanged(tmp_path):
+    import hashlib
+    from strattester.research.organism_checkpoint import _canonical
+    source=ScientificOrganismController();source.brain.potential=.8
+    source.credit_assigner._scores["m"].append(.2)
+    p=tmp_path/"brain.json";save_checkpoint(source,p)
+    x=json.loads(p.read_text());x["payload"]["learning"]["credit_scores"]["m"]=[float("nan")]
+    # json NaN is accepted by Python's parser; checksum is deliberately valid to test semantic validation.
+    x["sha256"]=hashlib.sha256(_canonical(x["payload"]).encode()).hexdigest();p.write_text(json.dumps(x))
+    live=ScientificOrganismController();live.brain.potential=.123
+    with pytest.raises(ValueError,match="non-finite adaptive memory"):load_checkpoint(live,p)
+    assert live.brain.potential==.123 and not live.credit_assigner._scores
