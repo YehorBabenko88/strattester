@@ -78,7 +78,11 @@ class SyncEngine:
         if req.dataset=='open_interest':
             interval={'5m':'5min','15m':'15min','30m':'30min','1h':'1h','4h':'4h','1d':'1d'}.get(req.timeframe,req.timeframe)
             rows=self.client.fetch_open_interest(req.symbol,start,end,interval)
-            closed=[r for r in rows if start<=int(r.get('timestamp') or r.get('time'))<=req.end_ms and int(r.get('timestamp') or r.get('time'))+step<=self.clock_ms()]
+            def ts(r):
+                v=r.get('timestamp') if r.get('timestamp') is not None else r.get('time')
+                if v is None:raise ValueError('open-interest row missing timestamp')
+                return int(v)
+            closed=[r for r in rows if start<=ts(r)<=req.end_ms and ts(r)+step<=self.clock_ms()]
             return self.store.upsert_open_interest(req.symbol,closed,req.timeframe),rows
         if req.dataset=='funding':
             rows=self.client.fetch_funding(req.symbol,start,end)
@@ -114,7 +118,9 @@ class SyncEngine:
                     for row in rows:
                         if isinstance(row,dict):
                             key='fundingRateTimestamp' if req.dataset=='funding' else 'timestamp'
-                            timestamps.append(int(row.get(key) or row.get('time')))
+                            value=row.get(key) if row.get(key) is not None else row.get('time')
+                            if value is None:raise ValueError('dataset row missing timestamp')
+                            timestamps.append(int(value))
                         else: timestamps.append(int(row[0]))
                     min_ts=min(timestamps)
                     if min_ts<=start:break
