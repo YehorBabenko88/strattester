@@ -16,13 +16,17 @@ class WorkerRuntime:
         self.execution_mode=execution_mode
         self.max_attempts=max(1,int(max_attempts))
         self.cluster_recovery=ClusterRecovery(state_store) if hasattr(state_store,'live_nodes') else None
+        self.control_plane_healthy=True
 
     def _heartbeat_node(self):
         if self.node_id is not None and hasattr(self.state_store,'heartbeat_node'):
             try:
                 self.state_store.heartbeat_node(self.node_id,meta={'worker_id':self.worker_id})
             except Exception:
+                self.control_plane_healthy=False
                 self.logger.exception('node heartbeat failed',extra={'node_id':self.node_id})
+            else:
+                self.control_plane_healthy=True
 
     def _pool_kind(self):
         if self.execution_mode=='thread': return 'thread'
@@ -88,6 +92,9 @@ class WorkerRuntime:
     def run_once(self):
         if self.lifecycle.draining or self.lifecycle.stopping:return 0
         self._heartbeat_node()
+        if self.node_id is not None and hasattr(self.state_store,'heartbeat_node') and not self.control_plane_healthy:
+            self.logger.error('control plane unavailable; refusing new work',extra={'node_id':self.node_id})
+            return 0
         if self.cluster_recovery is not None:
             try:
                 self.cluster_recovery.reconcile()
