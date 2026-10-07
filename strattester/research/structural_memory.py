@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from collections import Counter,defaultdict
 from hashlib import sha256
 import json
+import math
 from typing import Hashable,Mapping,Sequence,Callable
 
 def _stable(value):
@@ -19,7 +20,10 @@ def _stable(value):
 
 def structural_signature(features:Mapping[str,object],invariant_keys:Sequence[str]):
     """Deterministic identity from explicitly declared invariant features only."""
-    payload={k:_stable(features[k]) for k in sorted(set(invariant_keys)) if k in features}
+    keys=sorted(set(invariant_keys))
+    missing=[k for k in keys if k not in features]
+    if missing:raise ValueError("missing invariant features: "+",".join(missing))
+    payload={k:_stable(features[k]) for k in keys}
     raw=json.dumps(payload,sort_keys=True,separators=(",",":"),ensure_ascii=True)
     return sha256(raw.encode()).hexdigest()
 
@@ -51,13 +55,32 @@ class StructuralTransition:
 class StructuralMemory:
     def __init__(self,*,min_samples=6,min_confidence=.65):
         self.min_samples=int(min_samples);self.min_confidence=float(min_confidence)
+        if self.min_samples<1 or not math.isfinite(self.min_confidence) or not 0<=self.min_confidence<=1:
+            raise ValueError("invalid structural memory thresholds")
         self._obs=defaultdict(list);self._transitions=Counter();self._last:str|None=None
+        self._last_sequence:int|None=None;self._outcome_ids=set()
+
+    def observe_state(self,signature:str,*,sequence:int):
+        sequence=int(sequence)
+        if self._last_sequence is not None and sequence<=self._last_sequence:
+            raise ValueError("non-monotonic structural sequence")
+        if self._last is not None:self._transitions[(self._last,signature)]+=1
+        self._last=str(signature);self._last_sequence=sequence
+
+    def observe_outcome(self,o:StructuralObservation,*,outcome_id:str|None=None):
+        if not math.isfinite(o.utility) or not math.isfinite(o.confidence) or not 0<=o.confidence<=1:
+            raise ValueError("invalid structural outcome")
+        if outcome_id is not None:
+            oid=str(outcome_id)
+            if oid in self._outcome_ids:return False
+            self._outcome_ids.add(oid)
+        self._obs[o.signature].append(o);return True
 
     def observe(self,o:StructuralObservation):
-        if not 0<=o.confidence<=1:raise ValueError("confidence outside [0,1]")
-        self._obs[o.signature].append(o)
-        if self._last is not None:self._transitions[(self._last,o.signature)]+=1
-        self._last=o.signature
+        """Compatibility path: synchronous state+outcome only; delayed outcomes must use observe_outcome."""
+        next_seq=0 if self._last_sequence is None else self._last_sequence+1
+        self.observe_state(o.signature,sequence=next_seq)
+        self.observe_outcome(o)
 
     def experience(self,signature:str):
         xs=self._obs.get(signature,[])
