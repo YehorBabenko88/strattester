@@ -118,3 +118,22 @@ def test_auxiliary_row_without_any_timestamp_is_retryable_not_ready(tmp_path):
     assert result.state is SyncState.RETRYABLE
     assert store.coverage('BTCUSDT','open_interest','5m').count==0
     store.close()
+
+
+def test_restart_after_partial_backfill_requests_only_persisted_gap(tmp_path):
+    db=tmp_path/'m.db'
+    first=SQLiteMarketStore.open(db)
+    first.upsert_candles([Candle('BTCUSDT','1m',120000,1,1,1,1,1)])
+    first.close()  # committed page survives process/reboot boundary
+
+    client=Client([row(0),row(60000),row(180000),row(240000)])
+    reopened=SQLiteMarketStore.open(db)
+    req=DataRequirement('BTCUSDT','candles','1m',0,240000)
+    result=SyncEngine(reopened,client,clock_ms=lambda:999999).sync_requirement(req)
+    assert result.state is SyncState.READY
+    # Existing 120000 is not downloaded again: only prefix and suffix gaps.
+    assert (0,60000) in client.calls and (180000,240000) in client.calls
+    assert all(not (a<=120000<=b) for a,b in client.calls)
+    assert reopened.coverage('BTCUSDT','candles','1m').count==5
+    assert reopened.integrity_check()
+    reopened.close()
