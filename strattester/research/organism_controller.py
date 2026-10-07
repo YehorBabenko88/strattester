@@ -144,14 +144,14 @@ class ScientificOrganismController:
     def learn_decision(self,outcome:ObservedOutcome,channel_attribution:Mapping[str,float],*,
                        regime:str,counterfactuals:Sequence[CounterfactualEstimate]=(),
                        learning_store=None,event_id:str|None=None):
-        key=f"{outcome.decision_id}:{outcome.horizon}"
-        if key in self.applied_learning_events:
+        event_key=f"{outcome.decision_id}:{outcome.horizon}"
+        if event_key in self.applied_learning_events:
             return {}
-        durable_id=event_id or key
+        durable_id=event_id or event_key
         if learning_store is not None and not learning_store.claim_learning_event(
                 durable_id,outcome.decision_id,outcome.horizon,
                 meta={"regime":regime}):
-            self.applied_learning_events.add(key)
+            self.applied_learning_events.add(event_key)
             return {}
         self.decision_memory.observe(outcome)
         for cf in counterfactuals:self.decision_memory.estimate(cf)
@@ -167,7 +167,7 @@ class ScientificOrganismController:
             if self.plasticity_gate.confirm(key,confirmed):
                 # Permanent change is based on conservative credit, not raw outcome.
                 self.plasticity_gate.consolidate(self.brain,key,report.modulation)
-        self.applied_learning_events.add(key)
+        self.applied_learning_events.add(event_key)
         return reports
 
     def learn_from_outcomes(self,outcomes:Mapping[str,float],rate=.05):
