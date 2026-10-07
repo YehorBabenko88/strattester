@@ -67,3 +67,20 @@ def test_staged_cleanup_is_age_bounded_and_never_deletes_published_results(tmp_p
     assert s.latest('BTCUSDT','A')['run_id']=='published'
     assert s.con.execute('SELECT stage_id FROM staged_research_results').fetchall()==[('new',)]
     s.close()
+
+
+def test_uncommitted_wal_transaction_disappears_after_crash_like_reopen(tmp_path):
+    path=tmp_path/'results.db'
+    s=ResultStore.open(path)
+    s.put('stable','BTCUSDT','A','1',{'pnl':1},created_at=1)
+    s.con.execute('BEGIN IMMEDIATE')
+    s.con.execute('''INSERT INTO research_results
+      (run_id,symbol,strategy_id,strategy_version,created_at,metrics,job_id,lease_token,node_generation)
+      VALUES(?,?,?,?,?,?,?,?,?)''',('ghost','ETHUSDT','A','1',2,'{}','j',1,1))
+    # Simulate process death: close rolls the open transaction back; no application cleanup runs.
+    s.con.close()
+    reopened=ResultStore.open(path)
+    assert reopened.latest('ETHUSDT','A') is None
+    assert reopened.latest('BTCUSDT','A')['run_id']=='stable'
+    assert reopened.integrity_check()
+    reopened.close()
