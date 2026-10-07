@@ -75,7 +75,7 @@ def _validate_payload(payload):
     return True
 
 def load_checkpoint(org,path:Path):
-    load_checkpoint._live_target=org
+    live=org
     envelope=json.loads(Path(path).read_text(encoding="utf-8"))
     payload=envelope.get("payload");expected=envelope.get("sha256")
     if not isinstance(payload,dict) or not expected:raise ValueError("invalid brain checkpoint")
@@ -125,8 +125,6 @@ def load_checkpoint(org,path:Path):
     for k,v in learning.get("short_memory",{}).items():org.timescale_memory._short[str(k)].extend(map(float,v))
     for k,r,v in learning.get("regime_memory",[]):org.timescale_memory._regime[(str(k),str(r))].extend(map(float,v))
     for k,v in learning.get("long_memory",{}).items():org.timescale_memory._long[str(k)].extend(map(float,v))
-    original=locals().get('target')
     # Commit the fully decoded state only after every reconstruction succeeded.
-    live=load_checkpoint._live_target
     live.__dict__.clear();live.__dict__.update(org.__dict__)
     return actual
