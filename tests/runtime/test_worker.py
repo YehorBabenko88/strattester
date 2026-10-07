@@ -173,3 +173,20 @@ def test_cluster_worker_recovers_after_control_plane_returns(tmp_path):
     assert base.get_job(job.id).state is JobState.COMPLETE
     assert w.control_plane_healthy
     base.close()
+
+
+def test_executor_crash_never_marks_job_complete(tmp_path):
+    s=SQLiteStateStore.open(tmp_path/'s.db')
+    job=Job.new('backtest',symbol='BTCUSDT',state=JobState.READY)
+    s.put_job(job)
+    def crash(j): raise SystemExit(17)
+    w=WorkerRuntime(
+        s,Scheduler(s),crash,Lifecycle(),logging.getLogger('test'),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB,0,4),
+        execution_mode='thread',max_attempts=3)
+    assert w.run_once()==1
+    after=s.get_job(job.id)
+    assert after.state is JobState.RETRYABLE
+    assert after.state is not JobState.COMPLETE
+    assert after.lease_owner is None
+    s.close()
