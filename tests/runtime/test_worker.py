@@ -123,3 +123,24 @@ def test_broken_job_does_not_block_other_symbols(tmp_path):
     assert s.get_job(bad.id).state is JobState.FAILED
     assert s.get_job(good.id).state is JobState.COMPLETE
     s.close()
+
+
+def test_cluster_worker_refuses_new_work_when_control_plane_heartbeat_fails(tmp_path):
+    base=SQLiteStateStore.open(tmp_path/'s.db')
+    job=Job.new('backtest',symbol='BTCUSDT',target_node='PC1',state=JobState.READY)
+    base.put_job(job)
+    class BrokenControlPlane:
+        def heartbeat_node(self,*a,**k): raise ConnectionError('postgres unavailable')
+        def live_nodes(self,*a,**k): raise ConnectionError('postgres unavailable')
+        def list_jobs(self): return base.list_jobs()
+        def claim_ready_jobs(self,*a,**k): raise AssertionError('must not claim while control plane is down')
+        def put_job(self,j): return base.put_job(j)
+    state=BrokenControlPlane()
+    w=WorkerRuntime(
+        state,Scheduler(state),lambda j:None,Lifecycle(),logging.getLogger('test'),
+        lambda:ResourceSnapshot(100*GB,100*GB,10*GB,0,4),
+        node_id='PC1',execution_mode='thread')
+    assert w.run_once()==0
+    assert base.get_job(job.id).state is JobState.READY
+    assert not w.control_plane_healthy
+    base.close()
