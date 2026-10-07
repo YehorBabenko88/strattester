@@ -40,3 +40,22 @@ def test_transition_probabilities_are_empirical_and_directional():
     assert m.transition("A","B").count==2
     assert abs(m.transition("A","B").probability-2/3)<1e-9
     assert abs(m.transition("A","C").probability-1/3)<1e-9
+
+
+def test_missing_declared_invariant_fails_closed():
+    try:structural_signature({"shape":"trend"},["shape","vol_regime"])
+    except ValueError as e:assert "vol_regime" in str(e)
+    else:raise AssertionError("incomplete structural signature accepted")
+
+def test_delayed_outcome_does_not_create_transition():
+    m=StructuralMemory(min_samples=1)
+    m.observe_state("A",sequence=1);m.observe_state("B",sequence=2)
+    m.observe_outcome(StructuralObservation("A","R",1,.9),outcome_id="late-A")
+    assert m.transition("A","B").count==1
+    assert m.transition("B","A").count==0
+
+def test_duplicate_structural_outcome_is_idempotent():
+    m=StructuralMemory(min_samples=1);o=StructuralObservation("A","R",1,.9)
+    assert m.observe_outcome(o,outcome_id="x")
+    assert not m.observe_outcome(o,outcome_id="x")
+    assert m.experience("A").samples==1
