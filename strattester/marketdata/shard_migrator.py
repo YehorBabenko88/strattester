@@ -18,7 +18,9 @@ class ShardMigrator:
         health=storage_health(self.store.root,min_free_bytes=min_free_bytes)
         if not health.ok:
             return MigrationBatchResult(0,0,0,0)
-        for symbol in list(symbols)[:max(0,int(limit))]:
+        cap=max(0,int(limit))
+        for symbol in symbols:
+            if attempted>=cap: break
             if self.store.manifest.ready(symbol):
                 continue
             attempted+=1
