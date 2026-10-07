@@ -3,6 +3,8 @@ import pytest
 from strattester.research.organism_controller import ScientificOrganismController
 from strattester.research.homeostasis import ChannelLifecycle
 from strattester.research.organism_checkpoint import save_checkpoint,load_checkpoint
+from strattester.research.decision_memory import DecisionTrace,ObservedOutcome
+from strattester.research.structural_memory import StructuralObservation
 
 def test_checkpoint_roundtrip_restores_adaptive_state(tmp_path):
     a=ScientificOrganismController();ch=a.brain._channel("m")
@@ -12,6 +14,13 @@ def test_checkpoint_roundtrip_restores_adaptive_state(tmp_path):
     a.applied_learning_events.update({"d1:1h","d2:4h"});a.last_applied_learning_sequence=17
     a.credit_assigner._scores["m"].extend([.2,.4])
     a.timescale_memory.add("m",.3,"R");a.timescale_memory.add("m",.5,"R")
+    a.remember_decision(DecisionTrace("decision-1",100,"LONG",("reason",),"ctx"))
+    a.decision_memory.observe(ObservedOutcome("decision-1","1h",.7,200))
+    a.structural_memory.observe_state("S1",sequence=10)
+    a.structural_memory.observe_outcome(StructuralObservation("S1","R",.4,.9),outcome_id="so1")
+    a.structural_state_graph.observe_state("S1",regime="R",sequence=10)
+    a.structural_state_graph.observe_state("S2",regime="R",sequence=11)
+    a.structural_state_graph.observe_outcome("S1",utility=.4,outcome_id="go1")
     p=tmp_path/"brain.json";digest=save_checkpoint(a,p)
     b=ScientificOrganismController();assert load_checkpoint(b,p)==digest
     assert b.brain.channels["m"].conductance==1.3
@@ -21,6 +30,12 @@ def test_checkpoint_roundtrip_restores_adaptive_state(tmp_path):
     assert b.last_applied_learning_sequence==17
     assert b.credit_assigner._scores["m"]==[.2,.4]
     assert b.timescale_memory.state("m","R").regime_samples==2
+    assert b.decision_memory.traces["decision-1"].context_fingerprint=="ctx"
+    assert b.decision_memory.outcomes[("decision-1","1h")].utility==.7
+    assert b.structural_memory.experience("S1").samples==1
+    assert b.structural_memory._last_sequence==10
+    assert b.structural_state_graph.forecast("S1").ranked[0][0]=="S2"
+    assert b.structural_state_graph._last_sequence==11
 
 def test_tampered_checkpoint_is_rejected_before_mutation(tmp_path):
     a=ScientificOrganismController();a.brain._channel("m").conductance=1.2
