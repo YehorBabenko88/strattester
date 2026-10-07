@@ -25,8 +25,8 @@ function Install-ServiceSafe($name,$module,$log){
 }
 # Remove services not permitted by the selected node role.
 if($Role -ne "ControlWorker"){& $NssmExe stop StrattesterController confirm 2>$null|Out-Null;& $NssmExe remove StrattesterController confirm 2>$null|Out-Null}
-if($Role -eq "Observer"){& $NssmExe stop StrattesterWorker confirm 2>$null|Out-Null;& $NssmExe remove StrattesterWorker confirm 2>$null|Out-Null;exit 0}
+if($Role -eq "Observer"){& $NssmExe stop StrattesterWorker confirm 2>$null|Out-Null;& $NssmExe remove StrattesterWorker confirm 2>$null|Out-Null;exit 0}\nInstall-ServiceSafe "StrattesterGuardian" "strattester.service_guardian" "guardian-wrapper.log"
 if($Role -eq "ControlWorker"){Install-ServiceSafe "StrattesterController" "strattester.service_controller" "controller-wrapper.log"}
 Install-ServiceSafe "StrattesterWorker" "strattester.service_worker" "worker-wrapper.log"
 if($Role -eq "ControlWorker"){& $NssmExe start StrattesterController}
-& $NssmExe start StrattesterWorker
+& $NssmExe start StrattesterWorker\n& $NssmExe start StrattesterGuardian
