@@ -127,3 +127,25 @@ def test_source_growth_during_migration_defers_promotion_and_retry_catches_up(tm
     assert store.manifest.ready('BTCUSDT')
     assert store.coverage('BTCUSDT').count==3
     store.close(); legacy.close()
+
+
+def test_promotion_copies_and_verifies_all_auxiliary_datasets(tmp_path):
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+    legacy.upsert_candles([candle('BTCUSDT',0)])
+    legacy.upsert_price_klines('mark_price','BTCUSDT',[[0,1,1.1,.9,1]],'1m')
+    legacy.upsert_price_klines('index_price','BTCUSDT',[[0,2,2.1,1.9,2]],'1m')
+    legacy.upsert_price_klines('premium_index','BTCUSDT',[[0,.01,.02,.005,.01]],'1m')
+    legacy.upsert_open_interest('BTCUSDT',[{'timestamp':0,'openInterest':'123'}])
+    legacy.upsert_funding('BTCUSDT',[{'fundingRateTimestamp':0,'fundingRate':'0.0001'}])
+    legacy.upsert_long_short_ratio('BTCUSDT',[{'timestamp':0,'buyRatio':'0.6','sellRatio':'0.4'}])
+    legacy.upsert_public_trade_aggregates('BTCUSDT',[{'open_time':0,'buy_volume':2,'sell_volume':1,'turnover':3,'trade_count':2}])
+    store=ShardedMarketStore(tmp_path/'shards',legacy_store=legacy)
+    store.migrate_legacy_candles('BTCUSDT')
+    shard=store.for_symbol('BTCUSDT')
+    assert store.manifest.ready('BTCUSDT')
+    assert store._dataset_fingerprints(legacy,'BTCUSDT')==store._dataset_fingerprints(shard,'BTCUSDT')
+    for dataset,tf in [('mark_price','1m'),('index_price','1m'),('premium_index','1m'),
+                       ('open_interest','5m'),('funding','1m'),('long_short_ratio','5m'),
+                       ('public_trade_aggregates','1m')]:
+        assert shard.coverage('BTCUSDT',dataset,tf).count==1
+    store.close(); legacy.close()
