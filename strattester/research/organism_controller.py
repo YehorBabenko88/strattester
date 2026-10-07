@@ -15,6 +15,8 @@ from .decision_memory import DecisionMemory,DecisionTrace,ObservedOutcome,Counte
 from .credit_assignment import CreditAssigner
 from .timescale_memory import MultiTimescaleMemory
 from .stability_landscape import PlasticityGate
+from .structural_mathematics import StructuralReport
+from .structural_memory import StructuralMemory,StructuralExperience
 
 @dataclass(frozen=True)
 class OrganismDecision:
@@ -25,6 +27,7 @@ class OrganismDecision:
     population:PopulationReport
     stability:StabilityReport|None
     reasons:tuple[str,...]
+    structural_experience:StructuralExperience|None=None
 
 class ScientificOrganismController:
     def __init__(self,brain:NeuroDecisionController|None=None,
@@ -34,7 +37,8 @@ class ScientificOrganismController:
                  decision_memory:DecisionMemory|None=None,
                  credit_assigner:CreditAssigner|None=None,
                  timescale_memory:MultiTimescaleMemory|None=None,
-                 plasticity_gate:PlasticityGate|None=None):
+                 plasticity_gate:PlasticityGate|None=None,
+                 structural_memory:StructuralMemory|None=None):
         self.brain=brain or NeuroDecisionController()
         self.homeostasis=homeostasis or HomeostaticSupervisor(self.brain)
         self.landscape=landscape or BrainStabilityLandscape()
@@ -43,6 +47,7 @@ class ScientificOrganismController:
         self.credit_assigner=credit_assigner or CreditAssigner()
         self.timescale_memory=timescale_memory or MultiTimescaleMemory()
         self.plasticity_gate=plasticity_gate or PlasticityGate()
+        self.structural_memory=structural_memory or StructuralMemory()
         self.history:list[OrganismDecision]=[]
 
     def establish_native(self,validation_score:float):
@@ -51,7 +56,10 @@ class ScientificOrganismController:
     def decide(self,artifacts:Sequence[ScientificArtifact],models:Sequence[ModelIdentity],*,
                external_permission:bool,inhibitory_veto:bool=False,
                risk:float=0.0,uncertainty:float=0.0,
-               alternative_state_score:float=0.0):
+               alternative_state_score:float=0.0,
+               structural_report:StructuralReport|None=None,
+               structural_signature:str|None=None,
+               require_structural_familiarity:bool=False):
         pop=self.population_guard.assess(models)
         reasons=list(pop.reasons)
         signals=signals_from_artifacts(artifacts)
@@ -60,6 +68,14 @@ class ScientificOrganismController:
         permission=bool(external_permission and pop.healthy)
         if not pop.healthy:
             reasons.append("population_guard_block")
+
+        structural_experience=None
+        if structural_signature is not None:
+            structural_experience=self.structural_memory.experience(structural_signature)
+            if require_structural_familiarity:
+                structural_ok,structural_reasons=self.structural_memory.execution_permission(structural_signature)
+                if not structural_ok:
+                    permission=False;reasons.extend(structural_reasons)
 
         stability=None
         if self.landscape.native is not None:
@@ -72,10 +88,11 @@ class ScientificOrganismController:
 
         home=self.homeostasis.decide(signals,external_permission=permission,
                                      inhibitory_veto=inhibitory_veto,
-                                     risk=risk,uncertainty=uncertainty)
+                                     risk=risk,uncertainty=uncertainty,
+                                     structural_report=structural_report)
         reasons.extend(home.vetoes)
         action=home.decision.action if home.permitted else "HOLD"
-        out=OrganismDecision(action,home.permitted,home.decision,home,pop,stability,tuple(dict.fromkeys(reasons)))
+        out=OrganismDecision(action,home.permitted,home.decision,home,pop,stability,tuple(dict.fromkeys(reasons)),structural_experience)
         self.history.append(out)
         return out
 
