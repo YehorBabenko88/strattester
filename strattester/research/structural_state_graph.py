@@ -7,7 +7,7 @@ cannot silently become execution authority.
 from __future__ import annotations
 from dataclasses import dataclass
 from collections import Counter,defaultdict
-from math import log2
+from math import log2,isfinite
 
 @dataclass(frozen=True)
 class StateNode:
@@ -28,13 +28,33 @@ class StructuralStateGraph:
     def __init__(self,*,min_transition_samples=5,min_confidence=.65):
         self.min_transition_samples=int(min_transition_samples)
         self.min_confidence=float(min_confidence)
+        if self.min_transition_samples<1 or not isfinite(self.min_confidence) or not 0<=self.min_confidence<=1:
+            raise ValueError("invalid transition thresholds")
         self._visits=Counter();self._utility=defaultdict(list);self._regimes=defaultdict(set)
-        self._edges=Counter();self._last=None
+        self._edges=Counter();self._last=None;self._last_sequence=None;self._outcome_ids=set()
+
+    def observe_state(self,signature:str,*,regime:str,sequence:int):
+        sequence=int(sequence)
+        if self._last_sequence is not None and sequence<=self._last_sequence:
+            raise ValueError("non-monotonic structural sequence")
+        self._visits[signature]+=1;self._regimes[signature].add(regime)
+        if self._last is not None:self._edges[(self._last,signature)]+=1
+        self._last=signature;self._last_sequence=sequence
+
+    def observe_outcome(self,signature:str,*,utility:float,outcome_id:str|None=None):
+        utility=float(utility)
+        if not isfinite(utility):raise ValueError("non-finite structural utility")
+        if outcome_id is not None:
+            oid=str(outcome_id)
+            if oid in self._outcome_ids:return False
+            self._outcome_ids.add(oid)
+        self._utility[signature].append(utility);return True
 
     def observe(self,signature:str,*,regime:str,utility:float=0.0):
-        self._visits[signature]+=1;self._utility[signature].append(float(utility));self._regimes[signature].add(regime)
-        if self._last is not None:self._edges[(self._last,signature)]+=1
-        self._last=signature
+        """Compatibility path for synchronous observations."""
+        seq=0 if self._last_sequence is None else self._last_sequence+1
+        self.observe_state(signature,regime=regime,sequence=seq)
+        self.observe_outcome(signature,utility=utility)
 
     def node(self,signature:str):
         xs=self._utility.get(signature,[])
