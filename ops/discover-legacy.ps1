@@ -50,13 +50,10 @@ foreach($n in $nodes){
   # Windows PowerShell over SSH may emit CLIXML progress records on stderr.
   # A valid JSON payload is authoritative for discovery; do not discard it
   # solely because the remoting process returned a non-zero exit code.
-  $payload=$null
-  foreach($line in @($out -split "`r?`n")){
-    $candidate=$line.Trim()
-    if(!$candidate){continue}
-    try{$null=$candidate|ConvertFrom-Json; $payload=$candidate}catch{}
+  $payload=@($out -split "[\r\n]+" | Where-Object { $_.Trim().StartsWith('{"Hostname"') } | Select-Object -Last 1)
+  if($payload.Count -gt 0 -and $payload[0]){
+    try{$null=$payload[0]|ConvertFrom-Json; $payload[0]; continue}catch{}
   }
-  if($payload){$payload;continue}
   if($p.ExitCode -ne 0){Write-Warning "$($n.id) discovery failed: $err$out";continue}
   Write-Warning "$($n.id) returned no valid discovery JSON"
  } finally {Remove-Item $stdout,$stderr -Force -EA SilentlyContinue}
