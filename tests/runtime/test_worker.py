@@ -190,3 +190,19 @@ def test_executor_crash_never_marks_job_complete(tmp_path):
     assert after.state is not JobState.COMPLETE
     assert after.lease_owner is None
     s.close()
+
+
+def test_worker_close_releases_owned_resources_once(tmp_path):
+    class Resource:
+        def __init__(self): self.closed=0
+        def close(self): self.closed+=1
+    resource=Resource()
+    state=SQLiteStateStore.open(tmp_path/'state.db')
+    runtime=WorkerRuntime(state,Scheduler(state),lambda job:None,Lifecycle(),
+        build_logger(tmp_path/'worker.jsonl','test.worker.close'),
+        lambda:ResourceSnapshot(8*1024**3,6*1024**3,50*1024**3,10,4),
+        resources=[resource])
+    runtime.close()
+    runtime.close()
+    assert resource.closed==1
+    state.close()
