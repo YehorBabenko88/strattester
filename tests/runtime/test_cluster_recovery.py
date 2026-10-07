@@ -80,3 +80,19 @@ def test_competing_recovery_cas_allows_only_first_snapshot_to_commit(tmp_path):
     assert final==moved_a
     assert final.lease_token==7
     a.close(); b.close()
+
+
+def test_reassigned_expired_job_gets_new_fencing_token_when_reclaimed(tmp_path):
+    s=SQLiteStateStore.open(tmp_path/'state.db')
+    job=Job.new('sync',symbol='BTCUSDT',target_node='PC1',state=JobState.RUNNING,
+                lease_owner='old-worker',lease_until=9,lease_token=7)
+    s.put_job(job)
+    ClusterRecovery(ClusterState(s,('PC2',))).reconcile(now=10)
+    moved=s.get_job(job.id)
+    assert moved.state is JobState.RETRYABLE and moved.lease_token==7
+    claimed=s.claim_ready_jobs('new-worker',limit=1,now=11,lease_seconds=30,
+                               job_ids=[job.id],node_id='PC2')
+    assert len(claimed)==1 and claimed[0].lease_token==8
+    assert claimed[0].lease_owner=='new-worker'
+    assert s.transition_claimed(job.id,'old-worker',7,JobState.COMPLETE) is False
+    s.close()
