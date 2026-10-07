@@ -13,7 +13,8 @@ def assign_node(key:str,node_ids):
     return max(nodes,key=lambda node:_score(str(key),node))
 
 def assign_symbols(symbols,node_ids):
-    return {str(symbol):assign_node(str(symbol),node_ids) for symbol in symbols}
+    nodes=tuple(node_ids)
+    return {str(symbol):assign_node(str(symbol),nodes) for symbol in symbols}
 
 def make_sync_jobs(symbols,node_ids):
     assignments=assign_symbols(symbols,node_ids)
