@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from .homeostasis import ChannelLifecycle
 
-SCHEMA_VERSION=1
+SCHEMA_VERSION=2
 
 def _canonical(x):return json.dumps(x,sort_keys=True,separators=(",",":"),ensure_ascii=True)
 
@@ -19,6 +19,7 @@ def export_state(org):
                     "failures":v.failures,"successes":v.successes,"mutations":v.mutations,
                     "anomaly_score":v.anomaly_score} for k,v in sorted(org.homeostasis.health.items())},
       "plasticity":{"pending":dict(sorted(org.plasticity_gate.pending.items()))},
+      "learning":{"applied_events":sorted(org.applied_learning_events)},
     }
 
 def save_checkpoint(org,path:Path):
@@ -51,4 +52,5 @@ def load_checkpoint(org,path:Path):
         h.autonomous_drive=int(v["autonomous_drive"]);h.failures=int(v["failures"])
         h.successes=int(v["successes"]);h.mutations=int(v["mutations"]);h.anomaly_score=float(v["anomaly_score"])
     org.plasticity_gate.pending={str(k):int(v) for k,v in payload.get("plasticity",{}).get("pending",{}).items()}
+    org.applied_learning_events=set(map(str,payload.get("learning",{}).get("applied_events",[])))
     return actual
