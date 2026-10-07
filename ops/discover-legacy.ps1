@@ -11,9 +11,25 @@ $services=@(Get-CimInstance Win32_Service|?{$_.Name -match $servicePattern -or $
 $tasks=@(Get-ScheduledTask -EA SilentlyContinue|?{$_.TaskName -match $servicePattern -or (($_.Actions.Execute+' '+$_.Actions.Arguments) -match $pathPattern)}|select TaskName,TaskPath,State,@{N='Actions';E={($_.Actions|%{$_.Execute+' '+$_.Arguments}) -join '; '}})
 $processes=@(Get-CimInstance Win32_Process|?{$_.CommandLine -match $pathPattern}|select ProcessId,Name,CommandLine)
 $paths=@('C:\ProgramData\SQL\bybit-trading-system','C:\ProgramData\BybitClusterGrid','C:\Program Files\BybitClusterGrid','C:\Users\Easy\SQL\test','C:\Users\Leitstelle1\poc')|?{Test-Path $_}
-$db=@(); $psql=Get-Command psql.exe -EA SilentlyContinue
-if($psql){try{$db=@(& $psql.Source -U postgres -d postgres -Atc "select datname from pg_database where datistemplate=false order by 1" 2>$null)}catch{}}
-[pscustomobject]@{Hostname=(hostname);Services=$services;ScheduledTasks=$tasks;Processes=$processes;LegacyPaths=$paths;PostgresDatabases=$db}|ConvertTo-Json -Depth 8 -Compress
+$db=@(); $dbStatus='NOT_FOUND'; $psqlPath=$null
+$cmd=Get-Command psql.exe -EA SilentlyContinue
+if($cmd){$psqlPath=$cmd.Source}
+if(!$psqlPath){
+  $candidates=@(Get-ChildItem 'C:\Program Files\PostgreSQL\*\bin\psql.exe' -EA SilentlyContinue | Sort-Object FullName -Descending)
+  if($candidates.Count -gt 0){$psqlPath=$candidates[0].FullName}
+}
+if($psqlPath){
+  $oldTimeout=$env:PGCONNECT_TIMEOUT
+  try{
+    $env:PGCONNECT_TIMEOUT='3'
+    $raw=@(& $psqlPath -w -U postgres -d postgres -Atc "select datname from pg_database where datistemplate=false order by 1" 2>&1)
+    if($LASTEXITCODE -eq 0){$db=@($raw);$dbStatus='OK'}
+    elseif(($raw -join ' ') -match 'password|fe_sendauth|authentication'){$dbStatus='AUTH_REQUIRED'}
+    else{$dbStatus='ERROR: '+(($raw -join ' ') -replace '\s+',' ')}
+  }catch{$dbStatus='ERROR: '+$_.Exception.Message}
+  finally{$env:PGCONNECT_TIMEOUT=$oldTimeout}
+}
+[pscustomobject]@{Hostname=(hostname);Services=$services;ScheduledTasks=$tasks;Processes=$processes;LegacyPaths=$paths;PostgresDatabases=$db;PostgresDiscovery=$dbStatus;PsqlPath=$psqlPath}|ConvertTo-Json -Depth 8 -Compress
 '@
 $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($probe))
 foreach($n in $nodes){
