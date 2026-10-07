@@ -81,6 +81,20 @@ class SQLiteStateStore:
         except Exception:
             self.con.rollback(); raise
 
+    def compare_and_swap_job(self,expected,replacement):
+        self.con.execute('BEGIN IMMEDIATE')
+        try:
+            row=self.con.execute('SELECT payload FROM jobs WHERE id=?',(expected.id,)).fetchone()
+            if row is None:
+                self.con.rollback(); return False
+            current=self._decode(row[0])
+            if current.state!=expected.state or current.lease_token!=expected.lease_token or current.target_node!=expected.target_node or current.lease_owner!=expected.lease_owner:
+                self.con.rollback(); return False
+            self.con.execute('UPDATE jobs SET payload=? WHERE id=?',(self._encode(replacement),expected.id))
+            self.con.commit(); return True
+        except Exception:
+            self.con.rollback(); raise
+
     def lease_valid(self,job_id,owner,lease_token,now=None):
         now=time.time() if now is None else float(now)
         job=self.get_job(job_id)
