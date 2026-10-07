@@ -102,3 +102,28 @@ def test_writes_switch_to_shard_only_after_ready(tmp_path):
     assert store.for_symbol('BTCUSDT').coverage('BTCUSDT').count==2
     assert store.coverage('BTCUSDT').count==2
     store.close(); legacy.close()
+
+
+def test_source_growth_during_migration_defers_promotion_and_retry_catches_up(tmp_path):
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+    legacy.upsert_candles([candle('BTCUSDT',0),candle('BTCUSDT',60_000)])
+    store=ShardedMarketStore(tmp_path/'shards',legacy_store=legacy)
+    original=legacy.iter_candles
+    injected={'done':False}
+    def growing(*args,**kwargs):
+        for row in original(*args,**kwargs):
+            yield row
+            if not injected['done']:
+                injected['done']=True
+                legacy.upsert_candles([candle('BTCUSDT',120_000)])
+    legacy.iter_candles=growing
+    import pytest
+    with pytest.raises(RuntimeError,match='source changed'):
+        store.migrate_legacy_candles('BTCUSDT',batch_size=1)
+    assert not store.manifest.ready('BTCUSDT')
+    assert store.coverage('BTCUSDT').count==3
+    legacy.iter_candles=original
+    store.migrate_legacy_candles('BTCUSDT',batch_size=1)
+    assert store.manifest.ready('BTCUSDT')
+    assert store.coverage('BTCUSDT').count==3
+    store.close(); legacy.close()
