@@ -14,6 +14,13 @@ class WorkerRuntime:
         self.node_id=node_id
         self.execution_mode=execution_mode
 
+    def _heartbeat_node(self):
+        if self.node_id is not None and hasattr(self.state_store,'heartbeat_node'):
+            try:
+                self.state_store.heartbeat_node(self.node_id,meta={'worker_id':self.worker_id})
+            except Exception:
+                self.logger.exception('node heartbeat failed',extra={'node_id':self.node_id})
+
     def _pool_kind(self):
         if self.execution_mode=='thread': return 'thread'
         try:
@@ -43,6 +50,7 @@ class WorkerRuntime:
         kind=self._pool_kind()
         pool_cls=concurrent.futures.ProcessPoolExecutor if kind=='process' else concurrent.futures.ThreadPoolExecutor
         lease_valid={j.id:True for j in jobs}
+        self._heartbeat_node()
         self.logger.info('parallel batch started',extra={'jobs':len(jobs),'mode':kind})
         with pool_cls(max_workers=max(1,len(jobs))) as pool:
             futures={pool.submit(_invoke_executor,self.executor,j):j for j in jobs}
@@ -55,6 +63,7 @@ class WorkerRuntime:
                     j=futures[f]
                     self._finish_future(j,f,lease_valid[j.id])
                 if pending:
+                    self._heartbeat_node()
                     for f in tuple(pending):
                         j=futures[f]
                         if not lease_valid[j.id]: continue
@@ -73,6 +82,7 @@ class WorkerRuntime:
 
     def run_once(self):
         if self.lifecycle.draining or self.lifecycle.stopping:return 0
+        self._heartbeat_node()
         snapshot=self.snapshot_provider()
         try:
             candidates=self.scheduler.ready_jobs(snapshot,node_id=self.node_id)
