@@ -7,6 +7,7 @@ class ClusterState:
     def live_nodes(self,stale_after=30,now=None): return self.live
     def list_jobs(self): return self.inner.list_jobs()
     def put_job(self,j): return self.inner.put_job(j)
+    def compare_and_swap_job(self,expected,replacement): return self.inner.compare_and_swap_job(expected,replacement)
 
 def test_expired_job_on_dead_node_moves_and_rebinds_writer_lock(tmp_path):
     s=SQLiteStateStore.open(tmp_path/'state.db')
@@ -59,3 +60,23 @@ def test_recovery_is_idempotent_after_first_move(tmp_path):
     assert moved.target_node=='PC2'
     assert moved.resource_key=='market:PC2:BTCUSDT'
     s.close()
+
+
+def test_competing_recovery_cas_allows_only_first_snapshot_to_commit(tmp_path):
+    path=tmp_path/'shared-state.db'
+    a=SQLiteStateStore.open(path)
+    b=SQLiteStateStore.open(path)
+    job=Job.new('sync',symbol='BTCUSDT',target_node='PC1',resource_key='market:PC1:BTCUSDT',
+                state=JobState.RUNNING,lease_owner='dead-worker',lease_until=99,lease_token=7)
+    a.put_job(job)
+    snapshot_a=a.get_job(job.id)
+    snapshot_b=b.get_job(job.id)
+    from strattester.engine.distribution import reassign_unavailable
+    moved_a=reassign_unavailable(snapshot_a.recover_stale(100),('PC2','PC3'))
+    moved_b=reassign_unavailable(snapshot_b.recover_stale(100),('PC2','PC3'))
+    assert a.compare_and_swap_job(snapshot_a,moved_a) is True
+    assert b.compare_and_swap_job(snapshot_b,moved_b) is False
+    final=a.get_job(job.id)
+    assert final==moved_a
+    assert final.lease_token==7
+    a.close(); b.close()
