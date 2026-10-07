@@ -13,6 +13,7 @@ class CommunicationPlan:
     preconnect:tuple[RouteChoice,...]
     direct_to_brain:tuple[str,...]
     reasons:tuple[str,...]
+    agent_states:tuple[tuple[str,tuple[str,...]],...]=()
 
 class PredictiveCommunicationCoordinator:
     def __init__(self,state_graph:StructuralStateGraph,
@@ -26,12 +27,13 @@ class PredictiveCommunicationCoordinator:
         reasons=[]
         if not forecast.familiar:
             reasons.append("forecast_not_familiar")
-            return CommunicationPlan(current_state,forecast,(),(),(),tuple(reasons))
-        scores={}
+            return CommunicationPlan(current_state,forecast,(),(),(),tuple(reasons),())
+        scores={};agent_states={}
         for state,p,_ in forecast.ranked:
             if p<self.min_transition_probability:continue
             for agent in state_agents.get(state,()):
                 scores[agent]=max(scores.get(agent,0.0),p)
+                agent_states.setdefault(agent,set()).add(state)
         ranked=tuple(sorted(scores.items(),key=lambda x:(-x[1],x[0])))
         preconnect=self.fabric.anticipate_links(brain_id,dict(ranked),available_agents)
         direct=[]
@@ -41,19 +43,17 @@ class PredictiveCommunicationCoordinator:
                                                 urgency=urgency,topic_known=False):
                 direct.append(route.target)
         if not preconnect:reasons.append("no_predictive_links")
+        provenance=tuple((a,tuple(sorted(states))) for a,states in sorted(agent_states.items()))
         return CommunicationPlan(current_state,forecast,ranked,preconnect,
-                                 tuple(sorted(set(direct))),tuple(reasons))
+                                 tuple(sorted(set(direct))),tuple(reasons),provenance)
 
     def reinforce_plan(self,plan:CommunicationPlan,actual_state:str,*,latency_ms:Mapping[str,float]):
-        predicted={s for s,_,_ in plan.forecast.ranked}
-        hit=actual_state in predicted
+        provenance={a:set(states) for a,states in plan.agent_states}
         updates={}
         for route in plan.preconnect:
-            useful=1.0 if hit else -.5
-            updates[route.target]=self.fabric.observe_delivery(
-                "brain",route.target,success=True,
-                latency_ms=float(latency_ms.get(route.target,0)),
-                useful=useful,redundant=not hit)
+            relevant=actual_state in provenance.get(route.target,set())
+            updates[route.target]=self.fabric.observe_preparation_outcome(
+                "brain",route.target,useful=1.0 if relevant else -.5,redundant=not relevant)
         return updates
 
     def publish_work_progress(self,agent_id:str,topic:str,payload:object,*,
