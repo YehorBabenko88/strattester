@@ -52,7 +52,9 @@ foreach($path in $foundPaths){Remove-Item -LiteralPath $path -Recurse -Force -EA
  $wrapper="$([char]36)PlanJson=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('$plan64')); & { $remote } -PlanJson $([char]36)PlanJson"
  $script64=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($wrapper))
  if($n.local){Write-Warning "No LS5 purge plan exists; active Grid is protected.";continue}
- $out=$script64 | & ssh -o BatchMode=yes -o PasswordAuthentication=no -o ConnectTimeout=8 -i $IdentityFile "$($n.user)@$($n.ssh_host)" "powershell.exe -NoProfile -NonInteractive -Command \"`$b=[Console]::In.ReadToEnd();`$s=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String(`$b));&([scriptblock]::Create(`$s))\"" 2>&1
+ $receiver='$b=[Console]::In.ReadToEnd();$s=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($b));&([scriptblock]::Create($s))'
+ $receiver64=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($receiver))
+ $out=$script64 | & ssh -o BatchMode=yes -o PasswordAuthentication=no -o ConnectTimeout=8 -i $IdentityFile "$($n.user)@$($n.ssh_host)" "powershell.exe -NoProfile -NonInteractive -EncodedCommand $receiver64" 2>&1
  if($LASTEXITCODE -ne 0){throw "Purge failed on $($n.id) with SSH exit code $LASTEXITCODE"}
  $out
 }
