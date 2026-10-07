@@ -35,7 +35,7 @@ class SQLiteMarketStore:
     def open(cls,path: Path):
         path=Path(path); path.parent.mkdir(parents=True,exist_ok=True)
         con=sqlite3.connect(path,timeout=60)
-        con.execute('PRAGMA foreign_keys=ON'); con.execute('PRAGMA journal_mode=WAL'); con.execute('PRAGMA busy_timeout=60000'); con.execute('PRAGMA synchronous=NORMAL')
+        con.execute('PRAGMA foreign_keys=ON'); con.execute('PRAGMA journal_mode=WAL'); con.execute('PRAGMA busy_timeout=60000'); con.execute('PRAGMA synchronous=FULL'); con.execute('PRAGMA wal_autocheckpoint=1000')
         tables={r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         legacy=False
         if 'candles' in tables:
@@ -53,7 +53,21 @@ class SQLiteMarketStore:
         con.commit()
         return cls(path,con)
 
-    def close(self): self.connection.close()
+    def checkpoint_wal(self,mode='PASSIVE'):
+        mode=str(mode).upper()
+        if mode not in ('PASSIVE','FULL','RESTART','TRUNCATE'):
+            raise ValueError('unsupported WAL checkpoint mode')
+        return self.connection.execute(f'PRAGMA wal_checkpoint({mode})').fetchone()
+
+    def integrity_check(self):
+        row=self.connection.execute('PRAGMA quick_check').fetchone()
+        return bool(row and str(row[0]).lower()=='ok')
+
+    def close(self):
+        try:
+            self.checkpoint_wal('PASSIVE')
+        finally:
+            self.connection.close()
 
     @staticmethod
     def _valid(c: Candle) -> bool:
