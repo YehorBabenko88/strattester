@@ -41,6 +41,7 @@ def test_legacy_symbol_migration_is_validated_before_shard_use(tmp_path):
     s=ShardedMarketStore(tmp_path/'shards',legacy_store=legacy)
     copied=s.migrate_legacy_candles('BTCUSDT')
     assert copied==5
+    assert s.manifest.ready('BTCUSDT')
     shard=s.for_symbol('BTCUSDT')
     assert shard.coverage('BTCUSDT').count==5
     assert shard.integrity_check()
