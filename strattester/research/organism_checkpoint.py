@@ -1,6 +1,6 @@
 """Deterministic checkpointing for scientific-organism adaptive state."""
 from __future__ import annotations
-import hashlib,json,math,copy
+import hashlib,json,math,copy,os
 from dataclasses import dataclass
 from pathlib import Path
 from .homeostasis import ChannelLifecycle
@@ -50,7 +50,23 @@ def save_checkpoint(org,path:Path):
     payload=export_state(org);raw=_canonical(payload)
     envelope={"payload":payload,"sha256":hashlib.sha256(raw.encode()).hexdigest()}
     tmp=path.with_suffix(path.suffix+".tmp")
-    tmp.write_text(_canonical(envelope),encoding="utf-8");tmp.replace(path)
+    raw_envelope=_canonical(envelope)
+    try:
+        with open(tmp,"w",encoding="utf-8") as fh:
+            fh.write(raw_envelope);fh.flush();os.fsync(fh.fileno())
+        os.replace(tmp,path)
+        # Persist the directory entry where supported so power loss cannot
+        # expose a renamed checkpoint whose metadata never reached storage.
+        try:
+            fd=os.open(str(path.parent),os.O_RDONLY)
+            try:os.fsync(fd)
+            finally:os.close(fd)
+        except OSError:
+            pass
+    except BaseException:
+        try:tmp.unlink(missing_ok=True)
+        except OSError:pass
+        raise
     return envelope["sha256"]
 
 def _validate_payload(payload):
