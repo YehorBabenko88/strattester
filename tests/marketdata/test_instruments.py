@@ -83,3 +83,40 @@ def test_universe_time_cannot_regress_and_corrupt_intervals(tmp_path):
     except ValueError as e:assert "non-monotonic" in str(e)
     else:raise AssertionError("time-regressing universe accepted")
     assert r.get('BTCUSDT').status is InstrumentStatus.ACTIVE
+
+
+def test_same_snapshot_same_timestamp_is_idempotent_for_missing_confirmation(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db')
+    r.reconcile({'A','B'},1000);r.reconcile({'B'},2000)
+    assert r.get('A').status is InstrumentStatus.MISSING
+    r.reconcile({'B'},2000)
+    assert r.get('A').status is InstrumentStatus.MISSING
+    r.reconcile({'B'},3000)
+    assert r.get('A').status is InstrumentStatus.DELISTED
+    r.close()
+
+def test_conflicting_snapshot_same_timestamp_is_rejected(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db');r.reconcile({'A'},1000)
+    with pytest.raises(ValueError,match='conflicting'):r.reconcile({'A','B'},1000)
+    assert r.get('B') is None;r.close()
+
+def test_returning_missing_symbol_resets_confirmation_counter(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db');r.reconcile({'A'},1000);r.reconcile(set(),2000)
+    r.reconcile({'A'},3000);assert r.get('A').status is InstrumentStatus.ACTIVE
+    r.reconcile(set(),4000);assert r.get('A').status is InstrumentStatus.MISSING
+    r.close()
+
+def test_reconcile_rolls_back_entire_snapshot_on_mid_transaction_failure(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db');r.reconcile({'A','B'},1000)
+    r.conn.execute("""CREATE TRIGGER fail_b BEFORE UPDATE ON instruments
+      WHEN NEW.symbol='B' AND NEW.status='MISSING' BEGIN SELECT RAISE(ABORT,'boom'); END;""")
+    r.conn.commit()
+    with pytest.raises(Exception):r.reconcile({'A','C'},2000)
+    assert r.get('C') is None
+    assert r.get('A').last_seen==1000 and r.get('B').status is InstrumentStatus.ACTIVE
+    r.close()
+
+def test_non_string_symbol_is_rejected_not_stringified(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db')
+    with pytest.raises(ValueError):r.reconcile({'A',None},1000)
+    assert r.get('A') is None;r.close()
