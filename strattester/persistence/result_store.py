@@ -16,30 +16,31 @@ class ResultStore:
         cols={r[1] for r in con.execute('PRAGMA table_info(research_results)')}
         if 'job_id' not in cols: con.execute('ALTER TABLE research_results ADD COLUMN job_id TEXT')
         if 'lease_token' not in cols: con.execute('ALTER TABLE research_results ADD COLUMN lease_token INTEGER NOT NULL DEFAULT 0')
+        if 'node_generation' not in cols: con.execute('ALTER TABLE research_results ADD COLUMN node_generation INTEGER NOT NULL DEFAULT 0')
         con.execute('CREATE INDEX IF NOT EXISTS ix_results_latest ON research_results(symbol,strategy_id,created_at DESC)')
         con.execute('''CREATE TABLE IF NOT EXISTS staged_research_results(
             stage_id TEXT PRIMARY KEY,run_id TEXT NOT NULL,symbol TEXT NOT NULL,strategy_id TEXT NOT NULL,
-            strategy_version TEXT NOT NULL,created_at REAL NOT NULL,metrics TEXT NOT NULL,job_id TEXT,lease_token INTEGER NOT NULL DEFAULT 0)''')
+            strategy_version TEXT NOT NULL,created_at REAL NOT NULL,metrics TEXT NOT NULL,job_id TEXT,lease_token INTEGER NOT NULL DEFAULT 0,node_generation INTEGER NOT NULL DEFAULT 0)''')
         con.commit(); return cls(p,con)
     def put(self,run_id,symbol,strategy_id,strategy_version,metrics,created_at=None):
         created_at=time.time() if created_at is None else float(created_at)
         with self.con:
             self.con.execute('''INSERT OR REPLACE INTO research_results
-                (run_id,symbol,strategy_id,strategy_version,created_at,metrics,job_id,lease_token)
-                VALUES(?,?,?,?,?,?,NULL,0)''',
+                (run_id,symbol,strategy_id,strategy_version,created_at,metrics,job_id,lease_token,node_generation)
+                VALUES(?,?,?,?,?,?,NULL,0,0)''',
                 (run_id,symbol,strategy_id,strategy_version,created_at,json.dumps(metrics,sort_keys=True)))
-    def stage(self,stage_id,run_id,symbol,strategy_id,strategy_version,metrics,created_at=None,job_id=None,lease_token=0):
+    def stage(self,stage_id,run_id,symbol,strategy_id,strategy_version,metrics,created_at=None,job_id=None,lease_token=0,node_generation=0):
         created_at=time.time() if created_at is None else float(created_at)
         with self.con:
             self.con.execute('''INSERT OR REPLACE INTO staged_research_results
-                (stage_id,run_id,symbol,strategy_id,strategy_version,created_at,metrics,job_id,lease_token)
-                VALUES(?,?,?,?,?,?,?,?,?)''',
-                (stage_id,run_id,symbol,strategy_id,strategy_version,created_at,json.dumps(metrics,sort_keys=True),job_id,int(lease_token)))
+                (stage_id,run_id,symbol,strategy_id,strategy_version,created_at,metrics,job_id,lease_token,node_generation)
+                VALUES(?,?,?,?,?,?,?,?,?,?)''',
+                (stage_id,run_id,symbol,strategy_id,strategy_version,created_at,json.dumps(metrics,sort_keys=True),job_id,int(lease_token),int(node_generation)))
 
     def promote(self,stage_id,lease_validator):
         """Publish a staged result only while its external job lease is valid."""
         with self.con:
-            row=self.con.execute('SELECT run_id,symbol,strategy_id,strategy_version,created_at,metrics,job_id,lease_token FROM staged_research_results WHERE stage_id=?',(stage_id,)).fetchone()
+            row=self.con.execute('SELECT run_id,symbol,strategy_id,strategy_version,created_at,metrics,job_id,lease_token,node_generation FROM staged_research_results WHERE stage_id=?',(stage_id,)).fetchone()
             if row is None: return False
             if not lease_validator():
                 self.con.execute('DELETE FROM staged_research_results WHERE stage_id=?',(stage_id,))
@@ -50,8 +51,8 @@ class ResultStore:
                 self.con.execute('DELETE FROM staged_research_results WHERE stage_id=?',(stage_id,))
                 return False
             self.con.execute('''INSERT OR REPLACE INTO research_results
-                (run_id,symbol,strategy_id,strategy_version,created_at,metrics,job_id,lease_token)
-                VALUES(?,?,?,?,?,?,?,?)''',row)
+                (run_id,symbol,strategy_id,strategy_version,created_at,metrics,job_id,lease_token,node_generation)
+                VALUES(?,?,?,?,?,?,?,?,?)''',row)
             self.con.execute('DELETE FROM staged_research_results WHERE stage_id=?',(stage_id,))
             return True
 
