@@ -58,3 +58,19 @@ def test_supported_optional_datasets_remain_required():
                 "supportsOpenInterest":True,"supportsFunding":True,"supportsLongShortRatio":True}
     assert {x.dataset for x in requirements_for_instrument(instrument,end_ms=600000)}=={
         "candles","mark_price","index_price","premium_index","open_interest","funding","long_short_ratio"}
+
+
+def test_requirements_stop_at_delisting_boundary():
+    instrument={"symbol":"OLDUSDT","launchTime":"60000","deliveryTime":"600000",
+                "fundingInterval":"480","supportsOpenInterest":True,"supportsFunding":True}
+    req=requirements_for_instrument(instrument,end_ms=900000)
+    assert req and all(x.start_ms==60000 and x.end_ms==600000 for x in req)
+
+def test_requirements_empty_before_instrument_launch():
+    instrument={"symbol":"NEWUSDT","launchTime":"600000","fundingInterval":"480"}
+    assert requirements_for_instrument(instrument,end_ms=300000)==()
+
+def test_zero_delivery_time_does_not_truncate_perpetual_instrument():
+    instrument={"symbol":"BTCUSDT","launchTime":"0","deliveryTime":"0","fundingInterval":"480"}
+    req=requirements_for_instrument(instrument,end_ms=900000)
+    assert req and all(x.end_ms==900000 for x in req)
