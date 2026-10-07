@@ -41,4 +41,10 @@ def evaluate_entry_signals(pattern,signals,bars,*,policy:ExecutionPolicy,folds=5
     ci=None
     if all_trades:
         ci=bootstrap_expectancy([x.net_pnl for x in all_trades],iterations=500,seed=17).lower
+        # A positive point estimate is not enough. If uncertainty still includes
+        # zero, keep the pattern in research rather than promoting it.
+        if verdict.status=="KEEP" and ci<=0:
+            verdict=type(verdict)(verdict.pattern,"NEEDS_MORE_DATA",verdict.samples,
+              verdict.profitable_folds,verdict.losing_folds,verdict.mean_expectancy,
+              verdict.mean_profit_factor,tuple(verdict.reasons)+("BOOTSTRAP_CROSSES_ZERO",))
     return PatternEvaluation(pattern,tuple(metrics),verdict,len(all_trades),ci)
