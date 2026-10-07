@@ -47,8 +47,17 @@ def requirements_for_instrument(instrument:dict,*,end_ms:int):
     caps=dataset_capabilities(instrument)
     specs=(('candles','1m'),('mark_price','1m'),('index_price','1m'),('premium_index','1m'),
            ('open_interest','5m'),('funding',f'{funding_minutes}m'),('long_short_ratio','5m'))
-    return tuple(DataRequirement(symbol,dataset,timeframe,launch,end_ms)
-                 for dataset,timeframe in specs if dataset in caps)
+    def step_ms(tf):
+        unit=tf[-1].lower();n=int(tf[:-1])
+        return n*({'m':60_000,'h':3_600_000,'d':86_400_000}[unit])
+    requirements=[]
+    for dataset,timeframe in specs:
+        if dataset not in caps:continue
+        step=step_ms(timeframe)
+        start=((launch+step-1)//step)*step
+        end=(end_ms//step)*step
+        if start<=end:requirements.append(DataRequirement(symbol,dataset,timeframe,start,end))
+    return tuple(requirements)
 
 def ensure_instrument_history(store,client,instrument,*,end_ms:int,clock_ms=None):
     return ensure_history(store,client,requirements_for_instrument(instrument,end_ms=end_ms),clock_ms=clock_ms)
