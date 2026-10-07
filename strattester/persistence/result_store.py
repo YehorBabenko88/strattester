@@ -8,7 +8,7 @@ class ResultStore:
     def open(cls,path):
         p=Path(path); p.parent.mkdir(parents=True,exist_ok=True)
         con=sqlite3.connect(p,timeout=30)
-        con.execute('PRAGMA journal_mode=WAL'); con.execute('PRAGMA busy_timeout=30000')
+        con.execute('PRAGMA journal_mode=WAL'); con.execute('PRAGMA busy_timeout=30000'); con.execute('PRAGMA synchronous=FULL'); con.execute('PRAGMA wal_autocheckpoint=1000')
         con.execute('''CREATE TABLE IF NOT EXISTS research_results(
             run_id TEXT NOT NULL,symbol TEXT NOT NULL,strategy_id TEXT NOT NULL,strategy_version TEXT NOT NULL,
             created_at REAL NOT NULL,metrics TEXT NOT NULL,
@@ -27,4 +27,11 @@ class ResultStore:
         if row is None:return None
         return {'run_id':row[0],'symbol':row[1],'strategy_id':row[2],'strategy_version':row[3],
                 'created_at':row[4],'metrics':json.loads(row[5])}
-    def close(self): self.con.close()
+    def checkpoint_wal(self,mode='PASSIVE'):
+        mode=str(mode).upper()
+        if mode not in ('PASSIVE','FULL','RESTART','TRUNCATE'):
+            raise ValueError('unsupported WAL checkpoint mode')
+        return self.con.execute(f'PRAGMA wal_checkpoint({mode})').fetchone()
+    def close(self):
+        try: self.checkpoint_wal('PASSIVE')
+        finally: self.con.close()
