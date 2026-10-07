@@ -19,7 +19,8 @@ class InstrumentRegistry:
         c.execute("CREATE TABLE IF NOT EXISTS instruments(symbol TEXT PRIMARY KEY,status TEXT NOT NULL,first_seen INTEGER NOT NULL,last_seen INTEGER NOT NULL,delisted_at INTEGER,missing_count INTEGER NOT NULL DEFAULT 0)")
         cols={r[1] for r in c.execute("PRAGMA table_info(instruments)")}
         if "missing_count" not in cols:c.execute("ALTER TABLE instruments ADD COLUMN missing_count INTEGER NOT NULL DEFAULT 0")
-        c.execute("CREATE TABLE IF NOT EXISTS instrument_intervals(symbol TEXT NOT NULL,start_time INTEGER NOT NULL,end_time INTEGER,PRIMARY KEY(symbol,start_time))")\n        c.execute("CREATE TABLE IF NOT EXISTS instrument_registry_meta(key TEXT PRIMARY KEY,value TEXT NOT NULL)")
+        c.execute("CREATE TABLE IF NOT EXISTS instrument_intervals(symbol TEXT NOT NULL,start_time INTEGER NOT NULL,end_time INTEGER,PRIMARY KEY(symbol,start_time))")
+        c.execute("CREATE TABLE IF NOT EXISTS instrument_registry_meta(key TEXT PRIMARY KEY,value TEXT NOT NULL)")
         c.commit(); return cls(c)
     def close(self): self.conn.close()
     def get(self,symbol):
@@ -39,7 +40,11 @@ class InstrumentRegistry:
         if rec.status is not InstrumentStatus.ACTIVE and status is InstrumentStatus.ACTIVE:
             self.conn.execute("INSERT OR IGNORE INTO instrument_intervals(symbol,start_time,end_time) VALUES(?,?,NULL)",(symbol,observed_at))
         delisted=observed_at if status is InstrumentStatus.DELISTED else (None if status is InstrumentStatus.ACTIVE else rec.delisted_at)
-        missing_count=0 if status is InstrumentStatus.ACTIVE else self.conn.execute("SELECT missing_count FROM instruments WHERE symbol=?",(symbol,)).fetchone()[0]\n        self.conn.execute("UPDATE instruments SET status=?,last_seen=?,delisted_at=?,missing_count=? WHERE symbol=?",(status.value,observed_at,delisted,int(missing_count or 0),symbol))\n        if commit:self.conn.commit()\n    def set_status(self,symbol,status,observed_at):\n        return self._set_status(symbol,status,observed_at,commit=True)
+        missing_count=0 if status is InstrumentStatus.ACTIVE else self.conn.execute("SELECT missing_count FROM instruments WHERE symbol=?",(symbol,)).fetchone()[0]
+        self.conn.execute("UPDATE instruments SET status=?,last_seen=?,delisted_at=?,missing_count=? WHERE symbol=?",(status.value,observed_at,delisted,int(missing_count or 0),symbol))
+        if commit:self.conn.commit()
+    def set_status(self,symbol,status,observed_at):
+        return self._set_status(symbol,status,observed_at,commit=True)
     def reconcile(self,exchange_snapshot:set[str],observed_at:int):
         observed_at=int(observed_at)
         raw=list(exchange_snapshot)
