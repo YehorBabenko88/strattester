@@ -43,3 +43,46 @@ def test_transaction_rolls_back_on_sql_error(tmp_path):
     with pytest.raises(sqlite3.Error):
         s.upsert_candles(Broken())
     s.close()
+
+
+def test_generator_failure_rolls_back_whole_candle_batch(tmp_path):
+    s=SQLiteMarketStore.open(tmp_path/'m.db')
+    def broken():
+        yield c(0)
+        raise RuntimeError('simulated process interruption')
+    with pytest.raises(RuntimeError):
+        s.upsert_candles(broken())
+    assert s.coverage('BTCUSDT').count==0
+    assert s.integrity_check()
+    s.close()
+
+def test_two_local_connections_can_write_different_symbols_without_corruption(tmp_path):
+    import threading
+    path=tmp_path/'m.db'
+    a=SQLiteMarketStore.open(path); b=SQLiteMarketStore.open(path)
+    errors=[]
+    def write(store,symbol):
+        try:
+            rows=[Candle(symbol,'1m',i*60_000,1,1.1,.9,1,1) for i in range(100)]
+            store.upsert_candles(rows)
+        except Exception as exc:
+            errors.append(exc)
+    t1=threading.Thread(target=write,args=(a,'BTCUSDT'))
+    t2=threading.Thread(target=write,args=(b,'ETHUSDT'))
+    t1.start(); t2.start(); t1.join(); t2.join()
+    assert not errors
+    assert a.coverage('BTCUSDT').count==100
+    assert a.coverage('ETHUSDT').count==100
+    assert a.integrity_check()
+    a.close(); b.close()
+
+def test_wal_checkpoint_and_reopen_preserve_integrity(tmp_path):
+    path=tmp_path/'m.db'
+    s=SQLiteMarketStore.open(path)
+    s.upsert_candles([c(i*60_000) for i in range(10)])
+    s.checkpoint_wal('FULL')
+    s.close()
+    reopened=SQLiteMarketStore.open(path)
+    assert reopened.coverage('BTCUSDT').count==10
+    assert reopened.integrity_check()
+    reopened.close()
