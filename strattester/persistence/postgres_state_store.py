@@ -25,6 +25,13 @@ class PostgresStateStore:
         with con.cursor() as cur:
             cur.execute('CREATE TABLE IF NOT EXISTS strattester_jobs(id TEXT PRIMARY KEY,payload JSONB NOT NULL)')
             cur.execute('CREATE TABLE IF NOT EXISTS strattester_nodes(node_id TEXT PRIMARY KEY,last_seen DOUBLE PRECISION NOT NULL,meta JSONB NOT NULL DEFAULT \'{}\'::jsonb)')
+            cur.execute('''CREATE TABLE IF NOT EXISTS strattester_brain_lease(
+                singleton BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK(singleton),
+                holder TEXT NOT NULL, epoch BIGINT NOT NULL, expires_at DOUBLE PRECISION NOT NULL)''')
+            cur.execute('''CREATE TABLE IF NOT EXISTS strattester_learning_events(
+                event_id TEXT PRIMARY KEY, decision_id TEXT NOT NULL, horizon TEXT NOT NULL,
+                applied_at DOUBLE PRECISION NOT NULL, meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+                UNIQUE(decision_id,horizon))''')
         con.commit(); return cls(con,dsn)
     @staticmethod
     def _encode(job):
@@ -171,5 +178,58 @@ class PostgresStateStore:
         with self.con.cursor() as cur:
             cur.execute('SELECT node_id FROM strattester_nodes WHERE last_seen>=%s ORDER BY node_id',(cutoff,))
             return tuple(r[0] for r in cur.fetchall())
+
+    def acquire_brain_lease(self,holder,lease_seconds=30,now=None):
+        now=time.time() if now is None else float(now)
+        try:
+            with self.con.cursor() as cur:
+                cur.execute('SELECT holder,epoch,expires_at FROM strattester_brain_lease WHERE singleton=TRUE FOR UPDATE')
+                row=cur.fetchone()
+                if row is not None and row[2]>now and row[0]!=holder:
+                    self.con.rollback(); return None
+                epoch=1 if row is None else int(row[1])+(0 if row[0]==holder and row[2]>now else 1)
+                cur.execute('''INSERT INTO strattester_brain_lease(singleton,holder,epoch,expires_at)
+                    VALUES(TRUE,%s,%s,%s)
+                    ON CONFLICT(singleton) DO UPDATE SET holder=excluded.holder,epoch=excluded.epoch,expires_at=excluded.expires_at''',
+                    (str(holder),epoch,now+float(lease_seconds)))
+            self.con.commit(); return {"holder":str(holder),"epoch":epoch,"expires_at":now+float(lease_seconds)}
+        except Exception:
+            self.con.rollback(); raise
+
+    def renew_brain_lease(self,holder,epoch,lease_seconds=30,now=None):
+        now=time.time() if now is None else float(now)
+        try:
+            with self.con.cursor() as cur:
+                cur.execute('''UPDATE strattester_brain_lease SET expires_at=%s
+                    WHERE singleton=TRUE AND holder=%s AND epoch=%s AND expires_at>%s''',
+                    (now+float(lease_seconds),str(holder),int(epoch),now))
+                ok=cur.rowcount==1
+            self.con.commit(); return ok
+        except Exception:
+            self.con.rollback(); raise
+
+    def brain_lease(self):
+        with self.con.cursor() as cur:
+            cur.execute('SELECT holder,epoch,expires_at FROM strattester_brain_lease WHERE singleton=TRUE')
+            row=cur.fetchone()
+        return None if row is None else {"holder":row[0],"epoch":int(row[1]),"expires_at":float(row[2])}
+
+    def claim_learning_event(self,event_id,decision_id,horizon,now=None,meta=None):
+        now=time.time() if now is None else float(now)
+        try:
+            with self.con.cursor() as cur:
+                cur.execute('''INSERT INTO strattester_learning_events(event_id,decision_id,horizon,applied_at,meta)
+                    VALUES(%s,%s,%s,%s,%s::jsonb) ON CONFLICT DO NOTHING''',
+                    (str(event_id),str(decision_id),str(horizon),now,json.dumps(meta or {})))
+                claimed=cur.rowcount==1
+            self.con.commit(); return claimed
+        except Exception:
+            self.con.rollback(); raise
+
+    def learning_event_applied(self,decision_id,horizon):
+        with self.con.cursor() as cur:
+            cur.execute('SELECT 1 FROM strattester_learning_events WHERE decision_id=%s AND horizon=%s',
+                        (str(decision_id),str(horizon)))
+            return cur.fetchone() is not None
 
     def close(self): self.con.close()
