@@ -226,6 +226,8 @@ class SyncEngine:
                             anchor=entry[2]
                             if isinstance(anchor,bool) or not isinstance(anchor,int) or not 0<=anchor<candidate_interval:
                                 raise ValueError('invalid verified funding schedule anchor')
+                            if (entry[0]-anchor)%candidate_interval:
+                                raise ValueError('funding segment start is not aligned with its schedule')
                     verified=schedule[-1][1]
                     interval=int(verified)
                 else:
