@@ -411,3 +411,27 @@ def test_malformed_funding_drift_journal_fails_closed(tmp_path):
     engine = SyncEngine(store, object(), funding_drift_journal=journal)
     assert engine.read_funding_drift_alerts()['state'] is SyncState.RETRYABLE
     store.close()
+
+
+def test_funding_drift_recovery_ignores_truncated_tail(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    journal = tmp_path / 'funding-drift.jsonl'
+    valid = {'observed_at_ms': 42, 'changes': {'BTCUSDT': {'state': 'CHANGED'}}}
+    with journal.open('wb') as stream:
+        stream.write((json.dumps(valid) + '\n').encode())
+        stream.write(b'{"observed_at_ms": 999, "changes":')
+    engine = SyncEngine(store, object(), funding_drift_journal=journal)
+    recovered = engine.read_funding_drift_alerts()
+    assert recovered['state'] is SyncState.REPAIR_REQUIRED
+    assert recovered['observed_at_ms'] == 42
+    store.close()
+
+
+def test_funding_drift_recovery_rejects_only_truncated_record(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    journal = tmp_path / 'funding-drift.jsonl'
+    journal.write_bytes(b'{"observed_at_ms": 999, "changes":')
+    engine = SyncEngine(store, object(), funding_drift_journal=journal)
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.RETRYABLE
+    store.close()
