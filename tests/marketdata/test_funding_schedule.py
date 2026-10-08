@@ -1228,3 +1228,39 @@ def test_funding_drift_torn_active_keeps_valid_backup(tmp_path):
     assert journal.with_name(journal.name + '.partial').read_bytes() == b'{"observed_at_ms":'
     assert len(journal.read_text().splitlines()) == 1
     assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
+
+
+def test_funding_drift_torn_active_failed_recreation_keeps_backup(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+    journal = tmp_path / 'funding-drift.jsonl'
+    backup = journal.with_name(journal.name + '.1')
+    changes = {'BTCUSDT': {
+        'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+        'current_interval_ms': HOUR,
+    }}
+    original = json.dumps({'observed_at_ms': 10, 'changes': changes}) + '\n'
+    backup.write_text(original)
+    journal.write_bytes(b'{"observed_at_ms":')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    original_open = Path.open
+    def deny_recreation(path, *args, **kwargs):
+        mode = args[0] if args else kwargs.get('mode', 'r')
+        if path == journal and mode == 'a':
+            raise PermissionError('simulated append denial')
+        return original_open(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', deny_recreation)
+    failed = engine.check_current_funding_intervals()
+    assert failed['state'] is SyncState.RETRYABLE
+    assert backup.read_text() == original
+    assert engine.read_funding_drift_alerts()['observed_at_ms'] == 10
+    monkeypatch.setattr(Path, 'open', original_open)
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert backup.read_text() == original
+    assert len(journal.read_text().splitlines()) == 1
