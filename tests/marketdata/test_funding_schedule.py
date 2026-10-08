@@ -902,3 +902,21 @@ def test_funding_drift_repairs_truncated_marker_after_restart(tmp_path):
     assert marker.read_bytes() == b'1\n'
     assert len([json.loads(line) for line in journal.read_text().splitlines()]) == 1
     store.close()
+
+
+def test_funding_drift_missing_journal_inaccessible_marker_fails_closed(tmp_path, monkeypatch):
+    from pathlib import Path
+    journal = tmp_path / 'funding-drift.jsonl'
+    marker = journal.with_name(journal.name + '.initialized')
+    engine = SyncEngine(None, object(), funding_drift_journal=journal)
+    original_open = Path.open
+    def deny_marker(path, *args, **kwargs):
+        if path == marker:
+            raise PermissionError('simulated inaccessible marker')
+        return original_open(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', deny_marker)
+    result = engine.read_funding_drift_alerts()
+    assert result['state'] is SyncState.RETRYABLE
+    assert 'inaccessible' in result['message']
+    monkeypatch.setattr(Path, 'open', original_open)
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.UNKNOWN
