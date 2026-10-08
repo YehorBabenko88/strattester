@@ -463,3 +463,54 @@ def test_funding_drift_journal_records_actual_changes_only(tmp_path):
     assert rows[0]['changes']['BTCUSDT']['current_interval_ms'] == HOUR
     assert rows[1]['changes']['BTCUSDT']['current_interval_ms'] == 2 * HOUR
     store.close()
+
+
+def test_funding_drift_resolution_is_persisted_and_restored(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        interval = HOUR
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': self.interval}
+    client = Metadata()
+    journal = tmp_path / 'funding-drift.jsonl'
+    kwargs = dict(
+        funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+        clock_ms=lambda: 100,
+    )
+    engine = SyncEngine(store, client, **kwargs)
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    client.interval = 8 * HOUR
+    assert engine.check_current_funding_intervals()['state'] is SyncState.READY
+    restored = SyncEngine(store, client, **kwargs).read_funding_drift_alerts()
+    assert restored['state'] is SyncState.READY
+    assert restored['changes'] == {}
+    rows = [json.loads(line) for line in journal.read_text().splitlines()]
+    assert len(rows) == 2
+    assert rows[-1]['changes'] == {}
+    assert engine.check_current_funding_intervals()['state'] is SyncState.READY
+    assert len(journal.read_text().splitlines()) == 2
+    store.close()
+
+
+def test_funding_drift_reappearing_after_resolution_creates_new_event(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        interval = HOUR
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': self.interval}
+    client = Metadata()
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, client, funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    client.interval = 8 * HOUR
+    assert engine.check_current_funding_intervals()['state'] is SyncState.READY
+    client.interval = HOUR
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert len(journal.read_text().splitlines()) == 3
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
+    store.close()
