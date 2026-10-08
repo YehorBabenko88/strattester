@@ -220,3 +220,34 @@ def test_transition_requires_schedule_covering_requested_start(tmp_path):
     assert result.state is SyncState.UNAVAILABLE
     assert client.calls == []
     store.close()
+
+
+def test_misaligned_funding_transition_fails_closed(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    client = FundingClient([0, 8 * HOUR])
+    engine = SyncEngine(
+        store, client, clock_ms=lambda: 20 * HOUR,
+        funding_schedules={'BTCUSDT': [(0, 8 * HOUR, 0), (8 * HOUR + HOUR // 2, HOUR, 0)]},
+    )
+    result = engine.sync_requirement(
+        DataRequirement('BTCUSDT', 'funding', '1m', 0, 10 * HOUR)
+    )
+    assert result.state is SyncState.REPAIR_REQUIRED
+    assert 'aligned' in result.message
+    assert client.calls == []
+    store.close()
+
+
+def test_unsorted_funding_transitions_fail_without_network(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    client = FundingClient([0])
+    engine = SyncEngine(
+        store, client, clock_ms=lambda: 20 * HOUR,
+        funding_schedules={'BTCUSDT': [(8 * HOUR, HOUR, 0), (0, 8 * HOUR, 0)]},
+    )
+    result = engine.sync_requirement(
+        DataRequirement('BTCUSDT', 'funding', '1m', 8 * HOUR, 10 * HOUR)
+    )
+    assert result.state is SyncState.REPAIR_REQUIRED
+    assert client.calls == []
+    store.close()
