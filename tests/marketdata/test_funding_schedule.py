@@ -1488,3 +1488,20 @@ def test_funding_drift_unchanged_observation_does_not_call_clock_again(tmp_path)
         assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
         assert journal.read_bytes() == first
     assert calls['count'] == 1
+
+
+def test_funding_drift_clock_recovers_after_invalid_value(tmp_path):
+    journal = tmp_path / 'funding-drift.jsonl'
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    values = iter((-1, 123))
+    engine = SyncEngine(
+        None, Metadata(), clock_ms=lambda: next(values),
+        funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.RETRYABLE
+    assert not journal.exists()
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert engine.read_funding_drift_alerts()['observed_at_ms'] == 123
