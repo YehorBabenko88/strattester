@@ -209,7 +209,11 @@ class SyncEngine:
                         raise ValueError('empty schedule history')
                     if any(not isinstance(entry,(list,tuple)) or len(entry) not in (2,3) for entry in schedule):
                         raise ValueError('invalid verified funding schedule history')
+                    previous_start=None
                     for entry in schedule:
+                        if previous_start is not None and entry[0]<=previous_start:
+                            raise ValueError('invalid verified funding schedule boundary order')
+                        previous_start=entry[0]
                         if isinstance(entry[0],bool) or not isinstance(entry[0],int) or entry[0]<0:
                             raise ValueError('invalid verified funding schedule boundary')
                         candidate=entry[1]
