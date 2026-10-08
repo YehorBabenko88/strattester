@@ -146,6 +146,31 @@ class BybitClient:
         return instruments
 
 
+    def fetch_current_funding_intervals(self):
+        """Return current funding intervals in milliseconds, not historical schedules.
+
+        Metadata has no effective-from history or trustworthy event anchor.
+        Callers must not use this mapping to certify historical coverage.
+        """
+        intervals = {}
+        for row in self.fetch_linear_instruments():
+            symbol = row.get('symbol')
+            raw = row.get('fundingInterval')
+            if not isinstance(symbol, str) or not symbol:
+                raise BybitResponseError('funding metadata missing symbol')
+            if symbol in intervals:
+                raise BybitResponseError('duplicate funding instrument metadata')
+            if isinstance(raw, bool) or not isinstance(raw, (int, str)):
+                raise BybitResponseError('funding metadata missing valid interval')
+            try:
+                minutes = int(raw)
+            except ValueError as exc:
+                raise BybitResponseError('funding metadata has invalid interval') from exc
+            if minutes <= 0 or str(raw).strip() != str(minutes):
+                raise BybitResponseError('funding metadata has invalid interval')
+            intervals[symbol] = minutes * 60_000
+        return intervals
+
     def fetch_linear_symbols(self):
         return {x.get('symbol') for x in self.fetch_linear_instruments() if x.get('symbol')}
 
