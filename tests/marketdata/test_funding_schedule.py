@@ -1264,3 +1264,30 @@ def test_funding_drift_torn_active_failed_recreation_keeps_backup(tmp_path, monk
     assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
     assert backup.read_text() == original
     assert len(journal.read_text().splitlines()) == 1
+
+
+def test_funding_drift_repeated_torn_active_repairs_keep_backup(tmp_path):
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    backup = journal.with_name(journal.name + '.1')
+    changes = {'BTCUSDT': {
+        'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+        'current_interval_ms': HOUR,
+    }}
+    original = json.dumps({'observed_at_ms': 10, 'changes': changes}) + '\n'
+    backup.write_text(original)
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    for attempt in range(3):
+        journal.write_bytes(b'{"observed_at_ms":')
+        assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+        assert backup.read_text() == original
+        assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
+        assert len(journal.read_text().splitlines()) == 1
+        assert journal.with_name(journal.name + '.partial').read_bytes() == b'{"observed_at_ms":'
+    assert len(list(tmp_path.glob('funding-drift.jsonl.partial*'))) == 1
