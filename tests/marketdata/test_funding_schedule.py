@@ -1550,3 +1550,18 @@ def test_funding_drift_nonfinite_verified_intervals_are_invalid(tmp_path):
             result = engine.check_current_funding_intervals()
             assert result['state'] is SyncState.REPAIR_REQUIRED
             assert result['changes']['BTCUSDT']['state'] == 'INVALID'
+
+
+def test_funding_drift_rejects_scalar_verified_schedule(tmp_path):
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    for schedule in ('8', '3600000.5', 8 * HOUR, None, {'interval': 8 * HOUR}):
+        engine = SyncEngine(
+            None, Metadata(), funding_schedules={'BTCUSDT': schedule},
+            funding_drift_journal=tmp_path / 'scalar-schedule.jsonl',
+        )
+        result = engine.check_current_funding_intervals()
+        assert result['state'] is SyncState.REPAIR_REQUIRED
+        assert result['changes']['BTCUSDT']['state'] == 'INVALID'
+        assert 'invalid verified funding schedule structure' in result['changes']['BTCUSDT']['message']
