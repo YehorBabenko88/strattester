@@ -1054,3 +1054,20 @@ def test_funding_drift_empty_active_generation_recovers_from_backup(tmp_path):
     assert json.loads(journal.read_text().splitlines()[0])['changes'] == changes
     backup.unlink()
     assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
+
+
+def test_funding_drift_repairs_oversized_marker_without_duplicate_event(tmp_path):
+    journal = tmp_path / 'funding-drift.jsonl'
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    marker = journal.with_name(journal.name + '.initialized')
+    marker.write_bytes(b'corrupted' * 131072)
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert marker.read_bytes() == b'1\n'
+    assert len(journal.read_text().splitlines()) == 1
