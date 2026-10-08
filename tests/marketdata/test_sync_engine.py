@@ -183,3 +183,21 @@ def test_funding_requires_verified_event_schedule_not_candle_cadence(tmp_path):
         assert 'schedule' in result.message
     assert store.coverage('BTCUSDT', 'funding').count == 0
     store.close()
+
+
+def test_missing_range_before_existing_history_stays_within_request(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'before.db')
+    store.upsert_candles([Candle('BTCUSDT', '1m', 600000, 1, 1, 1, 1, 1)])
+    engine = SyncEngine(store, Client([]), clock_ms=lambda: 1000000)
+    req = DataRequirement('BTCUSDT', start_ms=0, end_ms=120000)
+    assert engine._ranges(req) == [(0, 120000)]
+    store.close()
+
+
+def test_missing_range_after_existing_history_stays_within_request(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'after.db')
+    store.upsert_candles([Candle('BTCUSDT', '1m', 0, 1, 1, 1, 1, 1)])
+    engine = SyncEngine(store, Client([]), clock_ms=lambda: 1000000)
+    req = DataRequirement('BTCUSDT', start_ms=600000, end_ms=720000)
+    assert engine._ranges(req) == [(600000, 720000)]
+    store.close()
