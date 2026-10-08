@@ -209,6 +209,25 @@ class SyncEngine:
                 'message':'funding metadata requires review' if changes else '',
                 'changes':changes}
 
+    @staticmethod
+    def _ensure_funding_marker(path):
+        """Create or repair a durable marker after a complete journal event."""
+        marker=path.with_name(path.name+'.initialized')
+        if marker.exists():
+            # An interrupted first write can leave an empty or partial marker.
+            # The journal event has already been fsynced by the caller.
+            if marker.read_bytes()==b'1\n':
+                return
+            with marker.open('wb') as initialized:
+                initialized.write(b'1\n')
+                initialized.flush()
+                os.fsync(initialized.fileno())
+            return
+        with marker.open('xb') as initialized:
+            initialized.write(b'1\n')
+            initialized.flush()
+            os.fsync(initialized.fileno())
+
     def _persist_funding_drift_locked(self,changes):
         previous=self.read_funding_drift_alerts()
         if previous['state'] is SyncState.RETRYABLE:
@@ -222,10 +241,7 @@ class SyncEngine:
             marker=path.with_name(path.name+'.initialized')
             if not marker.exists():
                 try:
-                    with marker.open('x',encoding='ascii') as initialized:
-                        initialized.write('1\n')
-                        initialized.flush()
-                        os.fsync(initialized.fileno())
+                    self._ensure_funding_marker(path)
                 except OSError as exc:
                     return {'state':SyncState.RETRYABLE,'changes':changes,
                             'message':f'funding drift initialization marker failed: {exc}'}
@@ -277,10 +293,7 @@ class SyncEngine:
             # durable event, so disappearance of both generations is visible.
             marker=path.with_name(path.name+'.initialized')
             if not marker.exists():
-                with marker.open('x',encoding='ascii') as initialized:
-                    initialized.write('1\n')
-                    initialized.flush()
-                    os.fsync(initialized.fileno())
+                self._ensure_funding_marker(path)
         except OSError as exc:
             return {
                 'state':SyncState.RETRYABLE,
