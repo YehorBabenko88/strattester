@@ -363,3 +363,51 @@ def test_funding_drift_journal_failure_does_not_claim_success(tmp_path):
     assert result['state'] is SyncState.RETRYABLE
     assert result['changes']['BTCUSDT']['state'] == 'CHANGED'
     store.close()
+
+
+def test_funding_drift_alert_recovery_after_restart(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    args = {'funding_schedules': {'BTCUSDT': (8 * HOUR, 0)},
+            'funding_drift_journal': journal,
+            'clock_ms': lambda: 1234}
+    engine = SyncEngine(store, Metadata(), **args)
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.UNKNOWN
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    restarted = SyncEngine(store, Metadata(), **args)
+    restored = restarted.read_funding_drift_alerts()
+    assert restored['state'] is SyncState.REPAIR_REQUIRED
+    assert restored['observed_at_ms'] == 1234
+    assert restored['changes']['BTCUSDT']['state'] == 'CHANGED'
+    store.close()
+
+
+def test_funding_drift_journal_rotates_at_size_limit(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    journal.write_text('x' * (1024 * 1024))
+    engine = SyncEngine(
+        store, Metadata(), clock_ms=lambda: 999,
+        funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert journal.with_name(journal.name + '.1').stat().st_size == 1024 * 1024
+    assert journal.stat().st_size < 1024 * 1024
+    assert engine.read_funding_drift_alerts()['observed_at_ms'] == 999
+    store.close()
+
+
+def test_malformed_funding_drift_journal_fails_closed(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    journal = tmp_path / 'funding-drift.jsonl'
+    journal.write_text('not json\\n')
+    engine = SyncEngine(store, object(), funding_drift_journal=journal)
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.RETRYABLE
+    store.close()
