@@ -619,9 +619,10 @@ class SyncEngine:
                 return self._sync_funding_segments(req,schedule)
             try:
                 interval,anchor=schedule
-                interval=int(interval)
-                anchor=int(anchor)
-                if interval<=0 or anchor<0 or anchor>=interval:
+                if (isinstance(interval,bool) or not isinstance(interval,int) or
+                        isinstance(anchor,bool) or not isinstance(anchor,int)):
+                    raise ValueError('funding schedule values must be integer milliseconds')
+                if interval<=0 or interval%60000 or anchor<0 or anchor>=interval:
                     raise ValueError('invalid funding schedule')
                 first=anchor+((int(req.start_ms)-anchor+interval-1)//interval)*interval
                 last=anchor+((int(req.end_ms)-anchor)//interval)*interval
