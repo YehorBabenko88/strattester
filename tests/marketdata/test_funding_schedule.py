@@ -614,7 +614,7 @@ def test_funding_drift_new_event_after_truncated_tail_is_recoverable(tmp_path):
     store.close()
 
 
-def test_funding_drift_unchanged_alert_with_truncated_tail_fails_closed(tmp_path):
+def test_funding_drift_unchanged_alert_with_truncated_tail_self_heals(tmp_path):
     store = SQLiteMarketStore.open(tmp_path / 'funding.db')
     class Metadata:
         def fetch_current_funding_intervals(self):
@@ -628,6 +628,8 @@ def test_funding_drift_unchanged_alert_with_truncated_tail_fails_closed(tmp_path
     with journal.open('ab') as stream:
         stream.write(b'partial')
     result = engine.check_current_funding_intervals()
-    assert result['state'] is SyncState.RETRYABLE
-    assert 'incomplete' in result['message']
+    assert result['state'] is SyncState.REPAIR_REQUIRED
+    assert journal.with_name(journal.name + '.1').exists()
+    assert len(journal.read_text().splitlines()) == 1
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
     store.close()
