@@ -1325,3 +1325,28 @@ def test_funding_drift_torn_active_with_corrupt_backup_fails_closed(tmp_path):
     assert engine.check_current_funding_intervals()['state'] is SyncState.RETRYABLE
     assert journal.read_bytes() == b'{"observed_at_ms":'
     assert backup.read_bytes() == b'bad backup\n'
+
+
+def test_funding_drift_invalid_complete_final_line_is_not_deduplicated(tmp_path):
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    changes = {'BTCUSDT': {
+        'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+        'current_interval_ms': HOUR,
+    }}
+    journal.write_text(json.dumps({'observed_at_ms': 10, 'changes': changes}) +
+                       '\n' + 'invalid complete record\n')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), clock_ms=lambda: 20,
+        funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    recovered = engine.read_funding_drift_alerts()
+    assert recovered['observed_at_ms'] == 20
+    assert recovered['changes'] == changes
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert len(journal.read_text().splitlines()) == 3
