@@ -705,3 +705,33 @@ def test_funding_drift_concurrent_rotation_keeps_one_new_event(tmp_path):
     records = [json.loads(line) for line in journal.read_text().splitlines()]
     assert len(records) == 1
     assert records[0]['changes']['BTCUSDT']['current_interval_ms'] == HOUR
+
+
+def test_funding_drift_rotation_keeps_only_one_backup_generation(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        interval = HOUR
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': self.interval}
+    client = Metadata()
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, client, funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    for interval in (HOUR, 2 * HOUR, 4 * HOUR):
+        client.interval = interval
+        if journal.exists():
+            with journal.open('a') as stream:
+                stream.write(
+                    (json.dumps({'observed_at_ms': 1, 'changes': {
+                        'BTCUSDT': {'state': 'CHANGED', 'current_interval_ms': 3 * HOUR},
+                    }}) + '\n') * 10000
+                )
+        assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert journal.with_name(journal.name + '.1').exists()
+    assert not journal.with_name(journal.name + '.2').exists()
+    assert len([json.loads(line) for line in journal.read_text().splitlines()]) == 1
+    assert engine.read_funding_drift_alerts()['changes']['BTCUSDT']['current_interval_ms'] == 4 * HOUR
+    store.close()
