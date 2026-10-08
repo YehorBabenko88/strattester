@@ -204,6 +204,20 @@ class SyncEngine:
                     'message':previous.get('message','funding drift journal unavailable'),
                     'changes':changes}
         if previous['state'] in (SyncState.REPAIR_REQUIRED,SyncState.READY) and previous['changes']==changes:
+            # An incomplete tail still needs repair even when the latest
+            # complete observation is identical. Otherwise a future append
+            # could attach to the broken fragment.
+            path=self.funding_drift_journal
+            if path.exists():
+                with path.open('rb') as stream:
+                    stream.seek(0,os.SEEK_END)
+                    size=stream.tell()
+                    if size:
+                        stream.seek(-1,os.SEEK_END)
+                        if stream.read(1)!=b'\n':
+                            return {'state':SyncState.RETRYABLE,
+                                    'message':'funding drift journal has incomplete trailing record',
+                                    'changes':changes}
             return {'state':SyncState.REPAIR_REQUIRED if changes else SyncState.READY,
                     'message':'funding metadata requires review' if changes else '',
                     'changes':changes}
