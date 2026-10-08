@@ -99,6 +99,20 @@ class SyncEngine:
         raise ValueError('unsupported dataset')
 
     def sync_requirement(self,req:DataRequirement)->SyncResult:
+        # Funding is event-based, not a bar series. A candle timeframe
+        # cannot establish which funding timestamps are expected. Until a
+        # per-symbol funding schedule and event coverage validator exist,
+        # fail closed instead of returning a misleading READY or repeatedly
+        # requesting every missing candle-sized interval.
+        if req.dataset == 'funding':
+            return SyncResult(
+                SyncState.UNAVAILABLE,
+                message=(
+                    'funding event coverage requires a verified '
+                    'instrument-specific schedule; candle timeframe '
+                    'must not be used as funding cadence'
+                ),
+            )
         window=aligned_window(
             req.start_ms,
             req.end_ms,
