@@ -190,3 +190,33 @@ def test_single_segment_history_is_supported(tmp_path):
     assert result.state is SyncState.READY
     assert client.calls == [(0, 0)]
     store.close()
+
+
+def test_transition_missing_event_stays_partial(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    client = FundingClient([0, 8 * HOUR, 10 * HOUR])
+    engine = SyncEngine(
+        store, client, clock_ms=lambda: 20 * HOUR,
+        funding_schedules={'BTCUSDT': [(0, 8 * HOUR, 0), (8 * HOUR, HOUR, 0)]},
+    )
+    result = engine.sync_requirement(
+        DataRequirement('BTCUSDT', 'funding', '1m', 0, 10 * HOUR)
+    )
+    assert result.state is SyncState.PARTIAL
+    assert store.coverage('BTCUSDT', 'funding').count == 3
+    store.close()
+
+
+def test_transition_requires_schedule_covering_requested_start(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    client = FundingClient([8 * HOUR])
+    engine = SyncEngine(
+        store, client, clock_ms=lambda: 20 * HOUR,
+        funding_schedules={'BTCUSDT': [(8 * HOUR, HOUR, 0)]},
+    )
+    result = engine.sync_requirement(
+        DataRequirement('BTCUSDT', 'funding', '1m', 0, 8 * HOUR)
+    )
+    assert result.state is SyncState.UNAVAILABLE
+    assert client.calls == []
+    store.close()
