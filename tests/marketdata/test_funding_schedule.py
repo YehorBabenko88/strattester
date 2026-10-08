@@ -1390,3 +1390,34 @@ def test_funding_drift_nonpositive_verified_intervals_are_invalid(tmp_path):
         assert result['state'] is SyncState.REPAIR_REQUIRED
         assert result['changes']['BTCUSDT']['state'] == 'INVALID'
         assert 'invalid verified funding interval' in result['changes']['BTCUSDT']['message']
+
+
+def test_funding_drift_final_line_read_failure_is_retryable(tmp_path, monkeypatch):
+    from pathlib import Path
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    changes = {'BTCUSDT': {
+        'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+        'current_interval_ms': HOUR,
+    }}
+    journal.write_text(json.dumps({'observed_at_ms': 10, 'changes': changes}) + '\n')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    original_open = Path.open
+    reads = {'count': 0}
+    def failing_open(self, mode='r', *args, **kwargs):
+        if self == journal and mode == 'rb':
+            reads['count'] += 1
+            if reads['count'] == 3:
+                raise PermissionError('final-line access denied')
+        return original_open(self, mode, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', failing_open)
+    result = engine.check_current_funding_intervals()
+    assert result['state'] is SyncState.RETRYABLE
+    assert 'final-line access denied' in result['message']
+    assert journal.read_text() == json.dumps({'observed_at_ms': 10, 'changes': changes}) + '\n'
