@@ -628,6 +628,8 @@ class SyncEngine:
                     raise ValueError('funding schedule values must be integer milliseconds')
                 if interval<=0 or interval%60000 or anchor<0 or anchor>=interval:
                     raise ValueError('invalid funding schedule')
+                if req.start_ms<0 or req.end_ms<req.start_ms:
+                    raise ValueError('invalid requested funding window')
                 first=anchor+((int(req.start_ms)-anchor+interval-1)//interval)*interval
                 last=anchor+((int(req.end_ms)-anchor)//interval)*interval
                 if first>last:
