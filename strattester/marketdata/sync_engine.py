@@ -172,7 +172,8 @@ class SyncEngine:
             # A single interval cannot represent historical changes. Reject
             # ambiguous multi-segment configurations instead of silently
             # treating their events as a uniform time series.
-            if isinstance(schedule, (list, tuple)) and len(schedule)!=2:
+            if (isinstance(schedule, (list, tuple)) and
+                    (len(schedule)!=2 or any(isinstance(x, (list, tuple, dict)) for x in schedule))):
                 return SyncResult(
                     SyncState.REPAIR_REQUIRED,
                     message='funding schedule history requires explicit segment validation',
