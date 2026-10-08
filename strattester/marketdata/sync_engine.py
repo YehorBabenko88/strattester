@@ -322,7 +322,12 @@ class SyncEngine:
                         incomplete=existing.read(1)!=b'\n'
                     else:
                         incomplete=False
-                if size>=max_bytes or incomplete:
+                if incomplete and path.with_name(path.name+'.1').exists():
+                    # Keep the last complete backup when the active tail is
+                    # torn. Replacing the backup here could destroy the only
+                    # durable observation if the next append fails.
+                    os.replace(path,path.with_name(path.name+'.partial'))
+                elif size>=max_bytes or incomplete:
                     os.replace(path,path.with_name(path.name+'.1'))
             with path.open('a',encoding='utf-8') as journal:
                 journal.write(json.dumps(record,sort_keys=True)+'\n')
