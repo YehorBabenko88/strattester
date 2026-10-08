@@ -81,7 +81,9 @@ class SyncEngine:
                     size=stream.tell()
                     seen=True
                     stream.seek(max(0,size-1048576))
-                    data=stream.read()
+                    # Bound the read even if another writer extends the
+                    # file after its size was sampled.
+                    data=stream.read(1048576)
                 if size>1048576:
                     # The bounded tail may start mid-record. Discard only
                     # that partial prefix, not a complete first line.
