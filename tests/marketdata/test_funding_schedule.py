@@ -831,3 +831,50 @@ def test_funding_drift_recreates_missing_marker_without_duplicate_event(tmp_path
     assert marker.exists()
     assert len([json.loads(line) for line in journal.read_text().splitlines()]) == 1
     store.close()
+
+
+def test_funding_drift_repairs_partial_initialization_marker(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    marker = journal.with_name(journal.name + '.initialized')
+    marker.write_bytes(b'')
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert marker.read_bytes() == b'1\n'
+    assert len([json.loads(line) for line in journal.read_text().splitlines()]) == 1
+    store.close()
+
+
+def test_funding_drift_marker_write_failure_is_retryable(tmp_path, monkeypatch):
+    from pathlib import Path
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    original_open = Path.open
+    marker = journal.with_name(journal.name + '.initialized')
+    def deny_marker(path, *args, **kwargs):
+        if path == marker:
+            raise PermissionError('simulated marker write denial')
+        return original_open(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', deny_marker)
+    result = engine.check_current_funding_intervals()
+    assert result['state'] is SyncState.RETRYABLE
+    assert journal.exists()
+    monkeypatch.setattr(Path, 'open', original_open)
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert marker.read_bytes() == b'1\n'
+    store.close()
