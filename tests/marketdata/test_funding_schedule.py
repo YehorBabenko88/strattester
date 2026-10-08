@@ -1464,3 +1464,27 @@ def test_funding_drift_clock_exception_is_retryable_and_recovers(tmp_path):
     assert recovered['state'] is SyncState.REPAIR_REQUIRED
     assert engine.read_funding_drift_alerts()['observed_at_ms'] == 42
     assert calls['count'] == 2
+
+
+def test_funding_drift_unchanged_observation_does_not_call_clock_again(tmp_path):
+    journal = tmp_path / 'funding-drift.jsonl'
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    calls = {'count': 0}
+    def once_clock():
+        calls['count'] += 1
+        if calls['count'] > 1:
+            raise RuntimeError('clock should not be called for duplicate')
+        return 42
+    engine = SyncEngine(
+        None, Metadata(), clock_ms=once_clock,
+        funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    first = journal.read_bytes()
+    for _ in range(3):
+        assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+        assert journal.read_bytes() == first
+    assert calls['count'] == 1
