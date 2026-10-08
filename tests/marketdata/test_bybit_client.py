@@ -412,7 +412,7 @@ def test_current_funding_intervals_are_not_historical_schedules():
     }
 
 
-@pytest.mark.parametrize('invalid', [None, 0, -1, True, 'x', '1.5', ' 60 '])
+@pytest.mark.parametrize('invalid', [None, 0, -1, True, 'x', '1.5', ' 60 ', '60 ', '060', '6e1', 60.0])
 def test_invalid_current_funding_metadata_fails_closed(invalid):
     class C(BybitClient):
         def fetch_linear_instruments(self):
