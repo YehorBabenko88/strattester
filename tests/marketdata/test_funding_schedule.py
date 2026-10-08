@@ -583,3 +583,32 @@ def test_segmented_funding_window_without_any_event_not_ready(tmp_path):
     assert result.state is SyncState.REPAIR_REQUIRED
     assert 'no scheduled funding event' in result.message
     store.close()
+
+
+def test_funding_drift_new_event_after_truncated_tail_is_recoverable(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        interval = HOUR
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': self.interval}
+    client = Metadata()
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, client, clock_ms=lambda: 123,
+        funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    with journal.open('ab') as stream:
+        stream.write(b'{"incomplete":')
+    client.interval = 2 * HOUR
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    recovered = SyncEngine(
+        store, client, funding_drift_journal=journal,
+    ).read_funding_drift_alerts()
+    assert recovered['state'] is SyncState.REPAIR_REQUIRED
+    assert recovered['changes']['BTCUSDT']['current_interval_ms'] == 2 * HOUR
+    assert journal.with_name(journal.name + '.1').exists()
+    assert len([json.loads(line) for line in journal.read_text().splitlines()]) == 1
+    store.close()
