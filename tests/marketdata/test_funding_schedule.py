@@ -1101,3 +1101,45 @@ def test_funding_drift_tail_inspection_permission_failure_is_retryable(tmp_path,
     monkeypatch.setattr(Path, 'open', original_open)
     assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
     assert len(journal.read_text().splitlines()) == 1
+
+
+def test_funding_drift_corrupt_both_generations_fails_closed(tmp_path):
+    journal = tmp_path / 'funding-drift.jsonl'
+    backup = journal.with_name(journal.name + '.1')
+    journal.write_bytes(b'not json\n')
+    backup.write_bytes(b'also not json\n')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.RETRYABLE
+    assert engine.check_current_funding_intervals()['state'] is SyncState.RETRYABLE
+    assert journal.read_bytes() == b'not json\n'
+    assert backup.read_bytes() == b'also not json\n'
+
+
+def test_funding_drift_corrupt_active_recovers_valid_backup(tmp_path):
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    backup = journal.with_name(journal.name + '.1')
+    changes = {'BTCUSDT': {
+        'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+        'current_interval_ms': HOUR,
+    }}
+    backup.write_text(json.dumps({'observed_at_ms': 10, 'changes': changes}) + '\n')
+    journal.write_bytes(b'corrupt record\n')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    recovered = engine.read_funding_drift_alerts()
+    assert recovered['state'] is SyncState.REPAIR_REQUIRED
+    assert recovered['observed_at_ms'] == 10
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert json.loads(backup.read_text().splitlines()[0])['changes'] == changes
