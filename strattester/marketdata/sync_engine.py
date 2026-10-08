@@ -115,10 +115,28 @@ class SyncEngine:
                     valid=[]
                     for row in rows:
                         ts=int(row['fundingRateTimestamp'])
+                        # An unexpected event timestamp means the declared
+                        # schedule may be stale or the response is malformed.
+                        # Reject the entire page atomically: do not persist
+                        # a subset and silently mark the range complete.
+                        if (ts-req.start_ms)%step:
+                            raise MarketDataIntegrityError(
+                                'funding timestamp conflicts with verified schedule'
+                            )
+                        if ts<start or ts>page_end:
+                            raise MarketDataIntegrityError(
+                                'funding page contains timestamp outside requested range'
+                            )
+                        if ts>self.clock_ms():
+                            raise MarketDataIntegrityError(
+                                'funding page contains a future event'
+                            )
                         timestamps.append(ts)
-                        if (start<=ts<=page_end and ts<=self.clock_ms()
-                                and (ts-req.start_ms)%step==0):
-                            valid.append(row)
+                        valid.append(row)
+                    if len(set(timestamps))!=len(timestamps):
+                        raise MarketDataIntegrityError(
+                            'funding page contains duplicate event timestamps'
+                        )
                     stats=self.store.upsert_funding(req.symbol,valid)
                     written+=stats.accepted
                     unchanged+=stats.unchanged
