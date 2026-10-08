@@ -157,3 +157,22 @@ def test_out_of_range_funding_page_is_rejected_without_write(tmp_path):
     assert result.state is SyncState.RETRYABLE
     assert store.coverage('BTCUSDT', 'funding').count == 0
     store.close()
+
+
+def test_funding_schedule_change_is_not_silently_treated_as_uniform(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    client = FundingClient([0, HOUR, 8 * HOUR])
+    # Explicit schedule transitions require a segment-aware validator;
+    # do not infer a single interval from the candle timeframe.
+    engine = SyncEngine(
+        store, client, clock_ms=lambda: 20 * HOUR,
+        funding_schedules={'BTCUSDT': [(0, 8 * HOUR, 0), (8 * HOUR, HOUR, 0)]},
+    )
+    result = engine.sync_requirement(
+        DataRequirement('BTCUSDT', 'funding', '1m', 0, 8 * HOUR)
+    )
+    assert result.state is SyncState.REPAIR_REQUIRED
+    assert 'segment' in result.message
+    assert client.calls == []
+    assert store.coverage('BTCUSDT', 'funding').count == 0
+    store.close()
