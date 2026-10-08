@@ -580,6 +580,21 @@ class SyncEngine:
         except (TypeError,ValueError,OverflowError) as exc:
             return SyncResult(SyncState.REPAIR_REQUIRED,message=str(exc))
 
+        # Preflight every segment before writing any rows. A future event in
+        # a later segment must not leave earlier segments partially synced.
+        now_ms=int(self.clock_ms())
+        for i,(since,interval,anchor) in enumerate(normalized):
+            start=max(req.start_ms,since)
+            end=req.end_ms
+            if i+1<len(normalized):
+                end=min(end,normalized[i+1][0]-1)
+            if end<start:
+                continue
+            first=anchor+((start-anchor+interval-1)//interval)*interval
+            last=anchor+((end-anchor)//interval)*interval
+            if first<=last and last>now_ms:
+                return SyncResult(SyncState.PARTIAL,
+                                  message='requested funding window includes future events')
         totals=[0,0,0]
         found_event=False
         for i,(since,interval,anchor) in enumerate(normalized):
