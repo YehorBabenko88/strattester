@@ -1143,3 +1143,27 @@ def test_funding_drift_corrupt_active_recovers_valid_backup(tmp_path):
     assert recovered['observed_at_ms'] == 10
     assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
     assert json.loads(backup.read_text().splitlines()[0])['changes'] == changes
+
+
+def test_funding_drift_recovery_skips_invalid_symbol_payload(tmp_path):
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    valid = {'observed_at_ms': 10, 'changes': {'BTCUSDT': {'state': 'CHANGED'}}}
+    invalid = {'observed_at_ms': 20, 'changes': {'BTCUSDT': ['not a drift record']}}
+    journal.write_text(json.dumps(valid) + '\n' + json.dumps(invalid) + '\n')
+    engine = SyncEngine(None, object(), funding_drift_journal=journal)
+    recovered = engine.read_funding_drift_alerts()
+    assert recovered['state'] is SyncState.REPAIR_REQUIRED
+    assert recovered['observed_at_ms'] == 10
+    assert recovered['changes'] == valid['changes']
+
+
+def test_funding_drift_recovery_rejects_only_invalid_symbol_payloads(tmp_path):
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    journal.write_text(json.dumps({
+        'observed_at_ms': 20,
+        'changes': {'BTCUSDT': {'state': 'UNRECOGNIZED'}},
+    }) + '\n')
+    engine = SyncEngine(None, object(), funding_drift_journal=journal)
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.RETRYABLE
