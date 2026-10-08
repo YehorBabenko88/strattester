@@ -51,6 +51,50 @@ class SyncEngine:
         # Never infer funding cadence from the research candle timeframe.
         self.funding_schedules=dict(funding_schedules or {})
 
+    def check_current_funding_intervals(self):
+        """Compare live Bybit metadata with verified schedules without mutation.
+
+        A mismatch is a review signal, not evidence that historical intervals
+        should be rewritten. Historical multi-segment schedules are supported
+        by comparing only the last explicitly verified segment.
+        """
+        try:
+            current=self.client.fetch_current_funding_intervals()
+            if not isinstance(current,dict):
+                raise ValueError('invalid current funding metadata')
+        except Exception as exc:
+            return {'state':SyncState.RETRYABLE,'message':str(exc),'changes':{}}
+        changes={}
+        for symbol,schedule in self.funding_schedules.items():
+            if symbol not in current:
+                changes[symbol]={'state':'MISSING','verified_interval_ms':None,'current_interval_ms':None}
+                continue
+            try:
+                if (isinstance(schedule,(list,tuple)) and
+                        (len(schedule)!=2 or any(isinstance(x,(list,tuple,dict)) for x in schedule))):
+                    if not schedule:
+                        raise ValueError('empty schedule history')
+                    interval=int(schedule[-1][1])
+                else:
+                    interval=int(schedule[0])
+                observed=current[symbol]
+                if isinstance(observed,bool) or not isinstance(observed,int) or observed<=0:
+                    raise ValueError('invalid current funding interval')
+            except (TypeError,ValueError,IndexError,KeyError) as exc:
+                changes[symbol]={'state':'INVALID','message':str(exc)}
+                continue
+            if interval!=observed:
+                changes[symbol]={
+                    'state':'CHANGED',
+                    'verified_interval_ms':interval,
+                    'current_interval_ms':observed,
+                }
+        return {
+            'state':SyncState.REPAIR_REQUIRED if changes else SyncState.READY,
+            'message':'funding metadata requires review' if changes else '',
+            'changes':changes,
+        }
+
     def _step(self,req):
         return timeframe_ms(req.timeframe)
 
