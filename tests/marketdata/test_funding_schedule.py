@@ -159,9 +159,9 @@ def test_out_of_range_funding_page_is_rejected_without_write(tmp_path):
     store.close()
 
 
-def test_funding_schedule_change_is_not_silently_treated_as_uniform(tmp_path):
+def test_funding_schedule_change_uses_segment_boundaries(tmp_path):
     store = SQLiteMarketStore.open(tmp_path / 'funding.db')
-    client = FundingClient([0, HOUR, 8 * HOUR])
+    client = FundingClient([0, 8 * HOUR])
     # Explicit schedule transitions require a segment-aware validator;
     # do not infer a single interval from the candle timeframe.
     engine = SyncEngine(
@@ -171,14 +171,13 @@ def test_funding_schedule_change_is_not_silently_treated_as_uniform(tmp_path):
     result = engine.sync_requirement(
         DataRequirement('BTCUSDT', 'funding', '1m', 0, 8 * HOUR)
     )
-    assert result.state is SyncState.REPAIR_REQUIRED
-    assert 'segment' in result.message
-    assert client.calls == []
-    assert store.coverage('BTCUSDT', 'funding').count == 0
+    assert result.state is SyncState.READY
+    assert store.coverage('BTCUSDT', 'funding').count == 2
+    assert client.calls == [(0, 0), (8 * HOUR, 8 * HOUR)]
     store.close()
 
 
-def test_single_segment_history_is_not_misread_as_scalar_schedule(tmp_path):
+def test_single_segment_history_is_supported(tmp_path):
     store = SQLiteMarketStore.open(tmp_path / 'funding.db')
     client = FundingClient([0])
     engine = SyncEngine(
@@ -188,7 +187,6 @@ def test_single_segment_history_is_not_misread_as_scalar_schedule(tmp_path):
     result = engine.sync_requirement(
         DataRequirement('BTCUSDT', 'funding', '1m', 0, 0)
     )
-    assert result.state is SyncState.REPAIR_REQUIRED
-    assert 'segment' in result.message
-    assert client.calls == []
+    assert result.state is SyncState.READY
+    assert client.calls == [(0, 0)]
     store.close()
