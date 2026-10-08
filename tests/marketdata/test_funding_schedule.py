@@ -1733,3 +1733,24 @@ def test_funding_sync_rejects_coerced_flat_schedule_without_network(tmp_path):
     assert client.calls == []
     assert store.coverage('BTCUSDT', 'funding').count == 0
     store.close()
+
+
+def test_funding_drift_rejects_invalid_flat_schedule_parameters(tmp_path):
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    for schedule in (
+        (HOUR, HOUR),
+        (HOUR, -1),
+        (HOUR, 0.5),
+        (HOUR, True),
+        (HOUR + 1, 0),
+        ('3600000', 0),
+    ):
+        engine = SyncEngine(
+            None, Metadata(), funding_schedules={'BTCUSDT': schedule},
+            funding_drift_journal=tmp_path / 'invalid-flat.jsonl',
+        )
+        result = engine.check_current_funding_intervals()
+        assert result['state'] is SyncState.REPAIR_REQUIRED
+        assert result['changes']['BTCUSDT']['state'] == 'INVALID'
