@@ -656,3 +656,29 @@ def test_funding_drift_resolution_self_heals_truncated_tail(tmp_path):
     assert engine.read_funding_drift_alerts()['state'] is SyncState.READY
     assert journal.with_name(journal.name + '.1').exists()
     store.close()
+
+
+def _funding_drift_process_check(journal_path):
+    """Independent process worker; safe for Windows spawn."""
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal_path,
+    )
+    return engine.check_current_funding_intervals()['state'].value
+
+
+def test_funding_drift_journal_deduplicates_across_processes(tmp_path):
+    import concurrent.futures
+    import multiprocessing
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    ctx = multiprocessing.get_context('spawn')
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4, mp_context=ctx) as pool:
+        results = list(pool.map(_funding_drift_process_check, [str(journal)] * 8))
+    assert results == [SyncState.REPAIR_REQUIRED.value] * 8
+    records = [json.loads(line) for line in journal.read_text().splitlines()]
+    assert len(records) == 1
+    assert records[0]['changes']['BTCUSDT']['state'] == 'CHANGED'
