@@ -811,3 +811,23 @@ def test_funding_drift_first_check_does_not_create_initialization_marker(tmp_pat
     assert engine.check_current_funding_intervals()['state'] is SyncState.READY
     assert not journal.with_name(journal.name + '.initialized').exists()
     store.close()
+
+
+def test_funding_drift_recreates_missing_marker_without_duplicate_event(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    marker = journal.with_name(journal.name + '.initialized')
+    marker.unlink()
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert marker.exists()
+    assert len([json.loads(line) for line in journal.read_text().splitlines()]) == 1
+    store.close()
