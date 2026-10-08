@@ -307,3 +307,59 @@ def test_current_funding_metadata_failure_is_retryable(tmp_path):
     assert result['state'] is SyncState.RETRYABLE
     assert engine.funding_schedules == {'BTCUSDT': (8 * HOUR, 0)}
     store.close()
+
+
+def test_funding_drift_journal_survives_new_engine_instance(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    path = tmp_path / 'diagnostics' / 'funding-drift.jsonl'
+    kwargs = dict(
+        clock_ms=lambda: 123456789,
+        funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=path,
+    )
+    engine = SyncEngine(store, Metadata(), **kwargs)
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    records = [json.loads(line) for line in path.read_text().splitlines()]
+    assert len(records) == 1
+    assert records[0]['observed_at_ms'] == 123456789
+    assert records[0]['changes']['BTCUSDT']['state'] == 'CHANGED'
+    engine_after_restart = SyncEngine(store, Metadata(), **kwargs)
+    assert engine_after_restart.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert len(path.read_text().splitlines()) == 2
+    store.close()
+
+
+def test_funding_drift_journal_does_not_write_when_matching(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': 8 * HOUR}
+    path = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=path,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.READY
+    assert not path.exists()
+    store.close()
+
+
+def test_funding_drift_journal_failure_does_not_claim_success(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    parent_file = tmp_path / 'not_a_directory'
+    parent_file.write_text('occupied')
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=parent_file / 'journal.jsonl',
+    )
+    result = engine.check_current_funding_intervals()
+    assert result['state'] is SyncState.RETRYABLE
+    assert result['changes']['BTCUSDT']['state'] == 'CHANGED'
+    store.close()
