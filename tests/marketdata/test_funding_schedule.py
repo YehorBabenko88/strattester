@@ -867,7 +867,8 @@ def test_funding_drift_marker_write_failure_is_retryable(tmp_path, monkeypatch):
     original_open = Path.open
     marker = journal.with_name(journal.name + '.initialized')
     def deny_marker(path, *args, **kwargs):
-        if path == marker:
+        mode = args[0] if args else kwargs.get('mode', 'r')
+        if path == marker and any(flag in mode for flag in ('w', 'a', 'x', '+')):
             raise PermissionError('simulated marker write denial')
         return original_open(path, *args, **kwargs)
     monkeypatch.setattr(Path, 'open', deny_marker)
