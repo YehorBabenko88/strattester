@@ -254,17 +254,18 @@ class SyncEngine:
             # when the last complete event matches the current observation.
             path=self.funding_drift_journal
             incomplete=False
+            active_has_data=False
             if path.exists():
                 with path.open('rb') as stream:
                     stream.seek(0,os.SEEK_END)
                     size=stream.tell()
+                    active_has_data=size>0
                     if size:
                         stream.seek(-1,os.SEEK_END)
                         incomplete=stream.read(1)!=b'\n'
-            # Recovery from a rotated-only generation is valid, but the
-            # active generation must be recreated before deduplicating.
-            # Otherwise a subsequent loss of the backup loses all evidence.
-            if path.exists() and not incomplete:
+            # An empty active file after interrupted rotation is not a
+            # durable duplicate of the valid event recovered from backup.
+            if active_has_data and not incomplete:
                 return {'state':SyncState.REPAIR_REQUIRED if changes else SyncState.READY,
                         'message':'funding metadata requires review' if changes else '',
                         'changes':changes}
