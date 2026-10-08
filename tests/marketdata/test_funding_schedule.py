@@ -633,3 +633,26 @@ def test_funding_drift_unchanged_alert_with_truncated_tail_self_heals(tmp_path):
     assert len(journal.read_text().splitlines()) == 1
     assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
     store.close()
+
+
+def test_funding_drift_resolution_self_heals_truncated_tail(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        interval = HOUR
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': self.interval}
+    client = Metadata()
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, client, funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    client.interval = 8 * HOUR
+    assert engine.check_current_funding_intervals()['state'] is SyncState.READY
+    with journal.open('ab') as stream:
+        stream.write(b'{"unfinished":')
+    assert engine.check_current_funding_intervals()['state'] is SyncState.READY
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.READY
+    assert journal.with_name(journal.name + '.1').exists()
+    store.close()
