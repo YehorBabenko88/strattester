@@ -401,6 +401,7 @@ class SyncEngine:
             return SyncResult(SyncState.REPAIR_REQUIRED,message=str(exc))
 
         totals=[0,0,0]
+        found_event=False
         for i,(since,interval,anchor) in enumerate(normalized):
             start=max(int(req.start_ms),since)
             end=int(req.end_ms)
@@ -412,6 +413,7 @@ class SyncEngine:
             last=anchor+((end-anchor)//interval)*interval
             if first>last:
                 continue
+            found_event=True
             if last>int(self.clock_ms()):
                 return SyncResult(SyncState.PARTIAL,*totals,
                                   message='requested funding window includes future events')
@@ -423,6 +425,9 @@ class SyncEngine:
             totals[2]+=part.rejected
             if part.state is not SyncState.READY:
                 return SyncResult(part.state,*totals,message=part.message)
+        if not found_event:
+            return SyncResult(SyncState.REPAIR_REQUIRED,*totals,
+                              message='no scheduled funding event in requested window')
         return SyncResult(SyncState.READY,*totals)
 
     def sync_requirement(self,req:DataRequirement)->SyncResult:
