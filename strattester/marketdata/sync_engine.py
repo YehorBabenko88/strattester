@@ -109,13 +109,6 @@ class SyncEngine:
                 return {'state':SyncState.RETRYABLE,'changes':{},
                         'message':f'funding drift journal recovery failed: {exc}'}
         if not seen:
-            # A lock file means a previous persistence attempt existed.
-            # Losing both journal generations must not masquerade as an
-            # untouched installation with no recorded observations.
-            lock_path=path.with_name(path.name+'.lock')
-            if lock_path.exists():
-                return {'state':SyncState.RETRYABLE,'changes':{},
-                        'message':'funding drift journal generations missing after prior use'}
             return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
         return {'state':SyncState.RETRYABLE,'changes':{},
                 'message':'funding drift journal has no valid complete record'}
