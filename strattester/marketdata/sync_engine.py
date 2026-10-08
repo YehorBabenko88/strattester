@@ -216,6 +216,19 @@ class SyncEngine:
                     'message':previous.get('message','funding drift journal unavailable'),
                     'changes':changes}
         if previous['state'] in (SyncState.REPAIR_REQUIRED,SyncState.READY) and previous['changes']==changes:
+            # An interrupted marker creation must be retried even if the
+            # journal already contains the latest observation.
+            path=self.funding_drift_journal
+            marker=path.with_name(path.name+'.initialized')
+            if not marker.exists():
+                try:
+                    with marker.open('x',encoding='ascii') as initialized:
+                        initialized.write('1\n')
+                        initialized.flush()
+                        os.fsync(initialized.fileno())
+                except OSError as exc:
+                    return {'state':SyncState.RETRYABLE,'changes':changes,
+                            'message':f'funding drift initialization marker failed: {exc}'}
             # A torn trailing record requires a new durable snapshot, even
             # when the last complete event matches the current observation.
             path=self.funding_drift_journal
