@@ -392,7 +392,7 @@ def test_funding_drift_journal_rotates_at_size_limit(tmp_path):
             return {'BTCUSDT': HOUR}
     journal = tmp_path / 'funding-drift.jsonl'
     import json
-    valid = json.dumps({'observed_at_ms': 1, 'changes': {'BTCUSDT': {'state': 'CHANGED', 'current_interval_ms': 2 * HOUR}}}) + '\\n'
+    valid = json.dumps({'observed_at_ms': 1, 'changes': {'BTCUSDT': {'state': 'CHANGED', 'current_interval_ms': 2 * HOUR}}}) + '\n'
     journal.write_text(valid * (1024 * 1024 // len(valid) + 1))
     engine = SyncEngine(
         store, Metadata(), clock_ms=lambda: 999,
