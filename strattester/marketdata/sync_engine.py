@@ -4,6 +4,7 @@ from enum import Enum
 import time
 import json
 import os
+import threading
 from pathlib import Path
 from .sqlite_store import Candle
 from .bybit_client import BybitAccessError
@@ -46,6 +47,14 @@ def _bybit_interval(timeframe:str)->str:
         '1d':'D',
     }
     return mapping.get(tf, timeframe)
+
+_journal_thread_guard=threading.Lock()
+_journal_thread_locks={}
+
+def _thread_lock_for_journal(path):
+    key=str(path.resolve())
+    with _journal_thread_guard:
+        return _journal_thread_locks.setdefault(key,threading.RLock())
 
 class SyncEngine:
     def __init__(self,store,client,clock_ms=None,funding_schedules=None,funding_drift_journal=None):
@@ -104,27 +113,31 @@ class SyncEngine:
             path=self.funding_drift_journal
             path.parent.mkdir(parents=True,exist_ok=True)
             lock_path=path.with_name(path.name+'.lock')
-            with lock_path.open('a+b') as stream:
-                if os.name=='nt':
-                    import msvcrt
-                    stream.seek(0)
-                    if stream.read(1)==b'':
-                        stream.write(b'0')
-                        stream.flush()
-                    stream.seek(0)
-                    msvcrt.locking(stream.fileno(),msvcrt.LK_LOCK,1)
-                    try:
-                        yield
-                    finally:
+            # Windows byte-range locks are process-wide but overlapping
+            # attempts from threads in the same process can fail immediately.
+            # Pair OS locks with a per-path thread lock.
+            with _thread_lock_for_journal(lock_path):
+                with lock_path.open('a+b') as stream:
+                    if os.name=='nt':
+                        import msvcrt
                         stream.seek(0)
-                        msvcrt.locking(stream.fileno(),msvcrt.LK_UNLCK,1)
-                else:
-                    import fcntl
-                    fcntl.flock(stream.fileno(),fcntl.LOCK_EX)
-                    try:
-                        yield
-                    finally:
-                        fcntl.flock(stream.fileno(),fcntl.LOCK_UN)
+                        if stream.read(1)==b'':
+                            stream.write(b'0')
+                            stream.flush()
+                        stream.seek(0)
+                        msvcrt.locking(stream.fileno(),msvcrt.LK_LOCK,1)
+                        try:
+                            yield
+                        finally:
+                            stream.seek(0)
+                            msvcrt.locking(stream.fileno(),msvcrt.LK_UNLCK,1)
+                    else:
+                        import fcntl
+                        fcntl.flock(stream.fileno(),fcntl.LOCK_EX)
+                        try:
+                            yield
+                        finally:
+                            fcntl.flock(stream.fileno(),fcntl.LOCK_UN)
         return locked()
 
     def check_current_funding_intervals(self):
