@@ -1772,3 +1772,28 @@ def test_flat_funding_rejects_invalid_windows_without_network(tmp_path):
     assert client.calls == []
     assert store.coverage('BTCUSDT', 'funding').count == 0
     store.close()
+
+
+def test_funding_rejects_noninteger_request_boundaries_in_both_paths(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'bad-window-types.db')
+    client = FundingClient([0, 8 * HOUR])
+    for schedule in ((8 * HOUR, 0), [(0, 8 * HOUR, 0)]):
+        engine = SyncEngine(
+            store, client, clock_ms=lambda: 20 * HOUR,
+            funding_schedules={'BTCUSDT': schedule},
+        )
+        for start, end in (
+            (0.5, 8 * HOUR),
+            (0, float(8 * HOUR) + 0.5),
+            (False, 8 * HOUR),
+            (0, True),
+            ('0', 8 * HOUR),
+        ):
+            result = engine.sync_requirement(
+                DataRequirement('BTCUSDT', 'funding', '1m', start, end)
+            )
+            assert result.state is SyncState.REPAIR_REQUIRED
+            assert 'integer milliseconds' in result.message
+    assert client.calls == []
+    assert store.coverage('BTCUSDT', 'funding').count == 0
+    store.close()
