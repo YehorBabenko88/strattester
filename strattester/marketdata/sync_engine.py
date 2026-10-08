@@ -123,10 +123,10 @@ class SyncEngine:
                 with lock_path.open('a+b') as stream:
                     if os.name=='nt':
                         import msvcrt
-                        stream.seek(0)
-                        if stream.read(1)==b'':
-                            stream.write(b'0')
-                            stream.flush()
+                        # Never read or initialize the lock byte before
+                        # acquiring the Windows byte-range lock: another
+                        # process may already hold it, and that read raises
+                        # PermissionError rather than waiting.
                         stream.seek(0)
                         msvcrt.locking(stream.fileno(),msvcrt.LK_LOCK,1)
                         try:
