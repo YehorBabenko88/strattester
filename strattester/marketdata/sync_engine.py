@@ -71,7 +71,7 @@ class SyncEngine:
                 stream.seek(max(0,size-1048576))
                 data=stream.read()
             if size>1048576:
-                data=data.split(b'\\n',1)[-1]
+                data=data.split(b'\n',1)[-1]
             lines=data.splitlines()
             if not lines:
                 return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
