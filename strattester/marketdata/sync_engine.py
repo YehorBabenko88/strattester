@@ -201,6 +201,8 @@ class SyncEngine:
                 changes[symbol]={'state':'MISSING','verified_interval_ms':None,'current_interval_ms':None}
                 continue
             try:
+                if not isinstance(schedule,(list,tuple)):
+                    raise ValueError('invalid verified funding schedule structure')
                 if (isinstance(schedule,(list,tuple)) and
                         (len(schedule)!=2 or any(isinstance(x,(list,tuple,dict)) for x in schedule))):
                     if not schedule:
