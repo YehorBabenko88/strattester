@@ -995,3 +995,38 @@ def test_funding_drift_backup_only_concurrent_process_recovery(tmp_path):
     assert json.loads(journal.read_text().splitlines()[0])['changes'] == changes
     assert json.loads(backup.read_text().splitlines()[0])['changes'] == changes
     assert journal.with_name(journal.name + '.initialized').read_bytes() == b'1\n'
+
+
+def test_funding_drift_backup_survives_failed_active_recreation(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+    journal = tmp_path / 'funding-drift.jsonl'
+    backup = journal.with_name(journal.name + '.1')
+    changes = {'BTCUSDT': {
+        'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+        'current_interval_ms': HOUR,
+    }}
+    backup.write_text(json.dumps({'observed_at_ms': 10, 'changes': changes}) + '\n')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    original_open = Path.open
+    def deny_active_write(path, *args, **kwargs):
+        mode = args[0] if args else kwargs.get('mode', 'r')
+        if path == journal and any(flag in mode for flag in ('w', 'a', 'x', '+')):
+            raise OSError('simulated active journal disk failure')
+        return original_open(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', deny_active_write)
+    failed = engine.check_current_funding_intervals()
+    assert failed['state'] is SyncState.RETRYABLE
+    assert not journal.exists()
+    assert json.loads(backup.read_text().splitlines()[0])['changes'] == changes
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
+    monkeypatch.setattr(Path, 'open', original_open)
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert json.loads(journal.read_text().splitlines()[0])['changes'] == changes
+    assert json.loads(backup.read_text().splitlines()[0])['changes'] == changes
