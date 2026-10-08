@@ -1191,3 +1191,15 @@ def test_funding_drift_recovery_rejects_invalid_changed_intervals(tmp_path):
         assert recovered['state'] is SyncState.REPAIR_REQUIRED
         assert recovered['observed_at_ms'] == 10
         assert recovered['changes'] == valid['changes']
+
+
+def test_funding_drift_recovery_accepts_legacy_partial_changed_interval(tmp_path):
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    journal.write_text(json.dumps({
+        'observed_at_ms': 11,
+        'changes': {'BTCUSDT': {'state': 'CHANGED', 'current_interval_ms': 2 * HOUR}},
+    }) + '\n')
+    recovered = SyncEngine(None, object(), funding_drift_journal=journal).read_funding_drift_alerts()
+    assert recovered['state'] is SyncState.REPAIR_REQUIRED
+    assert recovered['observed_at_ms'] == 11
