@@ -169,6 +169,14 @@ class SyncEngine:
                     SyncState.UNAVAILABLE,
                     message='funding event coverage requires a verified instrument-specific schedule',
                 )
+            # A single interval cannot represent historical changes. Reject
+            # ambiguous multi-segment configurations instead of silently
+            # treating their events as a uniform time series.
+            if isinstance(schedule, (list, tuple)) and len(schedule)!=2:
+                return SyncResult(
+                    SyncState.REPAIR_REQUIRED,
+                    message='funding schedule history requires explicit segment validation',
+                )
             try:
                 interval,anchor=schedule
                 interval=int(interval)
