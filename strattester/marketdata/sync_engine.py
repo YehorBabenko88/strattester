@@ -298,9 +298,13 @@ class SyncEngine:
             if active_has_data and not incomplete:
                 # The reader may have skipped a complete but invalid final
                 # JSON line. Never deduplicate against an older valid event.
-                with path.open('rb') as stream:
-                    stream.seek(max(0,size-1048576))
-                    tail=stream.read(1048576)
+                try:
+                    with path.open('rb') as stream:
+                        stream.seek(max(0,size-1048576))
+                        tail=stream.read(1048576)
+                except OSError as exc:
+                    return {'state':SyncState.RETRYABLE,'changes':changes,
+                            'message':f'funding drift journal tail inspection failed: {exc}'}
                 if size>1048576:
                     tail=tail.split(b'\n',1)[-1]
                 last=tail.splitlines()[-1] if tail.splitlines() else b''
