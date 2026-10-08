@@ -1709,3 +1709,27 @@ def test_funding_sync_rejects_coerced_segment_values_without_network(tmp_path):
     assert client.calls == []
     assert store.coverage('BTCUSDT', 'funding').count == 0
     store.close()
+
+
+def test_funding_sync_rejects_coerced_flat_schedule_without_network(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'coerced-flat.db')
+    client = FundingClient([0, 8 * HOUR])
+    for schedule in (
+        (float(8 * HOUR) + 0.5, 0),
+        (8 * HOUR, 0.5),
+        (True, 0),
+        (8 * HOUR, False),
+        ('28800000', 0),
+        (8 * HOUR + 1, 0),
+    ):
+        engine = SyncEngine(
+            store, client, clock_ms=lambda: 20 * HOUR,
+            funding_schedules={'BTCUSDT': schedule},
+        )
+        result = engine.sync_requirement(
+            DataRequirement('BTCUSDT', 'funding', '1m', 0, 8 * HOUR)
+        )
+        assert result.state is SyncState.REPAIR_REQUIRED
+    assert client.calls == []
+    assert store.coverage('BTCUSDT', 'funding').count == 0
+    store.close()
