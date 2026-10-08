@@ -1291,3 +1291,37 @@ def test_funding_drift_repeated_torn_active_repairs_keep_backup(tmp_path):
         assert len(journal.read_text().splitlines()) == 1
         assert journal.with_name(journal.name + '.partial').read_bytes() == b'{"observed_at_ms":'
     assert len(list(tmp_path.glob('funding-drift.jsonl.partial*'))) == 1
+
+
+def test_funding_drift_torn_active_without_backup_is_not_silently_accepted(tmp_path):
+    journal = tmp_path / 'funding-drift.jsonl'
+    journal.write_bytes(b'{"observed_at_ms":')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.RETRYABLE
+    assert engine.check_current_funding_intervals()['state'] is SyncState.RETRYABLE
+    assert journal.read_bytes() == b'{"observed_at_ms":'
+    assert not journal.with_name(journal.name + '.1').exists()
+
+
+def test_funding_drift_torn_active_with_corrupt_backup_fails_closed(tmp_path):
+    journal = tmp_path / 'funding-drift.jsonl'
+    backup = journal.with_name(journal.name + '.1')
+    journal.write_bytes(b'{"observed_at_ms":')
+    backup.write_bytes(b'bad backup\n')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.RETRYABLE
+    assert engine.check_current_funding_intervals()['state'] is SyncState.RETRYABLE
+    assert journal.read_bytes() == b'{"observed_at_ms":'
+    assert backup.read_bytes() == b'bad backup\n'
