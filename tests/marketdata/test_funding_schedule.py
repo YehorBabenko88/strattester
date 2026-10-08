@@ -1438,3 +1438,29 @@ def test_funding_drift_invalid_clock_does_not_write_journal(tmp_path):
         assert result['state'] is SyncState.RETRYABLE
         assert 'invalid funding observation timestamp' in result['message']
         assert not journal.exists()
+
+
+def test_funding_drift_clock_exception_is_retryable_and_recovers(tmp_path):
+    journal = tmp_path / 'funding-drift.jsonl'
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    calls = {'count': 0}
+    def flaky_clock():
+        calls['count'] += 1
+        if calls['count'] == 1:
+            raise RuntimeError('clock temporarily unavailable')
+        return 42
+    engine = SyncEngine(
+        None, Metadata(), clock_ms=flaky_clock,
+        funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    failed = engine.check_current_funding_intervals()
+    assert failed['state'] is SyncState.RETRYABLE
+    assert 'clock temporarily unavailable' in failed['message']
+    assert not journal.exists()
+    recovered = engine.check_current_funding_intervals()
+    assert recovered['state'] is SyncState.REPAIR_REQUIRED
+    assert engine.read_funding_drift_alerts()['observed_at_ms'] == 42
+    assert calls['count'] == 2
