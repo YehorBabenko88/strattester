@@ -209,6 +209,13 @@ class SyncEngine:
                         raise ValueError('empty schedule history')
                     if any(not isinstance(entry,(list,tuple)) or len(entry) not in (2,3) for entry in schedule):
                         raise ValueError('invalid verified funding schedule history')
+                    for entry in schedule:
+                        candidate=entry[1]
+                        if isinstance(candidate,bool) or (isinstance(candidate,float) and not candidate.is_integer()):
+                            raise ValueError('invalid verified funding interval')
+                        candidate_interval=int(candidate)
+                        if candidate_interval<=0:
+                            raise ValueError('invalid verified funding interval')
                     verified=schedule[-1][1]
                     interval=int(verified)
                 else:
