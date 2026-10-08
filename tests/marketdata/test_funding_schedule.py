@@ -514,3 +514,23 @@ def test_funding_drift_reappearing_after_resolution_creates_new_event(tmp_path):
     assert len(journal.read_text().splitlines()) == 3
     assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
     store.close()
+
+
+def test_funding_drift_journal_concurrent_threads_do_not_duplicate(tmp_path):
+    import concurrent.futures
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    def run_check(_):
+        engine = SyncEngine(
+            store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+            funding_drift_journal=journal,
+        )
+        return engine.check_current_funding_intervals()['state']
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(run_check, range(24)))
+    assert all(state is SyncState.REPAIR_REQUIRED for state in results)
+    assert len(journal.read_text().splitlines()) == 1
+    store.close()
