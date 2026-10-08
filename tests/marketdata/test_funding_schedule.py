@@ -974,3 +974,24 @@ def test_funding_drift_backup_only_recreates_active_generation(tmp_path):
     backup.unlink()
     assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
     store.close()
+
+
+def test_funding_drift_backup_only_concurrent_process_recovery(tmp_path):
+    import concurrent.futures
+    import json
+    import multiprocessing
+    journal = tmp_path / 'funding-drift.jsonl'
+    backup = journal.with_name(journal.name + '.1')
+    changes = {'BTCUSDT': {
+        'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+        'current_interval_ms': HOUR,
+    }}
+    backup.write_text(json.dumps({'observed_at_ms': 10, 'changes': changes}) + '\n')
+    ctx = multiprocessing.get_context('spawn')
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4, mp_context=ctx) as pool:
+        results = list(pool.map(_funding_drift_process_check, [str(journal)] * 8))
+    assert all(state == SyncState.REPAIR_REQUIRED.value for state, _ in results), results
+    assert len(journal.read_text().splitlines()) == 1
+    assert json.loads(journal.read_text().splitlines()[0])['changes'] == changes
+    assert json.loads(backup.read_text().splitlines()[0])['changes'] == changes
+    assert journal.with_name(journal.name + '.initialized').read_bytes() == b'1\n'
