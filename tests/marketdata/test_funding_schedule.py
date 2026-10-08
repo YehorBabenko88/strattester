@@ -251,3 +251,59 @@ def test_unsorted_funding_transitions_fail_without_network(tmp_path):
     assert result.state is SyncState.REPAIR_REQUIRED
     assert client.calls == []
     store.close()
+
+
+def test_current_funding_drift_reports_change_without_mutating_schedule(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    schedule = {'BTCUSDT': (8 * HOUR, 0)}
+    engine = SyncEngine(store, Metadata(), funding_schedules=schedule)
+    result = engine.check_current_funding_intervals()
+    assert result['state'] is SyncState.REPAIR_REQUIRED
+    assert result['changes']['BTCUSDT']['state'] == 'CHANGED'
+    assert engine.funding_schedules == schedule
+    assert schedule == {'BTCUSDT': (8 * HOUR, 0)}
+    store.close()
+
+
+def test_current_funding_drift_uses_latest_verified_segment(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        store, Metadata(),
+        funding_schedules={'BTCUSDT': [(0, 8 * HOUR, 0), (8 * HOUR, HOUR, 0)]},
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.READY
+    store.close()
+
+
+def test_missing_current_funding_metadata_requires_review(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {}
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+    )
+    result = engine.check_current_funding_intervals()
+    assert result['state'] is SyncState.REPAIR_REQUIRED
+    assert result['changes']['BTCUSDT']['state'] == 'MISSING'
+    store.close()
+
+
+def test_current_funding_metadata_failure_is_retryable(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            raise ConnectionError('metadata unavailable')
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+    )
+    result = engine.check_current_funding_intervals()
+    assert result['state'] is SyncState.RETRYABLE
+    assert engine.funding_schedules == {'BTCUSDT': (8 * HOUR, 0)}
+    store.close()
