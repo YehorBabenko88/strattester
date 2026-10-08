@@ -1167,3 +1167,26 @@ def test_funding_drift_recovery_rejects_only_invalid_symbol_payloads(tmp_path):
     }) + '\n')
     engine = SyncEngine(None, object(), funding_drift_journal=journal)
     assert engine.read_funding_drift_alerts()['state'] is SyncState.RETRYABLE
+
+
+def test_funding_drift_recovery_rejects_invalid_changed_intervals(tmp_path):
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    valid = {'observed_at_ms': 10, 'changes': {'BTCUSDT': {
+        'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+        'current_interval_ms': HOUR,
+    }}}
+    invalid = [
+        {'state': 'CHANGED', 'verified_interval_ms': True, 'current_interval_ms': HOUR},
+        {'state': 'CHANGED', 'verified_interval_ms': -1, 'current_interval_ms': HOUR},
+        {'state': 'CHANGED', 'verified_interval_ms': HOUR, 'current_interval_ms': HOUR},
+        {'state': 'CHANGED', 'verified_interval_ms': HOUR},
+    ]
+    engine = SyncEngine(None, object(), funding_drift_journal=journal)
+    for detail in invalid:
+        journal.write_text(json.dumps(valid) + '\n' +
+                           json.dumps({'observed_at_ms': 20, 'changes': {'BTCUSDT': detail}}) + '\n')
+        recovered = engine.read_funding_drift_alerts()
+        assert recovered['state'] is SyncState.REPAIR_REQUIRED
+        assert recovered['observed_at_ms'] == 10
+        assert recovered['changes'] == valid['changes']
