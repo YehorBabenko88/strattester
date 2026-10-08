@@ -1574,7 +1574,7 @@ def test_funding_drift_rejects_malformed_history_entries(tmp_path):
     histories = (
         ((0, 8 * HOUR), (1,)),
         ((0, 8 * HOUR), {'interval': HOUR}),
-        ((0, 8 * HOUR), (1, HOUR, 7)),
+        ((0, 8 * HOUR), (1, HOUR, 7, 9)),
         ((0, 8 * HOUR), None),
     )
     for schedule in histories:
