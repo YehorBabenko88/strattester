@@ -294,6 +294,21 @@ class SyncEngine:
             # An empty active file after interrupted rotation is not a
             # durable duplicate of the valid event recovered from backup.
             if active_has_data and not incomplete:
+                # The reader may have skipped a complete but invalid final
+                # JSON line. Never deduplicate against an older valid event.
+                with path.open('rb') as stream:
+                    stream.seek(max(0,size-1048576))
+                    tail=stream.read(1048576)
+                if size>1048576:
+                    tail=tail.split(b'\n',1)[-1]
+                last=tail.splitlines()[-1] if tail.splitlines() else b''
+                try:
+                    final=json.loads(last.decode('utf-8'))
+                    if not isinstance(final,dict) or final.get('changes')!=changes:
+                        incomplete=True
+                except (ValueError,UnicodeError,TypeError):
+                    incomplete=True
+            if active_has_data and not incomplete:
                 return {'state':SyncState.REPAIR_REQUIRED if changes else SyncState.READY,
                         'message':'funding metadata requires review' if changes else '',
                         'changes':changes}
