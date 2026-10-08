@@ -109,6 +109,13 @@ class SyncEngine:
                 return {'state':SyncState.RETRYABLE,'changes':{},
                         'message':f'funding drift journal recovery failed: {exc}'}
         if not seen:
+            # A durable marker is written only after a journal record has
+            # been fsynced. Unlike the lock file, it cannot be created by
+            # an ordinary first check that has never persisted an event.
+            marker=path.with_name(path.name+'.initialized')
+            if marker.exists():
+                return {'state':SyncState.RETRYABLE,'changes':{},
+                        'message':'funding drift journal missing after prior durable record'}
             return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
         return {'state':SyncState.RETRYABLE,'changes':{},
                 'message':'funding drift journal has no valid complete record'}
@@ -253,6 +260,14 @@ class SyncEngine:
                 journal.write(json.dumps(record,sort_keys=True)+'\n')
                 journal.flush()
                 os.fsync(journal.fileno())
+            # Persist an explicit initialization marker after the first
+            # durable event, so disappearance of both generations is visible.
+            marker=path.with_name(path.name+'.initialized')
+            if not marker.exists():
+                with marker.open('x',encoding='ascii') as initialized:
+                    initialized.write('1\n')
+                    initialized.flush()
+                    os.fsync(initialized.fileno())
         except OSError as exc:
             return {
                 'state':SyncState.RETRYABLE,
