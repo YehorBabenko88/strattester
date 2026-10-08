@@ -261,7 +261,10 @@ class SyncEngine:
                     if size:
                         stream.seek(-1,os.SEEK_END)
                         incomplete=stream.read(1)!=b'\n'
-            if not incomplete:
+            # Recovery from a rotated-only generation is valid, but the
+            # active generation must be recreated before deduplicating.
+            # Otherwise a subsequent loss of the backup loses all evidence.
+            if path.exists() and not incomplete:
                 return {'state':SyncState.REPAIR_REQUIRED if changes else SyncState.READY,
                         'message':'funding metadata requires review' if changes else '',
                         'changes':changes}
