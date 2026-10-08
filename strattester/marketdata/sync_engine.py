@@ -135,6 +135,18 @@ class SyncEngine:
                     'current_interval_ms':observed,
                 }
         if changes and self.funding_drift_journal is not None:
+            # Avoid recording identical alerts on every polling cycle.
+            # After a reboot the last complete record remains authoritative
+            # for deduplication; no in-memory cache is required.
+            previous=self.read_funding_drift_alerts()
+            if previous['state'] is SyncState.RETRYABLE:
+                return {'state':SyncState.RETRYABLE,
+                        'message':previous.get('message','funding drift journal unavailable'),
+                        'changes':changes}
+            if previous['state'] is SyncState.REPAIR_REQUIRED and previous['changes']==changes:
+                return {'state':SyncState.REPAIR_REQUIRED,
+                        'message':'funding metadata requires review',
+                        'changes':changes}
             try:
                 # Append-only evidence: never overwrite or alter market data.
                 # Flush and fsync so a completed check survives a reboot.
