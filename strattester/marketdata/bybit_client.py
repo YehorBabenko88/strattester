@@ -166,7 +166,7 @@ class BybitClient:
                 minutes = int(raw)
             except ValueError as exc:
                 raise BybitResponseError('funding metadata has invalid interval') from exc
-            if minutes <= 0 or str(raw).strip() != str(minutes):
+            if minutes <= 0 or str(raw) != str(minutes):
                 raise BybitResponseError('funding metadata has invalid interval')
             intervals[symbol] = minutes * 60_000
         return intervals
