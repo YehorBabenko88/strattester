@@ -96,6 +96,37 @@ class SyncEngine:
             return {'state':SyncState.RETRYABLE,'changes':{},
                     'message':f'funding drift journal recovery failed: {exc}'}
 
+    def _funding_journal_lock(self):
+        """Cross-process lock on a separate stable file (also across rotation)."""
+        from contextlib import contextmanager
+        @contextmanager
+        def locked():
+            path=self.funding_drift_journal
+            path.parent.mkdir(parents=True,exist_ok=True)
+            lock_path=path.with_name(path.name+'.lock')
+            with lock_path.open('a+b') as stream:
+                if os.name=='nt':
+                    import msvcrt
+                    stream.seek(0)
+                    if stream.read(1)==b'':
+                        stream.write(b'0')
+                        stream.flush()
+                    stream.seek(0)
+                    msvcrt.locking(stream.fileno(),msvcrt.LK_LOCK,1)
+                    try:
+                        yield
+                    finally:
+                        stream.seek(0)
+                        msvcrt.locking(stream.fileno(),msvcrt.LK_UNLCK,1)
+                else:
+                    import fcntl
+                    fcntl.flock(stream.fileno(),fcntl.LOCK_EX)
+                    try:
+                        yield
+                    finally:
+                        fcntl.flock(stream.fileno(),fcntl.LOCK_UN)
+        return locked()
+
     def check_current_funding_intervals(self):
         """Compare live Bybit metadata with verified schedules without mutation.
 
@@ -140,38 +171,39 @@ class SyncEngine:
             # Avoid recording identical alerts on every polling cycle.
             # After a reboot the last complete record remains authoritative
             # for deduplication; no in-memory cache is required.
-            previous=self.read_funding_drift_alerts()
-            if previous['state'] is SyncState.RETRYABLE:
-                return {'state':SyncState.RETRYABLE,
-                        'message':previous.get('message','funding drift journal unavailable'),
-                        'changes':changes}
-            if previous['state'] in (SyncState.REPAIR_REQUIRED,SyncState.READY) and previous['changes']==changes:
-                return {'state':SyncState.REPAIR_REQUIRED if changes else SyncState.READY,
-                        'message':'funding metadata requires review' if changes else '',
-                        'changes':changes}
-            if previous['state'] is SyncState.UNKNOWN and not changes:
-                return {'state':SyncState.READY,'message':'','changes':{}}
-            try:
-                # Append-only evidence: never overwrite or alter market data.
-                # Flush and fsync so a completed check survives a reboot.
-                record={'observed_at_ms':int(self.clock_ms()),'changes':changes}
-                path=self.funding_drift_journal
-                path.parent.mkdir(parents=True,exist_ok=True)
-                # Keep one previous journal generation for recovery while
-                # bounding growth. Rotation happens before a new append.
-                max_bytes=1024*1024
-                if path.exists() and path.stat().st_size>=max_bytes:
-                    os.replace(path,path.with_name(path.name+'.1'))
-                with path.open('a',encoding='utf-8') as journal:
-                    journal.write(json.dumps(record,sort_keys=True)+'\n')
-                    journal.flush()
-                    os.fsync(journal.fileno())
-            except OSError as exc:
-                return {
-                    'state':SyncState.RETRYABLE,
-                    'message':f'funding drift journal write failed: {exc}',
-                    'changes':changes,
-                }
+            with self._funding_journal_lock():
+                previous=self.read_funding_drift_alerts()
+                if previous['state'] is SyncState.RETRYABLE:
+                    return {'state':SyncState.RETRYABLE,
+                            'message':previous.get('message','funding drift journal unavailable'),
+                            'changes':changes}
+                if previous['state'] in (SyncState.REPAIR_REQUIRED,SyncState.READY) and previous['changes']==changes:
+                    return {'state':SyncState.REPAIR_REQUIRED if changes else SyncState.READY,
+                            'message':'funding metadata requires review' if changes else '',
+                            'changes':changes}
+                if previous['state'] is SyncState.UNKNOWN and not changes:
+                    return {'state':SyncState.READY,'message':'','changes':{}}
+                try:
+                    # Append-only evidence: never overwrite or alter market data.
+                    # Flush and fsync so a completed check survives a reboot.
+                    record={'observed_at_ms':int(self.clock_ms()),'changes':changes}
+                    path=self.funding_drift_journal
+                    path.parent.mkdir(parents=True,exist_ok=True)
+                    # Keep one previous journal generation for recovery while
+                    # bounding growth. Rotation happens before a new append.
+                    max_bytes=1024*1024
+                    if path.exists() and path.stat().st_size>=max_bytes:
+                        os.replace(path,path.with_name(path.name+'.1'))
+                    with path.open('a',encoding='utf-8') as journal:
+                        journal.write(json.dumps(record,sort_keys=True)+'\n')
+                        journal.flush()
+                        os.fsync(journal.fileno())
+                except OSError as exc:
+                    return {
+                        'state':SyncState.RETRYABLE,
+                        'message':f'funding drift journal write failed: {exc}',
+                        'changes':changes,
+                    }
         return {
             'state':SyncState.REPAIR_REQUIRED if changes else SyncState.READY,
             'message':'funding metadata requires review' if changes else '',
