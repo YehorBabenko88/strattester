@@ -1872,3 +1872,20 @@ def test_funding_page_rejects_lossy_timestamps_atomically(tmp_path):
         assert result.state is SyncState.RETRYABLE
         assert store.coverage('BTCUSDT', 'funding').count == 0
     store.close()
+
+
+def test_funding_drift_rejects_lossy_historical_interval_types(tmp_path):
+    class MetadataClient:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': 8 * HOUR}
+
+    for invalid in (8.0 * HOUR, str(8 * HOUR), True, 8.5 * HOUR):
+        store = SQLiteMarketStore.open(tmp_path / ('drift-' + str(type(invalid).__name__) + '-' + str(invalid) + '.db'))
+        engine = SyncEngine(
+            store, MetadataClient(), clock_ms=lambda: 20 * HOUR,
+            funding_schedules={'BTCUSDT': [(0, invalid, 0)]},
+        )
+        result = engine.check_current_funding_intervals()
+        assert result['state'] is SyncState.REPAIR_REQUIRED
+        assert result['changes']['BTCUSDT']['state'] == 'INVALID'
+        store.close()
