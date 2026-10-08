@@ -211,11 +211,11 @@ class SyncEngine:
                         raise ValueError('invalid verified funding schedule history')
                     previous_start=None
                     for entry in schedule:
+                        if isinstance(entry[0],bool) or not isinstance(entry[0],int) or entry[0]<0:
+                            raise ValueError('invalid verified funding schedule boundary')
                         if previous_start is not None and entry[0]<=previous_start:
                             raise ValueError('invalid verified funding schedule boundary order')
                         previous_start=entry[0]
-                        if isinstance(entry[0],bool) or not isinstance(entry[0],int) or entry[0]<0:
-                            raise ValueError('invalid verified funding schedule boundary')
                         candidate=entry[1]
                         if isinstance(candidate,bool) or (isinstance(candidate,float) and not candidate.is_integer()):
                             raise ValueError('invalid verified funding interval')
