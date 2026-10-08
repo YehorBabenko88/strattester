@@ -329,7 +329,7 @@ def test_funding_drift_journal_survives_new_engine_instance(tmp_path):
     assert records[0]['changes']['BTCUSDT']['state'] == 'CHANGED'
     engine_after_restart = SyncEngine(store, Metadata(), **kwargs)
     assert engine_after_restart.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
-    assert len(path.read_text().splitlines()) == 2
+    assert len(path.read_text().splitlines()) == 1
     store.close()
 
 
@@ -434,4 +434,30 @@ def test_funding_drift_recovery_rejects_only_truncated_record(tmp_path):
     journal.write_bytes(b'{"observed_at_ms": 999, "changes":')
     engine = SyncEngine(store, object(), funding_drift_journal=journal)
     assert engine.read_funding_drift_alerts()['state'] is SyncState.RETRYABLE
+    store.close()
+
+
+def test_funding_drift_journal_records_actual_changes_only(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        interval = HOUR
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': self.interval}
+    client = Metadata()
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, client, clock_ms=lambda: 987,
+        funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert len(journal.read_text().splitlines()) == 1
+    client.interval = 2 * HOUR
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    rows = [json.loads(line) for line in journal.read_text().splitlines()]
+    assert len(rows) == 2
+    assert rows[0]['changes']['BTCUSDT']['current_interval_ms'] == HOUR
+    assert rows[1]['changes']['BTCUSDT']['current_interval_ms'] == 2 * HOUR
     store.close()
