@@ -736,3 +736,25 @@ def test_funding_drift_rotation_keeps_only_one_backup_generation(tmp_path):
     assert len([json.loads(line) for line in journal.read_text().splitlines()]) == 1
     assert engine.read_funding_drift_alerts()['changes']['BTCUSDT']['current_interval_ms'] == 4 * HOUR
     store.close()
+
+
+def test_funding_drift_reader_recovers_after_active_file_disappears(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    journal = tmp_path / 'funding-drift.jsonl'
+    rotated = journal.with_name(journal.name + '.1')
+    rotated.write_text(json.dumps({
+        'observed_at_ms': 77, 'changes': {'BTCUSDT': {'state': 'CHANGED'}},
+    }) + '\n')
+    engine = SyncEngine(store, object(), funding_drift_journal=journal)
+    original_open = Path.open
+    def open_with_rotation_race(path, *args, **kwargs):
+        if path == journal:
+            raise FileNotFoundError('active journal moved during rotation')
+        return original_open(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', open_with_rotation_race)
+    result = engine.read_funding_drift_alerts()
+    assert result['state'] is SyncState.REPAIR_REQUIRED
+    assert result['observed_at_ms'] == 77
+    store.close()
