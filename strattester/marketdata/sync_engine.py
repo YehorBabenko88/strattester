@@ -222,6 +222,10 @@ class SyncEngine:
                         candidate_interval=int(candidate)
                         if candidate_interval<=0:
                             raise ValueError('invalid verified funding interval')
+                        if len(entry)==3:
+                            anchor=entry[2]
+                            if isinstance(anchor,bool) or not isinstance(anchor,int) or not 0<=anchor<candidate_interval:
+                                raise ValueError('invalid verified funding schedule anchor')
                     verified=schedule[-1][1]
                     interval=int(verified)
                 else:
