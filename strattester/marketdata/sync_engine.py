@@ -550,7 +550,9 @@ class SyncEngine:
             for segment in segments:
                 if not isinstance(segment,(tuple,list)) or len(segment)!=3:
                     raise ValueError('funding segment must contain start, interval and anchor')
-                since,interval,anchor=map(int,segment)
+                if any(isinstance(value,bool) or not isinstance(value,int) for value in segment):
+                    raise ValueError('funding segment values must be integer milliseconds')
+                since,interval,anchor=segment
                 if since<0 or interval<=0 or interval%60000 or not 0<=anchor<interval:
                     raise ValueError('invalid funding segment')
                 if normalized and since<=normalized[-1][0]:
