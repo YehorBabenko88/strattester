@@ -497,7 +497,18 @@ class SyncEngine:
                     timestamps=[]
                     valid=[]
                     for row in rows:
-                        ts=int(row['fundingRateTimestamp'])
+                        raw_ts=row['fundingRateTimestamp']
+                        if (isinstance(raw_ts,bool) or
+                                not isinstance(raw_ts,(int,str)) or
+                                (isinstance(raw_ts,str) and
+                                 (not raw_ts.isascii() or not raw_ts.isdecimal()))):
+                            raise MarketDataIntegrityError('invalid funding event timestamp')
+                        try:
+                            ts=int(raw_ts)
+                        except (ValueError,OverflowError) as exc:
+                            raise MarketDataIntegrityError('invalid funding event timestamp') from exc
+                        if ts<0:
+                            raise MarketDataIntegrityError('invalid funding event timestamp')
                         # An unexpected event timestamp means the declared
                         # schedule may be stale or the response is malformed.
                         # Reject the entire page atomically: do not persist
