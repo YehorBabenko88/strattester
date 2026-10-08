@@ -612,3 +612,22 @@ def test_funding_drift_new_event_after_truncated_tail_is_recoverable(tmp_path):
     assert journal.with_name(journal.name + '.1').exists()
     assert len([json.loads(line) for line in journal.read_text().splitlines()]) == 1
     store.close()
+
+
+def test_funding_drift_unchanged_alert_with_truncated_tail_fails_closed(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    with journal.open('ab') as stream:
+        stream.write(b'partial')
+    result = engine.check_current_funding_intervals()
+    assert result['state'] is SyncState.RETRYABLE
+    assert 'incomplete' in result['message']
+    store.close()
