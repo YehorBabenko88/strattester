@@ -83,6 +83,8 @@ class SyncEngine:
                     stream.seek(max(0,size-1048576))
                     data=stream.read()
                 if size>1048576:
+                    # The bounded tail may start mid-record. Discard only
+                    # that partial prefix, not a complete first line.
                     data=data.split(b'\n',1)[-1]
                 if not data.endswith(b'\n'):
                     data=data.rsplit(b'\n',1)[0]+b'\n' if b'\n' in data else b''
@@ -107,6 +109,13 @@ class SyncEngine:
                 return {'state':SyncState.RETRYABLE,'changes':{},
                         'message':f'funding drift journal recovery failed: {exc}'}
         if not seen:
+            # A lock file means a previous persistence attempt existed.
+            # Losing both journal generations must not masquerade as an
+            # untouched installation with no recorded observations.
+            lock_path=path.with_name(path.name+'.lock')
+            if lock_path.exists():
+                return {'state':SyncState.RETRYABLE,'changes':{},
+                        'message':'funding drift journal generations missing after prior use'}
             return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
         return {'state':SyncState.RETRYABLE,'changes':{},
                 'message':'funding drift journal has no valid complete record'}
