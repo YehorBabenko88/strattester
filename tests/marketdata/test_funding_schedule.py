@@ -951,3 +951,26 @@ def test_funding_drift_partial_marker_write_denial_preserves_event(tmp_path, mon
     assert marker.read_bytes() == b'1\n'
     assert len(journal.read_text().splitlines()) == 1
     store.close()
+
+
+def test_funding_drift_backup_only_recreates_active_generation(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    backup = journal.with_name(journal.name + '.1')
+    journal.replace(backup)
+    assert not journal.exists()
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert journal.exists()
+    assert len([json.loads(line) for line in journal.read_text().splitlines()]) == 1
+    backup.unlink()
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
+    store.close()
