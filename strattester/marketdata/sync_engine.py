@@ -218,8 +218,20 @@ class SyncEngine:
             # Keep one previous journal generation for recovery while
             # bounding growth. Rotation happens before a new append.
             max_bytes=1024*1024
-            if path.exists() and path.stat().st_size>=max_bytes:
-                os.replace(path,path.with_name(path.name+'.1'))
+            if path.exists():
+                # A crash may leave a partial JSON record without a newline.
+                # Never append onto that fragment: rotate it to preserve
+                # evidence and start a fresh, independently readable record.
+                with path.open('rb') as existing:
+                    existing.seek(0,os.SEEK_END)
+                    size=existing.tell()
+                    if size:
+                        existing.seek(-1,os.SEEK_END)
+                        incomplete=existing.read(1)!=b'\n'
+                    else:
+                        incomplete=False
+                if size>=max_bytes or incomplete:
+                    os.replace(path,path.with_name(path.name+'.1'))
             with path.open('a',encoding='utf-8') as journal:
                 journal.write(json.dumps(record,sort_keys=True)+'\n')
                 journal.flush()
