@@ -1586,3 +1586,17 @@ def test_funding_drift_rejects_malformed_history_entries(tmp_path):
         assert result['state'] is SyncState.REPAIR_REQUIRED
         assert result['changes']['BTCUSDT']['state'] == 'INVALID'
         assert 'invalid verified funding schedule history' in result['changes']['BTCUSDT']['message']
+
+
+def test_funding_drift_accepts_three_field_history_segments(tmp_path):
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(),
+        funding_schedules={'BTCUSDT': [(0, 8 * HOUR, 0), (8 * HOUR, HOUR, 0)]},
+        funding_drift_journal=tmp_path / 'three-field-history.jsonl',
+    )
+    result = engine.check_current_funding_intervals()
+    assert result['state'] is SyncState.READY
+    assert result['changes'] == {}
