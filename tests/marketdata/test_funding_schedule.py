@@ -667,7 +667,8 @@ def _funding_drift_process_check(journal_path):
         None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
         funding_drift_journal=journal_path,
     )
-    return engine.check_current_funding_intervals()['state'].value
+    result = engine.check_current_funding_intervals()
+    return result['state'].value, result.get('message', '')
 
 
 def test_funding_drift_journal_deduplicates_across_processes(tmp_path):
@@ -678,7 +679,7 @@ def test_funding_drift_journal_deduplicates_across_processes(tmp_path):
     ctx = multiprocessing.get_context('spawn')
     with concurrent.futures.ProcessPoolExecutor(max_workers=4, mp_context=ctx) as pool:
         results = list(pool.map(_funding_drift_process_check, [str(journal)] * 8))
-    assert results == [SyncState.REPAIR_REQUIRED.value] * 8
+    assert all(state == SyncState.REPAIR_REQUIRED.value for state, _ in results), results
     records = [json.loads(line) for line in journal.read_text().splitlines()]
     assert len(records) == 1
     assert records[0]['changes']['BTCUSDT']['state'] == 'CHANGED'
@@ -700,7 +701,7 @@ def test_funding_drift_concurrent_rotation_keeps_one_new_event(tmp_path):
     ctx = multiprocessing.get_context('spawn')
     with concurrent.futures.ProcessPoolExecutor(max_workers=4, mp_context=ctx) as pool:
         results = list(pool.map(_funding_drift_process_check, [str(journal)] * 8))
-    assert results == [SyncState.REPAIR_REQUIRED.value] * 8
+    assert all(state == SyncState.REPAIR_REQUIRED.value for state, _ in results), results
     assert journal.with_name(journal.name + '.1').stat().st_size >= 1024 * 1024
     records = [json.loads(line) for line in journal.read_text().splitlines()]
     assert len(records) == 1
