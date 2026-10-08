@@ -1600,3 +1600,18 @@ def test_funding_drift_accepts_three_field_history_segments(tmp_path):
     result = engine.check_current_funding_intervals()
     assert result['state'] is SyncState.READY
     assert result['changes'] == {}
+
+
+def test_funding_drift_rejects_invalid_earlier_history_interval(tmp_path):
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    for invalid in (True, 0, -1, 8.5, float('inf'), None):
+        engine = SyncEngine(
+            None, Metadata(),
+            funding_schedules={'BTCUSDT': [(0, invalid, 0), (8 * HOUR, HOUR, 0)]},
+            funding_drift_journal=tmp_path / 'invalid-earlier-history.jsonl',
+        )
+        result = engine.check_current_funding_intervals()
+        assert result['state'] is SyncState.REPAIR_REQUIRED
+        assert result['changes']['BTCUSDT']['state'] == 'INVALID'
