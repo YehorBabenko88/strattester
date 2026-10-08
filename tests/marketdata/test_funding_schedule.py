@@ -1421,3 +1421,20 @@ def test_funding_drift_final_line_read_failure_is_retryable(tmp_path, monkeypatc
     assert result['state'] is SyncState.RETRYABLE
     assert 'final-line access denied' in result['message']
     assert journal.read_text() == json.dumps({'observed_at_ms': 10, 'changes': changes}) + '\n'
+
+
+def test_funding_drift_invalid_clock_does_not_write_journal(tmp_path):
+    journal = tmp_path / 'funding-drift.jsonl'
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    for bad_time in (True, -1, '123', None):
+        engine = SyncEngine(
+            None, Metadata(), clock_ms=lambda value=bad_time: value,
+            funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+            funding_drift_journal=journal,
+        )
+        result = engine.check_current_funding_intervals()
+        assert result['state'] is SyncState.RETRYABLE
+        assert 'invalid funding observation timestamp' in result['message']
+        assert not journal.exists()
