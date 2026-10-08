@@ -65,6 +65,10 @@ class SyncEngine:
         if path is None or not path.exists():
             return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
         try:
+            # A power loss may leave a partial trailing line. Only complete,
+            # newline-terminated records are eligible for recovery.
+            # Scan a bounded tail from newest to oldest and fail closed if
+            # no valid complete record survives.
             with path.open('rb') as stream:
                 stream.seek(0,os.SEEK_END)
                 size=stream.tell()
@@ -72,17 +76,22 @@ class SyncEngine:
                 data=stream.read()
             if size>1048576:
                 data=data.split(b'\n',1)[-1]
-            lines=data.splitlines()
-            if not lines:
-                return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
-            record=json.loads(lines[-1].decode('utf-8'))
-            if not isinstance(record,dict) or not isinstance(record.get('changes'),dict):
-                raise ValueError('invalid funding drift journal record')
-            observed=record.get('observed_at_ms')
-            if not isinstance(observed,int) or isinstance(observed,bool) or observed<0:
-                raise ValueError('invalid funding drift observation timestamp')
-            return {'state':SyncState.REPAIR_REQUIRED,
-                    'changes':record['changes'],'observed_at_ms':observed}
+            if not data.endswith(b'\n'):
+                data=data.rsplit(b'\n',1)[0]+b'\n' if b'\n' in data else b''
+            for line in reversed(data.splitlines()):
+                try:
+                    record=json.loads(line.decode('utf-8'))
+                    if not isinstance(record,dict) or not isinstance(record.get('changes'),dict):
+                        continue
+                    observed=record.get('observed_at_ms')
+                    if not isinstance(observed,int) or isinstance(observed,bool) or observed<0:
+                        continue
+                    return {'state':SyncState.REPAIR_REQUIRED,
+                            'changes':record['changes'],'observed_at_ms':observed}
+                except (ValueError,UnicodeError,TypeError):
+                    continue
+            return {'state':SyncState.RETRYABLE,'changes':{},
+                    'message':'funding drift journal has no valid complete record'}
         except (OSError,ValueError,UnicodeError,TypeError) as exc:
             return {'state':SyncState.RETRYABLE,'changes':{},
                     'message':f'funding drift journal recovery failed: {exc}'}
