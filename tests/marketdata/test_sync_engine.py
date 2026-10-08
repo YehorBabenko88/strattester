@@ -167,3 +167,19 @@ os._exit(41)
     assert client.calls==[(60000,60000)]
     assert reopened.coverage('BTCUSDT','candles','1m').count==2
     reopened.close()
+
+
+def test_funding_requires_verified_event_schedule_not_candle_cadence(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class ClientWithFunding:
+        def fetch_funding(self, *args):
+            raise AssertionError('must not fetch using unverified cadence')
+    engine = SyncEngine(store, ClientWithFunding(), clock_ms=lambda: 999999999)
+    for timeframe in ('1m', '1h', '8h'):
+        result = engine.sync_requirement(
+            DataRequirement('BTCUSDT', 'funding', timeframe, 0, 8 * 3600_000)
+        )
+        assert result.state is SyncState.UNAVAILABLE
+        assert 'schedule' in result.message
+    assert store.coverage('BTCUSDT', 'funding').count == 0
+    store.close()
