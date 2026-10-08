@@ -269,6 +269,8 @@ class SyncEngine:
                         'message':'funding metadata requires review' if changes else '',
                         'changes':changes}
         if previous['state'] is SyncState.UNKNOWN and not changes:
+            # No prior event is expected on a clean first check. Do not
+            # create a journal or marker until a drift event is observed.
             return {'state':SyncState.READY,'message':'','changes':{}}
         try:
             # Append-only evidence: never overwrite or alter market data.
