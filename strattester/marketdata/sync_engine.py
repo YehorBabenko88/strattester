@@ -215,7 +215,7 @@ class SyncEngine:
                 observed=current[symbol]
                 if isinstance(observed,bool) or not isinstance(observed,int) or observed<=0:
                     raise ValueError('invalid current funding interval')
-            except (TypeError,ValueError,IndexError,KeyError) as exc:
+            except (TypeError,ValueError,OverflowError,IndexError,KeyError) as exc:
                 changes[symbol]={'state':'INVALID','message':str(exc)}
                 continue
             if interval!=observed:
