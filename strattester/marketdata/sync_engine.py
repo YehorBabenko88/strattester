@@ -161,6 +161,10 @@ class SyncEngine:
                 last=anchor+((int(req.end_ms)-anchor)//interval)*interval
                 if first>last:
                     return SyncResult(SyncState.REPAIR_REQUIRED,message='no scheduled funding event in requested window')
+                # A scheduled event in the future is not missing history and
+                # must never be accepted as READY, even if a cached row exists.
+                if last>int(self.clock_ms()):
+                    return SyncResult(SyncState.PARTIAL,message='requested funding window includes future events')
                 # Reuse the gap-repair/pagination engine with the *event*
                 # interval, not the candle timeframe. The funding table
                 # deliberately has no timeframe dimension.
