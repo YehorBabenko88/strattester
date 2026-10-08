@@ -75,13 +75,11 @@ class SyncEngine:
             return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
         seen=False
         for candidate in (path,path.with_name(path.name+'.1')):
-            if not candidate.exists():
-                continue
-            seen=True
             try:
                 with candidate.open('rb') as stream:
                     stream.seek(0,os.SEEK_END)
                     size=stream.tell()
+                    seen=True
                     stream.seek(max(0,size-1048576))
                     data=stream.read()
                 if size>1048576:
@@ -100,6 +98,11 @@ class SyncEngine:
                                 'changes':record['changes'],'observed_at_ms':observed}
                     except (ValueError,UnicodeError,TypeError):
                         continue
+            except FileNotFoundError:
+                # Rotation can move a generation between path discovery and
+                # opening it. Check the next generation rather than treating
+                # this normal race as corruption.
+                continue
             except OSError as exc:
                 return {'state':SyncState.RETRYABLE,'changes':{},
                         'message':f'funding drift journal recovery failed: {exc}'}
