@@ -1754,3 +1754,21 @@ def test_funding_drift_rejects_invalid_flat_schedule_parameters(tmp_path):
         result = engine.check_current_funding_intervals()
         assert result['state'] is SyncState.REPAIR_REQUIRED
         assert result['changes']['BTCUSDT']['state'] == 'INVALID'
+
+
+def test_flat_funding_rejects_invalid_windows_without_network(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'invalid-flat-window.db')
+    client = FundingClient([0, 8 * HOUR])
+    engine = SyncEngine(
+        store, client, clock_ms=lambda: 20 * HOUR,
+        funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+    )
+    for start, end in ((-1, 0), (8 * HOUR, 0), (-HOUR, -1)):
+        result = engine.sync_requirement(
+            DataRequirement('BTCUSDT', 'funding', '1m', start, end)
+        )
+        assert result.state is SyncState.REPAIR_REQUIRED
+        assert 'invalid requested funding window' in result.message
+    assert client.calls == []
+    assert store.coverage('BTCUSDT', 'funding').count == 0
+    store.close()
