@@ -258,14 +258,18 @@ class SyncEngine:
             path=self.funding_drift_journal
             incomplete=False
             active_has_data=False
-            if path.exists():
-                with path.open('rb') as stream:
-                    stream.seek(0,os.SEEK_END)
-                    size=stream.tell()
-                    active_has_data=size>0
-                    if size:
-                        stream.seek(-1,os.SEEK_END)
-                        incomplete=stream.read(1)!=b'\n'
+            try:
+                if path.exists():
+                    with path.open('rb') as stream:
+                        stream.seek(0,os.SEEK_END)
+                        size=stream.tell()
+                        active_has_data=size>0
+                        if size:
+                            stream.seek(-1,os.SEEK_END)
+                            incomplete=stream.read(1)!=b'\n'
+            except OSError as exc:
+                return {'state':SyncState.RETRYABLE,'changes':changes,
+                        'message':f'funding drift journal inspection failed: {exc}'}
             # An empty active file after interrupted rotation is not a
             # durable duplicate of the valid event recovered from backup.
             if active_has_data and not incomplete:
