@@ -2,6 +2,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 import time
+import json
+import os
+from pathlib import Path
 from .sqlite_store import Candle
 from .bybit_client import BybitAccessError
 from .errors import (
@@ -45,11 +48,12 @@ def _bybit_interval(timeframe:str)->str:
     return mapping.get(tf, timeframe)
 
 class SyncEngine:
-    def __init__(self,store,client,clock_ms=None,funding_schedules=None):
+    def __init__(self,store,client,clock_ms=None,funding_schedules=None,funding_drift_journal=None):
         self.store=store; self.client=client; self.clock_ms=clock_ms or (lambda:int(time.time()*1000))
         # Explicit, independently verified per-symbol (interval_ms, anchor_ms).
         # Never infer funding cadence from the research candle timeframe.
         self.funding_schedules=dict(funding_schedules or {})
+        self.funding_drift_journal=Path(funding_drift_journal) if funding_drift_journal is not None else None
 
     def check_current_funding_intervals(self):
         """Compare live Bybit metadata with verified schedules without mutation.
@@ -88,6 +92,23 @@ class SyncEngine:
                     'state':'CHANGED',
                     'verified_interval_ms':interval,
                     'current_interval_ms':observed,
+                }
+        if changes and self.funding_drift_journal is not None:
+            try:
+                # Append-only evidence: never overwrite or alter market data.
+                # Flush and fsync so a completed check survives a reboot.
+                record={'observed_at_ms':int(self.clock_ms()),'changes':changes}
+                path=self.funding_drift_journal
+                path.parent.mkdir(parents=True,exist_ok=True)
+                with path.open('a',encoding='utf-8') as journal:
+                    journal.write(json.dumps(record,sort_keys=True)+'\\n')
+                    journal.flush()
+                    os.fsync(journal.fileno())
+            except OSError as exc:
+                return {
+                    'state':SyncState.RETRYABLE,
+                    'message':f'funding drift journal write failed: {exc}',
+                    'changes':changes,
                 }
         return {
             'state':SyncState.REPAIR_REQUIRED if changes else SyncState.READY,
