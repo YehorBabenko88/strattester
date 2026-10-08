@@ -562,6 +562,9 @@ class SyncEngine:
                 if normalized and since<=normalized[-1][0]:
                     raise ValueError('funding segments must have strictly increasing starts')
                 normalized.append((since,interval,anchor))
+            if (isinstance(req.start_ms,bool) or not isinstance(req.start_ms,int) or
+                    isinstance(req.end_ms,bool) or not isinstance(req.end_ms,int)):
+                raise ValueError('funding window boundaries must be integer milliseconds')
             if req.end_ms<req.start_ms:
                 raise ValueError('invalid requested funding window')
             if req.start_ms<0:
@@ -628,6 +631,9 @@ class SyncEngine:
                     raise ValueError('funding schedule values must be integer milliseconds')
                 if interval<=0 or interval%60000 or anchor<0 or anchor>=interval:
                     raise ValueError('invalid funding schedule')
+                if (isinstance(req.start_ms,bool) or not isinstance(req.start_ms,int) or
+                        isinstance(req.end_ms,bool) or not isinstance(req.end_ms,int)):
+                    raise ValueError('funding window boundaries must be integer milliseconds')
                 if req.start_ms<0 or req.end_ms<req.start_ms:
                     raise ValueError('invalid requested funding window')
                 first=anchor+((int(req.start_ms)-anchor+interval-1)//interval)*interval
