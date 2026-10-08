@@ -101,11 +101,35 @@ class SyncEngine:
             raise RuntimeError('historical public trades require archive provider; recent REST trades are not a historical substitute')
         raise ValueError('unsupported dataset')
 
+    def _funding_ranges(self,req,step):
+        # Query only the scheduled timestamps in this segment. Global
+        # coverage gaps cannot be reused across cadence transitions.
+        result=[]
+        for chunk_start in range(req.start_ms,req.end_ms+1,step*200):
+            chunk_end=min(req.end_ms,chunk_start+step*199)
+            present={
+                int(row[0]) for row in self.store.connection.execute(
+                    'SELECT funding_time FROM funding WHERE symbol=? AND funding_time BETWEEN ? AND ?',
+                    (req.symbol,chunk_start,chunk_end),
+                )
+            }
+            missing_start=None
+            for ts in range(chunk_start,chunk_end+1,step):
+                if ts not in present:
+                    if missing_start is None:
+                        missing_start=ts
+                elif missing_start is not None:
+                    result.append((missing_start,ts-step))
+                    missing_start=None
+            if missing_start is not None:
+                result.append((missing_start,chunk_end))
+        return result
+
     def _sync_funding(self,req):
         written=unchanged=rejected=0
         step=self._step(req)
         try:
-            for start,end in self._ranges(req,step):
+            for start,end in self._funding_ranges(req,step):
                 page_end=end
                 while page_end>=start:
                     rows=self.client.fetch_funding(req.symbol,start,page_end)
@@ -148,7 +172,7 @@ class SyncEngine:
                     if next_end>=page_end:
                         break
                     page_end=next_end
-            remaining=self._ranges(req,step)
+            remaining=self._funding_ranges(req,step)
             return SyncResult(
                 SyncState.PARTIAL if remaining else SyncState.READY,
                 written,unchanged,rejected,
