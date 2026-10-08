@@ -534,3 +534,36 @@ def test_funding_drift_journal_concurrent_threads_do_not_duplicate(tmp_path):
     assert all(state is SyncState.REPAIR_REQUIRED for state in results)
     assert len(journal.read_text().splitlines()) == 1
     store.close()
+
+
+def test_funding_drift_recovers_rotated_generation_after_crash(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    journal = tmp_path / 'funding-drift.jsonl'
+    rotated = journal.with_name(journal.name + '.1')
+    rotated.write_text(json.dumps({
+        'observed_at_ms': 42,
+        'changes': {'BTCUSDT': {'state': 'CHANGED'}},
+    }) + '\n')
+    engine = SyncEngine(store, object(), funding_drift_journal=journal)
+    assert engine.read_funding_drift_alerts()['observed_at_ms'] == 42
+    journal.touch()
+    assert engine.read_funding_drift_alerts()['observed_at_ms'] == 42
+    store.close()
+
+
+def test_funding_drift_main_generation_precedes_rotated_history(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    journal = tmp_path / 'funding-drift.jsonl'
+    journal.with_name(journal.name + '.1').write_text(json.dumps({
+        'observed_at_ms': 1, 'changes': {'BTCUSDT': {'state': 'CHANGED'}},
+    }) + '\n')
+    journal.write_text(json.dumps({
+        'observed_at_ms': 2, 'changes': {},
+    }) + '\n')
+    engine = SyncEngine(store, object(), funding_drift_journal=journal)
+    recovered = engine.read_funding_drift_alerts()
+    assert recovered['state'] is SyncState.READY
+    assert recovered['observed_at_ms'] == 2
+    store.close()
