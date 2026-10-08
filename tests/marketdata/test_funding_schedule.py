@@ -176,3 +176,19 @@ def test_funding_schedule_change_is_not_silently_treated_as_uniform(tmp_path):
     assert client.calls == []
     assert store.coverage('BTCUSDT', 'funding').count == 0
     store.close()
+
+
+def test_single_segment_history_is_not_misread_as_scalar_schedule(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    client = FundingClient([0])
+    engine = SyncEngine(
+        store, client, clock_ms=lambda: 20 * HOUR,
+        funding_schedules={'BTCUSDT': [(0, 8 * HOUR, 0)]},
+    )
+    result = engine.sync_requirement(
+        DataRequirement('BTCUSDT', 'funding', '1m', 0, 0)
+    )
+    assert result.state is SyncState.REPAIR_REQUIRED
+    assert 'segment' in result.message
+    assert client.calls == []
+    store.close()
