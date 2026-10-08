@@ -682,3 +682,26 @@ def test_funding_drift_journal_deduplicates_across_processes(tmp_path):
     records = [json.loads(line) for line in journal.read_text().splitlines()]
     assert len(records) == 1
     assert records[0]['changes']['BTCUSDT']['state'] == 'CHANGED'
+
+
+def test_funding_drift_concurrent_rotation_keeps_one_new_event(tmp_path):
+    import concurrent.futures
+    import multiprocessing
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    previous = json.dumps({
+        'observed_at_ms': 1,
+        'changes': {'BTCUSDT': {
+            'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+            'current_interval_ms': 2 * HOUR,
+        }},
+    }) + '\n'
+    journal.write_text(previous * (1024 * 1024 // len(previous) + 1))
+    ctx = multiprocessing.get_context('spawn')
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4, mp_context=ctx) as pool:
+        results = list(pool.map(_funding_drift_process_check, [str(journal)] * 8))
+    assert results == [SyncState.REPAIR_REQUIRED.value] * 8
+    assert journal.with_name(journal.name + '.1').stat().st_size >= 1024 * 1024
+    records = [json.loads(line) for line in journal.read_text().splitlines()]
+    assert len(records) == 1
+    assert records[0]['changes']['BTCUSDT']['current_interval_ms'] == HOUR
