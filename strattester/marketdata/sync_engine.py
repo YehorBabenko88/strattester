@@ -55,6 +55,38 @@ class SyncEngine:
         self.funding_schedules=dict(funding_schedules or {})
         self.funding_drift_journal=Path(funding_drift_journal) if funding_drift_journal is not None else None
 
+    def read_funding_drift_alerts(self):
+        """Recover last recorded drift state, including after process restart.
+
+        Records are diagnostics, not authorization to rewrite funding history.
+        A missing journal means no persisted observation, not verified READY.
+        """
+        path=self.funding_drift_journal
+        if path is None or not path.exists():
+            return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
+        try:
+            with path.open('rb') as stream:
+                stream.seek(0,os.SEEK_END)
+                size=stream.tell()
+                stream.seek(max(0,size-1048576))
+                data=stream.read()
+            if size>1048576:
+                data=data.split(b'\\n',1)[-1]
+            lines=data.splitlines()
+            if not lines:
+                return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
+            record=json.loads(lines[-1].decode('utf-8'))
+            if not isinstance(record,dict) or not isinstance(record.get('changes'),dict):
+                raise ValueError('invalid funding drift journal record')
+            observed=record.get('observed_at_ms')
+            if not isinstance(observed,int) or isinstance(observed,bool) or observed<0:
+                raise ValueError('invalid funding drift observation timestamp')
+            return {'state':SyncState.REPAIR_REQUIRED,
+                    'changes':record['changes'],'observed_at_ms':observed}
+        except (OSError,ValueError,UnicodeError,TypeError) as exc:
+            return {'state':SyncState.RETRYABLE,'changes':{},
+                    'message':f'funding drift journal recovery failed: {exc}'}
+
     def check_current_funding_intervals(self):
         """Compare live Bybit metadata with verified schedules without mutation.
 
@@ -100,6 +132,11 @@ class SyncEngine:
                 record={'observed_at_ms':int(self.clock_ms()),'changes':changes}
                 path=self.funding_drift_journal
                 path.parent.mkdir(parents=True,exist_ok=True)
+                # Keep one previous journal generation for recovery while
+                # bounding growth. Rotation happens before a new append.
+                max_bytes=1024*1024
+                if path.exists() and path.stat().st_size>=max_bytes:
+                    os.replace(path,path.with_name(path.name+'.1'))
                 with path.open('a',encoding='utf-8') as journal:
                     journal.write(json.dumps(record,sort_keys=True)+'\n')
                     journal.flush()
