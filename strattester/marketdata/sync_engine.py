@@ -104,7 +104,8 @@ class SyncEngine:
                             not isinstance(symbol,str) or not symbol or
                             not isinstance(detail,dict) or
                             detail.get('state') not in ('CHANGED','MISSING','INVALID') or
-                            (detail.get('state') == 'CHANGED' and (
+                            (detail.get('state') == 'CHANGED' and
+                             ('verified_interval_ms' in detail or 'current_interval_ms' in detail) and (
                                 any(
                                     not isinstance(detail.get(key),int) or
                                     isinstance(detail.get(key),bool) or
