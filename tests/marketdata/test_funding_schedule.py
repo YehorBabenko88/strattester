@@ -758,3 +758,19 @@ def test_funding_drift_reader_recovers_after_active_file_disappears(tmp_path, mo
     assert result['state'] is SyncState.REPAIR_REQUIRED
     assert result['observed_at_ms'] == 77
     store.close()
+
+
+def test_funding_drift_first_check_with_lock_but_no_journal_is_clean(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': 8 * HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.READY
+    assert not journal.exists()
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.UNKNOWN
+    store.close()
