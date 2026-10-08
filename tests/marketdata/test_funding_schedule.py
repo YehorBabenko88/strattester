@@ -1030,3 +1030,27 @@ def test_funding_drift_backup_survives_failed_active_recreation(tmp_path, monkey
     assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
     assert json.loads(journal.read_text().splitlines()[0])['changes'] == changes
     assert json.loads(backup.read_text().splitlines()[0])['changes'] == changes
+
+
+def test_funding_drift_empty_active_generation_recovers_from_backup(tmp_path):
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    backup = journal.with_name(journal.name + '.1')
+    changes = {'BTCUSDT': {
+        'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+        'current_interval_ms': HOUR,
+    }}
+    backup.write_text(json.dumps({'observed_at_ms': 10, 'changes': changes}) + '\n')
+    journal.touch()
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert len(journal.read_text().splitlines()) == 1
+    assert json.loads(journal.read_text().splitlines()[0])['changes'] == changes
+    backup.unlink()
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
