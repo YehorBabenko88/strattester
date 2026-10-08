@@ -101,7 +101,7 @@ class SyncEngine:
                 path=self.funding_drift_journal
                 path.parent.mkdir(parents=True,exist_ok=True)
                 with path.open('a',encoding='utf-8') as journal:
-                    journal.write(json.dumps(record,sort_keys=True)+'\\n')
+                    journal.write(json.dumps(record,sort_keys=True)+'\n')
                     journal.flush()
                     os.fsync(journal.fileno())
             except OSError as exc:
