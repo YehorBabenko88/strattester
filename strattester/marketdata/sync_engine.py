@@ -327,7 +327,11 @@ class SyncEngine:
         try:
             # Append-only evidence: never overwrite or alter market data.
             # Flush and fsync so a completed check survives a reboot.
-            observed_at_ms=self.clock_ms()
+            try:
+                observed_at_ms=self.clock_ms()
+            except Exception as exc:
+                return {'state':SyncState.RETRYABLE,'changes':changes,
+                        'message':f'funding observation clock failed: {exc}'}
             if (not isinstance(observed_at_ms,int) or isinstance(observed_at_ms,bool)
                     or observed_at_ms<0):
                 raise ValueError('invalid funding observation timestamp')
