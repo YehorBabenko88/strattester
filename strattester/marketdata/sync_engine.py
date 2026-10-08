@@ -239,12 +239,11 @@ class SyncEngine:
             # journal already contains the latest observation.
             path=self.funding_drift_journal
             marker=path.with_name(path.name+'.initialized')
-            if not marker.exists():
-                try:
-                    self._ensure_funding_marker(path)
-                except OSError as exc:
-                    return {'state':SyncState.RETRYABLE,'changes':changes,
-                            'message':f'funding drift initialization marker failed: {exc}'}
+            try:
+                self._ensure_funding_marker(path)
+            except OSError as exc:
+                return {'state':SyncState.RETRYABLE,'changes':changes,
+                        'message':f'funding drift initialization marker failed: {exc}'}
             # A torn trailing record requires a new durable snapshot, even
             # when the last complete event matches the current observation.
             path=self.funding_drift_journal
@@ -292,8 +291,7 @@ class SyncEngine:
             # Persist an explicit initialization marker after the first
             # durable event, so disappearance of both generations is visible.
             marker=path.with_name(path.name+'.initialized')
-            if not marker.exists():
-                self._ensure_funding_marker(path)
+            self._ensure_funding_marker(path)
         except OSError as exc:
             return {
                 'state':SyncState.RETRYABLE,
