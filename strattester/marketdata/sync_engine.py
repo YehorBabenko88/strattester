@@ -582,7 +582,12 @@ class SyncEngine:
 
         # Preflight every segment before writing any rows. A future event in
         # a later segment must not leave earlier segments partially synced.
-        now_ms=int(self.clock_ms())
+        try:
+            now_ms=self.clock_ms()
+            if isinstance(now_ms,bool) or not isinstance(now_ms,int) or now_ms<0:
+                raise ValueError('invalid funding clock milliseconds')
+        except (TypeError,ValueError,OverflowError) as exc:
+            return SyncResult(SyncState.RETRYABLE,message=f'funding clock unavailable: {exc}')
         for i,(since,interval,anchor) in enumerate(normalized):
             start=max(req.start_ms,since)
             end=req.end_ms
@@ -609,7 +614,7 @@ class SyncEngine:
             if first>last:
                 continue
             found_event=True
-            if last>int(self.clock_ms()):
+            if last>now_ms:
                 return SyncResult(SyncState.PARTIAL,*totals,
                                   message='requested funding window includes future events')
             part=self._sync_funding(DataRequirement(
