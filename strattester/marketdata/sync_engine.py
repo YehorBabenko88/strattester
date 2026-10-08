@@ -65,45 +65,48 @@ class SyncEngine:
         self.funding_drift_journal=Path(funding_drift_journal) if funding_drift_journal is not None else None
 
     def read_funding_drift_alerts(self):
-        """Recover last recorded drift state, including after process restart.
+        """Recover latest complete observation, including across journal rotation.
 
-        Records are diagnostics, not authorization to rewrite funding history.
-        A missing journal means no persisted observation, not verified READY.
+        If a crash happens between rotation and the next append, the previous
+        generation still contains the last durable observation.
         """
         path=self.funding_drift_journal
-        if path is None or not path.exists():
+        if path is None:
             return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
-        try:
-            # A power loss may leave a partial trailing line. Only complete,
-            # newline-terminated records are eligible for recovery.
-            # Scan a bounded tail from newest to oldest and fail closed if
-            # no valid complete record survives.
-            with path.open('rb') as stream:
-                stream.seek(0,os.SEEK_END)
-                size=stream.tell()
-                stream.seek(max(0,size-1048576))
-                data=stream.read()
-            if size>1048576:
-                data=data.split(b'\n',1)[-1]
-            if not data.endswith(b'\n'):
-                data=data.rsplit(b'\n',1)[0]+b'\n' if b'\n' in data else b''
-            for line in reversed(data.splitlines()):
-                try:
-                    record=json.loads(line.decode('utf-8'))
-                    if not isinstance(record,dict) or not isinstance(record.get('changes'),dict):
+        seen=False
+        for candidate in (path,path.with_name(path.name+'.1')):
+            if not candidate.exists():
+                continue
+            seen=True
+            try:
+                with candidate.open('rb') as stream:
+                    stream.seek(0,os.SEEK_END)
+                    size=stream.tell()
+                    stream.seek(max(0,size-1048576))
+                    data=stream.read()
+                if size>1048576:
+                    data=data.split(b'\n',1)[-1]
+                if not data.endswith(b'\n'):
+                    data=data.rsplit(b'\n',1)[0]+b'\n' if b'\n' in data else b''
+                for line in reversed(data.splitlines()):
+                    try:
+                        record=json.loads(line.decode('utf-8'))
+                        if not isinstance(record,dict) or not isinstance(record.get('changes'),dict):
+                            continue
+                        observed=record.get('observed_at_ms')
+                        if not isinstance(observed,int) or isinstance(observed,bool) or observed<0:
+                            continue
+                        return {'state':SyncState.REPAIR_REQUIRED if record['changes'] else SyncState.READY,
+                                'changes':record['changes'],'observed_at_ms':observed}
+                    except (ValueError,UnicodeError,TypeError):
                         continue
-                    observed=record.get('observed_at_ms')
-                    if not isinstance(observed,int) or isinstance(observed,bool) or observed<0:
-                        continue
-                    return {'state':SyncState.REPAIR_REQUIRED if record['changes'] else SyncState.READY,
-                            'changes':record['changes'],'observed_at_ms':observed}
-                except (ValueError,UnicodeError,TypeError):
-                    continue
-            return {'state':SyncState.RETRYABLE,'changes':{},
-                    'message':'funding drift journal has no valid complete record'}
-        except (OSError,ValueError,UnicodeError,TypeError) as exc:
-            return {'state':SyncState.RETRYABLE,'changes':{},
-                    'message':f'funding drift journal recovery failed: {exc}'}
+            except OSError as exc:
+                return {'state':SyncState.RETRYABLE,'changes':{},
+                        'message':f'funding drift journal recovery failed: {exc}'}
+        if not seen:
+            return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
+        return {'state':SyncState.RETRYABLE,'changes':{},
+                'message':'funding drift journal has no valid complete record'}
 
     def _funding_journal_lock(self):
         """Cross-process lock on a separate stable file (also across rotation)."""
