@@ -391,14 +391,16 @@ def test_funding_drift_journal_rotates_at_size_limit(tmp_path):
         def fetch_current_funding_intervals(self):
             return {'BTCUSDT': HOUR}
     journal = tmp_path / 'funding-drift.jsonl'
-    journal.write_text('x' * (1024 * 1024))
+    import json
+    valid = json.dumps({'observed_at_ms': 1, 'changes': {'BTCUSDT': {'state': 'CHANGED', 'current_interval_ms': 2 * HOUR}}}) + '\\n'
+    journal.write_text(valid * (1024 * 1024 // len(valid) + 1))
     engine = SyncEngine(
         store, Metadata(), clock_ms=lambda: 999,
         funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
         funding_drift_journal=journal,
     )
     assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
-    assert journal.with_name(journal.name + '.1').stat().st_size == 1024 * 1024
+    assert journal.with_name(journal.name + '.1').stat().st_size >= 1024 * 1024
     assert journal.stat().st_size < 1024 * 1024
     assert engine.read_funding_drift_alerts()['observed_at_ms'] == 999
     store.close()
