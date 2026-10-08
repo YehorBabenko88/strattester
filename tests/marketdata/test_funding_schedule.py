@@ -1652,3 +1652,21 @@ def test_funding_drift_rejects_invalid_history_anchors(tmp_path):
         assert result['state'] is SyncState.REPAIR_REQUIRED
         assert result['changes']['BTCUSDT']['state'] == 'INVALID'
         assert 'invalid verified funding schedule anchor' in result['changes']['BTCUSDT']['message']
+
+
+def test_funding_drift_rejects_misaligned_history_segment(tmp_path):
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    for schedule in (
+        [(HOUR, 8 * HOUR, 0), (8 * HOUR, HOUR, 0)],
+        [(0, 8 * HOUR, 0), (8 * HOUR + HOUR // 2, HOUR, 0)],
+    ):
+        engine = SyncEngine(
+            None, Metadata(), funding_schedules={'BTCUSDT': schedule},
+            funding_drift_journal=tmp_path / 'misaligned-history.jsonl',
+        )
+        result = engine.check_current_funding_intervals()
+        assert result['state'] is SyncState.REPAIR_REQUIRED
+        assert result['changes']['BTCUSDT']['state'] == 'INVALID'
+        assert 'not aligned' in result['changes']['BTCUSDT']['message']
