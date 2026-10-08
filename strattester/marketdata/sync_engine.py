@@ -161,6 +161,54 @@ class SyncEngine:
         except Exception as exc:
             return SyncResult(SyncState.RETRYABLE,written,unchanged,rejected,str(exc))
 
+    def _sync_funding_segments(self,req,segments):
+        # Each (effective_from_ms, interval_ms, anchor_ms) is independently
+        # verified. Boundaries are half-open; the next segment owns its start.
+        try:
+            if not segments:
+                raise ValueError('empty funding schedule history')
+            normalized=[]
+            for segment in segments:
+                if not isinstance(segment,(tuple,list)) or len(segment)!=3:
+                    raise ValueError('funding segment must contain start, interval and anchor')
+                since,interval,anchor=map(int,segment)
+                if since<0 or interval<=0 or interval%60000 or not 0<=anchor<interval:
+                    raise ValueError('invalid funding segment')
+                if normalized and since<=normalized[-1][0]:
+                    raise ValueError('funding segments must have strictly increasing starts')
+                normalized.append((since,interval,anchor))
+            if req.start_ms<normalized[0][0]:
+                return SyncResult(SyncState.UNAVAILABLE,message='funding schedule does not cover requested history')
+            if req.end_ms<req.start_ms:
+                raise ValueError('invalid requested funding window')
+        except (TypeError,ValueError,OverflowError) as exc:
+            return SyncResult(SyncState.REPAIR_REQUIRED,message=str(exc))
+
+        totals=[0,0,0]
+        for i,(since,interval,anchor) in enumerate(normalized):
+            start=max(int(req.start_ms),since)
+            end=int(req.end_ms)
+            if i+1<len(normalized):
+                end=min(end,normalized[i+1][0]-1)
+            if end<start:
+                continue
+            first=anchor+((start-anchor+interval-1)//interval)*interval
+            last=anchor+((end-anchor)//interval)*interval
+            if first>last:
+                continue
+            if last>int(self.clock_ms()):
+                return SyncResult(SyncState.PARTIAL,*totals,
+                                  message='requested funding window includes future events')
+            part=self._sync_funding(DataRequirement(
+                req.symbol,'funding',f'{interval//60000}m',first,last
+            ))
+            totals[0]+=part.written
+            totals[1]+=part.unchanged
+            totals[2]+=part.rejected
+            if part.state is not SyncState.READY:
+                return SyncResult(part.state,*totals,message=part.message)
+        return SyncResult(SyncState.READY,*totals)
+
     def sync_requirement(self,req:DataRequirement)->SyncResult:
         if req.dataset == 'funding':
             schedule=self.funding_schedules.get(req.symbol)
@@ -172,12 +220,9 @@ class SyncEngine:
             # A single interval cannot represent historical changes. Reject
             # ambiguous multi-segment configurations instead of silently
             # treating their events as a uniform time series.
-            if (isinstance(schedule, (list, tuple)) and
-                    (len(schedule)!=2 or any(isinstance(x, (list, tuple, dict)) for x in schedule))):
-                return SyncResult(
-                    SyncState.REPAIR_REQUIRED,
-                    message='funding schedule history requires explicit segment validation',
-                )
+            if (isinstance(schedule,(list,tuple)) and
+                    (len(schedule)!=2 or any(isinstance(x,(list,tuple,dict)) for x in schedule))):
+                return self._sync_funding_segments(req,schedule)
             try:
                 interval,anchor=schedule
                 interval=int(interval)
