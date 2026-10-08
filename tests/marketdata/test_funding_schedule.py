@@ -1180,7 +1180,8 @@ def test_funding_drift_recovery_rejects_invalid_changed_intervals(tmp_path):
         {'state': 'CHANGED', 'verified_interval_ms': True, 'current_interval_ms': HOUR},
         {'state': 'CHANGED', 'verified_interval_ms': -1, 'current_interval_ms': HOUR},
         {'state': 'CHANGED', 'verified_interval_ms': HOUR, 'current_interval_ms': HOUR},
-        {'state': 'CHANGED', 'verified_interval_ms': HOUR},
+        {'state': 'CHANGED', 'current_interval_ms': 0},
+        {'state': 'CHANGED', 'verified_interval_ms': 'bad'},
     ]
     engine = SyncEngine(None, object(), funding_drift_journal=journal)
     for detail in invalid:
