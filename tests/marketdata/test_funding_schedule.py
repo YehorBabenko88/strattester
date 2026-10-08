@@ -1203,3 +1203,28 @@ def test_funding_drift_recovery_accepts_legacy_partial_changed_interval(tmp_path
     recovered = SyncEngine(None, object(), funding_drift_journal=journal).read_funding_drift_alerts()
     assert recovered['state'] is SyncState.REPAIR_REQUIRED
     assert recovered['observed_at_ms'] == 11
+
+
+def test_funding_drift_torn_active_keeps_valid_backup(tmp_path):
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    backup = journal.with_name(journal.name + '.1')
+    changes = {'BTCUSDT': {
+        'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+        'current_interval_ms': HOUR,
+    }}
+    original = json.dumps({'observed_at_ms': 10, 'changes': changes}) + '\n'
+    backup.write_text(original)
+    journal.write_bytes(b'{"observed_at_ms":')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert backup.read_text() == original
+    assert journal.with_name(journal.name + '.partial').read_bytes() == b'{"observed_at_ms":'
+    assert len(journal.read_text().splitlines()) == 1
+    assert engine.read_funding_drift_alerts()['state'] is SyncState.REPAIR_REQUIRED
