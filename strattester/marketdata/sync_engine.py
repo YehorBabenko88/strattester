@@ -232,11 +232,10 @@ class SyncEngine:
                     interval=int(verified)
                 else:
                     verified,anchor=schedule
-                    if (isinstance(verified,bool) or not isinstance(verified,int) or
-                            isinstance(anchor,bool) or not isinstance(anchor,int)):
-                        raise ValueError('invalid verified funding schedule values')
+                    if isinstance(verified,bool) or not isinstance(verified,int) or verified<=0 or verified%60000:
+                        raise ValueError('invalid verified funding interval')
                     interval=verified
-                    if anchor<0 or anchor>=interval:
+                    if isinstance(anchor,bool) or not isinstance(anchor,int) or anchor<0 or anchor>=interval:
                         raise ValueError('invalid verified funding schedule anchor')
                 if interval<=0 or interval%60000:
                     raise ValueError('invalid verified funding interval')
