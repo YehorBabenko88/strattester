@@ -327,7 +327,11 @@ class SyncEngine:
         try:
             # Append-only evidence: never overwrite or alter market data.
             # Flush and fsync so a completed check survives a reboot.
-            record={'observed_at_ms':int(self.clock_ms()),'changes':changes}
+            observed_at_ms=self.clock_ms()
+            if (not isinstance(observed_at_ms,int) or isinstance(observed_at_ms,bool)
+                    or observed_at_ms<0):
+                raise ValueError('invalid funding observation timestamp')
+            record={'observed_at_ms':observed_at_ms,'changes':changes}
             path=self.funding_drift_journal
             path.parent.mkdir(parents=True,exist_ok=True)
             # Keep one previous journal generation for recovery while
@@ -362,7 +366,7 @@ class SyncEngine:
             # durable event, so disappearance of both generations is visible.
             marker=path.with_name(path.name+'.initialized')
             self._ensure_funding_marker(path)
-        except OSError as exc:
+        except (OSError,ValueError,TypeError) as exc:
             return {
                 'state':SyncState.RETRYABLE,
                 'message':f'funding drift journal write failed: {exc}',
