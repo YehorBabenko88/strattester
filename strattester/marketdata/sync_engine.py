@@ -207,7 +207,7 @@ class SyncEngine:
                         (len(schedule)!=2 or any(isinstance(x,(list,tuple,dict)) for x in schedule))):
                     if not schedule:
                         raise ValueError('empty schedule history')
-                    if any(not isinstance(entry,(list,tuple)) or len(entry)!=2 for entry in schedule):
+                    if any(not isinstance(entry,(list,tuple)) or len(entry) not in (2,3) for entry in schedule):
                         raise ValueError('invalid verified funding schedule history')
                     verified=schedule[-1][1]
                     interval=int(verified)
