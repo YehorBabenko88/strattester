@@ -567,3 +567,19 @@ def test_funding_drift_main_generation_precedes_rotated_history(tmp_path):
     assert recovered['state'] is SyncState.READY
     assert recovered['observed_at_ms'] == 2
     store.close()
+
+
+def test_segmented_funding_window_without_any_event_not_ready(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    engine = SyncEngine(
+        store, FundingClient([]), clock_ms=lambda: 100 * HOUR,
+        funding_schedules={
+            'BTCUSDT': [(0, 8 * HOUR, 0), (32 * HOUR, 4 * HOUR, 0)]
+        },
+    )
+    result = engine.sync_requirement(
+        DataRequirement('BTCUSDT', 'funding', '1m', HOUR, 2 * HOUR)
+    )
+    assert result.state is SyncState.REPAIR_REQUIRED
+    assert 'no scheduled funding event' in result.message
+    store.close()
