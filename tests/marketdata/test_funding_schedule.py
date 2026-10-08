@@ -1815,13 +1815,13 @@ def test_funding_future_event_in_later_segment_prevents_earlier_writes(tmp_path)
     store.close()
 
 
-def test_segmented_funding_clock_sampled_once_before_sync(tmp_path):
+def test_segmented_funding_preflight_clock_and_per_event_checks(tmp_path):
     store = SQLiteMarketStore.open(tmp_path / 'single-clock.db')
     client = FundingClient([0, 8 * HOUR, 9 * HOUR])
     clock_calls = []
     def clock():
         clock_calls.append(1)
-        return 20 * HOUR if len(clock_calls) == 1 else 0
+        return 20 * HOUR
     engine = SyncEngine(
         store, client, clock_ms=clock,
         funding_schedules={'BTCUSDT': [(0, 8 * HOUR, 0), (8 * HOUR, HOUR, 0)]},
@@ -1829,7 +1829,8 @@ def test_segmented_funding_clock_sampled_once_before_sync(tmp_path):
     result = engine.sync_requirement(
         DataRequirement('BTCUSDT', 'funding', '1m', 0, 9 * HOUR)
     )
-    assert len(clock_calls) == 1
+    # One preflight snapshot, plus a live clock check for each fetched event.
+    assert len(clock_calls) == 3
     assert result.state is SyncState.READY
     store.close()
 
