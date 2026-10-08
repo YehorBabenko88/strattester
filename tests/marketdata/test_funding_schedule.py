@@ -1071,3 +1071,33 @@ def test_funding_drift_repairs_oversized_marker_without_duplicate_event(tmp_path
     assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
     assert marker.read_bytes() == b'1\n'
     assert len(journal.read_text().splitlines()) == 1
+
+
+def test_funding_drift_tail_inspection_permission_failure_is_retryable(tmp_path, monkeypatch):
+    from pathlib import Path
+    journal = tmp_path / 'funding-drift.jsonl'
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    original_open = Path.open
+    calls = {'reads': 0}
+    def deny_second_read(path, *args, **kwargs):
+        mode = args[0] if args else kwargs.get('mode', 'r')
+        if path == journal and mode == 'rb':
+            calls['reads'] += 1
+            if calls['reads'] == 2:
+                raise PermissionError('simulated journal tail read failure')
+        return original_open(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', deny_second_read)
+    result = engine.check_current_funding_intervals()
+    assert result['state'] is SyncState.RETRYABLE
+    assert 'inspection failed' in result['message']
+    assert len(journal.read_text().splitlines()) == 1
+    monkeypatch.setattr(Path, 'open', original_open)
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert len(journal.read_text().splitlines()) == 1
