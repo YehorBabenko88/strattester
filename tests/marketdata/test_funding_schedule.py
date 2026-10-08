@@ -1350,3 +1350,27 @@ def test_funding_drift_invalid_complete_final_line_is_not_deduplicated(tmp_path)
     assert recovered['changes'] == changes
     assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
     assert len(journal.read_text().splitlines()) == 3
+
+
+def test_funding_drift_invalid_final_timestamp_is_not_deduplicated(tmp_path):
+    import json
+    journal = tmp_path / 'funding-drift.jsonl'
+    changes = {'BTCUSDT': {
+        'state': 'CHANGED', 'verified_interval_ms': 8 * HOUR,
+        'current_interval_ms': HOUR,
+    }}
+    valid = {'observed_at_ms': 10, 'changes': changes}
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    engine = SyncEngine(
+        None, Metadata(), clock_ms=lambda: 30,
+        funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    for invalid_time in (True, -1, '20'):
+        journal.write_text(json.dumps(valid) + '\n' +
+                           json.dumps({'observed_at_ms': invalid_time, 'changes': changes}) + '\n')
+        assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+        assert engine.read_funding_drift_alerts()['observed_at_ms'] == 30
+        assert len(journal.read_text().splitlines()) == 3
