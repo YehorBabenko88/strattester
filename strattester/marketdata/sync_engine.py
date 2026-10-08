@@ -217,9 +217,9 @@ class SyncEngine:
                             raise ValueError('invalid verified funding schedule boundary order')
                         previous_start=entry[0]
                         candidate=entry[1]
-                        if isinstance(candidate,bool) or (isinstance(candidate,float) and not candidate.is_integer()):
+                        if isinstance(candidate,bool) or not isinstance(candidate,int):
                             raise ValueError('invalid verified funding interval')
-                        candidate_interval=int(candidate)
+                        candidate_interval=candidate
                         if candidate_interval<=0 or candidate_interval%60000:
                             raise ValueError('invalid verified funding interval')
                         if len(entry)==3:
@@ -229,7 +229,7 @@ class SyncEngine:
                             if (entry[0]-anchor)%candidate_interval:
                                 raise ValueError('funding segment start is not aligned with its schedule')
                     verified=schedule[-1][1]
-                    interval=int(verified)
+                    interval=verified
                 else:
                     verified,anchor=schedule
                     if isinstance(verified,bool) or not isinstance(verified,int) or verified<=0 or verified%60000:
