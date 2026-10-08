@@ -208,7 +208,7 @@ class SyncEngine:
                     interval=int(schedule[-1][1])
                 else:
                     interval=int(schedule[0])
-                if interval<=0:
+                if interval<=0 or (isinstance(schedule,(list,tuple)) and len(schedule)==2 and isinstance(schedule[0],bool)):
                     raise ValueError('invalid verified funding interval')
                 observed=current[symbol]
                 if isinstance(observed,bool) or not isinstance(observed,int) or observed<=0:
