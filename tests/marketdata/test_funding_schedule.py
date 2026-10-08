@@ -878,3 +878,27 @@ def test_funding_drift_marker_write_failure_is_retryable(tmp_path, monkeypatch):
     assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
     assert marker.read_bytes() == b'1\n'
     store.close()
+
+
+def test_funding_drift_repairs_truncated_marker_after_restart(tmp_path):
+    import json
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    marker = journal.with_name(journal.name + '.initialized')
+    marker.write_bytes(b'1')
+    restarted = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert restarted.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert marker.read_bytes() == b'1\n'
+    assert len([json.loads(line) for line in journal.read_text().splitlines()]) == 1
+    store.close()
