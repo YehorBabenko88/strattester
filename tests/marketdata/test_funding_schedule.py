@@ -1829,8 +1829,9 @@ def test_segmented_funding_preflight_clock_and_per_event_checks(tmp_path):
     result = engine.sync_requirement(
         DataRequirement('BTCUSDT', 'funding', '1m', 0, 9 * HOUR)
     )
-    # One preflight snapshot, plus a live clock check for each fetched event.
-    assert len(clock_calls) == 3
+    # One preflight snapshot plus one live check per fetched funding event.
+    # This fixture returns three distinct events across the two segments.
+    assert len(clock_calls) == 4
     assert result.state is SyncState.READY
     store.close()
 
