@@ -220,7 +220,7 @@ class SyncEngine:
                         if isinstance(candidate,bool) or (isinstance(candidate,float) and not candidate.is_integer()):
                             raise ValueError('invalid verified funding interval')
                         candidate_interval=int(candidate)
-                        if candidate_interval<=0:
+                        if candidate_interval<=0 or candidate_interval%60000:
                             raise ValueError('invalid verified funding interval')
                         if len(entry)==3:
                             anchor=entry[2]
