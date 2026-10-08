@@ -774,3 +774,40 @@ def test_funding_drift_first_check_with_lock_but_no_journal_is_clean(tmp_path):
     assert not journal.exists()
     assert engine.read_funding_drift_alerts()['state'] is SyncState.UNKNOWN
     store.close()
+
+
+def test_funding_drift_missing_both_generations_after_persist_fails_closed(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert journal.with_name(journal.name + '.initialized').exists()
+    journal.unlink()
+    recovered = SyncEngine(
+        store, Metadata(), funding_drift_journal=journal,
+    ).read_funding_drift_alerts()
+    assert recovered['state'] is SyncState.RETRYABLE
+    assert 'missing' in recovered['message']
+    assert engine.check_current_funding_intervals()['state'] is SyncState.RETRYABLE
+    store.close()
+
+
+def test_funding_drift_first_check_does_not_create_initialization_marker(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': 8 * HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.READY
+    assert not journal.with_name(journal.name + '.initialized').exists()
+    store.close()
