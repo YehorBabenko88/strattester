@@ -3,6 +3,17 @@ from dataclasses import dataclass
 from enum import Enum
 import time
 from .sqlite_store import Candle
+from .bybit_client import BybitAccessError
+from .errors import (
+    DatasetUnavailableError,
+    MarketDataAccessError,
+    RetryableMarketDataError,
+    MarketDataIntegrityError,
+)
+from .timeframes import (
+    aligned_window,
+    timeframe_ms,
+)
 
 class SyncState(str,Enum):
     UNKNOWN='UNKNOWN'; CHECKING='CHECKING'; PARTIAL='PARTIAL'; SYNCING='SYNCING'
@@ -24,8 +35,6 @@ class SyncResult:
     rejected:int=0
     message:str=''
 
-_STEP_MS={'1m':60_000,'3m':180_000,'5m':300_000,'15m':900_000,'30m':1_800_000,'1h':3_600_000,'2h':7_200_000,'4h':14_400_000,'6h':21_600_000,'12h':43_200_000,'1d':86_400_000}
-
 def _bybit_interval(timeframe:str)->str:
     tf=str(timeframe).lower()
     mapping={
@@ -40,15 +49,7 @@ class SyncEngine:
         self.store=store; self.client=client; self.clock_ms=clock_ms or (lambda:int(time.time()*1000))
 
     def _step(self,req):
-        if req.timeframe in _STEP_MS:return _STEP_MS[req.timeframe]
-        tf=str(req.timeframe).lower()
-        try:
-            if tf.endswith('m'): return int(tf[:-1])*60_000
-            if tf.endswith('h'): return int(tf[:-1])*3_600_000
-            if tf.endswith('d'): return int(tf[:-1])*86_400_000
-        except ValueError:
-            pass
-        return 60_000
+        return timeframe_ms(req.timeframe)
 
     def _ranges(self,req,step=None):
         step=step or self._step(req)
@@ -98,6 +99,35 @@ class SyncEngine:
         raise ValueError('unsupported dataset')
 
     def sync_requirement(self,req:DataRequirement)->SyncResult:
+        window=aligned_window(
+            req.start_ms,
+            req.end_ms,
+            req.timeframe,
+        )
+
+        if window is None:
+            return SyncResult(
+                SyncState.REPAIR_REQUIRED,
+                message=(
+                    'requested window contains no complete '
+                    f'{req.timeframe} observation'
+                ),
+            )
+
+        aligned_start,aligned_end=window
+
+        if (
+            aligned_start!=req.start_ms
+            or aligned_end!=req.end_ms
+        ):
+            req=DataRequirement(
+                req.symbol,
+                req.dataset,
+                req.timeframe,
+                aligned_start,
+                aligned_end,
+            )
+
         if req.dataset=='public_trade_aggregates':
             return SyncResult(SyncState.REPAIR_REQUIRED,message='historical public trades require archive provider; recent REST trades are not a historical substitute')
         if req.dataset not in ('candles','mark_price','index_price','premium_index','open_interest','funding','long_short_ratio'):
@@ -131,13 +161,41 @@ class SyncEngine:
             state=SyncState.READY if not remaining else SyncState.PARTIAL
             message='' if not remaining else 'requested history remains incomplete'
             return SyncResult(state,written,unchanged,rejected,message)
+        except DatasetUnavailableError as exc:
+            return SyncResult(
+                SyncState.UNAVAILABLE,
+                written,
+                unchanged,
+                rejected,
+                str(exc),
+            )
+        except (MarketDataAccessError, BybitAccessError) as exc:
+            return SyncResult(
+                SyncState.DEGRADED,
+                written,
+                unchanged,
+                rejected,
+                str(exc),
+            )
+        except (
+            RetryableMarketDataError,
+            MarketDataIntegrityError,
+        ) as exc:
+            return SyncResult(
+                SyncState.RETRYABLE,
+                written,
+                unchanged,
+                rejected,
+                str(exc),
+            )
         except Exception as exc:
-            name=exc.__class__.__name__
-            text=str(exc).lower()
-            if name in ('DatasetUnavailableError','NotSupportedError') or any(x in text for x in ('not supported','not available for this symbol','unsupported dataset')):
-                state=SyncState.UNAVAILABLE
-            elif name=='BybitAccessError':
-                state=SyncState.DEGRADED
-            else:
-                state=SyncState.RETRYABLE
-            return SyncResult(state,written,unchanged,rejected,str(exc))
+            # Unknown failures fail closed as retryable.
+            # Classification must never depend on exception
+            # class names or human-readable message text.
+            return SyncResult(
+                SyncState.RETRYABLE,
+                written,
+                unchanged,
+                rejected,
+                str(exc),
+            )

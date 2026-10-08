@@ -2,6 +2,7 @@ from strattester.marketdata.sqlite_store import SQLiteMarketStore,Candle
 from strattester.marketdata.sync_engine import SyncEngine,DataRequirement,SyncState
 from strattester.marketdata.bybit_client import BybitAccessError
 
+from strattester.marketdata.errors import DatasetUnavailableError
 class Client:
     def __init__(self,rows): self.rows=rows; self.calls=[]
     def fetch_klines(self,symbol,start,end,interval):
@@ -74,7 +75,6 @@ def test_retry_after_interrupted_page_is_idempotent(tmp_path):
 
 
 def test_one_unavailable_dataset_is_isolated_from_other_requirements(tmp_path):
-    class DatasetUnavailableError(RuntimeError):pass
     class C:
         def fetch_klines(self,*a):return [['0','1','1','1','1','1','1']]
         def fetch_open_interest(self,*a):raise DatasetUnavailableError("not available for this symbol")

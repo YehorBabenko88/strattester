@@ -1,4 +1,9 @@
 from dataclasses import dataclass
+from strattester.marketdata.timeframes import (
+    aligned_window,
+    expected_points,
+    timeframe_ms,
+)
 from strattester.strategies.base import strategy_fingerprint
 
 @dataclass(frozen=True)
@@ -25,26 +30,62 @@ class StrategyContext:
             start_ms=self.start_ms,end_ms=self.end_ms)
 
 def _step_ms(timeframe):
-    tf=str(timeframe).lower()
-    try:
-        if tf.endswith('m'): return int(tf[:-1])*60_000
-        if tf.endswith('h'): return int(tf[:-1])*3_600_000
-        if tf.endswith('d'): return int(tf[:-1])*86_400_000
-    except ValueError:
-        pass
-    return 60_000
+    return timeframe_ms(timeframe)
 
 def _coverage_ready(store,symbol,dataset,timeframe,start_ms,end_ms):
     step=_step_ms(timeframe)
-    cov=store.coverage(symbol,dataset,timeframe,step_ms=step,start_ms=start_ms,end_ms=end_ms)
+
+    if start_ms is None or end_ms is None:
+        cov=store.coverage(
+            symbol,
+            dataset,
+            timeframe,
+            step_ms=step,
+            start_ms=start_ms,
+            end_ms=end_ms,
+        )
+
+        return (
+            cov.count>0
+            and not cov.gaps
+        )
+
+    window=aligned_window(
+        start_ms,
+        end_ms,
+        timeframe,
+    )
+
+    if window is None:
+        return False
+
+    aligned_start,aligned_end=window
+
+    cov=store.coverage(
+        symbol,
+        dataset,
+        timeframe,
+        step_ms=step,
+        start_ms=aligned_start,
+        end_ms=aligned_end,
+    )
+
     if cov.count==0 or cov.gaps:
         return False
-    if start_ms is None or end_ms is None:
-        return True
-    if end_ms < start_ms:
-        return False
-    expected=((int(end_ms)-int(start_ms))//step)+1
-    return cov.count>=expected and cov.earliest is not None and cov.latest is not None
+
+    expected=expected_points(
+        start_ms,
+        end_ms,
+        timeframe,
+    )
+
+    return (
+        cov.count>=expected
+        and cov.earliest is not None
+        and cov.latest is not None
+        and cov.earliest<=aligned_start
+        and cov.latest>=aligned_end
+    )
 
 def requirements_ready(definition,store,symbol,start_ms=None,end_ms=None):
     for req in definition.requirements:

@@ -5,7 +5,6 @@ import importlib.util,os,sqlite3,sys
 from .bootstrap import bootstrap
 from .config import AppConfig
 from .remote.tailscale import detect_tailscale
-from .connectivity import check_bybit,check_telegram
 
 @dataclass(frozen=True)
 class Check:
@@ -42,7 +41,22 @@ def run_preflight(root:Path,check_network:bool=False)->PreflightReport:
     ts=detect_tailscale()
     checks.append(Check('tailscale',ts.installed and ts.running,False,ts.detail))
     if check_network:
-        b=check_bybit(); checks.append(Check('bybit_connectivity',b.ok,True,b.detail))
-        t=check_telegram(cfg.telegram_token)
-        checks.append(Check('telegram_connectivity',t.ok,False,t.detail))
+        try:
+            from .connectivity import check_bybit,check_telegram
+            b=check_bybit(); checks.append(Check('bybit_connectivity',b.ok,True,b.detail))
+            t=check_telegram(cfg.telegram_token)
+            checks.append(Check('telegram_connectivity',t.ok,False,t.detail))
+        except ImportError as exc:
+            checks.append(Check(
+                'bybit_connectivity',
+                False,
+                True,
+                f'network dependency unavailable: {exc}'
+            ))
+            checks.append(Check(
+                'telegram_connectivity',
+                False,
+                False,
+                f'network dependency unavailable: {exc}'
+            ))
     return PreflightReport(tuple(checks))
