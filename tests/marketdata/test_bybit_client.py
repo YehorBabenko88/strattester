@@ -397,3 +397,36 @@ def test_default_instrument_query_remains_trading_only():
     assert [x['symbol'] for x in rows] == [
         'LIVEUSDT',
     ]
+
+
+def test_current_funding_intervals_are_not_historical_schedules():
+    class C(BybitClient):
+        def fetch_linear_instruments(self):
+            return [
+                {**_linear_row('BTCUSDT'), 'fundingInterval': 480},
+                {**_linear_row('ETHUSDT'), 'fundingInterval': '60'},
+            ]
+    assert C().fetch_current_funding_intervals() == {
+        'BTCUSDT': 28_800_000,
+        'ETHUSDT': 3_600_000,
+    }
+
+
+@pytest.mark.parametrize('invalid', [None, 0, -1, True, 'x', '1.5', ' 60 '])
+def test_invalid_current_funding_metadata_fails_closed(invalid):
+    class C(BybitClient):
+        def fetch_linear_instruments(self):
+            return [{**_linear_row('BTCUSDT'), 'fundingInterval': invalid}]
+    with pytest.raises(BybitResponseError):
+        C().fetch_current_funding_intervals()
+
+
+def test_duplicate_current_funding_metadata_fails_closed():
+    class C(BybitClient):
+        def fetch_linear_instruments(self):
+            return [
+                {**_linear_row('BTCUSDT'), 'fundingInterval': 480},
+                {**_linear_row('BTCUSDT'), 'fundingInterval': 60},
+            ]
+    with pytest.raises(BybitResponseError, match='duplicate'):
+        C().fetch_current_funding_intervals()
