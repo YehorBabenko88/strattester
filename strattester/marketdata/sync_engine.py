@@ -210,7 +210,7 @@ class SyncEngine:
                 else:
                     verified=schedule[0]
                     interval=int(verified)
-                if interval<=0 or isinstance(verified,bool) or (isinstance(verified,float) and (not verified.is_integer())):
+                if interval<=0 or isinstance(verified,bool) or (isinstance(verified,float) and not verified.is_integer()):
                     raise ValueError('invalid verified funding interval')
                 observed=current[symbol]
                 if isinstance(observed,bool) or not isinstance(observed,int) or observed<=0:
