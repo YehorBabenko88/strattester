@@ -1684,3 +1684,28 @@ def test_funding_drift_rejects_subminute_history_interval(tmp_path):
     result = engine.check_current_funding_intervals()
     assert result['state'] is SyncState.REPAIR_REQUIRED
     assert result['changes']['BTCUSDT']['state'] == 'INVALID'
+
+
+def test_funding_sync_rejects_coerced_segment_values_without_network(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'coerced-funding.db')
+    client = FundingClient([0, 8 * HOUR])
+    invalid_segments = (
+        [(0.5, 8 * HOUR, 0)],
+        [(0, float(8 * HOUR) + 0.5, 0)],
+        [(0, 8 * HOUR, 0.5)],
+        [(True, 8 * HOUR, 0)],
+        [(0, 8 * HOUR, False)],
+        [('0', 8 * HOUR, 0)],
+    )
+    for schedule in invalid_segments:
+        engine = SyncEngine(
+            store, client, clock_ms=lambda: 20 * HOUR,
+            funding_schedules={'BTCUSDT': schedule},
+        )
+        result = engine.sync_requirement(
+            DataRequirement('BTCUSDT', 'funding', '1m', 0, 8 * HOUR)
+        )
+        assert result.state is SyncState.REPAIR_REQUIRED
+    assert client.calls == []
+    assert store.coverage('BTCUSDT', 'funding').count == 0
+    store.close()
