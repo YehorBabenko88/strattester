@@ -98,6 +98,15 @@ class SyncEngine:
                         observed=record.get('observed_at_ms')
                         if not isinstance(observed,int) or isinstance(observed,bool) or observed<0:
                             continue
+                        # A malformed per-symbol entry is not reliable
+                        # evidence that a drift was verified or resolved.
+                        if any(
+                            not isinstance(symbol,str) or not symbol or
+                            not isinstance(detail,dict) or
+                            detail.get('state') not in ('CHANGED','MISSING','INVALID')
+                            for symbol,detail in record['changes'].items()
+                        ):
+                            continue
                         return {'state':SyncState.REPAIR_REQUIRED if record['changes'] else SyncState.READY,
                                 'changes':record['changes'],'observed_at_ms':observed}
                     except (ValueError,UnicodeError,TypeError):
