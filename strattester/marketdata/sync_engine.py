@@ -205,10 +205,12 @@ class SyncEngine:
                         (len(schedule)!=2 or any(isinstance(x,(list,tuple,dict)) for x in schedule))):
                     if not schedule:
                         raise ValueError('empty schedule history')
-                    interval=int(schedule[-1][1])
+                    verified=schedule[-1][1]
+                    interval=int(verified)
                 else:
-                    interval=int(schedule[0])
-                if interval<=0 or (isinstance(schedule,(list,tuple)) and len(schedule)==2 and isinstance(schedule[0],bool)):
+                    verified=schedule[0]
+                    interval=int(verified)
+                if interval<=0 or isinstance(verified,bool):
                     raise ValueError('invalid verified funding interval')
                 observed=current[symbol]
                 if isinstance(observed,bool) or not isinstance(observed,int) or observed<=0:
