@@ -113,10 +113,16 @@ class SyncEngine:
             # been fsynced. Unlike the lock file, it cannot be created by
             # an ordinary first check that has never persisted an event.
             marker=path.with_name(path.name+'.initialized')
-            if marker.exists():
+            try:
+                with marker.open('rb') as initialized:
+                    initialized.read(1)
+            except FileNotFoundError:
+                return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
+            except OSError as exc:
                 return {'state':SyncState.RETRYABLE,'changes':{},
-                        'message':'funding drift journal missing after prior durable record'}
-            return {'state':SyncState.UNKNOWN,'changes':{},'observed_at_ms':None}
+                        'message':f'funding drift initialization marker inaccessible: {exc}'}
+            return {'state':SyncState.RETRYABLE,'changes':{},
+                    'message':'funding drift journal missing after prior durable record'}
         return {'state':SyncState.RETRYABLE,'changes':{},
                 'message':'funding drift journal has no valid complete record'}
 
