@@ -45,8 +45,11 @@ def _bybit_interval(timeframe:str)->str:
     return mapping.get(tf, timeframe)
 
 class SyncEngine:
-    def __init__(self,store,client,clock_ms=None):
+    def __init__(self,store,client,clock_ms=None,funding_schedules=None):
         self.store=store; self.client=client; self.clock_ms=clock_ms or (lambda:int(time.time()*1000))
+        # Explicit, independently verified per-symbol (interval_ms, anchor_ms).
+        # Never infer funding cadence from the research candle timeframe.
+        self.funding_schedules=dict(funding_schedules or {})
 
     def _step(self,req):
         return timeframe_ms(req.timeframe)
@@ -98,21 +101,75 @@ class SyncEngine:
             raise RuntimeError('historical public trades require archive provider; recent REST trades are not a historical substitute')
         raise ValueError('unsupported dataset')
 
-    def sync_requirement(self,req:DataRequirement)->SyncResult:
-        # Funding is event-based, not a bar series. A candle timeframe
-        # cannot establish which funding timestamps are expected. Until a
-        # per-symbol funding schedule and event coverage validator exist,
-        # fail closed instead of returning a misleading READY or repeatedly
-        # requesting every missing candle-sized interval.
-        if req.dataset == 'funding':
+    def _sync_funding(self,req):
+        written=unchanged=rejected=0
+        step=self._step(req)
+        try:
+            for start,end in self._ranges(req,step):
+                page_end=end
+                while page_end>=start:
+                    rows=self.client.fetch_funding(req.symbol,start,page_end)
+                    if not rows:
+                        break
+                    timestamps=[]
+                    valid=[]
+                    for row in rows:
+                        ts=int(row['fundingRateTimestamp'])
+                        timestamps.append(ts)
+                        if (start<=ts<=page_end and ts<=self.clock_ms()
+                                and (ts-req.start_ms)%step==0):
+                            valid.append(row)
+                    stats=self.store.upsert_funding(req.symbol,valid)
+                    written+=stats.accepted
+                    unchanged+=stats.unchanged
+                    rejected+=stats.rejected
+                    minimum=min(timestamps)
+                    if minimum<=start:
+                        break
+                    next_end=minimum-1
+                    if next_end>=page_end:
+                        break
+                    page_end=next_end
+            remaining=self._ranges(req,step)
             return SyncResult(
-                SyncState.UNAVAILABLE,
-                message=(
-                    'funding event coverage requires a verified '
-                    'instrument-specific schedule; candle timeframe '
-                    'must not be used as funding cadence'
-                ),
+                SyncState.PARTIAL if remaining else SyncState.READY,
+                written,unchanged,rejected,
+                'requested funding events remain incomplete' if remaining else '',
             )
+        except DatasetUnavailableError as exc:
+            return SyncResult(SyncState.UNAVAILABLE,written,unchanged,rejected,str(exc))
+        except (MarketDataAccessError,BybitAccessError) as exc:
+            return SyncResult(SyncState.DEGRADED,written,unchanged,rejected,str(exc))
+        except Exception as exc:
+            return SyncResult(SyncState.RETRYABLE,written,unchanged,rejected,str(exc))
+
+    def sync_requirement(self,req:DataRequirement)->SyncResult:
+        if req.dataset == 'funding':
+            schedule=self.funding_schedules.get(req.symbol)
+            if schedule is None:
+                return SyncResult(
+                    SyncState.UNAVAILABLE,
+                    message='funding event coverage requires a verified instrument-specific schedule',
+                )
+            try:
+                interval,anchor=schedule
+                interval=int(interval)
+                anchor=int(anchor)
+                if interval<=0 or anchor<0 or anchor>=interval:
+                    raise ValueError('invalid funding schedule')
+                first=anchor+((int(req.start_ms)-anchor+interval-1)//interval)*interval
+                last=anchor+((int(req.end_ms)-anchor)//interval)*interval
+                if first>last:
+                    return SyncResult(SyncState.REPAIR_REQUIRED,message='no scheduled funding event in requested window')
+                # Reuse the gap-repair/pagination engine with the *event*
+                # interval, not the candle timeframe. The funding table
+                # deliberately has no timeframe dimension.
+                req=DataRequirement(req.symbol,'funding',f'{interval//60000}m',first,last)
+                if interval%60000:
+                    return SyncResult(SyncState.REPAIR_REQUIRED,message='funding schedule must use whole-minute intervals')
+            except (TypeError,ValueError,OverflowError) as exc:
+                return SyncResult(SyncState.REPAIR_REQUIRED,message=f'invalid funding schedule: {exc}')
+            return self._sync_funding(req)
         window=aligned_window(
             req.start_ms,
             req.end_ms,
