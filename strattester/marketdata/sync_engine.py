@@ -201,10 +201,16 @@ class SyncEngine:
                 if normalized and since<=normalized[-1][0]:
                     raise ValueError('funding segments must have strictly increasing starts')
                 normalized.append((since,interval,anchor))
-            if req.start_ms<normalized[0][0]:
-                return SyncResult(SyncState.UNAVAILABLE,message='funding schedule does not cover requested history')
             if req.end_ms<req.start_ms:
                 raise ValueError('invalid requested funding window')
+            if req.start_ms<normalized[0][0]:
+                return SyncResult(SyncState.UNAVAILABLE,message='funding schedule does not cover requested history')
+            # A segment's effective start must be a scheduled event boundary.
+            # Otherwise the boundary could conceal an event or assign it to
+            # the wrong cadence. Require independent schedule correction.
+            for since,interval,anchor in normalized:
+                if (since-anchor)%interval:
+                    raise ValueError('funding segment start is not aligned with its schedule')
         except (TypeError,ValueError,OverflowError) as exc:
             return SyncResult(SyncState.REPAIR_REQUIRED,message=str(exc))
 
