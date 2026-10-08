@@ -203,6 +203,8 @@ class SyncEngine:
                 normalized.append((since,interval,anchor))
             if req.end_ms<req.start_ms:
                 raise ValueError('invalid requested funding window')
+            if req.start_ms<0:
+                raise ValueError('funding window cannot start before epoch')
             if req.start_ms<normalized[0][0]:
                 return SyncResult(SyncState.UNAVAILABLE,message='funding schedule does not cover requested history')
             # A segment's effective start must be a scheduled event boundary.
