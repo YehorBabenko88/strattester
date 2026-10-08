@@ -325,7 +325,9 @@ class SyncEngine:
                 if incomplete and path.with_name(path.name+'.1').exists():
                     # Keep the last complete backup when the active tail is
                     # torn. Replacing the backup here could destroy the only
-                    # durable observation if the next append fails.
+                    # durable observation if the next append fails. The
+                    # bounded quarantine slot is overwritten on later repair
+                    # attempts, avoiding unbounded .partial.N debris.
                     os.replace(path,path.with_name(path.name+'.partial'))
                 elif size>=max_bytes or incomplete:
                     os.replace(path,path.with_name(path.name+'.1'))
