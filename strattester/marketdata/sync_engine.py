@@ -243,9 +243,9 @@ class SyncEngine:
         cov=self.store.coverage(req.symbol,req.dataset,req.timeframe,step)
         ranges=[]
         if cov.earliest is None:return [(req.start_ms,req.end_ms)]
-        if req.start_ms<cov.earliest:ranges.append((req.start_ms,cov.earliest-step))
+        if req.start_ms<cov.earliest:ranges.append((req.start_ms,min(req.end_ms,cov.earliest-step)))
         ranges.extend((max(req.start_ms,g.start),min(req.end_ms,g.end)) for g in cov.gaps if g.end>=req.start_ms and g.start<=req.end_ms)
-        if cov.latest+step<=req.end_ms:ranges.append((cov.latest+step,req.end_ms))
+        if cov.latest+step<=req.end_ms:ranges.append((max(req.start_ms,cov.latest+step),req.end_ms))
         return [(a,b) for a,b in ranges if a<=b]
 
     def _sync_rows(self,req,start,end):
