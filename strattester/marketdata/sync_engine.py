@@ -104,15 +104,15 @@ class SyncEngine:
                             not isinstance(symbol,str) or not symbol or
                             not isinstance(detail,dict) or
                             detail.get('state') not in ('CHANGED','MISSING','INVALID') or
-                            (detail.get('state') == 'CHANGED' and
-                             ('verified_interval_ms' in detail or 'current_interval_ms' in detail) and (
+                            (detail.get('state') == 'CHANGED' and (
                                 any(
-                                    not isinstance(detail.get(key),int) or
-                                    isinstance(detail.get(key),bool) or
-                                    detail.get(key)<=0
-                                    for key in ('verified_interval_ms','current_interval_ms')
+                                    not isinstance(value,int) or isinstance(value,bool) or value<=0
+                                    for key,value in detail.items()
+                                    if key in ('verified_interval_ms','current_interval_ms')
                                 ) or
-                                detail['verified_interval_ms']==detail['current_interval_ms']
+                                ('verified_interval_ms' in detail and
+                                 'current_interval_ms' in detail and
+                                 detail['verified_interval_ms']==detail['current_interval_ms'])
                             ))
                             for symbol,detail in record['changes'].items()
                         ):
