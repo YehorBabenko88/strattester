@@ -86,7 +86,7 @@ class SyncEngine:
                     observed=record.get('observed_at_ms')
                     if not isinstance(observed,int) or isinstance(observed,bool) or observed<0:
                         continue
-                    return {'state':SyncState.REPAIR_REQUIRED,
+                    return {'state':SyncState.REPAIR_REQUIRED if record['changes'] else SyncState.READY,
                             'changes':record['changes'],'observed_at_ms':observed}
                 except (ValueError,UnicodeError,TypeError):
                     continue
@@ -134,7 +134,9 @@ class SyncEngine:
                     'verified_interval_ms':interval,
                     'current_interval_ms':observed,
                 }
-        if changes and self.funding_drift_journal is not None:
+        if self.funding_drift_journal is not None:
+            # Persist resolution as an empty change set. This ensures old
+            # warnings do not reappear as active after a clean restart.
             # Avoid recording identical alerts on every polling cycle.
             # After a reboot the last complete record remains authoritative
             # for deduplication; no in-memory cache is required.
@@ -143,10 +145,12 @@ class SyncEngine:
                 return {'state':SyncState.RETRYABLE,
                         'message':previous.get('message','funding drift journal unavailable'),
                         'changes':changes}
-            if previous['state'] is SyncState.REPAIR_REQUIRED and previous['changes']==changes:
-                return {'state':SyncState.REPAIR_REQUIRED,
-                        'message':'funding metadata requires review',
+            if previous['state'] in (SyncState.REPAIR_REQUIRED,SyncState.READY) and previous['changes']==changes:
+                return {'state':SyncState.REPAIR_REQUIRED if changes else SyncState.READY,
+                        'message':'funding metadata requires review' if changes else '',
                         'changes':changes}
+            if previous['state'] is SyncState.UNKNOWN and not changes:
+                return {'state':SyncState.READY,'message':'','changes':{}}
             try:
                 # Append-only evidence: never overwrite or alter market data.
                 # Flush and fsync so a completed check survives a reboot.
