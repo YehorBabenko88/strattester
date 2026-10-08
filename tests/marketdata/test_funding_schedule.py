@@ -921,3 +921,33 @@ def test_funding_drift_missing_journal_inaccessible_marker_fails_closed(tmp_path
     assert 'inaccessible' in result['message']
     monkeypatch.setattr(Path, 'open', original_open)
     assert engine.read_funding_drift_alerts()['state'] is SyncState.UNKNOWN
+
+
+def test_funding_drift_partial_marker_write_denial_preserves_event(tmp_path, monkeypatch):
+    from pathlib import Path
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    journal = tmp_path / 'funding-drift.jsonl'
+    engine = SyncEngine(
+        store, Metadata(), funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        funding_drift_journal=journal,
+    )
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    marker = journal.with_name(journal.name + '.initialized')
+    marker.write_bytes(b'')
+    original_open = Path.open
+    def deny_marker_writes(path, *args, **kwargs):
+        mode = args[0] if args else kwargs.get('mode', 'r')
+        if path == marker and any(flag in mode for flag in ('w', 'a', 'x', '+')):
+            raise PermissionError('simulated marker repair denial')
+        return original_open(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', deny_marker_writes)
+    assert engine.check_current_funding_intervals()['state'] is SyncState.RETRYABLE
+    assert len(journal.read_text().splitlines()) == 1
+    monkeypatch.setattr(Path, 'open', original_open)
+    assert engine.check_current_funding_intervals()['state'] is SyncState.REPAIR_REQUIRED
+    assert marker.read_bytes() == b'1\n'
+    assert len(journal.read_text().splitlines()) == 1
+    store.close()
