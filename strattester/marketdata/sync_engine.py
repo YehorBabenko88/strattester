@@ -304,7 +304,9 @@ class SyncEngine:
                 last=tail.splitlines()[-1] if tail.splitlines() else b''
                 try:
                     final=json.loads(last.decode('utf-8'))
-                    if not isinstance(final,dict) or final.get('changes')!=changes:
+                    observed=final.get('observed_at_ms') if isinstance(final,dict) else None
+                    if (not isinstance(final,dict) or final.get('changes')!=changes or
+                            not isinstance(observed,int) or isinstance(observed,bool) or observed<0):
                         incomplete=True
                 except (ValueError,UnicodeError,TypeError):
                     incomplete=True
