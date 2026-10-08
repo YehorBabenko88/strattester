@@ -222,8 +222,11 @@ class SyncEngine:
         if marker.exists():
             # An interrupted first write can leave an empty or partial marker.
             # The journal event has already been fsynced by the caller.
-            if marker.read_bytes()==b'1\n':
-                return
+            # Never load an unbounded marker into memory: a damaged file
+            # may have grown far beyond its expected two-byte payload.
+            with marker.open('rb') as initialized:
+                if initialized.read(3)==b'1\n':
+                    return
             with marker.open('wb') as initialized:
                 initialized.write(b'1\n')
                 initialized.flush()
