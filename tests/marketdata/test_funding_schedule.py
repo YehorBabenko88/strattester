@@ -1851,3 +1851,24 @@ def test_segmented_funding_invalid_clock_fails_without_writes(tmp_path):
     assert client.calls == []
     assert store.coverage('BTCUSDT', 'funding').count == 0
     store.close()
+
+
+def test_funding_page_rejects_lossy_timestamps_atomically(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'invalid-page-timestamps.db')
+    for bad in (0.5, True, '0.5', '-1', ' 0', '1e3'):
+        class MalformedFundingClient:
+            def fetch_funding(self, symbol, start, end):
+                return [
+                    {'fundingRateTimestamp': '0', 'fundingRate': '0.0001'},
+                    {'fundingRateTimestamp': bad, 'fundingRate': '0.0001'},
+                ]
+        engine = SyncEngine(
+            store, MalformedFundingClient(), clock_ms=lambda: 20 * HOUR,
+            funding_schedules={'BTCUSDT': (8 * HOUR, 0)},
+        )
+        result = engine.sync_requirement(
+            DataRequirement('BTCUSDT', 'funding', '1m', 0, 8 * HOUR)
+        )
+        assert result.state is SyncState.RETRYABLE
+        assert store.coverage('BTCUSDT', 'funding').count == 0
+    store.close()
