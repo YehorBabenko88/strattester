@@ -1797,3 +1797,19 @@ def test_funding_rejects_noninteger_request_boundaries_in_both_paths(tmp_path):
     assert client.calls == []
     assert store.coverage('BTCUSDT', 'funding').count == 0
     store.close()
+
+
+def test_funding_future_event_in_later_segment_prevents_earlier_writes(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'future-later-segment.db')
+    client = FundingClient([0, 8 * HOUR, 9 * HOUR])
+    engine = SyncEngine(
+        store, client, clock_ms=lambda: 8 * HOUR,
+        funding_schedules={'BTCUSDT': [(0, 8 * HOUR, 0), (8 * HOUR, HOUR, 0)]},
+    )
+    result = engine.sync_requirement(
+        DataRequirement('BTCUSDT', 'funding', '1m', 0, 9 * HOUR)
+    )
+    assert result.state is SyncState.PARTIAL
+    assert client.calls == []
+    assert store.coverage('BTCUSDT', 'funding').count == 0
+    store.close()
