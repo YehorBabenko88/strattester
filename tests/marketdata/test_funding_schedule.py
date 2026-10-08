@@ -1636,3 +1636,19 @@ def test_funding_drift_rejects_invalid_history_boundaries(tmp_path):
         result = engine.check_current_funding_intervals()
         assert result['state'] is SyncState.REPAIR_REQUIRED
         assert result['changes']['BTCUSDT']['state'] == 'INVALID'
+
+
+def test_funding_drift_rejects_invalid_history_anchors(tmp_path):
+    class Metadata:
+        def fetch_current_funding_intervals(self):
+            return {'BTCUSDT': HOUR}
+    for invalid in (True, -1, HOUR * 8, '0', None):
+        engine = SyncEngine(
+            None, Metadata(),
+            funding_schedules={'BTCUSDT': [(0, 8 * HOUR, invalid), (8 * HOUR, HOUR, 0)]},
+            funding_drift_journal=tmp_path / 'bad-anchor.jsonl',
+        )
+        result = engine.check_current_funding_intervals()
+        assert result['state'] is SyncState.REPAIR_REQUIRED
+        assert result['changes']['BTCUSDT']['state'] == 'INVALID'
+        assert 'invalid verified funding schedule anchor' in result['changes']['BTCUSDT']['message']
