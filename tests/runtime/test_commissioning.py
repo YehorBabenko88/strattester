@@ -23,3 +23,28 @@ def test_production_ready_requires_every_prior_gate(tmp_path):
     m=CommissioningManifest(tmp_path/'commissioning.json')
     with pytest.raises(RuntimeError):
         m.record(CommissioningStage.PRODUCTION_READY,True,'unsafe')
+
+
+def test_failed_recheck_invalidates_downstream_and_production_mode(tmp_path):
+    m=CommissioningManifest(tmp_path/'commissioning.json')
+    for stage in CommissioningStage:
+        m.record(stage,True,'passed',now=1)
+    assert m.load()['mode']=='PRODUCTION_READY'
+    m.record(CommissioningStage.DATABASE,False,'connection lost',now=2)
+    state=m.load()
+    assert state['mode']=='COMMISSIONING'
+    assert CommissioningStage.DATABASE.value not in state['completed']
+    assert CommissioningStage.PRODUCTION_READY.value not in state['completed']
+    assert m.next_stage() is CommissioningStage.DATABASE
+    import pytest
+    with pytest.raises(RuntimeError):
+        m.record(CommissioningStage.PRODUCTION_READY,True,'unsafe',now=3)
+
+
+def test_successful_recheck_preserves_completed_readiness(tmp_path):
+    m=CommissioningManifest(tmp_path/'commissioning.json')
+    for stage in CommissioningStage:
+        m.record(stage,True,'passed',now=1)
+    m.record(CommissioningStage.DATABASE,True,'rechecked',now=2)
+    assert m.load()['mode']=='PRODUCTION_READY'
+    assert m.next_stage() is None
