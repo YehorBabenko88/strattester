@@ -39,3 +39,12 @@ def test_failed_recheck_invalidates_downstream_and_production_mode(tmp_path):
     import pytest
     with pytest.raises(RuntimeError):
         m.record(CommissioningStage.PRODUCTION_READY,True,'unsafe',now=3)
+
+
+def test_successful_recheck_preserves_completed_readiness(tmp_path):
+    m=CommissioningManifest(tmp_path/'commissioning.json')
+    for stage in CommissioningStage:
+        m.record(stage,True,'passed',now=1)
+    m.record(CommissioningStage.DATABASE,True,'rechecked',now=2)
+    assert m.load()['mode']=='PRODUCTION_READY'
+    assert m.next_stage() is None
