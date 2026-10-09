@@ -51,7 +51,7 @@ class CommissioningManifest:
             # A failed prerequisite invalidates every later commissioning gate.
             completed=[value for value in completed if value in {x.value for x in ORDER[:index]}]
         data['completed']=completed
-        data['mode']='PRODUCTION_READY' if (ok and stage is CommissioningStage.PRODUCTION_READY) else 'COMMISSIONING'
+        data['mode']='PRODUCTION_READY' if len(set(completed))==len(ORDER) else 'COMMISSIONING'
         self.path.parent.mkdir(parents=True,exist_ok=True)
         tmp=self.path.with_suffix(self.path.suffix+'.tmp')
         tmp.write_text(json.dumps(data,sort_keys=True,indent=2),encoding='utf-8')
