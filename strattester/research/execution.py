@@ -40,7 +40,14 @@ def _adverse(price:float,side:str,bps:float,entry:bool)->float:
 def simulate_trade(signal:Signal,bars,policy:ExecutionPolicy,metadata=None)->ResearchTrade:
     if signal.side not in ('long','short'): raise ValueError('side')
     if signal.entry_kind not in ('market','limit'): raise ValueError('entry_kind')
+    if policy.bar_ms<=0 or policy.position_usd<=0 or policy.fee_rate<0 or policy.slippage_bps<0:
+        raise ValueError('execution policy')
+    if policy.ambiguous_policy not in ('SL_FIRST','TP_FIRST'):
+        raise ValueError('ambiguous_policy')
+    if signal.entry_kind=='limit' and signal.entry_price is None:
+        raise ValueError('limit entry_price')
     rows=list(bars)
+    if not rows: raise ValueError('empty bars')
     entry_idx=None; raw_entry=None
     for i,b in enumerate(rows):
         earliest = signal.decision_time if signal.entry_kind=='market' else signal.decision_time + policy.bar_ms
@@ -141,7 +148,11 @@ def simulate_scale_trade(signal:ScaleSignal,bars,policy:ExecutionPolicy)->ScaleT
     if signal.side not in ('long','short'): raise ValueError('side')
     if not signal.entries or abs(sum(x[1] for x in signal.entries)-1.0)>1e-9: raise ValueError('entry fractions')
     if not signal.take_profits or abs(sum(x[1] for x in signal.take_profits)-1.0)>1e-9: raise ValueError('target fractions')
-    rows=list(bars); fills=[]; exits=[]; pending=list(enumerate(signal.entries))
+    if policy.bar_ms<=0 or policy.position_usd<=0 or policy.fee_rate<0 or policy.slippage_bps<0:
+        raise ValueError('execution policy')
+    rows=list(bars)
+    if not rows: raise ValueError('empty bars')
+    fills=[]; exits=[]; pending=list(enumerate(signal.entries))
     target_idx=0; remaining_qty=0.0; first_allowed=signal.decision_time+policy.bar_ms; active_stop=float(signal.stop_loss)
     for b in rows:
         if b['t']<first_allowed: continue
