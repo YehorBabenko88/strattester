@@ -22,6 +22,7 @@ class BybitClient:
             raise ValueError("invalid retry policy")
         last=None
         for attempt in range(self.retry.attempts):
+            retry_after=None
             try:
                 r=self.session.get(self.base_url+path,params=params,timeout=30)
             except requests.RequestException as exc:
@@ -46,7 +47,7 @@ class BybitClient:
                         return data
             if attempt+1<self.retry.attempts:
                 exponential=self.retry.base_delay*(2**attempt)
-                hinted=retry_after if 'retry_after' in locals() and retry_after is not None and retry_after>=0 else 0
+                hinted=retry_after if retry_after is not None and retry_after>=0 else 0
                 self.sleep(min(max(exponential,hinted),self.retry.max_delay))
                 retry_after=None
         raise last or RetryableBybitError('Bybit request failed')
@@ -59,7 +60,12 @@ class BybitClient:
     def fetch_linear_instruments(self):
         instruments=[]
         cursor=None
+        seen_cursors=set()
+        pages=0
         while True:
+            pages+=1
+            if pages>1000:
+                raise BybitResponseError('Bybit instruments pagination exceeded 1000 pages')
             params={'category':'linear','limit':1000}
             if cursor: params['cursor']=cursor
             data=self.get('/v5/market/instruments-info',params)
@@ -69,6 +75,9 @@ class BybitClient:
                     instruments.append(dict(row))
             cursor=result.get('nextPageCursor') or ''
             if not cursor: break
+            if cursor in seen_cursors:
+                raise BybitResponseError('Bybit instruments pagination repeated a cursor')
+            seen_cursors.add(cursor)
         return instruments
 
     def fetch_linear_symbols(self):
