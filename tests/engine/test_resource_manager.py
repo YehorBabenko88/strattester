@@ -24,4 +24,18 @@ def test_cpu_pressure_reduces_or_pauses_work():
 
 def test_ram_can_limit_cpu_parallelism():
     d=decide_resources(ResourceSnapshot(8*GB,5*GB,100*GB,20,16))
-    assert d.max_new_jobs==2
+    assert d.max_new_jobs==1
+
+
+def test_heavy_jobs_pause_when_reserved_ram_would_be_consumed():
+    decision=decide_resources(ResourceSnapshot(8*GB,3*GB,100*GB,0,16))
+    assert decision.allow_heavy is False
+    assert decision.max_new_jobs==0
+    assert decision.action=='pause'
+
+
+def test_ram_reserve_applies_to_custom_minimum_and_job_slots():
+    snap=ResourceSnapshot(8*GB,4*GB,100*GB,0,16)
+    assert decide_resources(snap).max_new_jobs==1
+    assert decide_resources(snap,min_free_ram=3*GB).max_new_jobs==0
+    assert decide_resources(snap,min_free_ram=3*GB).allow_heavy is False
