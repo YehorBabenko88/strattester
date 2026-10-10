@@ -22,3 +22,12 @@ def test_logs_command_is_read_only_and_bounded():
         def tail_log(self,component,lines): return ['x','y']
     s=S(); c=TelegramController(['1'],s,lambda:'OK',ConfirmationStore(),inspection=P())
     assert c.handle('1','/logs worker 2')=='x\ny'
+
+
+def test_blank_or_nontext_telegram_messages_are_ignored_without_side_effects():
+    services=S()
+    controller=TelegramController(['1'],services,lambda:'OK',ConfirmationStore())
+    for text in ('', '  ', '\n\t', None):
+        assert controller.handle('1',text) is None
+    assert services.calls == []
+    assert controller.handle('1',' /status ') == 'OK'
