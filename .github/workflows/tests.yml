@@ -15,6 +15,9 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m pip install -e .[dev]
+      # Catch syntax errors in optional modules not imported by the test suite.
+      - name: Compile all Python source and tests
+        run: python -m compileall -q strattester tests
       - run: python -m pytest -v
       - name: Parse PowerShell scripts
         if: runner.os == 'Windows'
