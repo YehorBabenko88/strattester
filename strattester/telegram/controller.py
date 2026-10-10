@@ -4,7 +4,10 @@ class TelegramController:
         self.allowed={str(x) for x in allowed_chat_ids}; self.services=service_manager; self.status_provider=status_provider; self.confirmations=confirmations; self.inspection=inspection
     def handle(self,chat_id,text):
         if str(chat_id) not in self.allowed:return None
-        cmd=text.strip().split()[0].lower()
+        parts=text.split() if isinstance(text,str) else []
+        if not parts:
+            return None
+        cmd=parts[0].lower()
         actions={'/start':('start','STARTED'),'/stop':('stop','STOPPED'),
                  '/restart':('restart','RESTARTED'),'/drain':('drain','DRAINING')}
         if cmd in actions:
