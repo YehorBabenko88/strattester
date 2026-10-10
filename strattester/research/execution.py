@@ -41,7 +41,7 @@ def simulate_trade(signal:Signal,bars,policy:ExecutionPolicy,metadata=None)->Res
     if signal.side not in ('long','short'): raise ValueError('side')
     if signal.entry_kind not in ('market','limit'): raise ValueError('entry_kind')
     rows=list(bars)
-    entry_idx=None; raw_entry=None
+    entry_idx=None; raw_entry=None; entry_at_open=True
     for i,b in enumerate(rows):
         earliest = signal.decision_time if signal.entry_kind=='market' else signal.decision_time + policy.bar_ms
         if b['t'] < earliest: continue
@@ -53,21 +53,24 @@ def simulate_trade(signal:Signal,bars,policy:ExecutionPolicy,metadata=None)->Res
             if o<=p:
                 entry_idx=i; raw_entry=o; break
             if l<=p<=h:
-                entry_idx=i; raw_entry=p; break
+                entry_idx=i; raw_entry=p; entry_at_open=False; break
         else:
             if o>=p:
                 entry_idx=i; raw_entry=o; break
             if l<=p<=h:
-                entry_idx=i; raw_entry=p; break
+                entry_idx=i; raw_entry=p; entry_at_open=False; break
     if entry_idx is None: raise ValueError('entry not filled')
     entry=_adverse(raw_entry,signal.side,policy.slippage_bps,True)
     exit_time=None; raw_exit=None; reason=None
-    for b in rows[entry_idx:]:
+    for i,b in enumerate(rows[entry_idx:],start=entry_idx):
         o=float(b['open']); h=float(b['high']); l=float(b['low'])
+        # The opening price precedes an intrabar limit fill. Only positions
+        # already filled at this bar's open can experience an opening gap.
+        opening_gap=i>entry_idx or entry_at_open
         if signal.side=='long':
-            if o <= signal.stop_loss:
+            if opening_gap and o <= signal.stop_loss:
                 raw_exit=o; reason='SL_GAP'
-            elif o >= signal.take_profit:
+            elif opening_gap and o >= signal.take_profit:
                 raw_exit=signal.take_profit; reason='TP_GAP'
             else:
                 hit_sl=l <= signal.stop_loss
@@ -80,9 +83,9 @@ def simulate_trade(signal:Signal,bars,policy:ExecutionPolicy,metadata=None)->Res
                 elif hit_tp:
                     raw_exit=signal.take_profit; reason='TP'
         else:
-            if o >= signal.stop_loss:
+            if opening_gap and o >= signal.stop_loss:
                 raw_exit=o; reason='SL_GAP'
-            elif o <= signal.take_profit:
+            elif opening_gap and o <= signal.take_profit:
                 raw_exit=signal.take_profit; reason='TP_GAP'
             else:
                 hit_sl=h >= signal.stop_loss

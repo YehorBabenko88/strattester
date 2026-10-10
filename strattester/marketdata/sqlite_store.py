@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import sqlite3
+import math
 import threading
 from typing import Iterable
 from .storage_health import storage_health
@@ -162,7 +163,9 @@ class SQLiteMarketStore:
         for r in rows:
             try:
                 ts=int(r[0]); o,h,l,cl=map(float,r[1:5])
-                if min(o,h,l,cl)<=0 or l>h or not (l<=o<=h and l<=cl<=h): raise ValueError
+                if not all(math.isfinite(x) for x in (o,h,l,cl)): raise ValueError
+                if dataset!='premium_index' and min(o,h,l,cl)<=0: raise ValueError
+                if l>h or not (l<=o<=h and l<=cl<=h): raise ValueError
                 parsed.append(((symbol,timeframe,ts),(o,h,l,cl,1)))
             except (TypeError,ValueError,IndexError):
                 rejected+=1
@@ -270,6 +273,8 @@ class SQLiteMarketStore:
             return Coverage(times[0],times[-1],len(times),tuple(gaps))
         table,time_col,uses_tf=mapping[dataset]
         where=['symbol=?']; params=[symbol]
+        if dataset in ('candles','mark_price','index_price','premium_index','open_interest'):
+            where.append('complete=1')
         if uses_tf:
             where.append('timeframe=?'); params.append(timeframe)
         if start_ms is not None:
@@ -291,6 +296,7 @@ class SQLiteMarketStore:
         where=['symbol=?']; params=[symbol]
         if not self._legacy_candles:
             where.append('timeframe=?'); params.append(timeframe)
+            where.append('complete=1')
         if start_ms is not None:
             where.append(f'{time_col}>=?'); params.append(int(start_ms))
         if end_ms is not None:

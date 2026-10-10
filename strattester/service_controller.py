@@ -15,7 +15,7 @@ def main():
         return 2
     inspection=ControlStatus(cfg.root)
     controller=TelegramController(
-        [cfg.telegram_chat_id],WindowsServiceManager(),
+        [cfg.telegram_chat_id],WindowsServiceManager(root=cfg.root),
         lambda: str(inspection.status()),ConfirmationStore(),inspection=inspection)
     log.info('controller started')
     TelegramPoller(cfg.telegram_token,controller).run()

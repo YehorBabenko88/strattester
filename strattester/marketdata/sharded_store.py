@@ -1,5 +1,6 @@
 from __future__ import annotations
 from hashlib import sha256
+from contextlib import contextmanager
 import json
 from pathlib import Path
 import re
@@ -91,8 +92,13 @@ class ShardedMarketStore:
                 copied+=len(rows)
         return copied
 
-    def _dataset_fingerprints(self,store,symbol):
+    def _dataset_fingerprints(self,store,symbol,timeframe='1m'):
         result={}
+        h=sha256(); count=0
+        for candle in store.iter_candles(symbol,timeframe):
+            h.update(json.dumps(candle.__dict__,sort_keys=True,separators=(',',':')).encode('utf-8'))
+            h.update(b'\n'); count+=1
+        result['candles']=(count,h.hexdigest())
         for table,columns in self._DATASET_TABLES:
             cols=','.join(columns)
             order='funding_time' if table=='funding' else 'timeframe,open_time'
@@ -110,7 +116,7 @@ class ShardedMarketStore:
             raise RuntimeError('legacy store is not configured')
         shard=self.for_symbol(symbol)
         source_cov=self.legacy_store.coverage(symbol,'candles',timeframe)
-        initial_aux=self._dataset_fingerprints(self.legacy_store,symbol)
+        initial_aux=self._dataset_fingerprints(self.legacy_store,symbol,timeframe)
         previous=self.manifest.get(symbol)
         self.manifest.set(symbol,ShardState.MIGRATING,rows_copied=previous.rows_copied if previous else 0)
         batch=[]; copied=0
@@ -123,20 +129,23 @@ class ShardedMarketStore:
         # Re-read source coverage after copying. Live writes deliberately stay
         # in legacy while MIGRATING; if the source moved, do not promote this
         # pass. A later idempotent pass copies the tail and validates again.
-        final_source_cov=self.legacy_store.coverage(symbol,'candles',timeframe)
-        copied+=self._copy_auxiliary_datasets(symbol,shard,batch_size)
-        source_fingerprints=self._dataset_fingerprints(self.legacy_store,symbol)
-        target_fingerprints=self._dataset_fingerprints(shard,symbol)
-        target_cov=shard.coverage(symbol,'candles',timeframe)
-        if final_source_cov!=source_cov or source_fingerprints!=initial_aux:
-            self.manifest.set(symbol,ShardState.MIGRATING,rows_copied=target_cov.count,error='source changed during migration; retry required')
-            raise RuntimeError('legacy source changed during migration; retry required')
-        if (source_fingerprints!=target_fingerprints or target_cov.count!=final_source_cov.count or target_cov.earliest!=final_source_cov.earliest
-                or target_cov.latest!=final_source_cov.latest or target_cov.gaps!=final_source_cov.gaps
-                or not shard.integrity_check()):
-            self.manifest.set(symbol,ShardState.FAILED,rows_copied=target_cov.count,error='shard migration validation failed')
-            raise RuntimeError('shard migration validation failed')
-        self.manifest.set(symbol,ShardState.SHARD_READY,rows_copied=target_cov.count)
+        # Serialize final validation/promotion with routed writers across store
+        # instances. Waiting writers choose their destination after this commit.
+        with self._routing_transaction():
+            copied+=self._copy_auxiliary_datasets(symbol,shard,batch_size)
+            final_source_cov=self.legacy_store.coverage(symbol,'candles',timeframe)
+            source_fingerprints=self._dataset_fingerprints(self.legacy_store,symbol,timeframe)
+            target_fingerprints=self._dataset_fingerprints(shard,symbol,timeframe)
+            target_cov=shard.coverage(symbol,'candles',timeframe)
+            if final_source_cov!=source_cov or source_fingerprints!=initial_aux:
+                self.manifest.set(symbol,ShardState.MIGRATING,rows_copied=target_cov.count,error='source changed during migration; retry required')
+                raise RuntimeError('legacy source changed during migration; retry required')
+            if (source_fingerprints!=target_fingerprints or target_cov.count!=final_source_cov.count or target_cov.earliest!=final_source_cov.earliest
+                    or target_cov.latest!=final_source_cov.latest or target_cov.gaps!=final_source_cov.gaps
+                    or not shard.integrity_check()):
+                self.manifest.set(symbol,ShardState.FAILED,rows_copied=target_cov.count,error='shard migration validation failed')
+                raise RuntimeError('shard migration validation failed')
+            self.manifest.set(symbol,ShardState.SHARD_READY,rows_copied=target_cov.count)
         return copied
 
     def promote_symbol(self,symbol:str):
@@ -159,6 +168,16 @@ class ShardedMarketStore:
             return self.for_symbol(symbol)
         return self.legacy_store
 
+    @contextmanager
+    def _routing_transaction(self):
+        self.manifest.con.execute('BEGIN IMMEDIATE')
+        try:
+            yield
+            self.manifest.con.commit()
+        except Exception:
+            self.manifest.con.rollback()
+            raise
+
     def upsert_candles(self,records):
         records=list(records)
         if not records:
@@ -167,18 +186,24 @@ class ShardedMarketStore:
         symbols={r.symbol for r in records}
         if len(symbols)!=1: raise ValueError('one routed write must contain exactly one symbol')
         symbol=next(iter(symbols))
-        return self._write_store(symbol).upsert_candles(records)
+        with self._routing_transaction():
+            return self._write_store(symbol).upsert_candles(records)
 
     def upsert_price_klines(self,dataset,symbol,rows,timeframe='1m'):
-        return self._write_store(symbol).upsert_price_klines(dataset,symbol,rows,timeframe)
+        with self._routing_transaction():
+            return self._write_store(symbol).upsert_price_klines(dataset,symbol,rows,timeframe)
     def upsert_open_interest(self,symbol,rows,timeframe='5m'):
-        return self._write_store(symbol).upsert_open_interest(symbol,rows,timeframe)
+        with self._routing_transaction():
+            return self._write_store(symbol).upsert_open_interest(symbol,rows,timeframe)
     def upsert_funding(self,symbol,rows):
-        return self._write_store(symbol).upsert_funding(symbol,rows)
+        with self._routing_transaction():
+            return self._write_store(symbol).upsert_funding(symbol,rows)
     def upsert_long_short_ratio(self,symbol,rows,timeframe='5m'):
-        return self._write_store(symbol).upsert_long_short_ratio(symbol,rows,timeframe)
+        with self._routing_transaction():
+            return self._write_store(symbol).upsert_long_short_ratio(symbol,rows,timeframe)
     def upsert_public_trade_aggregates(self,symbol,rows,timeframe='1m'):
-        return self._write_store(symbol).upsert_public_trade_aggregates(symbol,rows,timeframe)
+        with self._routing_transaction():
+            return self._write_store(symbol).upsert_public_trade_aggregates(symbol,rows,timeframe)
 
     def integrity_check(self):
         return all(store.integrity_check() for store in self._stores.values())
