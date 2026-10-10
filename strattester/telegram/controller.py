@@ -5,10 +5,11 @@ class TelegramController:
     def handle(self,chat_id,text):
         if str(chat_id) not in self.allowed:return None
         cmd=text.strip().split()[0].lower()
-        if cmd=='/start': self.services.start(); return 'STARTED'
-        if cmd=='/stop': self.services.stop(); return 'STOPPED'
-        if cmd=='/restart': self.services.restart(); return 'RESTARTED'
-        if cmd=='/drain': self.services.drain(); return 'DRAINING'
+        actions={'/start':('start','STARTED'),'/stop':('stop','STOPPED'),
+                 '/restart':('restart','RESTARTED'),'/drain':('drain','DRAINING')}
+        if cmd in actions:
+            action,message=actions[cmd]
+            return self._lifecycle(cmd,getattr(self.services,action),message)
         if cmd=='/status': return self.status_provider()
         if cmd=='/results':
             if self.inspection is None:return 'RESULTS UNAVAILABLE'
@@ -47,5 +48,13 @@ class TelegramController:
             if len(parts)!=2:return 'INVALID CONFIRMATION'
             c=self.confirmations.consume(parts[1])
             if not c or c.action!='remove-worker':return 'CONFIRMATION EXPIRED'
-            self.services.remove_worker(); return 'WORKER REMOVED; DATA PRESERVED'
+            return self._lifecycle(cmd,self.services.remove_worker,'WORKER REMOVED; DATA PRESERVED')
         return 'UNKNOWN COMMAND'
+
+    @staticmethod
+    def _lifecycle(command,operation,success):
+        try:
+            operation()
+        except Exception as exc:
+            return f'FAILED {command}: {exc}'
+        return success
