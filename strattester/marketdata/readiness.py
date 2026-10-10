@@ -4,6 +4,7 @@ from pathlib import Path
 from strattester.bootstrap import bootstrap
 from strattester.marketdata.sqlite_store import SQLiteMarketStore
 from strattester.marketdata.sync_engine import SyncEngine
+from strattester.marketdata.timeframes import aligned_window
 
 @dataclass(frozen=True)
 class OpenedMarketStore:
@@ -46,16 +47,31 @@ def requirements_for_instrument(instrument:dict,*,end_ms:int):
     caps=dataset_capabilities(instrument)
     specs=(('candles','1m'),('mark_price','1m'),('index_price','1m'),('premium_index','1m'),
            ('open_interest','5m'),('funding',f'{funding_minutes}m'),('long_short_ratio','5m'))
-    def step_ms(tf):
-        unit=tf[-1].lower();n=int(tf[:-1])
-        return n*({'m':60_000,'h':3_600_000,'d':86_400_000}[unit])
     requirements=[]
     for dataset,timeframe in specs:
-        if dataset not in caps:continue
-        step=step_ms(timeframe)
-        start=((launch+step-1)//step)*step
-        end=(end_ms//step)*step
-        if start<=end:requirements.append(DataRequirement(symbol,dataset,timeframe,start,end))
+        if dataset not in caps:
+            continue
+
+        window=aligned_window(
+            launch,
+            end_ms,
+            timeframe,
+        )
+
+        if window is None:
+            continue
+
+        start,end=window
+
+        requirements.append(
+            DataRequirement(
+                symbol,
+                dataset,
+                timeframe,
+                start,
+                end,
+            )
+        )
     return tuple(requirements)
 
 def ensure_instrument_history(store,client,instrument,*,end_ms:int,clock_ms=None):

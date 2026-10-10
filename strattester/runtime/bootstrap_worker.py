@@ -18,28 +18,77 @@ def build_worker(root:Path,executor):
     b=bootstrap(root)
     state=(PostgresStateStore.connect(b.config.postgres_dsn)
            if b.config.postgres_dsn else SQLiteStateStore.open(b.state_db))
-    logger=build_logger(b.config.logs_dir/'worker.jsonl','strattester.worker')
-    background=[]
-    if b.config.market_db.exists() and b.config.market_shards_dir is not None:
-        shards=open_market_store(b.config.market_db,b.config.market_shards_dir)
-        legacy=shards.legacy_store
-        def assigned_symbols():
-            connection=getattr(legacy,'connection',None)
-            symbols=connection.execute("SELECT DISTINCT symbol FROM candles ORDER BY symbol").fetchall()
-            names=[r[0] for r in symbols]
-            if not b.config.node_id or not hasattr(state,'live_nodes'):
-                return names
-            try: nodes=state.live_nodes()
-            except Exception: return ()
-            return [s for s in names if nodes and assign_node(s,nodes)==b.config.node_id]
-        background.append(BackgroundShardMigration(
-            ShardMigrator(shards),assigned_symbols,lambda:snapshot(b.config.root),
-            b.config.min_free_disk_bytes,batch_symbols=2,interval_seconds=60))
-    runtime=WorkerRuntime(
-        state,Scheduler(state),executor,Lifecycle(),logger,
-        lambda:snapshot(b.config.root),
-        node_id=b.config.node_id,
-        execution_mode=b.config.execution_mode,
-        background_tasks=background,
-        resources=([shards,legacy] if background and legacy is not None else ([shards] if background else [])))
-    return b,state,runtime
+    shards=None
+    legacy=None
+
+    try:
+        logger=build_logger(b.config.logs_dir/'worker.jsonl','strattester.worker')
+        background=[]
+
+        if b.market_db is not None and b.market_db.exists() and b.config.market_shards_dir is not None:
+            shards=open_market_store(b.market_db,b.config.market_shards_dir)
+            legacy=shards.legacy_store
+
+            def assigned_symbols():
+                connection=getattr(legacy,'connection',None)
+                symbols=connection.execute(
+                    "SELECT DISTINCT symbol FROM candles ORDER BY symbol"
+                ).fetchall()
+                names=[r[0] for r in symbols]
+
+                if not b.config.node_id or not hasattr(state,'live_nodes'):
+                    return names
+
+                try:
+                    nodes=state.live_nodes()
+                except Exception:
+                    return ()
+
+                return [
+                    s for s in names
+                    if nodes and assign_node(s,nodes)==b.config.node_id
+                ]
+
+            background.append(
+                BackgroundShardMigration(
+                    ShardMigrator(shards),
+                    assigned_symbols,
+                    lambda:snapshot(b.config.root),
+                    b.config.min_free_disk_bytes,
+                    batch_symbols=2,
+                    interval_seconds=60,
+                )
+            )
+
+        resources=(
+            [shards,legacy]
+            if background and legacy is not None
+            else ([shards] if background else [])
+        )
+
+        runtime=WorkerRuntime(
+            state,
+            Scheduler(state),
+            executor,
+            Lifecycle(),
+            logger,
+            lambda:snapshot(b.config.root),
+            node_id=b.config.node_id,
+            execution_mode=b.config.execution_mode,
+            background_tasks=background,
+            resources=resources,
+        )
+
+        return b,state,runtime
+
+    except Exception:
+        # Startup is transactional: if construction fails, no partially
+        # initialized handles may remain open.
+        for resource in (legacy,shards,state):
+            if resource is None:
+                continue
+            try:
+                resource.close()
+            except Exception:
+                pass
+        raise

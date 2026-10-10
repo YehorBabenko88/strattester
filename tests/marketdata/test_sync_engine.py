@@ -2,6 +2,7 @@ from strattester.marketdata.sqlite_store import SQLiteMarketStore,Candle
 from strattester.marketdata.sync_engine import SyncEngine,DataRequirement,SyncState
 from strattester.marketdata.bybit_client import BybitAccessError
 
+from strattester.marketdata.errors import DatasetUnavailableError
 class Client:
     def __init__(self,rows): self.rows=rows; self.calls=[]
     def fetch_klines(self,symbol,start,end,interval):
@@ -74,7 +75,6 @@ def test_retry_after_interrupted_page_is_idempotent(tmp_path):
 
 
 def test_one_unavailable_dataset_is_isolated_from_other_requirements(tmp_path):
-    class DatasetUnavailableError(RuntimeError):pass
     class C:
         def fetch_klines(self,*a):return [['0','1','1','1','1','1','1']]
         def fetch_open_interest(self,*a):raise DatasetUnavailableError("not available for this symbol")
@@ -167,3 +167,37 @@ os._exit(41)
     assert client.calls==[(60000,60000)]
     assert reopened.coverage('BTCUSDT','candles','1m').count==2
     reopened.close()
+
+
+def test_funding_requires_verified_event_schedule_not_candle_cadence(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'funding.db')
+    class ClientWithFunding:
+        def fetch_funding(self, *args):
+            raise AssertionError('must not fetch using unverified cadence')
+    engine = SyncEngine(store, ClientWithFunding(), clock_ms=lambda: 999999999)
+    for timeframe in ('1m', '1h', '8h'):
+        result = engine.sync_requirement(
+            DataRequirement('BTCUSDT', 'funding', timeframe, 0, 8 * 3600_000)
+        )
+        assert result.state is SyncState.UNAVAILABLE
+        assert 'schedule' in result.message
+    assert store.coverage('BTCUSDT', 'funding').count == 0
+    store.close()
+
+
+def test_missing_range_before_existing_history_stays_within_request(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'before.db')
+    store.upsert_candles([Candle('BTCUSDT', '1m', 600000, 1, 1, 1, 1, 1)])
+    engine = SyncEngine(store, Client([]), clock_ms=lambda: 1000000)
+    req = DataRequirement('BTCUSDT', start_ms=0, end_ms=120000)
+    assert engine._ranges(req) == [(0, 120000)]
+    store.close()
+
+
+def test_missing_range_after_existing_history_stays_within_request(tmp_path):
+    store = SQLiteMarketStore.open(tmp_path / 'after.db')
+    store.upsert_candles([Candle('BTCUSDT', '1m', 0, 1, 1, 1, 1, 1)])
+    engine = SyncEngine(store, Client([]), clock_ms=lambda: 1000000)
+    req = DataRequirement('BTCUSDT', start_ms=600000, end_ms=720000)
+    assert engine._ranges(req) == [(600000, 720000)]
+    store.close()

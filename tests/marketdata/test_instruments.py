@@ -121,3 +121,212 @@ def test_non_string_symbol_is_rejected_not_stringified(tmp_path):
     r=InstrumentRegistry.open(tmp_path/'i.db')
     with pytest.raises(ValueError):r.reconcile({'A',None},1000)
     assert r.get('A') is None;r.close()
+
+def test_prelaunch_is_known_but_not_backtest_eligible(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db')
+
+    r.reconcile_lifecycle(
+        set(),
+        {'NEWUSDT':InstrumentStatus.PRE_LISTING},
+        {},
+        1000,
+    )
+
+    assert r.get('NEWUSDT').status is InstrumentStatus.PRE_LISTING
+    assert r.intervals('NEWUSDT')==[]
+    assert not r.eligible_at('NEWUSDT',1000)
+
+    r.close()
+
+
+def test_prelaunch_to_trading_opens_first_active_interval(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db')
+
+    r.reconcile_lifecycle(
+        set(),
+        {'NEWUSDT':InstrumentStatus.PRE_LISTING},
+        {},
+        1000,
+    )
+
+    r.reconcile_lifecycle(
+        {'NEWUSDT'},
+        {},
+        {},
+        2000,
+    )
+
+    assert r.get('NEWUSDT').status is InstrumentStatus.ACTIVE
+    assert r.intervals('NEWUSDT')==[(2000,None)]
+    assert not r.eligible_at('NEWUSDT',1999)
+    assert r.eligible_at('NEWUSDT',2000)
+
+    r.close()
+
+
+def test_explicit_suspension_does_not_consume_missing_confirmation(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db')
+
+    r.reconcile({'XUSDT'},1000)
+
+    r.reconcile_lifecycle(
+        set(),
+        {'XUSDT':InstrumentStatus.SUSPENDED},
+        {},
+        2000,
+    )
+
+    assert r.get('XUSDT').status is InstrumentStatus.SUSPENDED
+    assert r.intervals('XUSDT')==[(1000,2000)]
+
+    r.reconcile_lifecycle(
+        {'XUSDT'},
+        {},
+        {},
+        3000,
+    )
+
+    assert r.get('XUSDT').status is InstrumentStatus.ACTIVE
+    assert r.intervals('XUSDT')==[
+        (1000,2000),
+        (3000,None),
+    ]
+
+    r.close()
+
+
+def test_explicit_closed_uses_exchange_terminal_time_and_survives_reboot(tmp_path):
+    path=tmp_path/'i.db'
+
+    r=InstrumentRegistry.open(path)
+    r.reconcile({'OLDUSDT'},1000)
+    r.close()
+
+    # Simulate PC being offline while the instrument is delisted.
+    #
+    # Machine returns at t=5000, but Bybit says the real perpetual
+    # delisting time was t=3000.
+    r=InstrumentRegistry.open(path)
+
+    r.reconcile_lifecycle(
+        set(),
+        {'OLDUSDT':InstrumentStatus.DELISTED},
+        {'OLDUSDT':3000},
+        5000,
+    )
+
+    rec=r.get('OLDUSDT')
+
+    assert rec.status is InstrumentStatus.DELISTED
+    assert rec.delisted_at==3000
+    assert rec.last_seen==5000
+
+    # Historical trading interval ends at actual exchange delisting time,
+    # not at reboot/discovery time.
+    assert r.intervals('OLDUSDT')==[(1000,3000)]
+
+    assert r.eligible_at('OLDUSDT',2999)
+    assert not r.eligible_at('OLDUSDT',3000)
+    assert not r.eligible_at('OLDUSDT',5000)
+
+    r.close()
+
+    reopened=InstrumentRegistry.open(path)
+
+    rec=reopened.get('OLDUSDT')
+
+    assert rec.status is InstrumentStatus.DELISTED
+    assert rec.delisted_at==3000
+    assert reopened.intervals('OLDUSDT')==[(1000,3000)]
+    assert reopened.eligible_at('OLDUSDT',2500)
+    assert not reopened.eligible_at('OLDUSDT',3500)
+
+    reopened.close()
+
+
+def test_explicit_closed_can_correct_prior_missing_boundary(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db')
+
+    r.reconcile({'OLDUSDT'},1000)
+
+    # First absence was observed at 2000 and temporarily closed the
+    # interval there.
+    r.reconcile(set(),2000)
+
+    assert r.get('OLDUSDT').status is InstrumentStatus.MISSING
+    assert r.intervals('OLDUSDT')==[(1000,2000)]
+
+    # Later explicit terminal evidence says it actually traded until 2500.
+    r.reconcile_lifecycle(
+        set(),
+        {'OLDUSDT':InstrumentStatus.DELISTED},
+        {'OLDUSDT':2500},
+        3000,
+    )
+
+    assert r.get('OLDUSDT').status is InstrumentStatus.DELISTED
+    assert r.get('OLDUSDT').delisted_at==2500
+    assert r.intervals('OLDUSDT')==[(1000,2500)]
+
+    r.close()
+
+
+def test_unknown_historical_closed_symbol_is_not_imported(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db')
+
+    r.reconcile_lifecycle(
+        set(),
+        {'ANCIENTUSDT':InstrumentStatus.DELISTED},
+        {'ANCIENTUSDT':500},
+        1000,
+    )
+
+    assert r.get('ANCIENTUSDT') is None
+
+    r.close()
+
+
+def test_explicit_lifecycle_snapshot_is_atomic_on_bad_terminal_time(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db')
+
+    r.reconcile({'AUSDT','BUSDT'},1000)
+
+    with pytest.raises(
+        ValueError,
+        match='future terminal timestamp',
+    ):
+        r.reconcile_lifecycle(
+            set(),
+            {
+                'AUSDT':InstrumentStatus.DELISTED,
+                'BUSDT':InstrumentStatus.SUSPENDED,
+            },
+            {
+                'AUSDT':5000,
+            },
+            2000,
+        )
+
+    # Validation happened before BEGIN/mutation.
+    assert r.get('AUSDT').status is InstrumentStatus.ACTIVE
+    assert r.get('BUSDT').status is InstrumentStatus.ACTIVE
+    assert r.intervals('AUSDT')==[(1000,None)]
+    assert r.intervals('BUSDT')==[(1000,None)]
+
+    r.close()
+
+
+def test_active_and_explicit_nonactive_conflict_is_rejected(tmp_path):
+    r=InstrumentRegistry.open(tmp_path/'i.db')
+
+    with pytest.raises(ValueError,match='both ACTIVE'):
+        r.reconcile_lifecycle(
+            {'XUSDT'},
+            {'XUSDT':InstrumentStatus.SUSPENDED},
+            {},
+            1000,
+        )
+
+    assert r.get('XUSDT') is None
+
+    r.close()

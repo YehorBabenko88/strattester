@@ -56,20 +56,120 @@ class BybitClient:
         return data.get('result',{}).get('list',[])
 
 
-    def fetch_linear_instruments(self):
-        instruments=[]
-        cursor=None
+    def fetch_linear_instruments(self, status=None):
+        instruments = []
+        cursor = None
+        seen_cursors = set()
+
         while True:
-            params={'category':'linear','limit':1000}
-            if cursor: params['cursor']=cursor
-            data=self.get('/v5/market/instruments-info',params)
-            result=data.get('result',{})
-            for row in result.get('list',[]):
-                if row.get('status')=='Trading' and row.get('quoteCoin')=='USDT' and row.get('contractType')=='LinearPerpetual':
+            params = {
+                'category': 'linear',
+                'limit': 1000,
+            }
+
+            if status is not None:
+                if not isinstance(status, str) or not status.strip():
+                    raise ValueError(
+                        'instrument status must be a non-empty string'
+                    )
+                params['status'] = status.strip()
+
+            if cursor:
+                params['cursor'] = cursor
+
+            # If any page request fails, the exception propagates and this
+            # method returns no partial universe to its caller.
+            data = self.get(
+                '/v5/market/instruments-info',
+                params,
+            )
+
+            if not isinstance(data, dict):
+                raise BybitResponseError(
+                    'Bybit instruments response must be an object'
+                )
+
+            result = data.get('result')
+
+            if not isinstance(result, dict):
+                raise BybitResponseError(
+                    'Bybit instruments response has invalid result'
+                )
+
+            rows = result.get('list')
+
+            if not isinstance(rows, list):
+                raise BybitResponseError(
+                    'Bybit instruments response has invalid result.list'
+                )
+
+            for row in rows:
+                if not isinstance(row, dict):
+                    raise BybitResponseError(
+                        'Bybit instruments response contains invalid row'
+                    )
+
+                row_status = row.get('status')
+
+                if (
+                    row.get('quoteCoin') == 'USDT'
+                    and row.get('contractType') == 'LinearPerpetual'
+                    and (
+                        row_status == 'Trading'
+                        if status is None
+                        else row_status == status.strip()
+                    )
+                ):
                     instruments.append(dict(row))
-            cursor=result.get('nextPageCursor') or ''
-            if not cursor: break
+
+            next_cursor = result.get('nextPageCursor', '')
+
+            if next_cursor is None:
+                next_cursor = ''
+
+            if not isinstance(next_cursor, str):
+                raise BybitResponseError(
+                    'Bybit instruments response has invalid nextPageCursor'
+                )
+
+            if not next_cursor:
+                break
+
+            if next_cursor in seen_cursors:
+                raise BybitResponseError(
+                    'Bybit instruments pagination repeated cursor'
+                )
+
+            seen_cursors.add(next_cursor)
+            cursor = next_cursor
+
         return instruments
+
+
+    def fetch_current_funding_intervals(self):
+        """Return current funding intervals in milliseconds, not historical schedules.
+
+        Metadata has no effective-from history or trustworthy event anchor.
+        Callers must not use this mapping to certify historical coverage.
+        """
+        intervals = {}
+        for row in self.fetch_linear_instruments():
+            symbol = row.get('symbol')
+            raw = row.get('fundingInterval')
+            if not isinstance(symbol, str) or not symbol:
+                raise BybitResponseError('funding metadata missing symbol')
+            if symbol in intervals:
+                raise BybitResponseError('duplicate funding instrument metadata')
+            if isinstance(raw, bool) or not isinstance(raw, (int, str)):
+                raise BybitResponseError('funding metadata missing valid interval')
+            try:
+                minutes = int(raw)
+            except ValueError as exc:
+                raise BybitResponseError('funding metadata has invalid interval') from exc
+            if minutes <= 0 or str(raw) != str(minutes):
+                raise BybitResponseError('funding metadata has invalid interval')
+            intervals[symbol] = minutes * 60_000
+        return intervals
 
     def fetch_linear_symbols(self):
         return {x.get('symbol') for x in self.fetch_linear_instruments() if x.get('symbol')}

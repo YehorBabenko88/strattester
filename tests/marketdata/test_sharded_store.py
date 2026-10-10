@@ -191,3 +191,248 @@ def test_routed_wrapper_close_does_not_destroy_external_legacy_backend(tmp_path)
     store.close()
     assert legacy.connection.execute('SELECT 1').fetchone()[0]==1
     legacy.close()
+
+
+def test_real_mid_migration_failure_resumes_without_duplicate_or_premature_promotion(tmp_path):
+    """
+    Simulate a process failure after one real committed candle batch.
+
+    The partially populated shard must never become authoritative.  A fresh
+    ShardedMarketStore instance must continue serving legacy data and an
+    idempotent retry must converge to a validated SHARD_READY shard.
+    """
+    import pytest
+
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+    legacy.upsert_candles([
+        candle('BTCUSDT',i*60_000)
+        for i in range(10)
+    ])
+
+    root=tmp_path/'shards'
+    first=ShardedMarketStore(root,legacy_store=legacy)
+    shard=first.for_symbol('BTCUSDT')
+
+    original_upsert=shard.upsert_candles
+    calls={'count':0}
+
+    def fail_after_first_committed_batch(records):
+        calls['count']+=1
+
+        if calls['count']==1:
+            # This is a real SQLite transaction committed by upsert_candles().
+            return original_upsert(records)
+
+        raise OSError('synthetic process failure between committed batches')
+
+    shard.upsert_candles=fail_after_first_committed_batch
+
+    with pytest.raises(
+        OSError,
+        match='synthetic process failure between committed batches'
+    ):
+        first.migrate_legacy_candles(
+            'BTCUSDT',
+            batch_size=3,
+        )
+
+    # migrate_legacy_candles marks MIGRATING before copying and must never have
+    # reached the validation/promotion boundary.
+    record=first.manifest.get('BTCUSDT')
+    assert record.state.value=='MIGRATING'
+    assert not first.manifest.ready('BTCUSDT')
+
+    # First committed batch physically exists in the target shard.
+    assert original_upsert is not None
+    assert shard.coverage('BTCUSDT').count==3
+    assert shard.integrity_check()
+
+    # But routed reads must still use the authoritative legacy database.
+    assert first.coverage('BTCUSDT').count==10
+    assert [
+        x.open_time for x in first.iter_candles('BTCUSDT')
+    ]==[
+        i*60_000 for i in range(10)
+    ]
+
+    first.close()
+
+    # Simulate restart: reopen the routed store against the same on-disk shard.
+    second=ShardedMarketStore(root,legacy_store=legacy)
+
+    assert not second.manifest.ready('BTCUSDT')
+    assert second.coverage('BTCUSDT').count==10
+
+    resumed_shard=second.for_symbol('BTCUSDT')
+
+    # The three committed rows survived restart.
+    assert resumed_shard.coverage('BTCUSDT').count==3
+    assert resumed_shard.integrity_check()
+
+    copied=second.migrate_legacy_candles(
+        'BTCUSDT',
+        batch_size=3,
+    )
+
+    # Existing rows are UPSERTed idempotently; final physical row count must
+    # equal the source rather than source + already-copied rows.
+    assert resumed_shard.coverage('BTCUSDT').count==10
+    assert second.manifest.ready('BTCUSDT')
+
+    record=second.manifest.get('BTCUSDT')
+    assert record.state.value=='SHARD_READY'
+    assert record.rows_copied==10
+
+    assert second.coverage('BTCUSDT')==legacy.coverage('BTCUSDT')
+    assert second._dataset_fingerprints(
+        legacy,
+        'BTCUSDT'
+    )==second._dataset_fingerprints(
+        resumed_shard,
+        'BTCUSDT'
+    )
+
+    assert resumed_shard.integrity_check()
+
+    # Retry once more even though the shard is complete.  Physical data must
+    # remain exactly the same: no duplicate candles and no corruption.
+    second.migrate_legacy_candles(
+        'BTCUSDT',
+        batch_size=3,
+    )
+
+    assert resumed_shard.coverage('BTCUSDT').count==10
+    assert second.manifest.ready('BTCUSDT')
+    assert resumed_shard.integrity_check()
+
+    second.close()
+    legacy.close()
+
+
+def test_crash_during_ready_manifest_commit_recovers_without_exposing_uncommitted_promotion(tmp_path):
+    """
+    Simulate failure exactly when migration tries to persist SHARD_READY.
+
+    At that point the physical shard is complete and validated, but authority
+    must not switch unless the manifest promotion itself was durably committed.
+    A restart/retry must safely complete the promotion.
+    """
+    import pytest
+    from strattester.marketdata.shard_manifest import ShardState
+
+    legacy=SQLiteMarketStore.open(tmp_path/'legacy.db')
+
+    legacy.upsert_candles([
+        candle('BTCUSDT',i*60_000)
+        for i in range(10)
+    ])
+
+    legacy.upsert_funding(
+        'BTCUSDT',
+        [
+            {
+                'fundingRateTimestamp':0,
+                'fundingRate':'0.0001',
+            }
+        ],
+    )
+
+    root=tmp_path/'shards'
+    first=ShardedMarketStore(root,legacy_store=legacy)
+
+    original_set=first.manifest.set
+    injected={'done':False}
+
+    def fail_ready_commit(symbol,state,*args,**kwargs):
+        value=getattr(state,'value',state)
+
+        if value=='SHARD_READY' and not injected['done']:
+            injected['done']=True
+            raise OSError('synthetic crash while committing SHARD_READY')
+
+        return original_set(symbol,state,*args,**kwargs)
+
+    first.manifest.set=fail_ready_commit
+
+    with pytest.raises(
+        OSError,
+        match='synthetic crash while committing SHARD_READY'
+    ):
+        first.migrate_legacy_candles(
+            'BTCUSDT',
+            batch_size=3,
+        )
+
+    assert injected['done']
+
+    shard=first.for_symbol('BTCUSDT')
+
+    # Physical target was already completely copied and validated before the
+    # failed manifest promotion.
+    assert shard.coverage('BTCUSDT')==legacy.coverage('BTCUSDT')
+    assert first._dataset_fingerprints(
+        legacy,
+        'BTCUSDT'
+    )==first._dataset_fingerprints(
+        shard,
+        'BTCUSDT'
+    )
+    assert shard.integrity_check()
+
+    # But SHARD_READY was never durably persisted, therefore authority must
+    # remain with legacy.
+    record=first.manifest.get('BTCUSDT')
+    assert record is not None
+    assert record.state is ShardState.MIGRATING
+    assert not first.manifest.ready('BTCUSDT')
+
+    assert first.coverage('BTCUSDT')==legacy.coverage('BTCUSDT')
+    assert [
+        x.open_time for x in first.iter_candles('BTCUSDT')
+    ]==[
+        i*60_000 for i in range(10)
+    ]
+
+    first.close()
+
+    # Process restart.
+    second=ShardedMarketStore(root,legacy_store=legacy)
+
+    record=second.manifest.get('BTCUSDT')
+    assert record is not None
+    assert record.state is ShardState.MIGRATING
+    assert not second.manifest.ready('BTCUSDT')
+
+    reopened_shard=second.for_symbol('BTCUSDT')
+
+    # Complete target survived, but is still deliberately non-authoritative.
+    assert reopened_shard.coverage('BTCUSDT').count==10
+    assert reopened_shard.coverage('BTCUSDT','funding').count==1
+    assert reopened_shard.integrity_check()
+
+    # Retry is idempotent and is now allowed to persist SHARD_READY.
+    second.migrate_legacy_candles(
+        'BTCUSDT',
+        batch_size=3,
+    )
+
+    record=second.manifest.get('BTCUSDT')
+    assert record.state is ShardState.SHARD_READY
+    assert record.rows_copied==10
+    assert second.manifest.ready('BTCUSDT')
+
+    assert reopened_shard.coverage('BTCUSDT').count==10
+    assert reopened_shard.coverage('BTCUSDT','funding').count==1
+
+    assert second._dataset_fingerprints(
+        legacy,
+        'BTCUSDT'
+    )==second._dataset_fingerprints(
+        reopened_shard,
+        'BTCUSDT'
+    )
+
+    assert reopened_shard.integrity_check()
+
+    second.close()
+    legacy.close()
