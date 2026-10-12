@@ -28,7 +28,7 @@ def test_export_failure_does_not_advance_phase(monkeypatch, tmp_path):
         raise RuntimeError("export interrupted")
 
     monkeypatch.setattr(bootstrap_completion, "export_scientific_bootstrap", fail_export)
-    completed = Job.new("x").with_state(JobState.COMPLETED)
+    completed = Job.new("x").with_state(JobState.COMPLETE)
     coordinator = BootstrapCompletionCoordinator(State([completed]), Market(), tmp_path)
     with pytest.raises(RuntimeError, match="export interrupted"):
         coordinator.finalize_if_ready(["BTCUSDT"])
