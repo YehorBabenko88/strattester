@@ -52,3 +52,13 @@ def test_finalized_handoff_remains_valid_after_phase_advance(monkeypatch, tmp_pa
     assert result["finalized"] is True
     assert PhaseManifest(tmp_path / "state" / "phase-manifest.json").load()["phase"] == "GRID_IMPORT"
     assert verify_handoff(result["handoff"])["phase_manifest"] is None
+
+
+def test_phase_manifest_advance_records_completed_phase_names(tmp_path):
+    from strattester.runtime.phase_manifest import PhaseManifest, PHASES
+
+    manifest = PhaseManifest(tmp_path / "state" / "phase-manifest.json")
+    advanced = manifest.advance("GRID_IMPORT")
+    assert advanced["phase"] == "GRID_IMPORT"
+    assert advanced["completed"] == list(PHASES[:PHASES.index("GRID_IMPORT")])
+    assert manifest.load()["completed"] == advanced["completed"]
