@@ -11,7 +11,8 @@ def file_sha256(path):
 
 def write_handoff(path,science_bundle_path,*,strategy_results_path=None,phase_manifest_path=None):
     science=Path(science_bundle_path)
-    if not science.exists():raise FileNotFoundError(science)
+    if not science.is_file():raise FileNotFoundError(science)
+    if not science.stat().st_size:raise ValueError("science bundle is empty")
     out={
       "schema":1,
       "created_at":time.time(),
@@ -23,11 +24,14 @@ def write_handoff(path,science_bundle_path,*,strategy_results_path=None,phase_ma
     }
     if strategy_results_path:
         p=Path(strategy_results_path)
-        if p.exists():out["strategy_results"]={"path":str(p),"sha256":file_sha256(p)}
+        if p.is_file():out["strategy_results"]={"path":str(p),"sha256":file_sha256(p)}
     if phase_manifest_path:
         p=Path(phase_manifest_path)
-        if p.exists():out["phase_manifest"]={"path":str(p),"sha256":file_sha256(p)}
-    dest=Path(path);dest.parent.mkdir(parents=True,exist_ok=True)
+        if p.is_file():out["phase_manifest"]={"path":str(p),"sha256":file_sha256(p)}
+    dest=Path(path)
+    if dest.resolve()==science.resolve():
+        raise ValueError("handoff destination must not overwrite science bundle")
+    dest.parent.mkdir(parents=True,exist_ok=True)
     tmp=dest.with_suffix(dest.suffix+".tmp")
     tmp.write_text(json.dumps(out,sort_keys=True,indent=2),encoding="utf-8")
     tmp.replace(dest)
