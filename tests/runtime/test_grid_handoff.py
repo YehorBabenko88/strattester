@@ -102,3 +102,16 @@ def test_pack_handoff_refuses_to_overwrite_existing_directory(tmp_path):
     with pytest.raises(FileExistsError):
         pack_handoff(original, target)
     assert (target / "keep.txt").read_text(encoding="utf-8") == "safe"
+
+
+def test_pack_handoff_rejects_source_ancestor(tmp_path):
+    import pytest
+    source_dir = tmp_path / "original"
+    source_dir.mkdir()
+    science = source_dir / "science.json"
+    science.write_text('{"x":1}', encoding="utf-8")
+    manifest = source_dir / "handoff.json"
+    write_handoff(manifest, science)
+    with pytest.raises(ValueError, match="must not contain source manifest"):
+        pack_handoff(manifest, tmp_path)
+    assert science.exists() and manifest.exists()
