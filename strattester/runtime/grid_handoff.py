@@ -11,7 +11,10 @@ def file_sha256(path):
 
 def verify_handoff(path):
     """Fail closed if a handoff is incomplete, modified, or missing its payload."""
-    manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+    manifest_path = Path(path).resolve()
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(manifest, dict):
+        raise ValueError("handoff manifest must be an object")
     if manifest.get("schema") != 1 or manifest.get("source") != "strattester":
         raise ValueError("unsupported handoff schema or source")
     if manifest.get("ready_for_grid_import") is not True:
@@ -26,6 +29,10 @@ def verify_handoff(path):
         if not isinstance(entry, dict) or not entry.get("path") or not entry.get("sha256"):
             raise ValueError(f"invalid {key} fingerprint")
         payload = Path(entry["path"])
+        if not payload.is_absolute():
+            payload = manifest_path.parent / payload
+        if payload.resolve() == manifest_path:
+            raise ValueError(f"{key} payload points to handoff manifest")
         if not payload.is_file() or (key == "science_bundle" and not payload.stat().st_size):
             raise ValueError(f"missing or empty {key} payload")
         if file_sha256(payload) != entry["sha256"]:
