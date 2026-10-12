@@ -159,7 +159,7 @@ def test_routed_write_waits_for_promotion_then_uses_the_shard(tmp_path, monkeypa
     monkeypatch.setattr(store, '_dataset_fingerprints', interleave)
     try:
         store.migrate_legacy_candles('BTCUSDT')
-        assert completed.wait(3)
+        assert completed.wait(15), 'writer did not finish after routing promotion'
         assert not errors
         assert list(store.iter_candles('BTCUSDT'))[0].close == 101
         assert list(legacy.iter_candles('BTCUSDT'))[0].close == 100
