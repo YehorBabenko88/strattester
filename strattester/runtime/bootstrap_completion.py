@@ -27,13 +27,12 @@ class BootstrapCompletionCoordinator:
         phase=self.phase.load()
         if phase.get("phase") in ("GRID_IMPORT","LIVE_LEARNING","PAPER_TRADING"):
             return {"finalized":True,"already":True,**st}
-        self.phase.advance("HISTORICAL_SCIENCE_BOOTSTRAP",{"jobs":st})
         science=self.root/"results"/"historical-science-bootstrap.json"
         bundle=export_scientific_bootstrap(self.market_store,symbols,science)
         handoff=self.root/"results"/"grid-handoff.json"
         write_handoff(handoff,science,
                       strategy_results_path=self.root/"results"/"research_results.sqlite3",
                       phase_manifest_path=self.root/"state"/"phase-manifest.json")
-        self.phase.advance("GRID_IMPORT",{"science_bundle":str(science),"handoff":str(handoff)})
+        self.phase.advance("GRID_IMPORT",{"science_bundle":str(science),"handoff":str(handoff),"jobs":st})
         return {"finalized":True,"science_bundle":str(science),"handoff":str(handoff),
                 "symbols":len(bundle.get("symbols") or ()),**st}
