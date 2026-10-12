@@ -115,3 +115,21 @@ def test_pack_handoff_rejects_source_ancestor(tmp_path):
     with pytest.raises(ValueError, match="must not contain source manifest"):
         pack_handoff(manifest, tmp_path)
     assert science.exists() and manifest.exists()
+
+
+def test_pack_handoff_cleans_staging_after_copy_failure(tmp_path, monkeypatch):
+    import pytest
+    import shutil
+    science = tmp_path / "science.json"
+    science.write_text('{"x":1}', encoding="utf-8")
+    original = tmp_path / "source-handoff.json"
+    write_handoff(original, science)
+    target = tmp_path / "portable"
+    def interrupted_copy(*args, **kwargs):
+        raise OSError("simulated copy interruption")
+    monkeypatch.setattr(shutil, "copyfile", interrupted_copy)
+    with pytest.raises(OSError, match="simulated copy interruption"):
+        pack_handoff(original, target)
+    assert not target.exists()
+    assert list(tmp_path.glob("portable.staging-*")) == []
+    assert science.read_text(encoding="utf-8") == '{"x":1}'
