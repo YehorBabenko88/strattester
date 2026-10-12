@@ -30,7 +30,10 @@ class BootstrapCompletionCoordinator:
         science=self.root/"results"/"historical-science-bootstrap.json"
         bundle=export_scientific_bootstrap(self.market_store,symbols,science)
         handoff=self.root/"results"/"grid-handoff.json"
-        # The phase manifest changes on advance below; hashing it into the\n        # handoff would immediately invalidate the published checksum.\n        write_handoff(handoff,science,\n                      strategy_results_path=self.root/"results"/"research_results.sqlite3")
+        # The phase manifest changes on advance below; hashing it into the
+        # handoff would immediately invalidate the published checksum.
+        write_handoff(handoff,science,
+                      strategy_results_path=self.root/"results"/"research_results.sqlite3")
         verify_handoff(handoff)
         self.phase.advance("GRID_IMPORT",{"science_bundle":str(science),"handoff":str(handoff),"jobs":st})
         return {"finalized":True,"science_bundle":str(science),"handoff":str(handoff),
