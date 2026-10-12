@@ -40,6 +40,46 @@ def verify_handoff(path):
     return manifest
 
 
+def pack_handoff(source_manifest, destination_dir):
+    """Copy verified handoff payloads into a portable directory atomically.
+
+    Destination must be new; never replace an existing package or source files.
+    """
+    import shutil
+    import uuid
+    source_manifest = Path(source_manifest).resolve()
+    data = verify_handoff(source_manifest)
+    dest = Path(destination_dir).resolve()
+    if dest.exists():
+        raise FileExistsError(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    staging = dest.parent / (dest.name + ".staging-" + uuid.uuid4().hex)
+    staging.mkdir()
+    try:
+        packed = dict(data)
+        for key in ("science_bundle", "strategy_results", "phase_manifest"):
+            entry = data.get(key)
+            if entry is None:
+                continue
+            source = Path(entry["path"])
+            if not source.is_absolute():
+                source = source_manifest.parent / source
+            name = key + source.suffix
+            target = staging / name
+            shutil.copyfile(source, target)
+            if file_sha256(target) != entry["sha256"]:
+                raise ValueError(f"{key} changed during package copy")
+            packed[key] = {"path": name, "sha256": entry["sha256"]}
+        manifest = staging / "grid-handoff.json"
+        manifest.write_text(json.dumps(packed, sort_keys=True, indent=2), encoding="utf-8")
+        verify_handoff(manifest)
+        staging.rename(dest)
+        return dest / "grid-handoff.json"
+    except BaseException:
+        shutil.rmtree(staging)
+        raise
+
+
 def write_handoff(path,science_bundle_path,*,strategy_results_path=None,phase_manifest_path=None):
     science=Path(science_bundle_path)
     if not science.is_file():raise FileNotFoundError(science)
