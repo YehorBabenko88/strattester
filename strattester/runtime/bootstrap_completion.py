@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from strattester.engine.jobs import JobState
 from .phase_manifest import PhaseManifest
-from .grid_handoff import write_handoff
+from .grid_handoff import write_handoff, verify_handoff
 from strattester.research.scientific_bootstrap import export_scientific_bootstrap
 
 ACTIVE={JobState.PENDING,JobState.BLOCKED,JobState.READY,JobState.LEASED,
@@ -33,6 +33,7 @@ class BootstrapCompletionCoordinator:
         write_handoff(handoff,science,
                       strategy_results_path=self.root/"results"/"research_results.sqlite3",
                       phase_manifest_path=self.root/"state"/"phase-manifest.json")
+        verify_handoff(handoff)
         self.phase.advance("GRID_IMPORT",{"science_bundle":str(science),"handoff":str(handoff),"jobs":st})
         return {"finalized":True,"science_bundle":str(science),"handoff":str(handoff),
                 "symbols":len(bundle.get("symbols") or ()),**st}
