@@ -133,3 +133,24 @@ def test_pack_handoff_cleans_staging_after_copy_failure(tmp_path, monkeypatch):
     assert not target.exists()
     assert list(tmp_path.glob("portable.staging-*")) == []
     assert science.read_text(encoding="utf-8") == '{"x":1}'
+
+
+def test_pack_handoff_detects_mutation_during_copy(tmp_path, monkeypatch):
+    import pytest
+    import shutil
+    science = tmp_path / "science.json"
+    science.write_text('{"x":1}', encoding="utf-8")
+    original = tmp_path / "source-handoff.json"
+    write_handoff(original, science)
+    target = tmp_path / "portable"
+    real_copy = shutil.copyfile
+    def corrupt_copy(source, destination):
+        result = real_copy(source, destination)
+        Path(destination).write_text("corrupted", encoding="utf-8")
+        return result
+    monkeypatch.setattr(shutil, "copyfile", corrupt_copy)
+    with pytest.raises(ValueError, match="changed during package copy"):
+        pack_handoff(original, target)
+    assert not target.exists()
+    assert list(tmp_path.glob("portable.staging-*")) == []
+    assert science.read_text(encoding="utf-8") == '{"x":1}'
