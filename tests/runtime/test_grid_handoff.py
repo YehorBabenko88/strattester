@@ -67,3 +67,12 @@ def test_verify_handoff_rejects_non_object_json(tmp_path):
     manifest.write_text("[]", encoding="utf-8")
     with pytest.raises(ValueError, match="must be an object"):
         verify_handoff(manifest)
+
+
+def test_handoff_paths_are_absolute_even_for_relative_input(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    science = Path("science.json")
+    science.write_text('{"x":1}', encoding="utf-8")
+    out = write_handoff("handoff.json", science)
+    assert Path(out["science_bundle"]["path"]).is_absolute()
+    assert verify_handoff(tmp_path / "handoff.json")["ready_for_grid_import"] is True
