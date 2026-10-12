@@ -50,10 +50,10 @@ def pack_handoff(source_manifest, destination_dir):
     source_manifest = Path(source_manifest).resolve()
     data = verify_handoff(source_manifest)
     dest = Path(destination_dir).resolve()
-    if dest.exists():
-        raise FileExistsError(dest)
     if dest == source_manifest.parent or dest in source_manifest.parents:
         raise ValueError("package destination must not contain source manifest")
+    if dest.exists():
+        raise FileExistsError(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
     staging = dest.parent / (dest.name + ".staging-" + uuid.uuid4().hex)
     staging.mkdir()
