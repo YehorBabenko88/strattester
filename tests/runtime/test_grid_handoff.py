@@ -1,5 +1,5 @@
 from pathlib import Path
-from strattester.runtime.grid_handoff import write_handoff, verify_handoff
+from strattester.runtime.grid_handoff import write_handoff, verify_handoff, pack_handoff
 
 def test_handoff_requires_science_bundle(tmp_path):
     science=tmp_path/"science.json";science.write_text('{"x":1}',encoding="utf-8")
@@ -76,3 +76,29 @@ def test_handoff_paths_are_absolute_even_for_relative_input(tmp_path, monkeypatc
     out = write_handoff("handoff.json", science)
     assert Path(out["science_bundle"]["path"]).is_absolute()
     assert verify_handoff(tmp_path / "handoff.json")["ready_for_grid_import"] is True
+
+
+def test_pack_handoff_survives_source_removal(tmp_path):
+    science = tmp_path / "science.json"
+    science.write_text('{"x":1}', encoding="utf-8")
+    original = tmp_path / "source-handoff.json"
+    write_handoff(original, science)
+    packaged = pack_handoff(original, tmp_path / "portable")
+    science.unlink()
+    original.unlink()
+    assert verify_handoff(packaged)["ready_for_grid_import"] is True
+    assert (tmp_path / "portable" / "science_bundle.json").is_file()
+
+
+def test_pack_handoff_refuses_to_overwrite_existing_directory(tmp_path):
+    import pytest
+    science = tmp_path / "science.json"
+    science.write_text('{"x":1}', encoding="utf-8")
+    original = tmp_path / "source-handoff.json"
+    write_handoff(original, science)
+    target = tmp_path / "portable"
+    target.mkdir()
+    (target / "keep.txt").write_text("safe", encoding="utf-8")
+    with pytest.raises(FileExistsError):
+        pack_handoff(original, target)
+    assert (target / "keep.txt").read_text(encoding="utf-8") == "safe"
