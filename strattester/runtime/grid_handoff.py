@@ -52,6 +52,8 @@ def pack_handoff(source_manifest, destination_dir):
     dest = Path(destination_dir).resolve()
     if dest.exists():
         raise FileExistsError(dest)
+    if dest == source_manifest.parent or dest in source_manifest.parents:
+        raise ValueError("package destination must not contain source manifest")
     dest.parent.mkdir(parents=True, exist_ok=True)
     staging = dest.parent / (dest.name + ".staging-" + uuid.uuid4().hex)
     staging.mkdir()
@@ -73,6 +75,8 @@ def pack_handoff(source_manifest, destination_dir):
         manifest = staging / "grid-handoff.json"
         manifest.write_text(json.dumps(packed, sort_keys=True, indent=2), encoding="utf-8")
         verify_handoff(manifest)
+        if dest.exists():
+            raise FileExistsError(dest)
         staging.rename(dest)
         return dest / "grid-handoff.json"
     except BaseException:
