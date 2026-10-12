@@ -48,3 +48,22 @@ def test_handoff_rejects_missing_science_payload(tmp_path):
     science.unlink()
     with pytest.raises(ValueError, match="missing or empty"):
         verify_handoff(manifest)
+
+
+def test_verify_handoff_accepts_relative_payload_after_copy(tmp_path):
+    import json
+    science = tmp_path / "science.json"
+    science.write_text('{"x":1}', encoding="utf-8")
+    manifest = tmp_path / "handoff.json"
+    data = write_handoff(manifest, science)
+    data["science_bundle"]["path"] = "science.json"
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    assert verify_handoff(manifest)["ready_for_grid_import"] is True
+
+
+def test_verify_handoff_rejects_non_object_json(tmp_path):
+    import pytest
+    manifest = tmp_path / "handoff.json"
+    manifest.write_text("[]", encoding="utf-8")
+    with pytest.raises(ValueError, match="must be an object"):
+        verify_handoff(manifest)
