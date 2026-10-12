@@ -154,3 +154,19 @@ def test_pack_handoff_detects_mutation_during_copy(tmp_path, monkeypatch):
     assert not target.exists()
     assert list(tmp_path.glob("portable.staging-*")) == []
     assert science.read_text(encoding="utf-8") == '{"x":1}'
+
+
+def test_portable_handoff_can_move_to_another_directory(tmp_path):
+    import shutil
+    science = tmp_path / "science.json"
+    science.write_text('{"x":1}', encoding="utf-8")
+    source_manifest = tmp_path / "source-handoff.json"
+    write_handoff(source_manifest, science)
+    original_package = tmp_path / "portable"
+    pack_handoff(source_manifest, original_package)
+    relocated = tmp_path / "other-machine" / "import"
+    relocated.parent.mkdir()
+    shutil.move(str(original_package), str(relocated))
+    science.unlink()
+    source_manifest.unlink()
+    assert verify_handoff(relocated / "grid-handoff.json")["ready_for_grid_import"] is True
