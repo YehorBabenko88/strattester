@@ -16,7 +16,7 @@ class PhaseManifest:
         if phase not in PHASES:raise ValueError("unknown phase")
         state=self.load();cur=PHASES.index(state.get("phase","INFRASTRUCTURE"));nxt=PHASES.index(phase)
         if nxt<cur:raise ValueError("phase regression is not allowed")
-        completed=list(dict.fromkeys(list(state.get("completed") or [])+PHASES[cur:nxt]))
+        completed=list(dict.fromkeys(list(state.get("completed") or [])+list(PHASES[cur:nxt])))
         out={"phase":phase,"completed":completed,"details":details or {},
              "updated_at":time.time(),"schema":1}
         self.path.parent.mkdir(parents=True,exist_ok=True)
