@@ -92,3 +92,18 @@ def test_runs_accepts_valid_limit_without_source(monkeypatch):
     status, body = request('/v1/runs?symbol=BTCUSDT&limit=500')
     assert status == 200
     assert body['state'] == 'SOURCE_UNAVAILABLE'
+
+
+def test_trades_rejects_invalid_limits_even_without_source(monkeypatch):
+    monkeypatch.delenv('TERMINAN_RESULTS_DB', raising=False)
+    for limit in ('0', '-1', '501', 'not-a-number'):
+        status, body = request('/v1/trades?symbol=BTCUSDT&run_id=r1&limit=' + limit)
+        assert status == 400
+        assert 'error' in body
+
+
+def test_trades_accepts_valid_limit_without_source(monkeypatch):
+    monkeypatch.delenv('TERMINAN_RESULTS_DB', raising=False)
+    status, body = request('/v1/trades?symbol=BTCUSDT&run_id=r1&limit=500')
+    assert status == 200
+    assert body['state'] == 'SOURCE_UNAVAILABLE'
