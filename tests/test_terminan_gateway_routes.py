@@ -56,3 +56,20 @@ def test_runs_and_trades_read_sqlite_fixture_without_writes(tmp_path, monkeypatc
     assert body['trades'][0]['entry_ms'] == 1000
     assert body['trades'][0]['net_pnl'] == 9
     assert db.read_bytes() == before
+
+
+def test_runs_zero_generation_is_fenced_and_readonly(tmp_path, monkeypatch):
+    import sqlite3
+    db = tmp_path / 'results.sqlite'
+    with sqlite3.connect(db) as con:
+        con.execute('CREATE TABLE research_results (run_id, strategy_id, strategy_version, created_at, metrics, job_id, lease_token, node_generation, symbol)')
+        con.execute('INSERT INTO research_results VALUES (?,?,?,?,?,?,?,?,?)', ('r0', 's1', 'v1', 1000, '{}', 'j0', 'lease0', 0, 'BTCUSDT'))
+        con.execute('INSERT INTO research_results VALUES (?,?,?,?,?,?,?,?,?)', ('r1', 's1', 'v1', 1001, '{}', 'j1', None, 1, 'BTCUSDT'))
+    before = db.read_bytes()
+    monkeypatch.setenv('TERMINAN_RESULTS_DB', str(db))
+    status, body = request('/v1/runs?symbol=BTCUSDT')
+    assert status == 200
+    by_id = {row['run_id']: row for row in body['runs']}
+    assert by_id['r0']['fenced'] is True
+    assert by_id['r1']['fenced'] is False
+    assert db.read_bytes() == before
