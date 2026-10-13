@@ -31,8 +31,11 @@ def verify_handoff(path):
         payload = Path(entry["path"])
         if not payload.is_absolute():
             payload = manifest_path.parent / payload
-        if payload.resolve() == manifest_path:
+        resolved = payload.resolve()
+        if resolved == manifest_path:
             raise ValueError(f"{key} payload points to handoff manifest")
+        if not Path(entry["path"]).is_absolute() and not resolved.is_relative_to(manifest_path.parent):
+            raise ValueError(f"{key} payload escapes package directory")
         if not payload.is_file() or (key == "science_bundle" and not payload.stat().st_size):
             raise ValueError(f"missing or empty {key} payload")
         if file_sha256(payload) != entry["sha256"]:
