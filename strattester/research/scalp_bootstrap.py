@@ -1,4 +1,7 @@
-"""Historical scalp-event adapter matching the Grid scalp ontology contract."""
+"""Historical scalp events with causal state and separately timed future targets.
+
+Consumers must gate outcome fields using outcome_known_at_ms, not known_at_ms.
+"""
 from __future__ import annotations
 from dataclasses import asdict
 from .volatility import VolatilityObservatory
@@ -43,8 +46,10 @@ def historical_scalp_events(bars,trade_aggregates=(),*,symbol,bar_ms=60000):
         vr=vol_by_t.get(b["t"])
         state="LEVEL_APPROACH"
         if vexp>=1.8:state="IMPULSE_BUILDUP"
+        outcome_state=state if ret is not None else None
+        outcome_known=int(rows[i+1]["t"]+bar_ms) if ret is not None else None
         if ret is not None and abs(ret)>=8:
-            state="BREAKOUT" if ret*direction>0 else "REJECTION"
+            outcome_state="BREAKOUT" if ret*direction>0 else "REJECTION"
         out.append({
           "schema":SCHEMA,"symbol":symbol,"event_ts_ms":int(b["t"]),"known_at_ms":int(b["t"]+bar_ms),
           "level_kind":kind,"level_price":price,"direction":direction,"state":state,
@@ -61,7 +66,8 @@ def historical_scalp_events(bars,trade_aggregates=(),*,symbol,bar_ms=60000):
             "book_imbalance":None,"book_velocity":None,"cancel_rate":None,
             "wall_ratio":None,"wall_replenishment":None,"spread_bps":None,
           },
-          "outcome":{"next_1m_return_bps":ret},
+          "outcome":{"next_1m_return_bps":ret,"next_1m_state":outcome_state},
+          "outcome_known_at_ms":outcome_known,
           "capability_scope":"HISTORICAL_NO_L2",
         })
     return out

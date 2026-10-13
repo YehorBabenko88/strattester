@@ -44,7 +44,7 @@ def build_symbol_science(store,symbol,start_ms=None,end_ms=None):
     smc=market_structure(bars,bar_ms=60000)
     scalp=historical_scalp_events(bars,trades,symbol=symbol,bar_ms=60000)
     poc=None
-    try:poc=asdict(proxy_profile(bars,known_at=bars[-1]["t"]))
+    try:poc=asdict(proxy_profile(bars,known_at=bars[-1]["t"]+60000))
     except ValueError:pass
     returns=[]
     for a,b in zip(bars,bars[1:]):
