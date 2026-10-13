@@ -41,11 +41,13 @@ def append_trades(con,run_id,symbol,strategy_id,trades):
              (run_id,symbol,strategy_id,str(t.get('trade_id',i)),entry,exit_at,price,exit_price,t['side'],float(qty),t.get('gross_pnl'),t.get('fees'),t.get('net_pnl'),t.get('exit_reason'),json.dumps(t.get('metadata',{}),sort_keys=True)))
 
 def read_trades(db_path,run_id,symbol,limit=500,after_trade_id=''):
+    limit=int(limit)
+    if not 1 <= limit <= 500:raise ValueError('invalid limit')
     p=Path(db_path)
     if not p.is_file():return []
     con=sqlite3.connect(p.resolve().as_uri()+'?mode=ro',uri=True,timeout=2)
     try:
         cols='run_id,symbol,strategy_id,trade_id,entry_ms,exit_ms,entry_price,exit_price,side,quantity,gross_pnl,fees,net_pnl,exit_reason'
-        rows=con.execute('SELECT '+cols+' FROM terminan_trade_events WHERE run_id=? AND symbol=? AND trade_id>? ORDER BY trade_id LIMIT ?', (run_id,symbol,after_trade_id,max(1,min(int(limit),500)))).fetchall()
+        rows=con.execute('SELECT '+cols+' FROM terminan_trade_events WHERE run_id=? AND symbol=? AND trade_id>? ORDER BY trade_id LIMIT ?', (run_id,symbol,after_trade_id,limit)).fetchall()
         return [dict(zip(cols.split(','),r)) for r in rows]
     finally:con.close()
