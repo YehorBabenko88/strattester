@@ -4,6 +4,7 @@ Source-owned journal: Strattester writes it, Terminan only reads it.
 Not a market database and not an execution engine.
 """
 import json
+import math
 import sqlite3
 from dataclasses import asdict,is_dataclass
 from pathlib import Path
@@ -29,23 +30,25 @@ def append_trades(con,run_id,symbol,strategy_id,trades):
             if exit_at<entry:raise ValueError('exit before entry')
             if t['side'] not in ('long','short'):raise ValueError('side')
             price=float(t['entry_price']);exit_price=float(t['exit_price'])
-            if price<=0 or exit_price<=0:raise ValueError('price')
+            if not math.isfinite(price) or not math.isfinite(exit_price) or price<=0 or exit_price<=0:raise ValueError('price')
             # ResearchTrade is sized in quote currency; quantity cannot be inferred
             # without execution policy. Require source to supply it explicitly.
             qty=t.get('quantity')
             if qty is None:raise ValueError('quantity required for faithful visualization')
-            if float(qty)<=0:raise ValueError('quantity')
+            if not math.isfinite(float(qty)) or float(qty)<=0:raise ValueError('quantity')
             con.execute('''INSERT OR IGNORE INTO terminan_trade_events
              (run_id,symbol,strategy_id,trade_id,entry_ms,exit_ms,entry_price,exit_price,side,quantity,gross_pnl,fees,net_pnl,exit_reason,metadata_json)
              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
              (run_id,symbol,strategy_id,str(t.get('trade_id',i)),entry,exit_at,price,exit_price,t['side'],float(qty),t.get('gross_pnl'),t.get('fees'),t.get('net_pnl'),t.get('exit_reason'),json.dumps(t.get('metadata',{}),sort_keys=True)))
 
 def read_trades(db_path,run_id,symbol,limit=500,after_trade_id=''):
+    limit=int(limit)
+    if not 1 <= limit <= 500:raise ValueError('invalid limit')
     p=Path(db_path)
     if not p.is_file():return []
     con=sqlite3.connect(p.resolve().as_uri()+'?mode=ro',uri=True,timeout=2)
     try:
         cols='run_id,symbol,strategy_id,trade_id,entry_ms,exit_ms,entry_price,exit_price,side,quantity,gross_pnl,fees,net_pnl,exit_reason'
-        rows=con.execute('SELECT '+cols+' FROM terminan_trade_events WHERE run_id=? AND symbol=? AND trade_id>? ORDER BY trade_id LIMIT ?', (run_id,symbol,after_trade_id,max(1,min(int(limit),500)))).fetchall()
+        rows=con.execute('SELECT '+cols+' FROM terminan_trade_events WHERE run_id=? AND symbol=? AND trade_id>? ORDER BY trade_id LIMIT ?', (run_id,symbol,after_trade_id,limit)).fetchall()
         return [dict(zip(cols.split(','),r)) for r in rows]
     finally:con.close()

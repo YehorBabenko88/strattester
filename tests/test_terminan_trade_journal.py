@@ -15,6 +15,17 @@ class JournalTests(unittest.TestCase):
             result=read_trades(p,'run','BTCUSDT')
             self.assertEqual(len(result),1)
             self.assertEqual(result[0]['entry_ms'],1000)
+    def test_nonfinite_trade_values_are_rejected(self):
+        for field in ('entry_price', 'exit_price', 'quantity'):
+            for bad in (float('nan'), float('inf'), -float('inf')):
+                with self.subTest(field=field, bad=bad):
+                    trade = dict(entry_time=1000, exit_time=2000, entry_price=100,
+                                 exit_price=110, side='long', quantity=2, metadata={})
+                    trade[field] = bad
+                    with sqlite3.connect(':memory:') as con:
+                        with self.assertRaises(ValueError):
+                            append_trades(con, 'r', 'BTCUSDT', 's', [trade])
+
     def test_missing_quantity_is_rejected(self):
         with sqlite3.connect(':memory:') as con:
             with self.assertRaises(ValueError):
