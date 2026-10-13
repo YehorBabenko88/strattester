@@ -62,3 +62,22 @@ def test_phase_manifest_advance_records_completed_phase_names(tmp_path):
     assert advanced["phase"] == "GRID_IMPORT"
     assert advanced["completed"] == list(PHASES[:PHASES.index("GRID_IMPORT")])
     assert manifest.load()["completed"] == advanced["completed"]
+
+
+def test_cancelled_jobs_cannot_finalize_bootstrap(tmp_path):
+    cancelled = Job.new("x").with_state(JobState.CANCELLED)
+    coordinator = BootstrapCompletionCoordinator(State([cancelled]), Market(), tmp_path)
+    status = coordinator.status()
+    assert status["cancelled"] == 1
+    assert status["complete"] == 0
+    assert status["ready_to_finalize"] is False
+    assert coordinator.finalize_if_ready(["BTCUSDT"])["finalized"] is False
+
+
+def test_mixed_completed_and_cancelled_jobs_cannot_finalize(tmp_path):
+    jobs = [Job.new("x").with_state(JobState.COMPLETE),
+            Job.new("y").with_state(JobState.CANCELLED)]
+    status = BootstrapCompletionCoordinator(State(jobs), Market(), tmp_path).status()
+    assert status["complete"] == 1
+    assert status["cancelled"] == 1
+    assert status["ready_to_finalize"] is False
