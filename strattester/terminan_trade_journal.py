@@ -4,6 +4,7 @@ Source-owned journal: Strattester writes it, Terminan only reads it.
 Not a market database and not an execution engine.
 """
 import json
+import math
 import sqlite3
 from dataclasses import asdict,is_dataclass
 from pathlib import Path
@@ -29,12 +30,12 @@ def append_trades(con,run_id,symbol,strategy_id,trades):
             if exit_at<entry:raise ValueError('exit before entry')
             if t['side'] not in ('long','short'):raise ValueError('side')
             price=float(t['entry_price']);exit_price=float(t['exit_price'])
-            if price<=0 or exit_price<=0:raise ValueError('price')
+            if not math.isfinite(price) or not math.isfinite(exit_price) or price<=0 or exit_price<=0:raise ValueError('price')
             # ResearchTrade is sized in quote currency; quantity cannot be inferred
             # without execution policy. Require source to supply it explicitly.
             qty=t.get('quantity')
             if qty is None:raise ValueError('quantity required for faithful visualization')
-            if float(qty)<=0:raise ValueError('quantity')
+            if not math.isfinite(float(qty)) or float(qty)<=0:raise ValueError('quantity')
             con.execute('''INSERT OR IGNORE INTO terminan_trade_events
              (run_id,symbol,strategy_id,trade_id,entry_ms,exit_ms,entry_price,exit_price,side,quantity,gross_pnl,fees,net_pnl,exit_reason,metadata_json)
              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
