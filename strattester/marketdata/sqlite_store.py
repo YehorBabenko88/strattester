@@ -49,8 +49,19 @@ class SQLiteMarketStore:
                     raise sqlite3.DatabaseError(f'market database integrity failure: {health.message}')
             con=sqlite3.connect(path,timeout=60)
             try:
-                con.execute('PRAGMA foreign_keys=ON'); con.execute('PRAGMA journal_mode=WAL'); con.execute('PRAGMA busy_timeout=60000'); con.execute('PRAGMA synchronous=FULL'); con.execute('PRAGMA wal_autocheckpoint=1000')
+                # Check before WAL or schema bootstrap can change an incompatible
+                # database. Missing metadata is supported for legacy stores.
                 tables={r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                if 'schema_meta' in tables:
+                    row=con.execute("SELECT value FROM schema_meta WHERE key='schema_version'").fetchone()
+                    if row is not None:
+                        raw=row[0]
+                        if not isinstance(raw,(str,int)) or not str(raw).isascii() or not str(raw).isdecimal():
+                            raise sqlite3.DatabaseError(f'invalid market schema version: {raw!r}')
+                        version=int(raw)
+                        if not 1<=version<=SCHEMA_VERSION:
+                            raise sqlite3.DatabaseError(f'unsupported market schema version: {version} (supported: 1..{SCHEMA_VERSION})')
+                con.execute('PRAGMA foreign_keys=ON'); con.execute('PRAGMA journal_mode=WAL'); con.execute('PRAGMA busy_timeout=60000'); con.execute('PRAGMA synchronous=FULL'); con.execute('PRAGMA wal_autocheckpoint=1000')
                 legacy=False
                 if 'candles' in tables:
                     cols={r[1] for r in con.execute('PRAGMA table_info(candles)')}
