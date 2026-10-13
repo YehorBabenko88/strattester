@@ -19,8 +19,11 @@ class BootstrapCompletionCoordinator:
         for j in jobs:states[j.state.value]=states.get(j.state.value,0)+1
         active=sum(1 for j in jobs if j.state in ACTIVE)
         failed=sum(1 for j in jobs if j.state is JobState.FAILED)
-        return {"jobs":len(jobs),"active":active,"failed":failed,"states":states,
-                "ready_to_finalize":bool(jobs) and active==0 and failed==0}
+        cancelled=sum(1 for j in jobs if j.state is JobState.CANCELLED)
+        complete=sum(1 for j in jobs if j.state is JobState.COMPLETE)
+        return {"jobs":len(jobs),"active":active,"failed":failed,"cancelled":cancelled,
+                "complete":complete,"states":states,
+                "ready_to_finalize":bool(jobs) and complete==len(jobs)}
     def finalize_if_ready(self,symbols):
         st=self.status()
         if not st["ready_to_finalize"]:return {"finalized":False,**st}
