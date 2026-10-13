@@ -65,6 +65,8 @@ def test_runs_zero_generation_is_fenced_and_readonly(tmp_path, monkeypatch):
         con.execute('CREATE TABLE research_results (run_id, strategy_id, strategy_version, created_at, metrics, job_id, lease_token, node_generation, symbol)')
         con.execute('INSERT INTO research_results VALUES (?,?,?,?,?,?,?,?,?)', ('r0', 's1', 'v1', 1000, '{}', 'j0', 'lease0', 0, 'BTCUSDT'))
         con.execute('INSERT INTO research_results VALUES (?,?,?,?,?,?,?,?,?)', ('r1', 's1', 'v1', 1001, '{}', 'j1', None, 1, 'BTCUSDT'))
+        con.execute('INSERT INTO research_results VALUES (?,?,?,?,?,?,?,?,?)', ('r2', 's1', 'v1', 1002, '{}', '', 'lease2', 2, 'BTCUSDT'))
+        con.execute('INSERT INTO research_results VALUES (?,?,?,?,?,?,?,?,?)', ('r3', 's1', 'v1', 1003, '{}', 'j3', '', 3, 'BTCUSDT'))
     before = db.read_bytes()
     monkeypatch.setenv('TERMINAN_RESULTS_DB', str(db))
     status, body = request('/v1/runs?symbol=BTCUSDT')
@@ -72,4 +74,6 @@ def test_runs_zero_generation_is_fenced_and_readonly(tmp_path, monkeypatch):
     by_id = {row['run_id']: row for row in body['runs']}
     assert by_id['r0']['fenced'] is True
     assert by_id['r1']['fenced'] is False
+    assert by_id['r2']['fenced'] is False
+    assert by_id['r3']['fenced'] is False
     assert db.read_bytes() == before
