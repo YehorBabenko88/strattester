@@ -33,8 +33,10 @@ class Handler(BaseHTTPRequestHandler):
                 if not SYMBOL.fullmatch(symbol):raise ValueError('invalid symbol')
                 run_id=q.get('run_id',[''])[0]
                 if not run_id or len(run_id)>160:raise ValueError('invalid run ID')
+                trade_limit=int(q.get('limit',[500])[0])
+                if not 1 <= trade_limit <= 500:raise ValueError('invalid limit')
                 db=os.environ.get('TERMINAN_RESULTS_DB')
-                result={'version':1,'symbol':symbol,'run_id':run_id,'trades':read_trades(db,run_id,symbol,q.get('limit',[500])[0]) if db else [],'state':'AVAILABLE' if db else 'SOURCE_UNAVAILABLE'}
+                result={'version':1,'symbol':symbol,'run_id':run_id,'trades':read_trades(db,run_id,symbol,trade_limit) if db else [],'state':'AVAILABLE' if db else 'SOURCE_UNAVAILABLE'}
             else:raise ValueError('unknown endpoint')
             status=200
         except ValueError as e:result={'error':str(e)};status=400
