@@ -170,3 +170,23 @@ def test_portable_handoff_can_move_to_another_directory(tmp_path):
     science.unlink()
     source_manifest.unlink()
     assert verify_handoff(relocated / "grid-handoff.json")["ready_for_grid_import"] is True
+
+
+def test_verify_handoff_rejects_relative_path_escape_even_with_matching_hash(tmp_path):
+    import json
+    import pytest
+    from strattester.runtime.grid_handoff import file_sha256
+
+    package = tmp_path / "package"
+    package.mkdir()
+    outside = tmp_path / "outside.json"
+    outside.write_text('{"symbols":[]}', encoding="utf-8")
+    manifest = package / "grid-handoff.json"
+    manifest.write_text(json.dumps({
+        "schema": 1,
+        "source": "strattester",
+        "ready_for_grid_import": True,
+        "science_bundle": {"path": "../outside.json", "sha256": file_sha256(outside)},
+    }), encoding="utf-8")
+    with pytest.raises(ValueError, match="escapes package directory"):
+        verify_handoff(manifest)
