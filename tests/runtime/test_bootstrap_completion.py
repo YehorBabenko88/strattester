@@ -81,3 +81,23 @@ def test_mixed_completed_and_cancelled_jobs_cannot_finalize(tmp_path):
     assert status["complete"] == 1
     assert status["cancelled"] == 1
     assert status["ready_to_finalize"] is False
+
+
+def test_empty_job_set_does_not_finalize(tmp_path):
+    coordinator = BootstrapCompletionCoordinator(State([]), Market(), tmp_path)
+    status = coordinator.status()
+    assert status["jobs"] == 0
+    assert status["ready_to_finalize"] is False
+    assert coordinator.finalize_if_ready(["BTCUSDT"])["finalized"] is False
+
+
+def test_all_completed_jobs_are_ready_to_finalize(tmp_path):
+    jobs = [Job.new("x").with_state(JobState.COMPLETE),
+            Job.new("y").with_state(JobState.COMPLETE)]
+    status = BootstrapCompletionCoordinator(State(jobs), Market(), tmp_path).status()
+    assert status["jobs"] == 2
+    assert status["complete"] == 2
+    assert status["active"] == 0
+    assert status["failed"] == 0
+    assert status["cancelled"] == 0
+    assert status["ready_to_finalize"] is True
