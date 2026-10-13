@@ -15,6 +15,7 @@ class FrozenParameters:
     selected_through:int
 
 def chronological_split(rows,*,train_size:int,validation_size:int,test_size:int)->ChronologicalSplit:
+    if min(train_size,validation_size,test_size)<=0: raise ValueError('sizes must be positive')
     xs=tuple(rows)
     total=train_size+validation_size+test_size
     if total>len(xs): raise ValueError('split exceeds available rows')
