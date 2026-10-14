@@ -36,10 +36,23 @@ def append_trades(con,run_id,symbol,strategy_id,trades):
             qty=t.get('quantity')
             if qty is None:raise ValueError('quantity required for faithful visualization')
             if not math.isfinite(float(qty)) or float(qty)<=0:raise ValueError('quantity')
-            con.execute('''INSERT OR IGNORE INTO terminan_trade_events
+            values=(run_id,symbol,strategy_id,str(t.get('trade_id',i)),entry,exit_at,
+                    price,exit_price,t['side'],float(qty),t.get('gross_pnl'),
+                    t.get('fees'),t.get('net_pnl'),t.get('exit_reason'),
+                    json.dumps(t.get('metadata',{}),sort_keys=True))
+            inserted=con.execute('''INSERT OR IGNORE INTO terminan_trade_events
              (run_id,symbol,strategy_id,trade_id,entry_ms,exit_ms,entry_price,exit_price,side,quantity,gross_pnl,fees,net_pnl,exit_reason,metadata_json)
-             VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
-             (run_id,symbol,strategy_id,str(t.get('trade_id',i)),entry,exit_at,price,exit_price,t['side'],float(qty),t.get('gross_pnl'),t.get('fees'),t.get('net_pnl'),t.get('exit_reason'),json.dumps(t.get('metadata',{}),sort_keys=True)))
+             VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',values)
+            if inserted.rowcount == 0:
+                # Replays must be identical: a reused ID cannot silently change
+                # an observation already committed to the research journal.
+                existing=con.execute('''SELECT entry_ms,exit_ms,entry_price,exit_price,
+                    side,quantity,gross_pnl,fees,net_pnl,exit_reason,metadata_json
+                    FROM terminan_trade_events
+                    WHERE run_id=? AND symbol=? AND strategy_id=? AND trade_id=?''',
+                    values[:4]).fetchone()
+                if existing is None or existing != values[4:]:
+                    raise ValueError('conflicting duplicate trade ID')
 
 def read_trades(db_path,run_id,symbol,limit=500,after_trade_id=''):
     limit=int(limit)

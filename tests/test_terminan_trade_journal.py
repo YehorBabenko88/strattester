@@ -26,6 +26,30 @@ class JournalTests(unittest.TestCase):
                         with self.assertRaises(ValueError):
                             append_trades(con, 'r', 'BTCUSDT', 's', [trade])
 
+    def test_conflicting_duplicate_trade_id_is_rejected_without_data_loss(self):
+        with sqlite3.connect(':memory:') as con:
+            original = dict(trade_id='same', entry_time=1000, exit_time=2000,
+                            entry_price=100, exit_price=110, side='long', quantity=2,
+                            net_pnl=20, fees=0, metadata={})
+            append_trades(con, 'run', 'BTCUSDT', 'strategy', [original])
+            with self.assertRaisesRegex(ValueError, 'conflicting duplicate trade ID'):
+                append_trades(con, 'run', 'BTCUSDT', 'strategy', [dict(original, entry_price=101)])
+            self.assertEqual(con.execute(
+                'SELECT entry_price FROM terminan_trade_events WHERE trade_id=?',
+                ('same',)).fetchone(), (100.0,))
+
+    def test_conflict_rolls_back_other_trades_in_same_batch(self):
+        with sqlite3.connect(':memory:') as con:
+            original = dict(trade_id='same', entry_time=1000, exit_time=2000,
+                            entry_price=100, exit_price=110, side='long', quantity=2,
+                            net_pnl=20, fees=0, metadata={})
+            append_trades(con, 'run', 'BTCUSDT', 'strategy', [original])
+            with self.assertRaisesRegex(ValueError, 'conflicting duplicate trade ID'):
+                append_trades(con, 'run', 'BTCUSDT', 'strategy',
+                              [dict(original, trade_id='extra'), dict(original, entry_price=101)])
+            self.assertEqual(con.execute(
+                'SELECT trade_id FROM terminan_trade_events').fetchall(), [('same',)])
+
     def test_missing_quantity_is_rejected(self):
         with sqlite3.connect(':memory:') as con:
             with self.assertRaises(ValueError):
