@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
+import math
 import time
 
 @dataclass(frozen=True)
@@ -15,7 +16,8 @@ def cleanup_artifacts(root,*,older_than_seconds=86400,limit=200,active_paths=(),
     """Delete only allowlisted stale artifacts under root; never follow symlinks."""
     root=Path(root).resolve();now=time.time() if now is None else float(now)
     age=float(older_than_seconds);limit=int(limit)
-    if age<0 or limit<1:raise ValueError('invalid cleanup policy')
+    if not math.isfinite(now) or not math.isfinite(age) or age<0 or limit<1:
+        raise ValueError('invalid cleanup policy')
     active={Path(p).resolve() for p in active_paths}
     deleted=[];skipped=[];reclaimed=0
     if not root.exists():return CleanupReport((),0,())
