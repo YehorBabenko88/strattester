@@ -95,7 +95,23 @@ class SQLiteMarketStore:
 
     @staticmethod
     def _valid(c: Candle) -> bool:
-        return bool(c.symbol and c.timeframe and c.open_time>=0 and c.low<=c.high and c.low<=c.open<=c.high and c.low<=c.close<=c.high and c.volume>=0)
+        try:
+            if not c.symbol or not c.timeframe or type(c.open_time) is not int:
+                return False
+            if not 0 <= c.open_time < 2**63:
+                return False
+            numeric = (c.open, c.high, c.low, c.close, c.volume)
+            if c.turnover is not None:
+                numeric += (c.turnover,)
+            return bool(
+                all(math.isfinite(value) for value in numeric)
+                and c.low <= c.high
+                and c.low <= c.open <= c.high
+                and c.low <= c.close <= c.high
+                and c.volume >= 0
+            )
+        except (TypeError, ValueError, OverflowError):
+            return False
 
     def upsert_candles(self,records: Iterable[Candle]) -> WriteStats:
         accepted=unchanged=rejected=0
