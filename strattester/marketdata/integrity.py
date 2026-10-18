@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 import sqlite3
+from urllib.parse import quote
 
 @dataclass(frozen=True)
 class IntegrityResult:
@@ -12,7 +13,7 @@ def quick_check(path: Path) -> IntegrityResult:
     if not path.is_file():
         return IntegrityResult(False,'missing')
     try:
-        con=sqlite3.connect(f'file:{path.as_posix()}?mode=ro', uri=True)
+        con=sqlite3.connect(f'file:{quote(path.as_posix(), safe="/:")}?mode=ro', uri=True)
         try:
             msg=str(con.execute('PRAGMA quick_check').fetchone()[0])
         finally:
