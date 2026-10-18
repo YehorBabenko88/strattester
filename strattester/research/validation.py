@@ -1,5 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Generic,TypeVar,Mapping,Any
 T=TypeVar('T')
 
@@ -32,4 +33,4 @@ def walk_forward_folds(rows,*,train_size:int,validation_size:int,test_size:int,s
     return tuple(out)
 
 def freeze_parameters(values,*,selected_through:int)->FrozenParameters:
-    return FrozenParameters(dict(values),selected_through)
+    return FrozenParameters(MappingProxyType(dict(values)),selected_through)
