@@ -20,3 +20,7 @@ def test_invalid_costs_and_position_fail_closed():
         independent_roundtrip_ledger([('BTC',0,10,.01,2)])
     with pytest.raises(ValueError):
         independent_roundtrip_ledger([('BTC',0,10,.01,1)],fee_bps=-1)
+
+
+def test_zero_position_has_zero_costs():
+    assert independent_roundtrip_ledger([('BTC',0,10,.05,0)],fee_bps=10,slippage_bps=10,funding_bps=10) == (Decimal('0.00'),)
