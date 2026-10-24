@@ -78,3 +78,28 @@ def test_reject_symlink_source(tmp_path):
             SQLiteSource(link, "ticks"), instrument="BTCUSDT",
             timeframe="1m", market_type="linear", event_cutoff=1,
             knowledge_cutoff=1, accepted_quality="VERIFIED"))
+
+
+def test_bounded_reader_rejects_partial_batch(tmp_path):
+    from strattester.alphafold_data_sync import bounded_point_in_time_rows
+    path = tmp_path / "data.sqlite"
+    with sqlite3.connect(path) as db:
+        db.execute("""CREATE TABLE ticks (
+            instrument TEXT, timeframe TEXT, market_type TEXT,
+            event_time INTEGER, ingestion_time INTEGER, watermark INTEGER,
+            quality_status TEXT, eligible INTEGER)""")
+        db.executemany("INSERT INTO ticks VALUES (?,?,?,?,?,?,?,?)", [
+            ("BTCUSDT", "1m", "linear", i, i, i, "VERIFIED", 1)
+            for i in range(3)
+        ])
+    filters = dict(instrument="BTCUSDT", timeframe="1m",
+                   market_type="linear", event_cutoff=10,
+                   knowledge_cutoff=10, accepted_quality="VERIFIED")
+    with pytest.raises(ValueError, match="exceeds max_rows"):
+        bounded_point_in_time_rows(SQLiteSource(path, "ticks"),
+                                   max_rows=2, **filters)
+    assert len(bounded_point_in_time_rows(
+        SQLiteSource(path, "ticks"), max_rows=3, **filters)) == 3
+    with pytest.raises(ValueError, match="positive integer"):
+        bounded_point_in_time_rows(SQLiteSource(path, "ticks"),
+                                   max_rows=0, **filters)
