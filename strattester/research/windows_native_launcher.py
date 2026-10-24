@@ -4,6 +4,8 @@ from .windows_native_sandbox_admission import SandboxDenied, SandboxPolicy
 
 def launch_research_sandbox(*, policy: SandboxPolicy, executable: str, arguments=()):
     """Future native broker entry point. Intentionally denies all invocations."""
+    if type(policy) is not SandboxPolicy:
+        raise SandboxDenied("invalid policy type")
     policy.validate()
     if type(executable) is not str or not executable:
         raise SandboxDenied("invalid executable")
