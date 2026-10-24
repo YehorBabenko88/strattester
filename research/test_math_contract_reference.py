@@ -20,6 +20,12 @@ class MathematicalContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             log_returns([100, 0])
 
+    def test_reject_boolean_as_numeric_input(self):
+        with self.assertRaises(ValueError):
+            log_returns([True, 2.0])
+        with self.assertRaises(ValueError):
+            sample_volatility([True, 0.0])
+
     def test_sample_volatility(self):
         self.assertAlmostEqual(sample_volatility([1, 2, 3]), 1)
         self.assertEqual(sample_volatility([0, 0, 0]), 0)
