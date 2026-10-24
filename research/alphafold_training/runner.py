@@ -6,7 +6,7 @@ from pathlib import Path
 from statistics import mean
 import math
 
-from research.alphafold_training.evaluation import (
+from research.alphafold_training.gates import (\n    assert_no_cross_partition_label_overlap, assert_feature_schema, assert_prediction_contract,\n)\nfrom research.alphafold_training.evaluation import (
     validate, purged_split, net_returns, per_instrument, bootstrap_mean_ci,
     fingerprint, negative_control,
 )
