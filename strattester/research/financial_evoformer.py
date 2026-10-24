@@ -4,10 +4,11 @@ Independent implementation, not original AlphaFold code or weights.
 Requires optional torch; never imports torch into the default research path.
 """
 from __future__ import annotations
+from strattester.research.alphafold_security import PairBudget, admit_pair_shape
 
 
-def build_financial_model(hidden: int = 32, heads: int = 4):
-    if hidden < 4 or heads < 1 or hidden % heads:
+def build_financial_model(hidden: int = 32, heads: int = 4, *, budget: PairBudget = PairBudget()):
+    if type(hidden) is not int or type(heads) is not int or hidden < 4 or heads < 1 or hidden % heads:
         raise ValueError("hidden must be >=4 and divisible by heads")
     try:
         import torch
@@ -34,6 +35,9 @@ def build_financial_model(hidden: int = 32, heads: int = 4):
             b, n, _ = single.shape
             if n < 2 or n > 1024 or pair.shape != (b, n, n):
                 raise ValueError("pair shape mismatch or unsupported length")
+            if single.device != pair.device or single.dtype != pair.dtype or not single.is_floating_point() or not pair.is_floating_point():
+                raise ValueError("single and pair must have matching floating dtype and device")
+            admit_pair_shape(b, n, hidden, element_bytes=single.element_size(), budget=budget)
             if not torch.isfinite(single).all() or not torch.isfinite(pair).all():
                 raise ValueError("nonfinite inputs")
             x = self.single(single)
