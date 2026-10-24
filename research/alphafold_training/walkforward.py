@@ -25,11 +25,14 @@ def compare_walk_forward(samples, configs, *, allow_retraining_on_prior_oos=Fals
     ]
     assert_disjoint_windows(windows)
     if not allow_retraining_on_prior_oos:
-        previous_test_keys = set()
+        previous_test_intervals = []
         for train, validation, test in windows:
-            if any((s.instrument, s.decision_time) in previous_test_keys for s in train + validation):
-                raise ValueError("previously reported OOS observation reused for training/validation")
-            previous_test_keys.update((s.instrument, s.decision_time) for s in test)
+            for candidate in train + validation:
+                if any(candidate.decision_time < prior.label_end_time
+                       and prior.decision_time < candidate.label_end_time
+                       for prior in previous_test_intervals):
+                    raise ValueError("previous OOS label interval overlaps later train/validation")
+            previous_test_intervals.extend(test)
     reports = [compare_baselines(rows, cfg) for cfg in settings]
     # Report fold-level results; do not average overlapping or heterogenous PnL.
     return {"status": "RESEARCH_UNVERIFIED", "fold_count": len(reports),
