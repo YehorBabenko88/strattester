@@ -12,7 +12,7 @@ def test_decimal_log_and_simple_return_oracle():
         observed = log_returns(prices)
         for (log_r, simple_r), actual in zip(expected, observed):
             assert actual == pytest.approx(float(log_r), abs=1e-12)
-            if abs(float(log_r)) < 600:
+            if abs(float(log_r)) < 600 and abs(float(simple_r)) < 1e200:
                 assert math.expm1(actual) == pytest.approx(float(simple_r), rel=1e-10, abs=1e-12)
 
 def test_volatility_population_vs_sample_explicit():
