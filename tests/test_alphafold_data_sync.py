@@ -103,3 +103,24 @@ def test_bounded_reader_rejects_partial_batch(tmp_path):
     with pytest.raises(ValueError, match="positive integer"):
         bounded_point_in_time_rows(SQLiteSource(path, "ticks"),
                                    max_rows=0, **filters)
+
+
+@pytest.mark.parametrize("bad_cutoff", [-1, 1.5, True, "100"])
+def test_invalid_cutoffs_fail_closed(tmp_path, bad_cutoff):
+    with pytest.raises(ValueError, match="nonnegative integer"):
+        list(point_in_time_rows(
+            SQLiteSource(tmp_path / "unused.sqlite", "ticks"),
+            instrument="BTCUSDT", timeframe="1m", market_type="linear",
+            event_cutoff=bad_cutoff, knowledge_cutoff=100,
+            accepted_quality="VERIFIED"))
+
+
+@pytest.mark.parametrize("selector", ["instrument", "timeframe", "market_type", "accepted_quality"])
+def test_empty_selector_fails_closed(tmp_path, selector):
+    filters = dict(instrument="BTCUSDT", timeframe="1m", market_type="linear",
+                   event_cutoff=100, knowledge_cutoff=100,
+                   accepted_quality="VERIFIED")
+    filters[selector] = ""
+    with pytest.raises(ValueError, match="nonempty strings"):
+        list(point_in_time_rows(SQLiteSource(tmp_path / "unused.sqlite", "ticks"),
+                                **filters))
