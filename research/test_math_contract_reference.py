@@ -1,7 +1,8 @@
 import math
 import unittest
 from math_contract_reference import (log_returns, sample_volatility,
-    validate_observations, pair_dependency_mask, triangle_path_valid)
+    validate_observations, pair_dependency_mask, triangle_path_valid,
+    validate_purged_splits, train_only_zscore)
 
 
 class MathematicalContractTests(unittest.TestCase):
@@ -53,6 +54,20 @@ class MathematicalContractTests(unittest.TestCase):
             pair_dependency_mask([True], [1])
         with self.assertRaises(ValueError):
             pair_dependency_mask([1], [1, 2])
+
+    def test_purge_overlap_and_embargo(self):
+        with self.assertRaises(ValueError):
+            validate_purged_splits([(0, 10)], [(10, 20)])
+        with self.assertRaises(ValueError):
+            validate_purged_splits([(0, 10)], [(12, 20)], embargo_ns=2)
+        self.assertTrue(validate_purged_splits([(0, 10)], [(13, 20)], embargo_ns=2))
+
+    def test_train_only_normalization(self):
+        values, state = train_only_zscore([0.0, 2.0], [1.0, 100.0])
+        self.assertEqual(state, (1.0, 1.0))
+        self.assertEqual(values, [0.0, 99.0])
+        self.assertEqual(train_only_zscore([2.0, 2.0], [100.0])[0], [0.0])
+
 
 if __name__ == "__main__":
     unittest.main()
