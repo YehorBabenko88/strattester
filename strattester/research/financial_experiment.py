@@ -72,6 +72,10 @@ def run_experiment(examples,checkpoint_path,*,train_end,validation_end,test_end,
     from research.alphafold_training.evaluation import Sample,purged_split,bootstrap_mean_ci
     from research.alphafold_training.gates import assert_no_cross_partition_label_overlap
     integer(seed,'seed');integer(embargo_ns,'embargo')
+    if (type(holdout_symbols) not in (set,frozenset,list,tuple) or len(holdout_symbols)>1024
+        or any(not isinstance(symbol,str) or not symbol or symbol.strip()!=symbol for symbol in holdout_symbols)):
+        raise ValueError('holdout symbols must be a bounded collection of nonempty identities')
+    holdout_symbols=frozenset(holdout_symbols)
     for value in (train_end,validation_end,test_end):integer(value,'split boundary',1)
     for cost in (fee_bps,slippage_bps):
         if finite(cost,'cost')<0:raise ValueError('invalid costs')

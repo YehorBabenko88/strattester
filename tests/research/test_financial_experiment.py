@@ -166,3 +166,11 @@ def test_walk_forward_caps_generator_consumption_before_artifacts(tmp_path):
         run_walk_forward(rows(),tmp_path/'folds',[(1200,2400,3400)])
     assert len(consumed)==1025
     assert not (tmp_path/'folds').exists()
+
+
+def test_malformed_holdout_policy_fails_before_checkpoint_publication(tmp_path):
+    path=tmp_path/'invalid-holdout.json'
+    with pytest.raises(ValueError,match='holdout symbols'):
+        run_experiment(examples(),path,train_end=1200,validation_end=2400,test_end=3400,
+                       steps=1,holdout_symbols={'ETHUSDT',None})
+    assert not path.exists()
