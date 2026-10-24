@@ -6,6 +6,8 @@ on:
       - 'tests/research/test_windows_native_sandbox_admission.py'
       - 'strattester/research/windows_native_evidence.py'
       - 'tests/research/test_windows_native_evidence.py'
+      - 'strattester/research/windows_native_launcher.py'
+      - 'tests/research/test_windows_native_launcher.py'
       - '.github/workflows/windows-sandbox-admission.yml'
   workflow_dispatch:
 permissions:
@@ -27,7 +29,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Compile sandbox admission and adversarial tests
-        run: python -m py_compile strattester/research/windows_native_sandbox_admission.py strattester/research/windows_native_evidence.py tests/research/test_windows_native_sandbox_admission.py tests/research/test_windows_native_evidence.py
+        run: python -m py_compile strattester/research/windows_native_sandbox_admission.py strattester/research/windows_native_evidence.py strattester/research/windows_native_launcher.py tests/research/test_windows_native_launcher.py tests/research/test_windows_native_sandbox_admission.py tests/research/test_windows_native_evidence.py tests/research/test_windows_native_launcher.py
       - name: Install pytest
         run: python -m pip install pytest
       - name: Execute offline sandbox admission tests
