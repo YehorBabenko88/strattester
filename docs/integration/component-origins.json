@@ -1,0 +1,372 @@
+{
+  "base": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+  "sources": {
+    "16": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+    "17": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+    "18": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+    "19": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+    "20": "bcf47a2cb8a6200790f77aadf52292311eec3c09"
+  },
+  "files": {
+    ".github/workflows/alphafold-research-cpu.yml": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "1ba6abc496fbd5e4cc79e5e2765838938b53f44b"
+    },
+    "docs/alphafold-grid-research-audit.md": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "968fd3fed3d3dd8ae84d93b18ee8cac1f8b91d6d"
+    },
+    "docs/alphafold-integration-contract.md": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "c2ac0bb2cadf9bb1eb2a794c281a14d9b2d55593"
+    },
+    "docs/alphafold-market-experiment.md": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "0bb4c3320c268e8b917ec0a97985f41eef7a5512"
+    },
+    "docs/protein-geometry-grid-sync.md": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "f36230a30b6a901829a596df1e935a7b752dc623"
+    },
+    "docs/protein-geometry-strategy-modes.md": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "3cf9adeb0febd2e4d5a464da9b66daf3a0cedba6"
+    },
+    "pyproject.toml": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "a19ecf740fa622556c492681be18b08de57ef784"
+    },
+    "scripts/alphafold_cpu_gate.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "8560fea883d324a1b0402ee991edd92d79e4d40b"
+    },
+    "strattester/research/alphafold_adapter.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "d030a9bd91668bba28c5c7f0ba60c14323b0bd19"
+    },
+    "strattester/research/alphafold_msa_attention.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "91d45b28b912f3fb6c563cf5916350c4f716f450"
+    },
+    "strattester/research/alphafold_msa_pair_bridge.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "393bd8a74195ef18650c8c014bce3958a68ed87a"
+    },
+    "strattester/research/alphafold_outer_product.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "53f41e490cef76512b4b50bc68888580534c06f2"
+    },
+    "strattester/research/alphafold_pair_stack.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "aed3517679f59de50f98f3b4f6e93be23c129a65"
+    },
+    "strattester/research/alphafold_triangle.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "9d60d1e0c577fc25303889fb7be5c7d0811398a2"
+    },
+    "strattester/research/alphafold_triangle_attention.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "e444c76ec07085ba86794287547995da007aac58"
+    },
+    "strattester/research/financial_evoformer.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "caa8480191b9f2c72612baf80252635e45aec316"
+    },
+    "strattester/research/financial_structure_dataset.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "f233d9811349a4df4f7827ca5f08d32986b871c2"
+    },
+    "strattester/research/protein_geometry.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "7cf2b4064c487f98343308d47bb7f797ea2fe29c"
+    },
+    "strattester/research/protein_geometry_export.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "bfb89269518708a876749088877b21ffdbef3963"
+    },
+    "strattester/research/protein_geometry_offline.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "83fc1f471683e7c52c48e33a238eb463bec80ac0"
+    },
+    "strattester/research/protein_geometry_snapshot.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "98ee7a32454161107f9585de6f748d4ebd37d617"
+    },
+    "strattester/strategies/builtin/protein_geometry.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "e8384dcad7c03b87001c9f982d472151c567421b"
+    },
+    "tests/research/test_alphafold_adapter.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "f2c8021c12511ce274de5994f8da757c24180a7e"
+    },
+    "tests/research/test_alphafold_msa_attention.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "a5cb11e808a1472898c44339b24740895275a774"
+    },
+    "tests/research/test_alphafold_msa_pair_bridge.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "2be2faf391a3894148514a95765151f62bd969f5"
+    },
+    "tests/research/test_alphafold_outer_product.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "c640aa00d15eca4e9c42db1f9d73a55542709647"
+    },
+    "tests/research/test_alphafold_pair_stack.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "06e4269b769a5f420c5e5409214fa4faf8ec4554"
+    },
+    "tests/research/test_alphafold_pair_stack_budget.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "656ceb21e9160c92d1b5aad8326f5bb279179b84"
+    },
+    "tests/research/test_alphafold_triangle.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "c8f604fdf94ec16b05fa023a1d7f955efd20763f"
+    },
+    "tests/research/test_alphafold_triangle_attention.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "06110dbc448b9c711ee32c0c4f3368c5092b7ce8"
+    },
+    "tests/research/test_alphafold_triangle_attention_oracle.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "175280eb0416f0b4becf612bd90bb2f66003152d"
+    },
+    "tests/research/test_alphafold_triangle_reference.py": {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "blob": "bb08f9692c42695daa993e4739daefcc0654d981"
+    },
+    "tests/research/test_financial_evoformer.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "5c4ee67a6663e84197d872d323da8b4a86c1cb8e"
+    },
+    "tests/research/test_financial_structure_dataset.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "d3a79556c3672ab2e6802a8267697815614bcaa4"
+    },
+    "tests/research/test_protein_geometry.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "0fd7d32b90cf48ac5fa495ba7f642903f93fb0db"
+    },
+    "tests/research/test_protein_geometry_export.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "4ae5dd761b0e5dc26859ce0011015ca8b7d110ab"
+    },
+    "tests/research/test_protein_geometry_snapshot.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "daa0e3722f4bdd14692b4deca3aad06950619cd5"
+    },
+    "tests/strategies/test_protein_geometry.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "52b745de6ff37f1d3c4138ea3ef102acb2cdc19a"
+    },
+    "strattester/alphafold_artifact_verify.py": {
+      "pr": 17,
+      "head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "blob": "af8031724b7d58c28a05b0723641989c22b4dda5"
+    },
+    "strattester/alphafold_data_sync.py": {
+      "pr": 17,
+      "head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "blob": "b92119fae374b93eff0077b2f6dca64def7b87ba"
+    },
+    "strattester/alphafold_revisions.py": {
+      "pr": 17,
+      "head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "blob": "aa55356fd9d9677d1070acc6ae6552d0b4b3b1f6"
+    },
+    "strattester/alphafold_series_integrity.py": {
+      "pr": 17,
+      "head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "blob": "9e25d2d188cc7b2eea6e0b80bd312fe9dede3936"
+    },
+    "strattester/alphafold_snapshot_contract.py": {
+      "pr": 17,
+      "head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "blob": "9e6f63b52047fa6940aa77e7e8a89e640d819e7c"
+    },
+    "strattester/alphafold_verified_bars.py": {
+      "pr": 17,
+      "head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "blob": "a50e10b60d6a577fe9772cf9b13482455eeb3606"
+    },
+    "tests/test_alphafold_artifact_verify.py": {
+      "pr": 17,
+      "head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "blob": "a084e9209bfd5fa2dd92aeb979e941b92a0acec4"
+    },
+    "tests/test_alphafold_data_sync.py": {
+      "pr": 17,
+      "head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "blob": "dd6be7a6e537b09dda52f260eeffceb145850e45"
+    },
+    "tests/test_alphafold_series_integrity.py": {
+      "pr": 17,
+      "head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "blob": "c0ba0658f2c08ba19d36980109721dc739c36712"
+    },
+    "tests/test_alphafold_snapshot_contract.py": {
+      "pr": 17,
+      "head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "blob": "b09bc318028c255e0d2ed66d0051060aca11d0e6"
+    },
+    "tests/test_alphafold_verified_bars.py": {
+      "pr": 17,
+      "head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "blob": "29e1bc169a4615c1fb38ce4b8aa0e19653fe2d9b"
+    },
+    ".github/workflows/mathematical-contract-reference.yml": {
+      "pr": 18,
+      "head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "blob": "3ca0f78347a129f5684a61887868852e7f17d273"
+    },
+    "docs/contracts/grid_strattester_ml_math_v0.1.md": {
+      "pr": 18,
+      "head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "blob": "73a51aeff8510edd7c82f41239699d6785f89742"
+    },
+    "research/math_contract_reference.py": {
+      "pr": 18,
+      "head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "blob": "ce14ddff7bbce725bc61c4e962babfcb681569d0"
+    },
+    "research/test_math_contract_reference.py": {
+      "pr": 18,
+      "head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "blob": "14675ad7e163cc13631f47c77ba6e313365d95a6"
+    },
+    "research/alphafold_training/ACCEPTANCE.md": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "f33769a589e4315cb0124b2cc607da8eb7285a72"
+    },
+    "research/alphafold_training/baselines.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "ad65b249555d26128addbdeb2fdb1dab2c28afb2"
+    },
+    "research/alphafold_training/comparison.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "0e13641dd147767f78a1472dbbd6b286b1b8b5e6"
+    },
+    "research/alphafold_training/cost_sensitivity.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "f2ed54424e4bbd54df85d4ad501a41b504971535"
+    },
+    "research/alphafold_training/evaluation.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "99daba35514f30f1c9a750726dafbf1a11cdbcda"
+    },
+    "research/alphafold_training/gates.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "be69607128f8ce345c5c9195759e97664dd06b34"
+    },
+    "research/alphafold_training/runner.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "563ff39d9f46bf0bfa435bd67818827acb816c35"
+    },
+    "research/alphafold_training/walkforward.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "603a88250efcee80eb0afecdd6c653badce8734a"
+    },
+    "tests/test_alphafold_training_baselines.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "f00e9203b0c50c70fc6f8ff38b5fd6dfbfd178b8"
+    },
+    "tests/test_alphafold_training_comparison.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "9ff27645e904309d0efa923529a2d668917d8671"
+    },
+    "tests/test_alphafold_training_cost_sensitivity.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "59d665acc8c909a0b8ff06e83d502c9919ae3272"
+    },
+    "tests/test_alphafold_training_evaluation.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "5122ed47d197a4157fe52e658507c66a6e6653aa"
+    },
+    "tests/test_alphafold_training_gates.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "2fb07de4bd0c7556ee277702873e0815be4487ba"
+    },
+    "tests/test_alphafold_training_runner.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "436da7d9bd45814787250b9b05a3bd8cc1c10bb2"
+    },
+    "tests/test_alphafold_training_strict_inputs.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "7cc838f09faa15f878a7980529396c658f4b402e"
+    },
+    "tests/test_alphafold_training_walkforward.py": {
+      "pr": 19,
+      "head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "blob": "2a30641757e4173b0f2632acca371aa785a2de88"
+    },
+    "docs/alphafold-qa-security-acceptance.md": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "fd66bd00197a0487ee81faea25b88fdeb533da79"
+    },
+    "strattester/research/alphafold_security.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "5ee00c65b04f758f4ee7a5a727add0580bedc479"
+    },
+    "tests/research/test_alphafold_security.py": {
+      "pr": 20,
+      "head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "blob": "f6ed5dbeda1595ca0a4fb5fe9b5caaeee9e9dd3d"
+    }
+  }
+}
