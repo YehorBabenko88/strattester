@@ -20,3 +20,23 @@ def test_budget_fails_closed():
 def test_invalid_policy_is_rejected(budget):
     with pytest.raises(ValueError):
         admit_pair_shape(1, 8, 8, budget=budget)
+
+
+def test_sqlite_uri_escaping(tmp_path):
+    import sqlite3
+    from strattester.research.protein_geometry_snapshot import readonly_candles
+    db = tmp_path / 'candles #1?.sqlite'
+    con = sqlite3.connect(db)
+    con.execute('CREATE TABLE candles (symbol TEXT, timeframe TEXT, open_time INTEGER, close REAL, complete INTEGER)')
+    con.execute("INSERT INTO candles VALUES ('BTCUSDT','1m',1000,12.5,1)")
+    con.commit()
+    con.close()
+    with readonly_candles(db, 'BTCUSDT') as rows:
+        assert rows == ((1000, 12.5),)
+
+
+def test_dataset_rejects_duplicate_and_reverse_timestamps():
+    from strattester.research.financial_structure_dataset import make_samples
+    for timestamps in ((1, 2, 2, 4, 5, 6, 7, 8), (1, 3, 2, 4, 5, 6, 7, 8)):
+        with pytest.raises(ValueError, match='timestamps'):
+            make_samples('BTCUSDT', '1m', timestamps, [100.0] * len(timestamps), window=3, horizon=2)
