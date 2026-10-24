@@ -14,7 +14,7 @@ def policy():
     "../model.json", r"\\server\share\model.json",
     r"\\?\C:\model.json", r"\\.\PhysicalDrive0",
     r"C:\safe\..\secret", r"C:\safe\file:stream",
-    r"C:\safe\NUL", "C:\\safe\\file.",
+    r"C:\safe\NUL", "C:\\safe\\file.",\n    r"C:\safe\COM9.txt", r"C:\safe\LPT8",\n    "C:\\safe\\bad\\x00name", "C:\\safe\\bad\\x01name",
 ])
 def test_unsafe_paths_denied(path):
     with pytest.raises(SandboxDenied):
