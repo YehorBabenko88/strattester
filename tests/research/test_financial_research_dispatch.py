@@ -26,6 +26,16 @@ class FinancialResearchDispatchTests(unittest.TestCase):
                                       timeframe_ns=60, horizon_ns=300, available_ns=1)
             loader.assert_not_called()
 
+    def test_noninteger_timeframe_horizon_rejected_before_load(self):
+        for tf, horizon in ((True, 300), (60.0, 300), (60, 300.0), (60, True)):
+            with self.subTest(tf=tf, horizon=horizon):
+                with patch("strattester.research.financial_research_dispatch.load_checkpoint") as loader:
+                    with self.assertRaises(ValueError):
+                        predict_research_only(self.spec, object(), instrument=self.instrument,
+                                              model_path="ignored", model_sha256="0" * 64,
+                                              timeframe_ns=tf, horizon_ns=horizon, available_ns=100)
+                    loader.assert_not_called()
+
     def test_unapproved_cross_timeframe_context_rejected(self):
         class FakeSnapshot:
             origin_ns = 100
