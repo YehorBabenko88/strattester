@@ -7,8 +7,10 @@ from __future__ import annotations
 
 
 def build_pair_stack(channels: int = 32, heads: int = 4, depth: int = 2,
-                     intermediate: int = 64, max_tokens: int = 64):
-    if channels < 1 or heads < 1 or channels % heads or depth < 1 or intermediate < 1 or not 2 <= max_tokens <= 256:
+                     intermediate: int = 64, max_tokens: int = 64,
+                     max_attention_elements: int = 2_000_000,
+                     max_pair_elements: int = 2_000_000):
+    if channels < 1 or heads < 1 or channels % heads or depth < 1 or intermediate < 1 or not 2 <= max_tokens <= 256 or max_attention_elements < 1 or max_pair_elements < 1:
         raise ValueError("invalid stack configuration")
     try:
         import torch
@@ -21,8 +23,8 @@ def build_pair_stack(channels: int = 32, heads: int = 4, depth: int = 2,
     class PairLayer(nn.Module):
         def __init__(self):
             super().__init__()
-            self.mul_out, self.mul_in = build_triangle_updates(channels, intermediate)
-            self.att_start, self.att_end = build_triangle_attention(channels, heads)
+            self.mul_out, self.mul_in = build_triangle_updates(channels, intermediate, max_pair_elements=max_pair_elements)
+            self.att_start, self.att_end = build_triangle_attention(channels, heads, max_attention_elements=max_attention_elements)
             self.transition_norm = nn.LayerNorm(channels)
             self.transition = nn.Sequential(
                 nn.Linear(channels, 4 * channels), nn.ReLU(),
