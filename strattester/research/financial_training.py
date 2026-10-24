@@ -13,12 +13,12 @@ def fit_structural(model, features, targets, mask, *, seed=0, steps=20, learning
     if steps>1000 or not 0<finite(learning_rate,'learning_rate')<=.1: raise ValueError('training resource/config budget')
     if features.ndim!=4 or targets.shape!=(len(features),) or mask.shape!=features.shape[:3] or not len(features):
         raise ValueError('training shapes')
-    if targets.dtype!=features.dtype or targets.device!=features.device or not torch.isfinite(targets).all(): raise ValueError('invalid labels')
     if len(features)>1024: raise ValueError('training sample budget')
     model.config.validate()
     bank_bytes=sum(t.numel()*t.element_size() for t in (features,targets,mask))
     if bank_bytes>model.config.max_work_bytes:raise ValueError('training bank budget exceeded')
     if cancel():raise TrainingCancelled('training cancelled before state allocation')
+    if targets.dtype!=features.dtype or targets.device!=features.device or not torch.isfinite(targets).all(): raise ValueError('invalid labels')
     before={name:value.detach().clone() for name,value in model.state_dict().items()}
     previous_mode=model.training
     deterministic=torch.are_deterministic_algorithms_enabled()

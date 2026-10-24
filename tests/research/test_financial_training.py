@@ -35,7 +35,7 @@ def test_bad_label_does_not_update_model(bad):
     with pytest.raises(ValueError):fit_structural(model,x,y,m,steps=2)
 
 
-def test_training_bank_budget_rejected_before_state_copy():
+def test_training_bank_budget_rejected_before_state_copy(monkeypatch):
     from dataclasses import replace
     x,y,m=make_data()
     model=build_structural_model(StructuralConfig(recycles=0))
@@ -43,5 +43,7 @@ def test_training_bank_budget_rejected_before_state_copy():
     # Expanded views carry a large logical bank without allocating its storage.
     x=torch.zeros(1,16,32,3).expand(1024,-1,-1,-1)
     y=torch.zeros(1024);m=torch.ones(1,16,32,dtype=torch.bool).expand(1024,-1,-1)
+    def scan(*args,**kwargs):pytest.fail('bank admission must precede allocating label validation')
+    monkeypatch.setattr(torch,'isfinite',scan)
     with pytest.raises(ValueError,match='training bank budget'):
         fit_structural(model,x,y,m,steps=1)
