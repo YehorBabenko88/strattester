@@ -36,3 +36,10 @@ def test_reject_nonfinite_coordinates_and_threshold():
         distance_map([(0, float("inf"), 0)])
     with pytest.raises(ValueError):
         contact_map([(0, 0, 0)], 0)
+
+
+def test_extreme_finite_prices_do_not_overflow_log_returns():
+    prices = [1e-300 if i % 2 else 1e300 for i in range(16)]
+    points = market_backbone(prices, window=4)
+    assert len(points) == len(prices) - 4
+    assert all(math.isfinite(value) for point in points for value in point)
