@@ -10,9 +10,14 @@ class WalkForwardTests(unittest.TestCase):
 
     def test_two_disjoint_oos_folds(self):
         configs = [ResearchConfig(10, 20, 30), ResearchConfig(20, 30, 40)]
-        result = compare_walk_forward(self.rows, configs)
+        result = compare_walk_forward(self.rows, configs, allow_retraining_on_prior_oos=True)
         self.assertEqual(result["fold_count"], 2)
+        self.assertEqual(result["fold_independence"], "SEQUENTIAL_RETRAINING")
         self.assertEqual(result["aggregation"], "NOT_AUTHORIZED_WITHOUT_PORTFOLIO_LEDGER")
+
+    def test_prior_oos_reuse_requires_explicit_opt_in(self):
+        with self.assertRaises(ValueError):
+            compare_walk_forward(self.rows, [ResearchConfig(10, 20, 30), ResearchConfig(20, 30, 40)])
 
     def test_duplicate_test_period_rejected(self):
         with self.assertRaises(ValueError):
