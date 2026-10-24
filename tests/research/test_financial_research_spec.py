@@ -25,6 +25,10 @@ class FinancialResearchSpecTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             FinancialResearchSpec((self.alt, self.alt), 60, 300, "v1").validate()
 
+    def test_universe_exceeds_sample_budget(self):
+        with self.assertRaises(ValueError):
+            FinancialResearchSpec((self.btc, self.alt), 60, 300, "v1", max_samples=1).validate()
+
     def test_horizon_alignment_rejected(self):
         with self.assertRaises(ValueError):
             FinancialResearchSpec((self.alt,), 60, 301, "v1").validate()
