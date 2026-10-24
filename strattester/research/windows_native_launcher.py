@@ -1,5 +1,6 @@
 """Safe-by-default broker boundary: no Python fallback or model execution."""
-from .windows_native_sandbox_admission import SandboxDenied, SandboxPolicy
+from .windows_native_sandbox_admission import (SandboxDenied, SandboxPolicy,
+                                               reject_unsafe_windows_path)
 
 
 def launch_research_sandbox(*, policy: SandboxPolicy, executable: str, arguments=()):
@@ -9,6 +10,7 @@ def launch_research_sandbox(*, policy: SandboxPolicy, executable: str, arguments
     policy.validate()
     if type(executable) is not str or not executable:
         raise SandboxDenied("invalid executable")
+    reject_unsafe_windows_path(executable)
     if type(arguments) not in (tuple, list) or any(type(a) is not str for a in arguments):
         raise SandboxDenied("invalid arguments")
     raise SandboxDenied("native broker and OS enforcement not installed; no process created")
