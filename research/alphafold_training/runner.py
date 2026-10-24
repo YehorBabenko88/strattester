@@ -6,7 +6,10 @@ from pathlib import Path
 from statistics import mean
 import math
 
-from research.alphafold_training.gates import (\n    assert_no_cross_partition_label_overlap, assert_feature_schema, assert_prediction_contract,\n)\nfrom research.alphafold_training.evaluation import (
+from research.alphafold_training.gates import (
+    assert_no_cross_partition_label_overlap, assert_feature_schema, assert_prediction_contract,
+)
+from research.alphafold_training.evaluation import (
     validate, purged_split, net_returns, per_instrument, bootstrap_mean_ci,
     fingerprint, negative_control,
 )
@@ -68,16 +71,16 @@ def evaluate_offline(samples, model_factory, cfg):
                                     cfg.test_end, cfg.embargo)
     if not train or not val or not test:
         raise ValueError("all temporal partitions must be nonempty")
+    assert_feature_schema(train + val + test)
+    assert_no_cross_partition_label_overlap(train, val, test)
     _check_intervals(val)
     _check_intervals(test)
     model = model_factory()
     model.fit([s.features for s in train], [s.forward_return for s in train])
     val_pred = list(model.predict([s.features for s in val]))
     test_pred = list(model.predict([s.features for s in test]))
-    if len(val_pred) != len(val) or len(test_pred) != len(test):
-        raise ValueError("prediction length mismatch")
-    if any(not math.isfinite(float(x)) for x in val_pred + test_pred):
-        raise ValueError("nonfinite prediction")
+    assert_prediction_contract(val_pred, val)
+    assert_prediction_contract(test_pred, test)
     thresholds = (0., 0.0005, 0.001, 0.002)
     def positions(pred, threshold):
         return [int(x > threshold) - int(x < -threshold) for x in pred]
