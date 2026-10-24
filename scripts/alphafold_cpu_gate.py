@@ -17,6 +17,7 @@ FILES = (
     "tests/research/test_alphafold_triangle_attention_oracle.py",
     "tests/research/test_alphafold_pair_stack.py",
     "tests/research/test_alphafold_pair_stack_budget.py",
+    "tests/research/test_alphafold_outer_product.py",
 )
 MIN_EXECUTED = 18
 
@@ -52,11 +53,16 @@ def main() -> int:
             xfailed = int(summary.get("xfailed", 0))
             xpassed = int(summary.get("xpassed", 0))
             collected = int(summary["total"])
+            deselected = int(summary.get("deselected", 0))
+            tests = payload["tests"]
+            executed_files = {str(item["nodeid"]).split("::", 1)[0] for item in tests
+                              if item.get("outcome") == "passed"}
         except (OSError, ValueError, KeyError, TypeError):
             print("BLOCKED: invalid pytest report", file=sys.stderr)
             return 1
         if (passed < MIN_EXECUTED or failed or errors or skipped or xfailed or xpassed
-                or collected != passed):
+                or collected != passed or deselected < 0
+                or not set(FILES).issubset(executed_files)):
             print(f"BLOCKED: test accounting total={collected} pass={passed} "
                   f"fail={failed} error={errors} skip={skipped} "
                   f"xfail={xfailed} xpass={xpassed}", file=sys.stderr)
