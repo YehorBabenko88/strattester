@@ -66,6 +66,10 @@ def load_checkpoint(path, expected_sha256, *, max_bytes=8*1024*1024):
     if set(payload)!={'version','config','dataset_sha256','seed','tensors'} or type(payload['version']) is not int or payload['version']!=1:
         raise ValueError('checkpoint schema')
     digest(payload['dataset_sha256']);integer(payload['seed'],'seed')
+    # Missing versions identify legacy equations; reject before constructing
+    # any parameter tensors rather than silently changing checkpoint meaning.
+    if not isinstance(payload['config'],dict) or 'model_equations_version' not in payload['config']:
+        raise ValueError('checkpoint model equations version required')
     try: config=StructuralConfig(**payload['config']).validate()
     except (TypeError,AttributeError) as exc: raise ValueError('checkpoint config') from exc
     model=build_structural_model(config)

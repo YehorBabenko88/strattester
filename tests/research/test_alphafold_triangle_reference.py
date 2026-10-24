@@ -18,7 +18,7 @@ def test_triangle_matches_explicit_index_contraction(incoming):
         for j in range(3):
             for k in range(3):
                 if incoming:
-                    expected[:, i, j] += a[:, k, i] * b[:, k, j]
+                    expected[:, i, j] += a[:, k, j] * b[:, k, i]
                 else:
                     expected[:, i, j] += a[:, i, k] * b[:, j, k]
     expected = module.output(module.center_norm(expected)) * torch.sigmoid(module.output_gate(norm))
