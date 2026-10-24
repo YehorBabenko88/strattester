@@ -43,7 +43,10 @@ def hash_static_evidence_file(path, *, max_bytes=1024 * 1024):
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
-    descriptor = os.open(path, flags)
+    try:
+        descriptor = os.open(path, flags)
+    except OSError as exc:
+        raise SandboxDenied("evidence file open refused") from exc
     digest = hashlib.sha256()
     with os.fdopen(descriptor, "rb") as stream:
         if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
