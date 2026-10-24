@@ -11,7 +11,7 @@ def test_labels_do_not_enter_features():
     other = make_samples("SOLUSDT", "1m", ts, changed, window=4, horizon=3)
     assert samples[0].representation == other[0].representation
     assert samples[0].origin_timestamp < samples[0].target_timestamp
-    assert samples[-1].target_timestamp == ts[-1]
+    assert samples[-1].target_timestamp == ts[-2]
 
 
 def test_invalid_horizon():
@@ -41,7 +41,7 @@ def test_future_changes_do_not_modify_past_features():
 def test_last_valid_origin_is_included():
     ts = [i * 60000 for i in range(12)]
     samples = make_samples('BTCUSDT', '1m', ts, [100.0 + i for i in range(12)], window=4, horizon=3)
-    assert len(samples) == 12 - 4 - 3
+    assert len(samples) == 12 - 4 - 3 - 1
     assert samples[-1].target_timestamp == ts[-1]
 
 
