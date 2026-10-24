@@ -38,6 +38,8 @@ def predict_research_only(spec, snapshot, *, instrument, model_path, model_sha25
     # Reject backdated availability before reading any checkpoint bytes.
     if available_ns < snapshot.origin_ns:
         raise ValueError("prediction availability predates snapshot")
+    if not isinstance(model_path, (str, __import__("pathlib").Path)):
+        raise ValueError("checkpoint path must be a filesystem path")
     model, metadata = load_checkpoint(model_path, model_sha256)
     if model.config.horizon_ns != spec.forecast_horizon_ns:
         raise ValueError("checkpoint horizon mismatch")
