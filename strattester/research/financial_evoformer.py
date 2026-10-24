@@ -7,13 +7,13 @@ from __future__ import annotations
 
 
 def build_financial_model(hidden: int = 32, heads: int = 4):
+    if hidden < 4 or heads < 1 or hidden % heads:
+        raise ValueError("hidden must be >=4 and divisible by heads")
     try:
         import torch
         from torch import nn
     except ImportError as exc:
         raise RuntimeError("optional PyTorch installation required") from exc
-    if hidden < 4 or heads < 1 or hidden % heads:
-        raise ValueError("hidden must be >=4 and divisible by heads")
 
     class PairBlock(nn.Module):
         def __init__(self):
