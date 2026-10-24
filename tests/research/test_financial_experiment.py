@@ -107,3 +107,70 @@ def test_walk_forward_rejects_overlapping_or_reused_holdouts_before_artifacts(tm
     with pytest.raises(ValueError,match='overlap'):
         run_walk_forward(extended_examples(),root,[(1200,2400,3400),(1800,2880,4500)],steps=1,allow_retraining_on_prior_oos=True)
     assert not root.exists()
+
+
+def test_preparation_cancel_precedes_feature_allocation(tmp_path, monkeypatch):
+    import strattester.research.financial_experiment as experiment
+    from strattester.research.financial_training import TrainingCancelled
+    def allocate(*args, **kwargs):
+        pytest.fail('feature allocation occurred after cancellation')
+    monkeypatch.setattr(experiment, 'feature_tracks', allocate)
+    with pytest.raises(TrainingCancelled):
+        run_experiment(examples(), tmp_path/'cancel.json', train_end=1200,
+                       validation_end=2400, test_end=3400, cancel=lambda: True)
+
+
+def test_aggregate_admission_precedes_feature_allocation(tmp_path, monkeypatch):
+    import strattester.research.financial_experiment as experiment
+    def allocate(*args, **kwargs):
+        pytest.fail('feature allocation preceded aggregate admission')
+    monkeypatch.setattr(experiment, 'feature_tracks', allocate)
+    cfg=StructuralConfig(recycles=0, max_work_bytes=2_000_000)
+    with pytest.raises(ValueError, match='aggregate preparation budget'):
+        run_experiment(examples(), tmp_path/'budget.json', train_end=1200,
+                       validation_end=2400, test_end=3400, config=cfg)
+
+
+def test_streaming_fingerprint_preserves_existing_dataset_identity():
+    from dataclasses import asdict
+    from research.alphafold_training.evaluation import fingerprint
+    from strattester.research.financial_experiment import _example_fingerprint
+    rows=examples()
+    assert _example_fingerprint(iter(rows),lambda:False)==fingerprint([asdict(e) for e in rows])
+
+
+def test_cancel_between_feature_examples_leaves_no_artifact(tmp_path, monkeypatch):
+    import strattester.research.financial_experiment as experiment
+    from strattester.research.financial_training import TrainingCancelled
+    original=experiment.feature_tracks;allocated=[]
+    def tracked(*args, **kwargs):
+        allocated.append(1)
+        return original(*args, **kwargs)
+    monkeypatch.setattr(experiment,'feature_tracks',tracked)
+    path=tmp_path/'cancel-mid.json'
+    with pytest.raises(TrainingCancelled):
+        run_experiment(examples(),path,train_end=1200,validation_end=2400,test_end=3400,
+                       cancel=lambda:bool(allocated))
+    assert len(allocated)==1 and not path.exists()
+
+
+def test_walk_forward_caps_generator_consumption_before_artifacts(tmp_path):
+    from strattester.research.financial_experiment import run_walk_forward
+    consumed=[]
+    first=examples()[0]
+    def rows():
+        for i in range(1100):
+            consumed.append(i)
+            yield first
+    with pytest.raises(ValueError,match='walk-forward resource budget'):
+        run_walk_forward(rows(),tmp_path/'folds',[(1200,2400,3400)])
+    assert len(consumed)==1025
+    assert not (tmp_path/'folds').exists()
+
+
+def test_malformed_holdout_policy_fails_before_checkpoint_publication(tmp_path):
+    path=tmp_path/'invalid-holdout.json'
+    with pytest.raises(ValueError,match='holdout symbols'):
+        run_experiment(examples(),path,train_end=1200,validation_end=2400,test_end=3400,
+                       steps=1,holdout_symbols={'ETHUSDT',None})
+    assert not path.exists()

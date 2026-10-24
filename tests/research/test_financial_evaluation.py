@@ -42,3 +42,18 @@ def test_persistence_control_uses_the_targets_observed_return_channel():
     r=evaluate_controls([[.1],[.2]],[.1,.2],[[.3],[.4]],[.3,.4],
                         train_events=[('BTC',0),('BTC',1)],test_events=[('BTC',2),('BTC',3)])
     assert r['persistence']==0.
+
+
+def test_funding_is_explicit_flat_charge_and_flat_positions_pay_nothing():
+    report=evaluate_ledger([Trade('BTC',0,10,.1,1),Trade('ETH',0,10,.1,-1),
+                            Trade('SOL',0,10,.1,0)],fee_bps=10,slippage_bps=5,funding_bps=20)
+    assert report['returns']==pytest.approx([.095,-.105,0.])
+    assert report['turnover']==4
+    with pytest.raises(ValueError):
+        evaluate_ledger([Trade('BTC',0,10,.1,1)],funding_bps=-1)
+
+
+@pytest.mark.parametrize('mu,scale,target',[(1e308,1.,-1e308),(0.,1e-300,1.)])
+def test_gaussian_score_rejects_finite_inputs_whose_score_overflows(mu,scale,target):
+    with pytest.raises(ValueError,match='nonfinite distribution score'):
+        gaussian_scores([mu],[scale],[target])

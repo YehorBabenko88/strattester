@@ -19,7 +19,7 @@ class Trade:
 def evaluate_ledger(trades, *, fee_bps=0., slippage_bps=0., funding_bps=0.):
     """Independent entry/exit for each disjoint label; liquidate every horizon.
 
-    Funding is an explicit per-horizon signed cost supplied by the evaluator,
+    Funding is an explicit flat nonnegative per-horizon charge supplied by the evaluator,
     not a fabricated exchange schedule. No leveraged fills are simulated.
     """
     costs=[finite(v,'cost') for v in (fee_bps,slippage_bps,funding_bps)]
@@ -40,8 +40,13 @@ def evaluate_ledger(trades, *, fee_bps=0., slippage_bps=0., funding_bps=0.):
 def gaussian_scores(mu,scale,targets):
     if not targets or not len(mu)==len(scale)==len(targets):raise ValueError('distribution shape')
     if any(finite(s,'scale')<=0 for s in scale):raise ValueError('distribution scale')
-    losses=[math.log(s)+.5*((finite(y,'target')-finite(m,'mu'))/s)**2+.5*math.log(2*math.pi) for m,s,y in zip(mu,scale,targets)]
-    return {'nll':mean(losses),'mae':mean(abs(y-m) for y,m in zip(targets,mu)),
+    losses=[];errors=[]
+    for m,s,y in zip(mu,scale,targets):
+        error=abs(finite(y,'target')-finite(m,'mu'));z=error/s
+        loss=math.log(s)+.5*z*z+.5*math.log(2*math.pi)
+        if not math.isfinite(error) or not math.isfinite(loss):raise ValueError('nonfinite distribution score')
+        errors.append(error);losses.append(loss)
+    return {'nll':mean(losses),'mae':mean(errors),
             'coverage_95':mean(abs(y-m)<=1.959963984540054*s for y,m,s in zip(targets,mu,scale))}
 
 
