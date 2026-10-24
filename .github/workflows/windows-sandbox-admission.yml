@@ -1,0 +1,36 @@
+name: windows-sandbox-admission
+on:
+  pull_request:
+    paths:
+      - 'strattester/research/windows_native_sandbox_admission.py'
+      - 'tests/research/test_windows_native_sandbox_admission.py'
+      - 'strattester/research/windows_native_evidence.py'
+      - 'tests/research/test_windows_native_evidence.py'
+      - 'strattester/research/windows_native_launcher.py'
+      - 'tests/research/test_windows_native_launcher.py'
+      - '.github/workflows/windows-sandbox-admission.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  admission:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        python-version: ['3.11', '3.13']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile sandbox admission and adversarial tests
+        run: python -m py_compile strattester/research/windows_native_sandbox_admission.py strattester/research/windows_native_evidence.py strattester/research/windows_native_launcher.py tests/research/test_windows_native_launcher.py tests/research/test_windows_native_sandbox_admission.py tests/research/test_windows_native_evidence.py
+      - name: Install pytest
+        run: python -m pip install pytest
+      - name: Execute offline sandbox admission tests
+        run: python -m pytest -q -o addopts= tests/research/test_windows_native_sandbox_admission.py tests/research/test_windows_native_evidence.py tests/research/test_windows_native_launcher.py

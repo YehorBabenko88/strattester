@@ -1,0 +1,265 @@
+{
+  "changed_files": {
+    "15": [
+      "docs/alphafold-grid-research-audit.md",
+      "docs/alphafold-integration-contract.md",
+      "docs/alphafold-market-experiment.md",
+      "docs/protein-geometry-grid-sync.md",
+      "docs/protein-geometry-strategy-modes.md",
+      "pyproject.toml",
+      "strattester/research/alphafold_adapter.py",
+      "strattester/research/financial_evoformer.py",
+      "strattester/research/financial_structure_dataset.py",
+      "strattester/research/protein_geometry.py",
+      "strattester/research/protein_geometry_export.py",
+      "strattester/research/protein_geometry_offline.py",
+      "strattester/research/protein_geometry_snapshot.py",
+      "strattester/strategies/builtin/protein_geometry.py",
+      "tests/research/test_alphafold_adapter.py",
+      "tests/research/test_financial_evoformer.py",
+      "tests/research/test_financial_structure_dataset.py",
+      "tests/research/test_protein_geometry.py",
+      "tests/research/test_protein_geometry_export.py",
+      "tests/research/test_protein_geometry_snapshot.py",
+      "tests/strategies/test_protein_geometry.py"
+    ],
+    "16": [
+      ".github/workflows/alphafold-research-cpu.yml",
+      "docs/alphafold-grid-research-audit.md",
+      "docs/alphafold-integration-contract.md",
+      "docs/alphafold-market-experiment.md",
+      "docs/protein-geometry-grid-sync.md",
+      "docs/protein-geometry-strategy-modes.md",
+      "pyproject.toml",
+      "scripts/alphafold_cpu_gate.py",
+      "strattester/research/alphafold_adapter.py",
+      "strattester/research/alphafold_msa_attention.py",
+      "strattester/research/alphafold_msa_pair_bridge.py",
+      "strattester/research/alphafold_outer_product.py",
+      "strattester/research/alphafold_pair_stack.py",
+      "strattester/research/alphafold_triangle.py",
+      "strattester/research/alphafold_triangle_attention.py",
+      "strattester/research/financial_evoformer.py",
+      "strattester/research/financial_structure_dataset.py",
+      "strattester/research/protein_geometry.py",
+      "strattester/research/protein_geometry_export.py",
+      "strattester/research/protein_geometry_offline.py",
+      "strattester/research/protein_geometry_snapshot.py",
+      "strattester/strategies/builtin/protein_geometry.py",
+      "tests/research/test_alphafold_adapter.py",
+      "tests/research/test_alphafold_msa_attention.py",
+      "tests/research/test_alphafold_msa_pair_bridge.py",
+      "tests/research/test_alphafold_outer_product.py",
+      "tests/research/test_alphafold_pair_stack.py",
+      "tests/research/test_alphafold_pair_stack_budget.py",
+      "tests/research/test_alphafold_triangle.py",
+      "tests/research/test_alphafold_triangle_attention.py",
+      "tests/research/test_alphafold_triangle_attention_oracle.py",
+      "tests/research/test_alphafold_triangle_reference.py",
+      "tests/research/test_financial_evoformer.py",
+      "tests/research/test_financial_structure_dataset.py",
+      "tests/research/test_protein_geometry.py",
+      "tests/research/test_protein_geometry_export.py",
+      "tests/research/test_protein_geometry_snapshot.py",
+      "tests/strategies/test_protein_geometry.py"
+    ],
+    "17": [
+      "strattester/alphafold_artifact_verify.py",
+      "strattester/alphafold_data_sync.py",
+      "strattester/alphafold_revisions.py",
+      "strattester/alphafold_series_integrity.py",
+      "strattester/alphafold_snapshot_contract.py",
+      "strattester/alphafold_verified_bars.py",
+      "tests/test_alphafold_artifact_verify.py",
+      "tests/test_alphafold_data_sync.py",
+      "tests/test_alphafold_series_integrity.py",
+      "tests/test_alphafold_snapshot_contract.py",
+      "tests/test_alphafold_verified_bars.py"
+    ],
+    "18": [
+      ".github/workflows/mathematical-contract-reference.yml",
+      "docs/contracts/grid_strattester_ml_math_v0.1.md",
+      "research/math_contract_reference.py",
+      "research/test_math_contract_reference.py"
+    ],
+    "19": [
+      "research/alphafold_training/ACCEPTANCE.md",
+      "research/alphafold_training/baselines.py",
+      "research/alphafold_training/comparison.py",
+      "research/alphafold_training/cost_sensitivity.py",
+      "research/alphafold_training/evaluation.py",
+      "research/alphafold_training/gates.py",
+      "research/alphafold_training/runner.py",
+      "research/alphafold_training/walkforward.py",
+      "tests/test_alphafold_training_baselines.py",
+      "tests/test_alphafold_training_comparison.py",
+      "tests/test_alphafold_training_cost_sensitivity.py",
+      "tests/test_alphafold_training_evaluation.py",
+      "tests/test_alphafold_training_gates.py",
+      "tests/test_alphafold_training_runner.py",
+      "tests/test_alphafold_training_strict_inputs.py",
+      "tests/test_alphafold_training_walkforward.py"
+    ],
+    "20": [
+      "docs/alphafold-grid-research-audit.md",
+      "docs/alphafold-integration-contract.md",
+      "docs/alphafold-market-experiment.md",
+      "docs/alphafold-qa-security-acceptance.md",
+      "docs/protein-geometry-grid-sync.md",
+      "docs/protein-geometry-strategy-modes.md",
+      "pyproject.toml",
+      "strattester/research/alphafold_adapter.py",
+      "strattester/research/alphafold_security.py",
+      "strattester/research/financial_evoformer.py",
+      "strattester/research/financial_structure_dataset.py",
+      "strattester/research/protein_geometry.py",
+      "strattester/research/protein_geometry_export.py",
+      "strattester/research/protein_geometry_offline.py",
+      "strattester/research/protein_geometry_snapshot.py",
+      "strattester/strategies/builtin/protein_geometry.py",
+      "tests/research/test_alphafold_adapter.py",
+      "tests/research/test_alphafold_security.py",
+      "tests/research/test_financial_evoformer.py",
+      "tests/research/test_financial_structure_dataset.py",
+      "tests/research/test_protein_geometry.py",
+      "tests/research/test_protein_geometry_export.py",
+      "tests/research/test_protein_geometry_snapshot.py",
+      "tests/strategies/test_protein_geometry.py"
+    ]
+  },
+  "overlaps": [
+    {
+      "prs": [
+        15,
+        16
+      ],
+      "identical": [
+        "docs/alphafold-grid-research-audit.md",
+        "docs/alphafold-integration-contract.md",
+        "docs/alphafold-market-experiment.md",
+        "docs/protein-geometry-grid-sync.md",
+        "docs/protein-geometry-strategy-modes.md",
+        "pyproject.toml",
+        "strattester/research/alphafold_adapter.py",
+        "strattester/research/financial_evoformer.py",
+        "strattester/research/financial_structure_dataset.py",
+        "strattester/research/protein_geometry.py",
+        "strattester/research/protein_geometry_export.py",
+        "strattester/research/protein_geometry_offline.py",
+        "strattester/research/protein_geometry_snapshot.py",
+        "strattester/strategies/builtin/protein_geometry.py",
+        "tests/research/test_alphafold_adapter.py",
+        "tests/research/test_financial_evoformer.py",
+        "tests/research/test_financial_structure_dataset.py",
+        "tests/research/test_protein_geometry.py",
+        "tests/research/test_protein_geometry_export.py",
+        "tests/research/test_protein_geometry_snapshot.py",
+        "tests/strategies/test_protein_geometry.py"
+      ],
+      "divergent": []
+    },
+    {
+      "prs": [
+        15,
+        20
+      ],
+      "identical": [
+        "docs/alphafold-grid-research-audit.md",
+        "docs/alphafold-integration-contract.md",
+        "docs/alphafold-market-experiment.md",
+        "docs/protein-geometry-grid-sync.md",
+        "docs/protein-geometry-strategy-modes.md",
+        "pyproject.toml",
+        "strattester/research/alphafold_adapter.py",
+        "strattester/research/protein_geometry_export.py",
+        "strattester/strategies/builtin/protein_geometry.py",
+        "tests/research/test_alphafold_adapter.py",
+        "tests/research/test_protein_geometry_export.py",
+        "tests/research/test_protein_geometry_snapshot.py"
+      ],
+      "divergent": [
+        "strattester/research/financial_evoformer.py",
+        "strattester/research/financial_structure_dataset.py",
+        "strattester/research/protein_geometry.py",
+        "strattester/research/protein_geometry_offline.py",
+        "strattester/research/protein_geometry_snapshot.py",
+        "tests/research/test_financial_evoformer.py",
+        "tests/research/test_financial_structure_dataset.py",
+        "tests/research/test_protein_geometry.py",
+        "tests/strategies/test_protein_geometry.py"
+      ]
+    },
+    {
+      "prs": [
+        16,
+        20
+      ],
+      "identical": [
+        "docs/alphafold-grid-research-audit.md",
+        "docs/alphafold-integration-contract.md",
+        "docs/alphafold-market-experiment.md",
+        "docs/protein-geometry-grid-sync.md",
+        "docs/protein-geometry-strategy-modes.md",
+        "pyproject.toml",
+        "strattester/research/alphafold_adapter.py",
+        "strattester/research/protein_geometry_export.py",
+        "strattester/strategies/builtin/protein_geometry.py",
+        "tests/research/test_alphafold_adapter.py",
+        "tests/research/test_protein_geometry_export.py",
+        "tests/research/test_protein_geometry_snapshot.py"
+      ],
+      "divergent": [
+        "strattester/research/financial_evoformer.py",
+        "strattester/research/financial_structure_dataset.py",
+        "strattester/research/protein_geometry.py",
+        "strattester/research/protein_geometry_offline.py",
+        "strattester/research/protein_geometry_snapshot.py",
+        "tests/research/test_financial_evoformer.py",
+        "tests/research/test_financial_structure_dataset.py",
+        "tests/research/test_protein_geometry.py",
+        "tests/strategies/test_protein_geometry.py"
+      ]
+    }
+  ],
+  "repositories": {
+    "strattester": {
+      "head": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+      "tracked_files": 289,
+      "test_files": 125,
+      "dependency_files": [
+        "pyproject.toml"
+      ],
+      "license_files": []
+    },
+    "bybit-cluster-grid": {
+      "head": "d537d525296ef34f727996e240ae6c60102c6082",
+      "tracked_files": 551,
+      "test_files": 284,
+      "dependency_files": [
+        "requirements-ml.txt",
+        "requirements.txt"
+      ],
+      "license_files": []
+    },
+    "math": {
+      "head": "ccfe97dd88b1ebee9bd19795002a30d0bd1c1ca3",
+      "tracked_files": 1,
+      "test_files": 0,
+      "dependency_files": [],
+      "license_files": []
+    },
+    "alphafold": {
+      "head": "c77e5d2a8961d1a353632c462914ff0a32a950f6",
+      "tracked_files": 121,
+      "test_files": 19,
+      "dependency_files": [
+        "docker/requirements.txt",
+        "pyproject.toml",
+        "requirements.txt"
+      ],
+      "license_files": [
+        "LICENSE"
+      ]
+    }
+  }
+}
