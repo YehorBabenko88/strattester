@@ -43,6 +43,11 @@ def test_symlink_evidence_denied(tmp_path):
         hash_static_evidence_file(link)
 
 
+def test_missing_evidence_file_fails_closed(tmp_path):
+    with pytest.raises(SandboxDenied, match="evidence file open refused"):
+        hash_static_evidence_file(tmp_path / "missing.txt")
+
+
 def test_evidence_file_hash_and_size(tmp_path):
     path = tmp_path / "receipt.txt"
     path.write_bytes(b"fixture")
