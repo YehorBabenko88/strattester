@@ -1,7 +1,11 @@
 name: tests
 on:
   push:
+    branches-ignore: ['integration/alphafold-financial-system']
   pull_request:
+concurrency:
+  group: core-${{ github.head_ref || github.ref_name }}-${{ github.event_name }}
+  cancel-in-progress: true
 jobs:
   pytest:
     strategy:

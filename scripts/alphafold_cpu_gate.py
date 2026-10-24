@@ -43,6 +43,7 @@ def main() -> int:
             sys.executable, "-m", "pytest", "-q", "--strict-markers",
             "-p", "no:cacheprovider", "-o", "addopts=",
             "--json-report", f"--json-report-file={report}",
+            f"--basetemp={Path(tmp) / 'cases'}",
             "-k", "not gpu and not cuda", *FILES,
         ]
         completed = subprocess.run(args, check=False, timeout=900)
