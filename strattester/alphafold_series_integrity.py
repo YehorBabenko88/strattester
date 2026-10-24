@@ -32,6 +32,11 @@ def validate_regular_series(
         raise ValueError("interval must be a positive integer")
     if isinstance(knowledge_cutoff, bool) or not isinstance(knowledge_cutoff, int):
         raise ValueError("knowledge_cutoff must be an integer")
+    for name, bound in (("expected_start", expected_start), ("expected_end", expected_end)):
+        if bound is not None and (type(bound) is not int or bound < 0):
+            raise ValueError(f"{name} must be a nonnegative integer")
+    if expected_start is not None and expected_end is not None and expected_start > expected_end:
+        raise ValueError("expected_start exceeds expected_end")
     if not rows:
         raise DataIntegrityError("Empty time series")
     previous = None
@@ -40,6 +45,8 @@ def validate_regular_series(
         ingestion = row[ingestion_field]
         if any(isinstance(t, bool) or not isinstance(t, int) for t in (event, ingestion)):
             raise DataIntegrityError("Non-integer timestamps")
+        if event < 0 or ingestion < 0:
+            raise DataIntegrityError("Negative event or ingestion timestamp")
         if event > knowledge_cutoff or ingestion > knowledge_cutoff:
             raise DataIntegrityError("Future event or ingestion")
         if previous is not None and event - previous != interval:
