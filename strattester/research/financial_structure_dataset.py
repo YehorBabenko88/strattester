@@ -33,7 +33,7 @@ def make_samples(symbol, timeframe, timestamps, closes, *,
     if any(not isfinite(p) or p <= 0 for p in prices):
         raise ValueError("prices must be positive finite")
     out = []
-    for origin in range(window - 1, len(prices) - horizon):
+    for origin in range(window, len(prices) - horizon):
         # Representation is restricted to history at the forecast origin.
         rep = encode_market(symbol, timeframe, timestamps[:origin + 1],
                             prices[:origin + 1], window=window,
