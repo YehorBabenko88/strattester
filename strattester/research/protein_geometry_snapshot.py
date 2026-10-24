@@ -9,7 +9,7 @@ def readonly_candles(db_path, symbol, timeframe="1m", start_ms=None, end_ms=None
     path = Path(db_path).resolve(strict=True)
     if not path.is_file():
         raise ValueError("database path is not a file")
-    con = sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True, timeout=15)
+    con = sqlite3.connect(f"{path.as_uri()}?mode=ro", uri=True, timeout=15)
     try:
         con.execute("PRAGMA query_only=ON")
         con.execute("BEGIN")
