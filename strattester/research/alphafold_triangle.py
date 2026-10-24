@@ -49,7 +49,9 @@ def build_triangle_updates(channels: int, intermediate: int = 128, *, max_pair_e
             if mask is not None:
                 a, b = a * mask, b * mask
             if self.incoming:
-                mixed = torch.einsum("bkih,bkjh->bijh", a, b)
+                # Pinned AlphaFold config: left[k,j] * right[k,i]. The
+                # incoming algorithm swaps the left/right projection roles.
+                mixed = torch.einsum("bkjh,bkih->bijh", a, b)
             else:
                 mixed = torch.einsum("bikh,bjkh->bijh", a, b)
             out = torch.sigmoid(self.output_gate(z)) * self.output(self.center_norm(mixed))
