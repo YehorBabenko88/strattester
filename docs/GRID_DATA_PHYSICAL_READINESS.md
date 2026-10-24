@@ -46,3 +46,24 @@ Acceptance requires trusted signature verification, exact bytes/digest, schema i
 
 ## Evidence limits and decision
 Read-only source inspection only. No PostgreSQL DDL or Grid exact HEAD independently confirmed. No physical or synthetic cross-database concurrency tests executed in this review. Verdict: BLOCKED / NO-GO. No G1, merge, live trading or production DB writes.
+
+## Cycle 2 pinned-source assessment (supersedes source-inspection uncertainty above)
+
+Actual Grid source commit **d537d525296ef34f727996e240ae6c60102c6082** was inspected via exact Git blobs. `grid-pinned-source-assessment.json` records SHA256 and byte counts for eight inspected blobs. These are **auditor source-inspection receipts**, never producer-issued export receipts. They attest source text only; no deployed DDL or physical database was queried.
+
+| Fact | Pinned source evidence | Readiness consequence |
+|---|---|---|
+| Source DDL | `grid/db.py:15-42`; `grid/migrations.py:19-32,92-113` | Source DDL inspected; actual applied schema, system identity and migration state NOT_RUN. `market_events.ingest_ts` exists; it does not establish candle first availability or version history. |
+| Revision writes | `grid/storage.py:144-180` | Larger trade-count candle replaces current value; accepted footprint deletes old levels and replaces them. No retained revisions for historical knowledge cuts. |
+| Transaction boundary | `grid/storage.py:145-180,184-214` | Candle and footprint share a transaction. Feature building, persistence and derived processing follow outside that transaction; no atomic all-dataset cut established. |
+| WAL | `grid/segment_wal.py:173-219` | Ordered ACK and compaction support pending-write recovery. ACKed segments can be removed; this is not a retained revision/availability ledger. |
+| Completeness | `grid/control_state.py:3-25` | Consumer progress drives retention safety; it does not certify producer event or availability completeness. |
+| Availability | `grid/level_generator.py:43-46` | `available_ts` is declared period end. It cannot be promoted to first knowledge timestamp. |
+| SQLite boundary | `grid/legacy_working_copy.py:4-16` | Single-file SQLite backup does not certify PG+SQLite coherence or frozen shard routing. No SQLite file was opened by this audit. |
+| Market identity | `grid/db.py:28-42`; `grid/config.py:15` | Candle keys lack venue/market type. Default linear endpoint does not prove each historical row's market authority. |
+
+`strattester.research.grid_producer_readiness` exposes a deterministic BLOCKED assessment, strict exact-source-byte verifier, and a native-export guard that always raises before physical IO. It accepts no supplied availability, revision, epoch or eligibility claims and constructs no Snapshot. No native exporter can truthfully issue the required historical manifest at this source pin. A valid signed manifest consumer does not remove these native producer blockers.
+
+Tests: 11 independent assessment/guard cases passed locally, including source-pin, membership, digest, byte-type tampering and attempted caller override. A separate read-only exact-Git-blob check verified all eight receipts against the actual pinned Grid checkout and returned BLOCKED. Existing specification reference tests are separately exercised. CI at this branch's eventual exact commit must be reviewed independently; local tests do not establish hosted CI or physical readiness.
+
+Physical PostgreSQL/SQLite data reads, applied DDL queries, WAL/MVCC concurrency, shard freeze, crash/restart, signing deployment, source completeness and native immutable export: **NOT_RUN / BLOCKED**. No service, migration, checkpoint, dependency installation, G1 or production write was performed.
