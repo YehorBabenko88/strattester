@@ -55,11 +55,15 @@ def point_in_time_rows(
             "ingestion_time", "quality_status", "eligible", "watermark"
         )
     }
-    uri = source.path.resolve().as_uri() + "?mode=ro"
+    if source.path.is_symlink() or not source.path.is_file():
+        raise ValueError("Source must be an existing regular non-symlink file")
+    uri = source.path.absolute().as_uri() + "?mode=ro"
     connection = sqlite3.connect(uri, uri=True, isolation_level=None)
     connection.row_factory = sqlite3.Row
     try:
         connection.execute("PRAGMA query_only=ON")
+        connection.execute("PRAGMA trusted_schema=OFF")
+        connection.execute("PRAGMA busy_timeout=1000")
         connection.execute("BEGIN")
         q = columns
         statement = f"""
