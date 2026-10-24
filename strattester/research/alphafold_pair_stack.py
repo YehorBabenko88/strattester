@@ -48,6 +48,10 @@ def build_pair_stack(channels: int = 32, heads: int = 4, depth: int = 2,
             b, n, _, _ = pair.shape
             if n < 2 or n > max_tokens:
                 raise ValueError("token budget exceeded")
+            if b * heads * n ** 3 > max_attention_elements:
+                raise ValueError("attention budget exceeded")
+            if b * n * n * max(channels, intermediate) > max_pair_elements:
+                raise ValueError("pair budget exceeded")
             if not torch.isfinite(pair).all().item():
                 raise ValueError("nonfinite pair features")
             if mask is None:
