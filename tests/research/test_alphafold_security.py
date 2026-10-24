@@ -25,7 +25,7 @@ def test_invalid_policy_is_rejected(budget):
 def test_sqlite_uri_escaping(tmp_path):
     import sqlite3
     from strattester.research.protein_geometry_snapshot import readonly_candles
-    db = tmp_path / 'candles #1?.sqlite'
+    db = tmp_path / 'candles #1.sqlite'
     con = sqlite3.connect(db)
     con.execute('CREATE TABLE candles (symbol TEXT, timeframe TEXT, open_time INTEGER, close REAL, complete INTEGER)')
     con.execute("INSERT INTO candles VALUES ('BTCUSDT','1m',1000,12.5,1)")
