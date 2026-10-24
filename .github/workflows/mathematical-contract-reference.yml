@@ -37,6 +37,8 @@ on:
       - 'research/test_independent_snapshot_integrity.py'
       - 'research/independent_event_clock.py'
       - 'research/test_independent_event_clock.py'
+      - 'research/independent_asof_revisions.py'
+      - 'research/test_independent_asof_revisions.py'
       - '.github/workflows/mathematical-contract-reference.yml'
   workflow_dispatch:
 permissions:
@@ -62,6 +64,6 @@ jobs:
       - name: Install test dependencies for Decimal oracles
         run: python -m pip install -e '.[dev]' numpy
       - name: Run independent Decimal and PIT oracles
-        run: python -m pytest -q research/test_independent_decimal_oracles.py research/test_independent_time_oracles.py research/test_independent_numpy_oracles.py research/test_independent_gradient_oracles.py research/test_independent_metamorphic_contracts.py research/test_independent_purge_oracle.py research/test_independent_normalization_oracle.py research/test_independent_ledger_oracle.py research/test_independent_dependency_oracle.py research/test_independent_timestamp_units.py research/test_independent_candle_boundaries.py research/test_independent_horizon_oracle.py research/test_independent_provenance_oracle.py research/test_independent_precision_oracle.py research/test_independent_series_identity.py research/test_independent_snapshot_integrity.py research/test_independent_event_clock.py
+        run: python -m pytest -q research/test_independent_decimal_oracles.py research/test_independent_time_oracles.py research/test_independent_numpy_oracles.py research/test_independent_gradient_oracles.py research/test_independent_metamorphic_contracts.py research/test_independent_purge_oracle.py research/test_independent_normalization_oracle.py research/test_independent_ledger_oracle.py research/test_independent_dependency_oracle.py research/test_independent_timestamp_units.py research/test_independent_candle_boundaries.py research/test_independent_horizon_oracle.py research/test_independent_provenance_oracle.py research/test_independent_precision_oracle.py research/test_independent_series_identity.py research/test_independent_snapshot_integrity.py research/test_independent_event_clock.py research/test_independent_asof_revisions.py
       - name: Run independent standard-library contract tests
         run: python -m unittest discover -s research -p 'test_math_contract_reference.py' -v
