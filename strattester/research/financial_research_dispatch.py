@@ -49,6 +49,8 @@ def predict_research_only(spec, snapshot, *, instrument, model_path, model_sha25
         raise ValueError("snapshot token count exceeds verified model admission")
     if token_count < 2:
         raise ValueError("at least two verified history tokens required")
+    if track_count < 1:
+        raise ValueError("at least one verified instrument track required")
     if (not isinstance(metadata, dict) or not isinstance(metadata.get("config"), dict)
             or metadata["config"].get("horizon_ns") != spec.forecast_horizon_ns):
         raise ValueError("checkpoint metadata horizon mismatch")
