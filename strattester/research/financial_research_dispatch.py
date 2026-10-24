@@ -23,6 +23,8 @@ def predict_research_only(spec, snapshot, *, instrument, model_path, model_sha25
     snapshot.validate()
     if type(instrument) is not Instrument or instrument not in spec.universe:
         raise ValueError("target outside authorized research universe")
+    if any(bar.instrument not in spec.universe for bar in snapshot.bars):
+        raise ValueError("snapshot context outside authorized universe")
     if not any(bar.instrument == instrument and bar.timeframe_ns == spec.timeframe_ns for bar in snapshot.bars):
         raise ValueError("target/timeframe absent from verified snapshot")
     if timeframe_ns != spec.timeframe_ns or horizon_ns != spec.forecast_horizon_ns:
