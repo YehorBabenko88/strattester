@@ -17,6 +17,8 @@ def predict_research_only(spec, snapshot, *, instrument, model_path, model_sha25
     """
     if type(spec) is not FinancialResearchSpec:
         raise ValueError("explicit financial research specification required")
+    if type(timeframe_ns) is not int or type(horizon_ns) is not int:
+        raise ValueError("integer timeframe and horizon required")
     spec.validate()
     if type(snapshot) is not Snapshot:
         raise ValueError("typed verified Snapshot required")
