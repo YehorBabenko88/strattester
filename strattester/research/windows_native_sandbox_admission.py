@@ -68,6 +68,7 @@ def reject_unsafe_windows_path(path: str) -> str:
             or any(part in ("..", ".") for part in p[3:].split("\\"))
             or any(not part for part in p[3:].split("\\"))
             or any(part.rstrip(" .") != part for part in p[3:].split("\\"))
+            or any("~" in part for part in p[3:].split("\\"))
             or any(part.split(".")[0].upper() in
                    ({"CON", "PRN", "AUX", "NUL"} |
                     {"COM" + str(i) for i in range(1, 10)} |
