@@ -66,7 +66,7 @@ class MathematicalContractTests(unittest.TestCase):
         values, state = train_only_zscore([0.0, 2.0], [1.0, 100.0])
         self.assertEqual(state, (1.0, 1.0))
         self.assertEqual(values, [0.0, 99.0])
-        self.assertEqual(train_only_zscore([2.0, 2.0], [100.0])[0], [0.0])
+        self.assertEqual(train_only_zscore([2.0, 2.0], [2.0])[0], [0.0])\n        with self.assertRaises(ValueError):\n            train_only_zscore([2.0, 2.0], [100.0])
 
 
 if __name__ == "__main__":
