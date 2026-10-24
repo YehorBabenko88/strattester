@@ -39,3 +39,34 @@ Date: 2026-10-24. Verdict: **NO-GO**.
 ## Evidence limitations
 - The tests introduced by this audit are not claimed PASS until CI on the exact branch HEAD.
 - No local or physical training, DB mutation, network trading, merge, or deployment performed.
+
+## Cycle 2 training/backtest audit (2026-10-24)
+
+Engineering changes on `cycle2/training-backtest` retain **NO-GO / real OOS BLOCKED**.
+The experiment now admits the aggregate host preparation budget before producing
+feature tensors, charges duplicate snapshots even when shared, bounds walk-forward
+iterator materialization to 1025 examples/33 folds, and checks cancellation during
+preparation, evaluation, fingerprinting and before checkpoint publication. Training
+rejects an oversized logical tensor bank before cloning model state. This is a
+conservative allocation admission policy, not a process RSS guarantee or a replacement
+for operator workspace checks. Split boundaries, holdout context exclusion, batching,
+validation-only threshold selection and JSON dataset identity are unchanged.
+
+Dataset fingerprints stream the byte-identical existing canonical JSON array one
+example at a time. No expanded snapshot dictionary bank is retained. Gaussian
+scoring rejects nonfinite outputs from finite extreme inputs, including tiny scale.
+Ledger documentation now states the implemented flat nonnegative funding charge;
+no signed exchange funding schedule or leveraged liquidation is implemented.
+
+P0: verified coherent historical input, authorized physical/GPU evidence and real
+multi-instrument OOS remain BLOCKED. P1: aggregate allocation and extreme-score
+fail-closed defects repaired; historical funding/fills/latency/portfolio accounting,
+regime calibration and multiple-testing adjustment remain open. P2: streamed hash
+compatibility, preparation cancellation, bounded iterator consumption, funding and
+turnover regression coverage added. Existing tests retain chronological purge,
+embargo, held-out context, sequential retraining policy and exclusive checkpoint replay.
+
+The frozen real-data protocol is in `MULTI_INSTRUMENT_OOS_PROTOCOL.md`; it has not
+been executed on unverified market data. Cycle 2 test evidence is recorded in the
+PR body against the exact committed code SHA. Earlier audit evidence and its
+limitations above describe their original historical revision.
