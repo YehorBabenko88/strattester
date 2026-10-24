@@ -1,7 +1,6 @@
 """Fail-closed resource admission for experimental financial pair models."""
 from __future__ import annotations
 from dataclasses import dataclass
-import math
 
 @dataclass(frozen=True)
 class PairBudget:
@@ -11,7 +10,7 @@ class PairBudget:
     activation_multiplier: int = 12
 
 def admit_pair_shape(batch: int, tokens: int, channels: int, *, element_bytes: int = 4, budget: PairBudget = PairBudget()) -> int:
-    values = (batch, tokens, channels, element_bytes, budget.activation_multiplier)
+    values = (batch, tokens, channels, element_bytes, budget.activation_multiplier, budget.max_tokens, budget.max_batch, budget.max_pair_bytes)
     if any(type(v) is not int or v <= 0 for v in values):
         raise ValueError("positive integer dimensions required")
     if batch > budget.max_batch or tokens > budget.max_tokens:
