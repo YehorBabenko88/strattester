@@ -52,7 +52,7 @@ def build_triangle_attention(channels: int, heads: int = 4, *, max_attention_ele
             v = self.v(z).reshape(b, n, n, heads, d).permute(0, 1, 3, 2, 4)
             scores = torch.einsum("bihqd,bihkd->bihqk", q, k) * (d ** -0.5)
             # Bias from the third edge (query vertex, key vertex).
-            edge_bias = self.bias(self.norm(pair)).permute(0, 3, 1, 2)
+            edge_bias = self.bias(z).permute(0, 3, 1, 2)
             scores = scores + edge_bias[:, None]
             valid_keys = m[:, :, None, None, :]
             scores = scores.masked_fill(~valid_keys, torch.finfo(scores.dtype).min)
