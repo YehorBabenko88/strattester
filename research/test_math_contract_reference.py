@@ -1,6 +1,6 @@
 import math
 import unittest
-from math_contract_reference import (log_returns, sample_volatility,
+from research.math_contract_reference import (log_returns, sample_volatility,
     validate_observations, pair_dependency_mask, triangle_path_valid,
     validate_purged_splits, train_only_zscore)
 
