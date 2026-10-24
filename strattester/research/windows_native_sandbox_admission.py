@@ -72,7 +72,7 @@ def reject_unsafe_windows_path(path: str) -> str:
                    ({"CON", "PRN", "AUX", "NUL"} |
                     {"COM" + str(i) for i in range(1, 10)} |
                     {"LPT" + str(i) for i in range(1, 10)})
-                   for part in PureWindowsPath(p).parts[1:])):
+                   for part in p[3:].split("\\"))):
         raise SandboxDenied("unsafe Windows path")
     return p
 
