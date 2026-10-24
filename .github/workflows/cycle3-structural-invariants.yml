@@ -9,6 +9,7 @@ on:
       - 'tests/research/test_cycle3_resource_admission.py'
       - 'tests/research/test_cycle3_gradient_oracle.py'
       - '.github/workflows/cycle3-structural-invariants.yml'
+      - 'scripts/cycle3_structural_report_gate.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -29,7 +30,7 @@ jobs:
         run: python -m pytest -q -o addopts='' tests/research/test_cycle3_structural_invariants.py tests/research/test_cycle3_cpu_contract.py tests/research/test_cycle3_operator_connectivity.py tests/research/test_cycle3_forecast_contract.py tests/research/test_cycle3_resource_admission.py tests/research/test_cycle3_gradient_oracle.py --json-report --json-report-file=cycle3-results.json
       - name: Enforce exact tests, zero skip, zero deselection
         run: |
-          python -c "import json; d=json.load(open('cycle3-results.json')); s=d['summary']; assert s['passed']==36 and s['total']==36; assert all(s.get(k,0)==0 for k in ('failed','error','skipped','xfailed','xpassed','deselected')); assert len([t for t in d['tests'] if t.get('outcome')=='passed'])==36"
+          python scripts/cycle3_structural_report_gate.py cycle3-results.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
