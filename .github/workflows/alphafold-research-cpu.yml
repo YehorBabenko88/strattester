@@ -4,7 +4,9 @@ on:
   pull_request:
     paths:
       - 'strattester/research/alphafold_*.py'
+      - 'strattester/research/financial_*.py'
       - 'tests/research/test_alphafold_*.py'
+      - 'tests/research/test_financial_*.py'
       - '.github/workflows/alphafold-research-cpu.yml'
       - 'scripts/alphafold_cpu_gate.py'
   workflow_dispatch:

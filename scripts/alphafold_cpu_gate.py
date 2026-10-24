@@ -11,6 +11,10 @@ import tempfile
 from pathlib import Path
 
 FILES = (
+    "tests/research/test_alphafold_integration_regressions.py",
+    "tests/research/test_alphafold_security.py",
+    "tests/research/test_financial_evoformer.py",
+    "tests/research/test_financial_structural_model.py",
     "tests/research/test_alphafold_triangle.py",
     "tests/research/test_alphafold_triangle_reference.py",
     "tests/research/test_alphafold_triangle_attention.py",
