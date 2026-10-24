@@ -24,3 +24,32 @@ def test_universe_failure_isolation():
     result = run_universe_offline(Store(), ["BTCUSDT", "ETHUSDT"])
     assert set(result) == {"BTCUSDT", "ETHUSDT"}
     assert all(v["status"] == "BLOCKED" for v in result.values())
+
+
+def test_offline_store_exposes_only_read_capabilities():
+    from strattester.research.protein_geometry_offline import _ReadOnlyStore
+
+    class Store:
+        def coverage(self, *args, **kwargs):
+            return SimpleNamespace(count=0, gaps=())
+
+        def iter_candles(self, *args, **kwargs):
+            return iter(())
+
+        def execute_order(self, *args, **kwargs):
+            raise AssertionError('order execution must not be exposed')
+
+        def insert_candle(self, *args, **kwargs):
+            raise AssertionError('writes must not be exposed')
+
+    view = _ReadOnlyStore(Store())
+    assert view.coverage('BTCUSDT', 'candles', '1m').count == 0
+    assert list(view.iter_candles('BTCUSDT', '1m')) == []
+    assert not hasattr(view, 'execute_order')
+    assert not hasattr(view, 'insert_candle')
+
+
+def test_universe_rejects_string_instead_of_symbols():
+    import pytest
+    with pytest.raises(ValueError, match='sequence'):
+        run_universe_offline(object(), 'BTCUSDT')
