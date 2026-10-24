@@ -26,3 +26,10 @@ def test_triangle_outgoing_orientation_and_mask():
 def test_attention_rejects_invalid_mask():
     with pytest.raises(ValueError):
         masked_attention_reference([[1., 2.]], [[1., 2.]], [[1.]], [[1]])
+
+
+def test_empty_attention_and_triangle_fail_closed():
+    with pytest.raises(ValueError):
+        masked_attention_reference(np.empty((1, 0)), np.empty((1, 0)), np.ones((1, 1)), np.ones((1, 1), dtype=bool))
+    with pytest.raises(ValueError):
+        triangle_outgoing_reference(np.empty((0, 0, 1)), np.empty((0, 0), dtype=bool))
