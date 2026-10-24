@@ -25,3 +25,14 @@ Labels record [label_start_ns,label_end_ns] and execution horizon. Purged walk-f
 
 ## Integration boundaries
 Grid owns raw observation semantics; Strattester owns versioned feature/label transforms; ML owns fitted artifacts and inference cutoffs; math independently verifies equations and invariants. No live exchange orders, no production database mutation, no automatic deployment. Release gate remains NO-GO until real schema and adapters have been inspected and tests executed against pinned commits.
+
+## Source-semantics and license guard (audit addendum)
+Grid's documented `candles_1m` and `footprint_1m` describe **executed public trade flow** (aggressive buy/sell volume, delta, executed-volume POC). They must never be renamed or interpreted as resting order-book depth, bid/ask queue size, or true liquidity. The README is descriptive evidence, not verification of physical PostgreSQL DDL; the actual schema, revision, constraints, tick scaling and timestamp types remain UNVERIFIED.
+
+The `math` repository's README states that no license is granted by default. Until explicit authorization and pinned-source review, do not copy its implementation into Strattester. Independently derive standard equations and compare results through isolated, read-only test fixtures. Its documented Bitcoin/polynomial-root example is illustrative and is not evidence of forecasting power.
+
+## Explicit remaining acceptance blockers
+- Obtain exact Grid DDL and query/adapter paths at a pinned commit; verify UTC timestamps, watermark, snapshot consistency and all market/instrument keys against code and synthetic PostgreSQL fixtures.
+- Verify Strattester's actual feature builder and Evoformer-like pair/triangle update call graph; this reference mask is a **predicate**, not enforcement inside model kernels. Require perturb-future metamorphic tests at every intermediate layer.
+- Validate independent `math` equations, licensing and numeric tolerances against frozen inputs; compare CPU/GPU precision, reject nonfinite intermediate tensors.
+- Require both general CI and mathematical CI at the exact PR HEAD, including nonzero collected test count and immutable test evidence. Do not promote README-level assumptions to VERIFIED.
