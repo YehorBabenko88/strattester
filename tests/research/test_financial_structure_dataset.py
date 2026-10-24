@@ -11,7 +11,7 @@ def test_labels_do_not_enter_features():
     other = make_samples("SOLUSDT", "1m", ts, changed, window=4, horizon=3)
     assert samples[0].representation == other[0].representation
     assert samples[0].origin_timestamp < samples[0].target_timestamp
-    assert samples[-1].target_timestamp == ts[-2]
+    assert samples[-1].target_timestamp == ts[-1]
 
 
 def test_invalid_horizon():
