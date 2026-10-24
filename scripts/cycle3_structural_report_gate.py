@@ -11,8 +11,9 @@ REQUIRED_FILES = {
     "test_cycle3_forecast_contract.py",
     "test_cycle3_resource_admission.py",
     "test_cycle3_gradient_oracle.py",
+    "test_cycle3_checkpoint_readiness.py",
 }
-EXPECTED = 36
+EXPECTED = 38
 
 
 def verify(path: Path) -> None:
@@ -46,7 +47,7 @@ def main() -> int:
     except (ValueError, OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
         print(f"BLOCKED: {exc}", file=sys.stderr)
         return 1
-    print("PASS: 36 unique test nodes, six required files, no skipped/failed outcomes")
+    print("PASS: 38 unique test nodes, seven required files, no skipped/failed outcomes")
     return 0
 
 
