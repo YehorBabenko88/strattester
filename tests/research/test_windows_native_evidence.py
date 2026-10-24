@@ -43,6 +43,14 @@ def test_symlink_evidence_denied(tmp_path):
         hash_static_evidence_file(link)
 
 
+def test_untrusted_pathlike_object_denied():
+    class FakePath:
+        def __fspath__(self):
+            pytest.fail("untrusted fspath executed")
+    with pytest.raises(SandboxDenied, match="invalid evidence path"):
+        hash_static_evidence_file(FakePath())
+
+
 def test_missing_evidence_file_fails_closed(tmp_path):
     with pytest.raises(SandboxDenied, match="evidence file open refused"):
         hash_static_evidence_file(tmp_path / "missing.txt")
