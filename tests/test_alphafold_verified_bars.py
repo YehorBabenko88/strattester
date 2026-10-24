@@ -47,3 +47,13 @@ def test_integrated_batch_limit_rejected(tmp_path):
 def test_integrated_misaligned_window_rejected(tmp_path):
     with pytest.raises(ValueError, match="aligned"):
         read(prepare(tmp_path, [0, 60, 120]), event_cutoff=119)
+
+
+def test_conflicting_revisions_rejected(tmp_path):
+    from strattester.alphafold_revisions import RevisionConflictError
+    source = prepare(tmp_path, [0, 60, 120])
+    with sqlite3.connect(source.path) as db:
+        db.execute("INSERT INTO bars VALUES (?,?,?,?,?,?,?,?)",
+                   ("BTCUSDT", "1m", "linear", 60, 100, 60, "VERIFIED", 1))
+    with pytest.raises(RevisionConflictError, match="Multiple versions"):
+        read(source)
