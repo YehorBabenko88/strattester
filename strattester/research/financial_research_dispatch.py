@@ -3,6 +3,7 @@
 Do not use this for live trading. Only a typed financial Snapshot is accepted.
 """
 from __future__ import annotations
+from pathlib import Path
 from strattester.research.financial_contract import Snapshot, Instrument, integer, digest
 from strattester.research.financial_checkpoint import load_checkpoint
 from strattester.research.financial_pipeline import predict_snapshot
@@ -38,8 +39,8 @@ def predict_research_only(spec, snapshot, *, instrument, model_path, model_sha25
     # Reject backdated availability before reading any checkpoint bytes.
     if available_ns < snapshot.origin_ns:
         raise ValueError("prediction availability predates snapshot")
-    if not isinstance(model_path, (str, __import__("pathlib").Path)):
-        raise ValueError("checkpoint path must be a filesystem path")
+    if type(model_path) not in (str, Path) or not str(model_path):
+        raise ValueError("checkpoint path must be a nonempty ordinary filesystem path")
     model, metadata = load_checkpoint(model_path, model_sha256)
     if model.config.horizon_ns != spec.forecast_horizon_ns:
         raise ValueError("checkpoint horizon mismatch")
