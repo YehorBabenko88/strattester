@@ -17,11 +17,11 @@ def test_configuration_limits_fail_before_allocation(field,value,monkeypatch):
 
 
 def test_workspace_budget_rejected_before_projection():
-    model=build_structural_model(StructuralConfig(max_work_bytes=40000,recycles=2))
+    model=build_structural_model(StructuralConfig(max_work_bytes=1_100_000,recycles=2))
     called=[]
     hook=model.input.register_forward_pre_hook(lambda *a:called.append(True))
     with pytest.raises(ValueError,match="workspace budget"):
-        model(torch.ones(1,2,8,3),torch.ones(1,2,8,dtype=torch.bool))
+        model(torch.ones(2,2,16,3),torch.ones(2,2,16,dtype=torch.bool))
     hook.remove()
     assert not called
 
