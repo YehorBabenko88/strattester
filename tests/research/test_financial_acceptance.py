@@ -44,6 +44,7 @@ def test_real_unittest_subtests_have_exact_accounting(tmp_path,fail):
     raw=tmp_path/'raw.json'
     run=subprocess.run([sys.executable,'-m','pytest','-q',str(source),'--json-report',f'--json-report-file={raw}',
                         f'--basetemp={tmp_path / "cases"}'],capture_output=True,text=True,timeout=30)
+    assert raw.is_file(),run.stdout+run.stderr
     payload=json.loads(raw.read_text())
     normalized=execution_report(payload,'a'*40,'math',run.returncode)
     node=payload['tests'][0]['nodeid']
