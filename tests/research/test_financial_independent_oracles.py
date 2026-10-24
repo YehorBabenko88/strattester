@@ -16,7 +16,7 @@ class IntegratedFinancialOracleTests(unittest.TestCase):
             with self.subTest(position=position):
                 observed = evaluate_ledger([Trade("BTC", 1, 2, .012, position)],
                                            fee_bps=7, slippage_bps=3, funding_bps=2)
-                expected = reference_roundtrip(position, .012, 7, 3, -2 / 10000)
+                expected = reference_roundtrip(position, .012, 7, 3, -position * 2 / 10000)
                 self.assertAlmostEqual(observed["returns"][0], expected)
 
     def test_gaussian_closed_form_oracle(self):
