@@ -27,12 +27,12 @@ def predict_research_only(spec, snapshot, *, instrument, model_path, model_sha25
         raise ValueError("timeframe/horizon differs from frozen research specification")
     integer(available_ns, "prediction available_ns")
     digest(model_sha256)
+    # Reject backdated availability before reading any checkpoint bytes.
+    if available_ns < snapshot.origin_ns:
+        raise ValueError("prediction availability predates snapshot")
     model, metadata = load_checkpoint(model_path, model_sha256)
     if model.config.horizon_ns != spec.forecast_horizon_ns:
         raise ValueError("checkpoint horizon mismatch")
-    # Prediction availability must never be backdated before snapshot origin.
-    if available_ns < snapshot.origin_ns:
-        raise ValueError("prediction availability predates snapshot")
     return predict_snapshot(snapshot, model, instrument=instrument,
                             timeframe_ns=timeframe_ns, horizon_ns=horizon_ns,
                             model_sha256=model_sha256, available_ns=available_ns)
