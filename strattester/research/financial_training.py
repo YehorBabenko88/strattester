@@ -16,6 +16,9 @@ def fit_structural(model, features, targets, mask, *, seed=0, steps=20, learning
     if targets.dtype!=features.dtype or targets.device!=features.device or not torch.isfinite(targets).all(): raise ValueError('invalid labels')
     if len(features)>1024: raise ValueError('training sample budget')
     model.config.validate()
+    bank_bytes=sum(t.numel()*t.element_size() for t in (features,targets,mask))
+    if bank_bytes>model.config.max_work_bytes:raise ValueError('training bank budget exceeded')
+    if cancel():raise TrainingCancelled('training cancelled before state allocation')
     before={name:value.detach().clone() for name,value in model.state_dict().items()}
     previous_mode=model.training
     deterministic=torch.are_deterministic_algorithms_enabled()
