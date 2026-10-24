@@ -25,6 +25,11 @@ class FinancialResearchSpecTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             FinancialResearchSpec((self.alt, self.alt), 60, 300, "v1").validate()
 
+    def test_structural_track_limit(self):
+        instruments = tuple(Instrument("bybit", "linear", f"COIN{i}USDT") for i in range(65))
+        with self.assertRaises(ValueError):
+            FinancialResearchSpec(instruments, 60, 300, "v1").validate()
+
     def test_universe_exceeds_sample_budget(self):
         with self.assertRaises(ValueError):
             FinancialResearchSpec((self.btc, self.alt), 60, 300, "v1", max_samples=1).validate()
