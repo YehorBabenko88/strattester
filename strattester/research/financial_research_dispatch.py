@@ -41,7 +41,8 @@ def predict_research_only(spec, snapshot, *, instrument, model_path, model_sha25
     model, metadata = load_checkpoint(model_path, model_sha256)
     if model.config.horizon_ns != spec.forecast_horizon_ns:
         raise ValueError("checkpoint horizon mismatch")
-    if type(model.config.max_tracks) is not int or type(model.config.max_tokens) is not int:
+    if (type(model.config.max_tracks) is not int or type(model.config.max_tokens) is not int
+            or model.config.max_tracks < 1 or model.config.max_tokens < 2):
         raise ValueError("invalid model resource metadata")
     track_count = len({bar.instrument for bar in snapshot.bars if bar.timeframe_ns == spec.timeframe_ns})
     if track_count > model.config.max_tracks:
