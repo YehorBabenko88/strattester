@@ -18,6 +18,7 @@ FILES = (
     "tests/research/test_alphafold_pair_stack.py",
     "tests/research/test_alphafold_pair_stack_budget.py",
     "tests/research/test_alphafold_outer_product.py",
+    "tests/research/test_alphafold_msa_pair_bridge.py",
 )
 MIN_EXECUTED = 18
 
