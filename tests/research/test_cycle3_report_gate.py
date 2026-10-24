@@ -39,6 +39,19 @@ class ReportGateTests(unittest.TestCase):
         self.payload["tests"][0]["outcome"]="skipped"
         with self.assertRaises(ValueError):self.check()
 
+    def test_missing_report_rejected(self):
+        with self.assertRaises(OSError):
+            verify(self.path)
+
+    def test_malformed_json_rejected(self):
+        self.path.write_text("{not-json",encoding="utf-8")
+        with self.assertRaises(json.JSONDecodeError):
+            verify(self.path)
+
+    def test_duplicate_pass_with_invalid_outcome_rejected(self):
+        self.payload["tests"][0]["outcome"]="xpassed"
+        with self.assertRaises(ValueError):self.check()
+
     def test_summary_mismatch_rejected(self):
         self.payload["summary"]["passed"]=EXPECTED-1
         with self.assertRaises(ValueError):self.check()
