@@ -37,6 +37,8 @@ def verify_disposable_vm_receipt(receipt, *, expected_target_sha):
 
 def hash_static_evidence_file(path, *, max_bytes=1024 * 1024):
     """Bounded hash for a disposable static evidence file, not a live DB."""
+    if type(path) not in (str, Path) or not path:
+        raise SandboxDenied("invalid evidence path")
     path = Path(path)
     if type(max_bytes) is not int or max_bytes <= 0 or path.is_symlink():
         raise SandboxDenied("unsafe evidence file")
