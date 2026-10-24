@@ -5,7 +5,7 @@ import math
 def log_returns(prices):
     if any(not math.isfinite(p) or p <= 0 for p in prices):
         raise ValueError("prices must be finite and positive")
-    return [math.log(b / a) for a, b in zip(prices, prices[1:])]
+    return [math.log(b) - math.log(a) for a, b in zip(prices, prices[1:])]
 
 
 def sample_volatility(returns):
