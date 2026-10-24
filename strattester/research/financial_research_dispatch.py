@@ -44,6 +44,9 @@ def predict_research_only(spec, snapshot, *, instrument, model_path, model_sha25
     track_count = len({bar.instrument for bar in snapshot.bars if bar.timeframe_ns == spec.timeframe_ns})
     if track_count > model.config.max_tracks:
         raise ValueError("snapshot track count exceeds verified model admission")
+    token_count = len({bar.candle_open_ns for bar in snapshot.bars if bar.timeframe_ns == spec.timeframe_ns})
+    if token_count > model.config.max_tokens:
+        raise ValueError("snapshot token count exceeds verified model admission")
     if (not isinstance(metadata, dict) or not isinstance(metadata.get("config"), dict)
             or metadata["config"].get("horizon_ns") != spec.forecast_horizon_ns):
         raise ValueError("checkpoint metadata horizon mismatch")
