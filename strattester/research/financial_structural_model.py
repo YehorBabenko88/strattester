@@ -26,7 +26,9 @@ class StructuralConfig:
     def validate(self):
         for name,value in self.__dict__.items(): integer(value,name,0 if name=='recycles' else 1)
         if (self.hidden%self.heads or self.max_tokens<2 or self.max_tokens>256
-            or self.depth>8 or self.recycles>4 or self.input_channels>128):
+            or self.depth>8 or self.recycles>4 or self.input_channels>128
+            or self.hidden>128 or self.intermediate>64 or self.max_tracks>64 or self.max_batch>32
+            or self.max_parameters>2_000_000 or self.max_work_bytes>512*1024*1024):
             raise ValueError('invalid structural configuration')
         # Conservative parameter bound includes every imported projection and
         # transitions. Checked before any nn.Module with parameters is created.
@@ -118,7 +120,7 @@ def build_structural_model(config=StructuralConfig()):
             if estimate>config.max_work_bytes: raise ValueError('structural workspace budget exceeded')
             if not torch.isfinite(features).all() or not ((mask==0)|(mask==1)).all(): raise ValueError('nonfinite features or nonbinary mask')
             mask=mask.bool()
-            if not mask.any(dim=(1,2)).all(): raise ValueError('empty available window')
+            if not mask[:,0].any(dim=1).all(): raise ValueError('empty target-track available window')
             # Zero unavailable inputs BEFORE normalization/projection. Every pair
             # operator receives endpoints derived only from this available set.
             base=self.input(features*mask.unsqueeze(-1))*mask.unsqueeze(-1)
@@ -131,9 +133,11 @@ def build_structural_model(config=StructuralConfig()):
                     msa=base+self.recycle_msa(msa)*mask.unsqueeze(-1)
                     pair=self.recycle_pair(pair)*pm.unsqueeze(-1)
                 for layer in self.layers: msa,pair=layer(msa,pair,mask,pm)
-            single=self.single((msa*mask.unsqueeze(-1)).sum(1)/mask.sum(1).clamp_min(1).unsqueeze(-1))
+            # Track zero is the declared target instrument; context tracks
+            # affect it through column attention and pair exchange.
+            single=self.single(msa[:,0])
             # Last available token, not an arbitrary padded/future suffix.
-            indices=(torch.arange(n,device=features.device)[None,:]*valid).max(1).values
+            indices=(torch.arange(n,device=features.device)[None,:]*mask[:,0]).max(1).values
             batch=torch.arange(b,device=features.device)
             pooled_pair=(pair[batch,indices]*valid.unsqueeze(-1)).sum(1)/valid.sum(1).unsqueeze(-1)
             raw=self.head(torch.cat((single[batch,indices],pooled_pair),-1))

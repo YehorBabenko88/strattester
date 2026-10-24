@@ -32,6 +32,12 @@ def test_future_unavailable_values_cannot_affect_any_recycling_prediction():
     torch.testing.assert_close(model(x,mask),model(changed,mask),rtol=0,atol=0)
 
 
+def test_target_track_identity_changes_forecast():
+    torch.manual_seed(7);model=build_structural_model(StructuralConfig(recycles=0))
+    x,mask=inputs()
+    assert not torch.allclose(model(x,mask),model(x.flip(1),mask.flip(1)))
+
+
 def test_recycling_reuses_learned_operators_and_changes_prediction():
     torch.manual_seed(7); a=build_structural_model(StructuralConfig(recycles=0))
     torch.manual_seed(7); b=build_structural_model(StructuralConfig(recycles=1))
@@ -49,6 +55,12 @@ def test_resource_preflight_blocks_track_expansion_before_projection():
 @pytest.mark.parametrize('cfg',[StructuralConfig(hidden=100000),StructuralConfig(max_parameters=1),StructuralConfig(recycles=1000)])
 def test_constructor_rejects_unbounded_parameters_before_allocation(cfg,monkeypatch):
     monkeypatch.setattr(torch.nn,'Linear',lambda *a,**k:pytest.fail('allocation before admission'))
+    with pytest.raises(ValueError):build_structural_model(cfg)
+
+
+def test_untrusted_config_cannot_raise_its_own_host_resource_limits(monkeypatch):
+    monkeypatch.setattr(torch.nn,'Linear',lambda *a,**k:pytest.fail('allocation before admission'))
+    cfg=StructuralConfig(hidden=100000,max_parameters=10**20,max_work_bytes=10**30)
     with pytest.raises(ValueError):build_structural_model(cfg)
 
 
