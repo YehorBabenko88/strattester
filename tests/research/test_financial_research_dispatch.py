@@ -97,6 +97,20 @@ class FinancialResearchDispatchTests(unittest.TestCase):
                                           timeframe_ns=60, horizon_ns=300, available_ns=99)
                 loader.assert_not_called()
 
+    def test_empty_tracks_rejected_before_checkpoint_load(self):
+        class FakeSnapshot:
+            origin_ns = 100
+            bars = ()
+            def validate(self):
+                return self
+        with patch("strattester.research.financial_research_dispatch.Snapshot", FakeSnapshot):
+            with patch("strattester.research.financial_research_dispatch.load_checkpoint") as loader:
+                with self.assertRaises(ValueError):
+                    predict_research_only(self.spec, FakeSnapshot(), instrument=self.instrument,
+                                          model_path="ignored", model_sha256="0" * 64,
+                                          timeframe_ns=60, horizon_ns=300, available_ns=100)
+                loader.assert_not_called()
+
     def test_single_token_rejected_before_inference(self):
         class FakeSnapshot:
             origin_ns = 100
