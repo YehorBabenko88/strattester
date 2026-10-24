@@ -1,0 +1,36 @@
+name: alphafold-research-cpu
+
+on:
+  pull_request:
+    paths:
+      - 'strattester/research/alphafold_*.py'
+      - 'tests/research/test_alphafold_*.py'
+      - '.github/workflows/alphafold-research-cpu.yml'
+      - 'scripts/alphafold_cpu_gate.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-operators:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch and test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check pytest pytest-json-report
+      - name: Assert PyTorch is importable
+        run: python -c "import torch; assert not torch.cuda.is_available(); print(torch.__version__)"
+      - name: Run fail-closed structural gate
+        run: python scripts/alphafold_cpu_gate.py
