@@ -17,6 +17,10 @@ class FinancialResearchSpecTests(unittest.TestCase):
             with self.subTest(overrides=overrides), self.assertRaises(ValueError):
                 FinancialResearchSpec((self.alt,), 60, 300, "v1", **overrides).validate()
 
+    def test_unhashable_universe_element_fails_closed(self):
+        with self.assertRaises(ValueError):
+            FinancialResearchSpec(([],), 60, 300, "v1").validate()
+
     def test_duplicate_universe_rejected(self):
         with self.assertRaises(ValueError):
             FinancialResearchSpec((self.alt, self.alt), 60, 300, "v1").validate()
