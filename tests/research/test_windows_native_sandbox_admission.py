@@ -34,6 +34,10 @@ def test_invalid_policy_denied(kwargs):
         SandboxPolicy(**base).validate()
 
 
+def test_canonical_path_prefilter_only():
+    assert reject_unsafe_windows_path(r"C:\\safe\\model.json") == r"C:\\safe\\model.json"
+
+
 def test_no_capability_evidence_denied():
     with pytest.raises(SandboxDenied):
         require_verified_capabilities(policy(), {})
