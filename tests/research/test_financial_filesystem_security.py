@@ -42,3 +42,23 @@ def test_checkpoint_publication_rejects_junction_parent(tmp_path):
         assert not list(target.iterdir())
     finally:
         junction.rmdir()
+
+@pytest.mark.parametrize('reader',['artifact','sqlite'])
+def test_parent_traversal_is_rejected_before_normalization(tmp_path,reader):
+    # Lexical contract test, not a claim about native POSIX traversal semantics.
+    directory=tmp_path/'ordinary'; directory.mkdir()
+    target=tmp_path/'input'
+    if reader=='artifact':target.write_bytes(b'{}')
+    else:
+        with sqlite3.connect(target) as db:
+            db.execute('CREATE TABLE research_bars (exchange,market_type,symbol,timeframe_ns,candle_open_ns,candle_close_ns,event_ns,ingest_ns,available_ns,watermark_ns,close,quality,eligible,complete,revision,producer,source_sha)')
+    path=directory/'..'/'input'
+    with pytest.raises(ValueError,match='parent traversal'):
+        if reader=='artifact':verified_bytes(path,sha256(b'{}').hexdigest(),100)
+        else:tuple(read_sqlite_bars(path,origin_ns=120))
+
+def test_ordinary_relative_artifact_path_remains_accepted(tmp_path,monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    Path('ordinary').mkdir()
+    Path('ordinary/input').write_bytes(b'{}')
+    assert verified_bytes(Path('ordinary/input'),sha256(b'{}').hexdigest(),100)==b'{}'
