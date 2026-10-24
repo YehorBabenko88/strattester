@@ -40,6 +40,14 @@ def test_canonical_path_prefilter_only():
     assert reject_unsafe_windows_path(r"C:\safe\model.json") == r"C:\safe\model.json"
 
 
+def test_capability_verifier_rejects_fake_policy():
+    class FakePolicy:
+        def validate(self):
+            pytest.fail("untrusted validator called")
+    with pytest.raises(SandboxDenied, match="invalid policy type"):
+        require_verified_capabilities(FakePolicy(), {})
+
+
 def test_no_capability_evidence_denied():
     with pytest.raises(SandboxDenied):
         require_verified_capabilities(policy(), {})
