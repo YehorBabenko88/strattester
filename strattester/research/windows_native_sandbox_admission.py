@@ -63,7 +63,8 @@ def reject_unsafe_windows_path(path: str) -> str:
             or p.startswith("\\\\?\\")
             or p.startswith("\\\\.\\")
             or ":" in p[2:]
-            or any(part in ("..", ".") for part in p[3:].split("\\"))\n            or any(not part for part in p[3:].split("\\"))
+            or any(part in ("..", ".") for part in p[3:].split("\\"))
+            or any(not part for part in p[3:].split("\\"))
             or any(part.rstrip(" .") != part for part in PureWindowsPath(p).parts)
             or any(part.split(".")[0].upper() in
                    ({"CON", "PRN", "AUX", "NUL"} |
