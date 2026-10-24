@@ -31,6 +31,9 @@ def reject_linked_path(path):
     handle-relative confinement is still required against hostile concurrent
     namespace changes on Windows (and for SQLite's separate open).
     """
+    path=Path(path)
+    if ".." in path.parts:
+        raise ValueError("parent traversal artifact path rejected")
     path=Path(os.path.abspath(path))
     for component in (*reversed(path.parents),path):
         info=component.lstat()
