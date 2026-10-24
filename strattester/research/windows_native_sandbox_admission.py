@@ -78,9 +78,9 @@ def reject_unsafe_windows_path(path: str) -> str:
 
 
 def require_verified_capabilities(policy: SandboxPolicy, attested: dict):
-    policy.validate()
     if type(policy) is not SandboxPolicy:
         raise SandboxDenied("invalid policy type")
+    policy.validate()
     if type(attested) is not dict or set(attested) != {c.value for c in Capability}:
         raise SandboxDenied("missing or unexpected capability evidence")
     if any(type(v) is not bool or v is not True for v in attested.values()):
