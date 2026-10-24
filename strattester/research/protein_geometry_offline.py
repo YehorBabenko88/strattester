@@ -11,6 +11,8 @@ def run_offline(store, symbol, *, start_ms=None, end_ms=None):
 
 
 def run_universe_offline(store, symbols, *, start_ms=None, end_ms=None):
+    if isinstance(symbols, (str, bytes)):
+        raise ValueError("symbols must be a sequence, not a string")
     results = {}
     for symbol in dict.fromkeys(symbols):
         try:
