@@ -1,6 +1,5 @@
 """Offline QA probes for native sandbox evidence (never launches a child)."""
 import hashlib
-import json
 from pathlib import Path
 
 from .windows_native_sandbox_admission import SandboxDenied
@@ -17,7 +16,7 @@ def verify_disposable_vm_receipt(receipt, *, expected_target_sha):
     """Validate evidence shape only. Does not authorize execution or G1."""
     if type(receipt) is not dict or set(receipt) != REQUIRED_KEYS:
         raise SandboxDenied("incomplete or extra receipt fields")
-    if receipt["schema"] != 1 or receipt["target_sha"] != expected_target_sha:
+    if type(receipt["schema"]) is not int or receipt["schema"] != 1 or receipt["target_sha"] != expected_target_sha:
         raise SandboxDenied("stale receipt")
     for key in ("target_sha", "policy_sha256", "binary_sha256"):
         value = receipt[key]
