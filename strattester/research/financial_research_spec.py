@@ -37,8 +37,9 @@ class FinancialResearchSpec:
         integer(self.max_folds, "max_folds", 1)
         if len(self.universe) > self.max_samples:
             raise ValueError("universe exceeds sample budget")
-        if len(self.universe) > 64:
-            raise ValueError("universe exceeds structural track admission limit")
+        # Actual track admission is checked against the loaded model config.
+        # Do not reject a broad research universe merely because a single
+        # prediction snapshot uses a smaller model-specific context.
         if self.forecast_horizon_ns % self.timeframe_ns:
             raise ValueError("forecast horizon must align to timeframe")
         if self.max_samples > 1024 or self.max_folds > 32:
