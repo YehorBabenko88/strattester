@@ -3,7 +3,9 @@ on:
   pull_request:
     paths:
       - 'strattester/research/windows_native_sandbox_admission.py'
-      - 'tests/research/test_windows_native_sandbox_admission.py'\n      - 'strattester/research/windows_native_evidence.py'\n      - 'tests/research/test_windows_native_evidence.py'
+      - 'tests/research/test_windows_native_sandbox_admission.py'
+      - 'strattester/research/windows_native_evidence.py'
+      - 'tests/research/test_windows_native_evidence.py'
       - '.github/workflows/windows-sandbox-admission.yml'
   workflow_dispatch:
 permissions:
