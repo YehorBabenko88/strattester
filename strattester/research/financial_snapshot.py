@@ -24,9 +24,28 @@ def unique_object(pairs):
     return result
 
 
+def reject_linked_path(path):
+    """Reject existing symlink/reparse components; not native race confinement.
+
+    Keep the lexical path: resolving first hides ancestor junctions. Native
+    handle-relative confinement is still required against hostile concurrent
+    namespace changes on Windows (and for SQLite's separate open).
+    """
+    path=Path(path)
+    if ".." in path.parts:
+        raise ValueError("parent traversal artifact path rejected")
+    path=Path(os.path.abspath(path))
+    for component in (*reversed(path.parents),path):
+        info=component.lstat()
+        if (stat.S_ISLNK(info.st_mode)
+            or getattr(info,'st_file_attributes',0)&getattr(stat,'FILE_ATTRIBUTE_REPARSE_POINT',0x400)):
+            raise ValueError('symlink/reparse artifact path rejected')
+    return path
+
+
 def verified_bytes(path, expected_sha256, max_bytes):
     digest(expected_sha256); integer(max_bytes,'max_bytes',1)
-    path=Path(path)
+    path=reject_linked_path(path)
     if path.is_symlink() or not path.is_file(): raise ValueError('ordinary non-symlink artifact required')
     fd=os.open(path,os.O_RDONLY|getattr(os,'O_BINARY',0)|getattr(os,'O_NOFOLLOW',0))
     with os.fdopen(fd,'rb') as stream:
@@ -35,6 +54,7 @@ def verified_bytes(path, expected_sha256, max_bytes):
         if not stat.S_ISREG(info.st_mode) or info.st_size>max_bytes: raise ValueError('artifact size/type budget')
         data=stream.read(max_bytes+1)
         after=os.fstat(stream.fileno())
+        reject_linked_path(path)
         current=path.lstat()
         if (after.st_nlink!=1 or (info.st_dev,info.st_ino,info.st_size,info.st_mtime_ns)!=(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns)
             or (current.st_dev,current.st_ino)!=(info.st_dev,info.st_ino) or path.is_symlink()):
@@ -92,7 +112,7 @@ def read_sqlite_bars(path, *, origin_ns, max_rows=100_000):
     must separately bind rows to a trusted coherent export before model use.
     """
     integer(origin_ns,'origin'); integer(max_rows,'max_rows',1)
-    path=Path(path)
+    path=reject_linked_path(path)
     if path.is_symlink() or not path.is_file(): raise ValueError('existing ordinary SQLite file required')
     con=sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True,isolation_level=None,timeout=1)
     con.row_factory=sqlite3.Row
