@@ -46,7 +46,12 @@ def test_active_gradients_and_deterministic_eval(recycles):
     torch.testing.assert_close(first,second,rtol=0,atol=0)
     first.sum().backward()
     assert torch.isfinite(x.grad).all()
-    assert all(p.grad is not None and torch.isfinite(p.grad).all() for p in model.parameters())
+    for name, parameter in model.named_parameters():
+        if recycles == 0 and name.startswith(("recycle_msa.", "recycle_pair.")):
+            assert parameter.grad is None, f"unexpected inactive gradient: {name}"
+        else:
+            assert parameter.grad is not None, f"missing active gradient: {name}"
+            assert torch.isfinite(parameter.grad).all(), f"nonfinite gradient: {name}"
 
 
 def test_equations_version_rejected_before_module_allocation(monkeypatch):
