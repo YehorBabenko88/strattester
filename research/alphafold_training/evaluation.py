@@ -24,7 +24,8 @@ def validate(samples):
     seen = set()
     for s in samples:
         key = (s.instrument, s.decision_time)
-        if key in seen or s.label_end_time <= s.decision_time or s.available_at > s.decision_time:
+        if (not s.instrument or not all(isinstance(t, int) and not isinstance(t, bool) for t in (s.decision_time, s.label_end_time, s.available_at))
+                or key in seen or s.label_end_time <= s.decision_time or s.available_at > s.decision_time):
             raise ValueError("duplicate sample, invalid label interval, or future feature")
         if not math.isfinite(s.forward_return) or any(not math.isfinite(x) for x in s.features):
             raise ValueError("non-finite data")
@@ -48,16 +49,19 @@ def walk_forward(samples, boundaries, embargo=0):
         yield purged_split(samples, a, b, c, embargo)
 
 def fingerprint(records):
-    payload = json.dumps(records, sort_keys=True, separators=(",", ":"), allow_nan=False, default=str)
+    payload = json.dumps(records, sort_keys=True, separators=(",", ":"), allow_nan=False)
     return sha256(payload.encode("utf-8")).hexdigest()
 
 def net_returns(samples, positions, fee_bps, slippage_bps):
     """One decision per independent horizon; fee and slippage per position change."""
-    if len(samples) != len(positions) or fee_bps < 0 or slippage_bps < 0:
+    if (len(samples) != len(positions) or not all(isinstance(c, (int, float)) and not isinstance(c, bool) and math.isfinite(c) and c >= 0 for c in (fee_bps, slippage_bps))):
         raise ValueError("invalid execution inputs")
+    validate(samples)
+    if list(samples) != sorted(samples, key=lambda s: (s.decision_time, s.instrument)):
+        raise ValueError("execution samples must be ordered by decision time")
     out, previous = [], {}
     for s, p in zip(samples, positions):
-        if p not in (-1, 0, 1):
+        if type(p) is not int or p not in (-1, 0, 1):
             raise ValueError("positions must be -1, 0, 1")
         turnover = abs(p - previous.get(s.instrument, 0))
         out.append(p * s.forward_return - turnover * (fee_bps + slippage_bps) / 10000)
@@ -68,6 +72,8 @@ def bootstrap_mean_ci(values, *, block_size=5, repetitions=1000, seed=0, alpha=0
     """Moving-block bootstrap; exploratory only, not a guarantee of coverage."""
     if not values or block_size < 1 or repetitions < 2 or not 0 < alpha < 1:
         raise ValueError("invalid bootstrap arguments")
+    if any(not isinstance(x, (int, float)) or isinstance(x, bool) or not math.isfinite(x) for x in values):
+        raise ValueError("bootstrap requires finite numeric values")
     n = len(values)
     rng = random.Random(seed)
     estimates = []
