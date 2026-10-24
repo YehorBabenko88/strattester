@@ -19,6 +19,19 @@ class WalkForwardTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             compare_walk_forward(self.rows, [ResearchConfig(10, 20, 30), ResearchConfig(20, 30, 40)])
 
+    def test_prior_oos_interval_overlap_across_instruments_rejected(self):
+        rows = [
+            Sample("BTC", 1, 2, 1, (1.,), .001),
+            Sample("BTC", 11, 12, 11, (1.,), .001),
+            Sample("BTC", 21, 28, 21, (1.,), .001),
+            Sample("ETH", 25, 26, 25, (1.,), .001),
+            Sample("ETH", 31, 32, 31, (1.,), .001),
+            Sample("ETH", 41, 42, 41, (1.,), .001),
+        ]
+        configs = [ResearchConfig(10, 20, 30), ResearchConfig(30, 40, 50)]
+        with self.assertRaises(ValueError):
+            compare_walk_forward(rows, configs)
+
     def test_duplicate_test_period_rejected(self):
         with self.assertRaises(ValueError):
             compare_walk_forward(self.rows, [ResearchConfig(10, 20, 30)] * 2)
