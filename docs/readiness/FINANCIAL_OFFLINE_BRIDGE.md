@@ -22,3 +22,7 @@ an explicit G1 authorization. Until then, use synthetic fixtures only.
 Open gates: native Grid producer export, physical process/network isolation,
 cross-store snapshot attestation, real OOS, GPU and full upstream equivalence.
 Physical G1 NOT_AUTHORIZED; trading NO-GO.
+
+## Superseding authenticated route (cycle2)
+
+For signed producer exports use financial_signed_export.load_attested_export and financial_attested_inference.run_attested_offline, with explicit disabled research registry integration in strategies/builtin/financial_structural.py. This older run_verified_offline helper remains unauthenticated engineering-only and is not the accepted Grid trust boundary. See CYCLE2_SIGNED_OFFLINE_INTEGRATION.md; native producer truth, native process isolation and G1 remain BLOCKED.

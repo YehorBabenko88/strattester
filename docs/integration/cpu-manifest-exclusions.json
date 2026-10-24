@@ -1,8 +1,35 @@
 {
   "excluded": [
-    "tests/research/test_alphafold_triangle.py::test_gpu_cpu_forward_parity",
-    "tests/research/test_alphafold_triangle_attention.py::test_cuda_cpu_forward",
-    "tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services"
+    {
+      "nodeid": "tests/research/test_alphafold_triangle.py::test_gpu_cpu_forward_parity",
+      "required_in": "real GPU gate (BLOCKED)",
+      "reason": "CUDA unavailable to CPU gates"
+    },
+    {
+      "nodeid": "tests/research/test_alphafold_triangle_attention.py::test_cuda_cpu_forward",
+      "required_in": "real GPU gate (BLOCKED)",
+      "reason": "CUDA unavailable to CPU gates"
+    },
+    {
+      "nodeid": "tests/research/test_financial_filesystem_security.py::test_ancestor_windows_junction_is_rejected[artifact]",
+      "required_in": "full Windows Python3.11/3.13 matrix",
+      "reason": "Windows-only native filesystem/lifecycle case; not executed on Linux"
+    },
+    {
+      "nodeid": "tests/research/test_financial_filesystem_security.py::test_ancestor_windows_junction_is_rejected[sqlite]",
+      "required_in": "full Windows Python3.11/3.13 matrix",
+      "reason": "Windows-only native filesystem/lifecycle case; not executed on Linux"
+    },
+    {
+      "nodeid": "tests/research/test_financial_filesystem_security.py::test_checkpoint_publication_rejects_junction_parent",
+      "required_in": "full Windows Python3.11/3.13 matrix",
+      "reason": "Windows-only native filesystem/lifecycle case; not executed on Linux"
+    },
+    {
+      "nodeid": "tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services",
+      "required_in": "full Windows Python3.11/3.13 matrix",
+      "reason": "Windows-only native filesystem/lifecycle case; not executed on Linux"
+    }
   ],
-  "reason": "Two explicit CUDA tests require GPU; Windows PowerShell lifecycle remains in platform core workflow. No CPU critical test is excluded."
+  "reason": "No required portable test excluded. Native Windows cases run in Windows matrix; GPU remains separately BLOCKED."
 }
