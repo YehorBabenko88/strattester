@@ -3,13 +3,13 @@ import math
 
 
 def log_returns(prices):
-    if any(not math.isfinite(p) or p <= 0 for p in prices):
+    if any(type(p) not in (int, float) or not math.isfinite(p) or p <= 0 for p in prices):
         raise ValueError("prices must be finite and positive")
     return [math.log(b) - math.log(a) for a, b in zip(prices, prices[1:])]
 
 
 def sample_volatility(returns):
-    if len(returns) < 2 or any(not math.isfinite(x) for x in returns):
+    if len(returns) < 2 or any(type(x) not in (int, float) or not math.isfinite(x) for x in returns):
         raise ValueError("need at least two finite returns")
     mu = math.fsum(returns) / len(returns)
     return math.sqrt(math.fsum((x - mu) ** 2 for x in returns) / (len(returns) - 1))
