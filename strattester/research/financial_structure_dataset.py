@@ -16,10 +16,15 @@ class StructureSample:
 
 def make_samples(symbol, timeframe, timestamps, closes, *,
                  window=16, horizon=5, max_tokens=64):
+    if any(type(v) is not int for v in (window, horizon, max_tokens)) or window < 2 or max_tokens < 2:
+        raise ValueError("invalid sample configuration")
     if horizon < 2:
         raise ValueError("horizon must be >=2")
     if len(timestamps) != len(closes):
         raise ValueError("timestamps and closes mismatch")
+    ts = tuple(timestamps)
+    if any(type(t) is not int or t < 0 for t in ts) or any(a >= b for a, b in zip(ts, ts[1:])):
+        raise ValueError("timestamps must be strictly increasing integers")
     prices = tuple(float(p) for p in closes)
     if any(not isfinite(p) or p <= 0 for p in prices):
         raise ValueError("prices must be positive finite")
