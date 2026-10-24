@@ -55,6 +55,14 @@ class MathematicalContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             pair_dependency_mask([1], [1, 2])
 
+    def test_triangle_rejects_negative_indices_and_nonboolean_masks(self):
+        with self.assertRaises(ValueError):
+            triangle_path_valid([[True]], -1, 0, 0)
+        with self.assertRaises(ValueError):
+            triangle_path_valid([[1]], 0, 0, 0)
+        with self.assertRaises(ValueError):
+            triangle_path_valid([[True, False]], 0, 0, 0)
+
     def test_purge_overlap_and_embargo(self):
         with self.assertRaises(ValueError):
             validate_purged_splits([(0, 10)], [(10, 20)])
