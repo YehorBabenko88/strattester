@@ -25,6 +25,8 @@ def make_samples(symbol, timeframe, timestamps, closes, *,
     ts = tuple(timestamps)
     if any(type(t) is not int or t < 0 for t in ts) or any(a >= b for a, b in zip(ts, ts[1:])):
         raise ValueError("timestamps must be strictly increasing integers")
+    if len(ts) < window + horizon + 1:
+        raise ValueError("insufficient history for supervised samples")
     prices = tuple(float(p) for p in closes)
     if any(not isfinite(p) or p <= 0 for p in prices):
         raise ValueError("prices must be positive finite")
