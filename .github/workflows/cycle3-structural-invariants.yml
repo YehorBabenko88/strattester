@@ -10,6 +10,7 @@ on:
       - 'tests/research/test_cycle3_gradient_oracle.py'
       - '.github/workflows/cycle3-structural-invariants.yml'
       - 'scripts/cycle3_structural_report_gate.py'
+      - 'tests/research/test_cycle3_report_gate.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -31,6 +32,8 @@ jobs:
       - name: Enforce exact tests, zero skip, zero deselection
         run: |
           python scripts/cycle3_structural_report_gate.py cycle3-results.json
+      - name: Test report verifier fail-closed semantics
+        run: python -m unittest tests.research.test_cycle3_report_gate -v
       - uses: actions/upload-artifact@v4
         if: always()
         with:
