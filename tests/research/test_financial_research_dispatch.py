@@ -26,6 +26,22 @@ class FinancialResearchDispatchTests(unittest.TestCase):
                                       timeframe_ns=60, horizon_ns=300, available_ns=1)
             loader.assert_not_called()
 
+    def test_backdated_availability_rejected_before_loading(self):
+        from unittest.mock import patch
+        class FakeSnapshot:
+            origin_ns = 100
+            def validate(self):
+                return self
+        # Enforce the exact Snapshot type through an autospec-like object
+        # while keeping the test free from heavyweight market fixtures.
+        with patch("strattester.research.financial_research_dispatch.Snapshot", FakeSnapshot):
+            with patch("strattester.research.financial_research_dispatch.load_checkpoint") as loader:
+                with self.assertRaises(ValueError):
+                    predict_research_only(self.spec, FakeSnapshot(), instrument=self.instrument,
+                                          model_path="ignored", model_sha256="0" * 64,
+                                          timeframe_ns=60, horizon_ns=300, available_ns=99)
+                loader.assert_not_called()
+
     def test_reject_live_spec(self):
         live = FinancialResearchSpec((self.instrument,), 60, 300, "v1", enabled=True)
         with self.assertRaises(ValueError):
