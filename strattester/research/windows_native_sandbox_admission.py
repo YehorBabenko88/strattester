@@ -56,14 +56,14 @@ def reject_unsafe_windows_path(path: str) -> str:
     p = path.replace("/", "\\")
     if "\x00" in p or any(ord(c) < 32 for c in p):
         raise SandboxDenied("control character in path")
-    if len(p) < 4 or (p[1] != ":" or p[2] != "\\") or not p[0].isalpha():
+    if len(p) < 4 or (p[1] != ":" or p[2] != "\\") or not p[0].isascii() or not p[0].isalpha():
         raise SandboxDenied("noncanonical drive path")
     if (not PureWindowsPath(p).is_absolute()
             or p.startswith("\\\\")
             or p.startswith("\\\\?\\")
             or p.startswith("\\\\.\\")
             or ":" in p[2:]
-            or any(part in ("..", ".") for part in PureWindowsPath(p).parts)
+            or any(part in ("..", ".") for part in p[3:].split("\\"))\n            or any(not part for part in p[3:].split("\\"))
             or any(part.rstrip(" .") != part for part in PureWindowsPath(p).parts)
             or any(part.split(".")[0].upper() in
                    ({"CON", "PRN", "AUX", "NUL"} |
