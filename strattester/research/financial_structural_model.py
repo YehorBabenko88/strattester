@@ -11,6 +11,9 @@ from .financial_contract import integer
 
 @dataclass(frozen=True)
 class StructuralConfig:
+    # Version 2 corrects incoming triangle projection orientation. Legacy
+    # checkpoint configs must not default silently to these new equations.
+    model_equations_version: int = 2
     input_channels: int = 3
     horizon_ns: int = 120
     hidden: int = 8
@@ -25,6 +28,8 @@ class StructuralConfig:
     max_work_bytes: int = 128*1024*1024
 
     def validate(self):
+        if type(self.model_equations_version) is not int or self.model_equations_version != 2:
+            raise ValueError('unsupported model equations version')
         for name,value in self.__dict__.items(): integer(value,name,0 if name=='recycles' else 1)
         if (self.hidden%self.heads or self.max_tokens<2 or self.max_tokens>256
             or self.depth>8 or self.recycles>4 or self.input_channels>128
@@ -58,6 +63,7 @@ def build_column_attention(channels, heads):
             if c!=channels or min(b,s,n)<1 or b*n*heads*s*s>2_000_000:
                 raise ValueError('column shape/budget')
             if mask.shape!=(b,s,n) or not ((mask==0)|(mask==1)).all(): raise ValueError('column mask')
+            if not torch.isfinite(msa).all(): raise ValueError('nonfinite column input')
             z=self.norm(msa)
             q,k,v=self.qkv(z).reshape(b,s,n,3,heads,c//heads).unbind(3)
             scores=torch.einsum('bsnhd,btnhd->bnhst',q,k)*(c//heads)**-.5
