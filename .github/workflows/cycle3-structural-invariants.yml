@@ -6,6 +6,7 @@ on:
       - 'tests/research/test_cycle3_cpu_contract.py'
       - 'tests/research/test_cycle3_operator_connectivity.py'
       - 'tests/research/test_cycle3_forecast_contract.py'
+      - 'tests/research/test_cycle3_resource_admission.py'
       - '.github/workflows/cycle3-structural-invariants.yml'
   workflow_dispatch:
 permissions:
@@ -24,10 +25,10 @@ jobs:
       - run: python -m pip install 'torch==2.14.1' --index-url https://download.pytorch.org/whl/cpu
       - run: python -m pip install pytest pytest-json-report
       - name: Required structural invariants
-        run: python -m pytest -q -o addopts='' tests/research/test_cycle3_structural_invariants.py tests/research/test_cycle3_cpu_contract.py tests/research/test_cycle3_operator_connectivity.py tests/research/test_cycle3_forecast_contract.py --json-report --json-report-file=cycle3-results.json
+        run: python -m pytest -q -o addopts='' tests/research/test_cycle3_structural_invariants.py tests/research/test_cycle3_cpu_contract.py tests/research/test_cycle3_operator_connectivity.py tests/research/test_cycle3_forecast_contract.py tests/research/test_cycle3_resource_admission.py --json-report --json-report-file=cycle3-results.json
       - name: Enforce exact tests, zero skip, zero deselection
         run: |
-          python -c "import json; d=json.load(open('cycle3-results.json')); s=d['summary']; assert s['passed']==24 and s['total']==24; assert all(s.get(k,0)==0 for k in ('failed','error','skipped','xfailed','xpassed','deselected')); assert len([t for t in d['tests'] if t.get('outcome')=='passed'])==24"
+          python -c "import json; d=json.load(open('cycle3-results.json')); s=d['summary']; assert s['passed']==33 and s['total']==33; assert all(s.get(k,0)==0 for k in ('failed','error','skipped','xfailed','xpassed','deselected')); assert len([t for t in d['tests'] if t.get('outcome')=='passed'])==33"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
