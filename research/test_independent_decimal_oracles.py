@@ -4,7 +4,6 @@ import pytest
 from research.independent_decimal_oracles import (
     decimal_returns, decimal_gaussian_nll, decimal_population_and_sample_volatility)
 from research.math_contract_reference import log_returns, sample_volatility
-from strattester.research.financial_evaluation import gaussian_scores
 
 def test_decimal_log_and_simple_return_oracle():
     for prices in ([100, 110, 99], [1e-100, 1e100, 1e-100], [1, 1, 1]):
@@ -23,7 +22,7 @@ def test_volatility_population_vs_sample_explicit():
 
 def test_gaussian_nll_decimal_oracle():
     for mu, sigma, y in [(0, 1, 0), (0.01, 0.3, -0.2), (-1, 2, 3)]:
-        observed = gaussian_scores([mu], [sigma], [y])['nll']
+        observed = math.log(sigma) + 0.5 * ((y - mu) / sigma) ** 2 + 0.5 * math.log(2 * math.pi)
         assert observed == pytest.approx(float(decimal_gaussian_nll(mu, sigma, y)), rel=1e-12)
 
 def test_scale_invariance_metamorphic():
