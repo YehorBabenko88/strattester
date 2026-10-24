@@ -54,7 +54,10 @@ def reject_unsafe_windows_path(path: str) -> str:
     if not isinstance(path, str) or not path or "\\x00" in path:
         raise SandboxDenied("invalid path")
     p = path.replace("/", "\\")
-    upper = p.upper()
+    if "\x00" in p or any(ord(c) < 32 for c in p):
+        raise SandboxDenied("control character in path")
+    if len(p) < 4 or p[1:3] != ":\\\\" or not p[0].isalpha():
+        raise SandboxDenied("noncanonical drive path")
     if (not PureWindowsPath(p).is_absolute()
             or p.startswith("\\\\")
             or p.startswith("\\\\?\\")
@@ -63,7 +66,9 @@ def reject_unsafe_windows_path(path: str) -> str:
             or any(part in ("..", ".") for part in PureWindowsPath(p).parts)
             or any(part.rstrip(" .") != part for part in PureWindowsPath(p).parts)
             or any(part.split(".")[0].upper() in
-                   {"CON", "PRN", "AUX", "NUL", "COM1", "LPT1"}
+                   ({"CON", "PRN", "AUX", "NUL"} |
+                    {"COM" + str(i) for i in range(1, 10)} |
+                    {"LPT" + str(i) for i in range(1, 10)})
                    for part in PureWindowsPath(p).parts[1:])):
         raise SandboxDenied("unsafe Windows path")
     return p
