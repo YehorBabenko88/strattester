@@ -51,7 +51,7 @@ class SandboxPolicy:
 
 def reject_unsafe_windows_path(path: str) -> str:
     """Lexical prefilter only; native handle-based check is still mandatory."""
-    if not isinstance(path, str) or not path or "\\x00" in path:
+    if type(path) is not str or not path:
         raise SandboxDenied("invalid path")
     p = path.replace("/", "\\")
     if "\x00" in p or any(ord(c) < 32 for c in p):
