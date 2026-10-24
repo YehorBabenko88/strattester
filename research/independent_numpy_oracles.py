@@ -4,7 +4,7 @@ import numpy as np
 def masked_attention_reference(q, k, v, mask):
     q, k, v = (np.asarray(x, dtype=np.float64) for x in (q, k, v))
     mask = np.asarray(mask)
-    if q.ndim != 2 or k.ndim != 2 or v.ndim != 2 or q.shape[1] != k.shape[1] or k.shape[0] != v.shape[0] or mask.shape != (q.shape[0], k.shape[0]) or mask.dtype != np.bool_:
+    if q.ndim != 2 or k.ndim != 2 or v.ndim != 2 or q.shape[1] == 0 or k.shape[0] == 0 or q.shape[1] != k.shape[1] or k.shape[0] != v.shape[0] or mask.shape != (q.shape[0], k.shape[0]) or mask.dtype != np.bool_:
         raise ValueError("invalid attention shape or mask")
     if not all(np.isfinite(x).all() for x in (q, k, v)):
         raise ValueError("nonfinite attention inputs")
@@ -23,7 +23,7 @@ def masked_attention_reference(q, k, v, mask):
 def triangle_outgoing_reference(pair, mask):
     pair = np.asarray(pair, dtype=np.float64)
     mask = np.asarray(mask)
-    if pair.ndim != 3 or pair.shape[0] != pair.shape[1] or mask.shape != pair.shape[:2] or mask.dtype != np.bool_:
+    if pair.ndim != 3 or pair.shape[0] == 0 or pair.shape[2] == 0 or pair.shape[0] != pair.shape[1] or mask.shape != pair.shape[:2] or mask.dtype != np.bool_:
         raise ValueError("invalid triangle dimensions")
     if not np.isfinite(pair).all():
         raise ValueError("nonfinite triangle")
