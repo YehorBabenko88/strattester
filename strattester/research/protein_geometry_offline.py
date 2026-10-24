@@ -4,17 +4,17 @@ from strattester.engine.executor import execute_strategy
 
 class _ReadOnlyStore:
     """Minimal capability boundary for the geometry strategy, not a process sandbox."""
-    __slots__ = ('_coverage', '_iter_candles')
+    __slots__ = ('_coverage', '_store')
 
     def __init__(self, store):
         self._coverage = store.coverage
-        self._iter_candles = store.iter_candles
+        self._store = store
 
     def coverage(self, *args, **kwargs):
         return self._coverage(*args, **kwargs)
 
     def iter_candles(self, *args, **kwargs):
-        return self._iter_candles(*args, **kwargs)
+        return self._store.iter_candles(*args, **kwargs)
 
 from strattester.strategies.builtin.protein_geometry import protein_geometry_definition
 
