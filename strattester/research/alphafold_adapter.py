@@ -35,7 +35,9 @@ def encode_market(symbol: str, timeframe: str, timestamps: Sequence[int],
         raise ValueError("timestamps/closes mismatch")
     if not 1 <= max_tokens <= 1024:
         raise ValueError("max_tokens out of range")
-    ts = tuple(int(t) for t in timestamps)
+    if any(type(t) is not int for t in timestamps):
+        raise ValueError("timestamps must be non-boolean integer values in an explicitly agreed unit")
+    ts = tuple(timestamps)
     if any(t < 0 for t in ts) or any(a >= b for a, b in zip(ts, ts[1:])):
         raise ValueError("timestamps must increase strictly")
     prices = tuple(float(x) for x in closes)

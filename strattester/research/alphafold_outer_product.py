@@ -8,9 +8,15 @@ from __future__ import annotations
 
 
 def build_outer_product_mean(msa_channels: int, pair_channels: int,
-                             intermediate: int = 16, *, max_elements: int = 2_000_000):
-    if min(msa_channels, pair_channels, intermediate, max_elements) < 1:
+                             intermediate: int = 16, *, max_elements: int = 2_000_000,
+                             max_parameters: int = 2_000_000, max_bytes: int = 256 * 1024 * 1024):
+    if any(type(v) is not int or v < 1 for v in
+           (msa_channels, pair_channels, intermediate, max_elements, max_parameters, max_bytes)):
         raise ValueError("invalid outer product dimensions")
+    parameters = (2 * msa_channels + 2 * (msa_channels + 1) * intermediate
+                  + (intermediate * intermediate + 1) * pair_channels)
+    if parameters > max_parameters or parameters * 4 * 4 > max_bytes:
+        raise ValueError("outer product parameter budget exceeded")
     try:
         import torch
         from torch import nn
@@ -29,8 +35,13 @@ def build_outer_product_mean(msa_channels: int, pair_channels: int,
             if msa.ndim != 4 or msa.shape[-1] != msa_channels:
                 raise ValueError("expected MSA [B,S,N,C]")
             b, s, n, _ = msa.shape
-            if s < 1 or n < 2 or b * n * n * intermediate * intermediate > max_elements:
+            track = b * s * n * max(msa_channels, intermediate)
+            outer = b * n * n * intermediate * intermediate
+            output = b * n * n * pair_channels
+            if b < 1 or s < 1 or n < 2 or max(track, outer, output) > max_elements:
                 raise ValueError("outer product budget exceeded")
+            if (track * 4 + outer * 2 + output * 2) * msa.element_size() * 8 > max_bytes:
+                raise ValueError("outer product byte budget exceeded")
             if not torch.isfinite(msa).all().item():
                 raise ValueError("nonfinite MSA input")
             if mask is None:
