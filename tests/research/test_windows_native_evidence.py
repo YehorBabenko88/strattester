@@ -31,6 +31,18 @@ def test_forged_receipts_denied(change):
         verify_disposable_vm_receipt(bad, expected_target_sha=SHA)
 
 
+def test_symlink_evidence_denied(tmp_path):
+    target = tmp_path / "target.txt"
+    target.write_bytes(b"fixture")
+    link = tmp_path / "link.txt"
+    try:
+        link.symlink_to(target)
+    except (OSError, NotImplementedError):
+        pytest.skip("symlink creation unavailable")
+    with pytest.raises(SandboxDenied):
+        hash_static_evidence_file(link)
+
+
 def test_evidence_file_hash_and_size(tmp_path):
     path = tmp_path / "receipt.txt"
     path.write_bytes(b"fixture")
