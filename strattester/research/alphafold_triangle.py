@@ -1,14 +1,13 @@
-"""Research-only AlphaFold-style triangular multiplicative updates.
+"""Research-only gated triangle multiplication (AlphaFold-style operator).
 
-Mathematical operator adaptation, NOT the original AlphaFold inference pipeline.
-No biological weights, atom heads, database access, or trading execution.
+Not AlphaFold inference. No biological weights, DB access or trading side effects.
 """
 from __future__ import annotations
 
 
-def build_triangle_updates(channels: int, intermediate: int = 128):
-    if channels < 1 or intermediate < 1:
-        raise ValueError("channels and intermediate must be positive")
+def build_triangle_updates(channels: int, intermediate: int = 128, *, max_pair_elements: int = 2_000_000):
+    if channels < 1 or intermediate < 1 or max_pair_elements < 1:
+        raise ValueError("invalid operator dimensions or budget")
     try:
         import torch
         from torch import nn
@@ -31,11 +30,18 @@ def build_triangle_updates(channels: int, intermediate: int = 128):
         def forward(self, pair, mask=None):
             if pair.ndim != 4 or pair.shape[1] != pair.shape[2] or pair.shape[-1] != channels:
                 raise ValueError("expected pair [B,N,N,C]")
-            if not torch.isfinite(pair).all():
+            batch, n, _, _ = pair.shape
+            # Preflight budget covers the largest expanded intermediates, not
+            # just the input tensor. This is an element limit, not a GPU OOM guarantee.
+            if batch * n * n * max(channels, intermediate) > max_pair_elements:
+                raise ValueError("pair intermediate budget exceeded")
+            if not torch.isfinite(pair).all().item():
                 raise ValueError("nonfinite pair input")
             if mask is not None:
                 if mask.shape != pair.shape[:3]:
                     raise ValueError("mask must be [B,N,N]")
+                if not torch.isfinite(mask).all().item() or not ((mask == 0) | (mask == 1)).all().item():
+                    raise ValueError("mask must be finite and binary")
                 mask = mask.to(device=pair.device, dtype=pair.dtype).unsqueeze(-1)
             z = self.norm(pair)
             a = self.left(z) * torch.sigmoid(self.left_gate(z))
