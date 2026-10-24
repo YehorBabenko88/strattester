@@ -35,6 +35,8 @@ class FinancialResearchSpec:
         integer(self.forecast_horizon_ns, "forecast horizon", 1)
         integer(self.max_samples, "max_samples", 1)
         integer(self.max_folds, "max_folds", 1)
+        if len(self.universe) > self.max_samples:
+            raise ValueError("universe exceeds sample budget")
         if self.forecast_horizon_ns % self.timeframe_ns:
             raise ValueError("forecast horizon must align to timeframe")
         if self.max_samples > 1024 or self.max_folds > 32:
