@@ -1,5 +1,4 @@
 import sqlite3
-import threading
 
 import pytest
 
@@ -31,7 +30,7 @@ def test_point_in_time_excludes_future_and_ineligible(tmp_path):
 
 
 def test_read_only_rejects_missing_database(tmp_path):
-    with pytest.raises(sqlite3.OperationalError):
+    with pytest.raises(ValueError, match="existing regular"):
         list(point_in_time_rows(
             SQLiteSource(tmp_path / "missing.sqlite", "ticks"),
             instrument="BTCUSDT", timeframe="1m", market_type="linear",
@@ -64,3 +63,18 @@ def test_snapshot_is_stable_under_concurrent_writer(tmp_path):
         source, instrument="BTCUSDT", timeframe="1m", market_type="linear",
         event_cutoff=10, knowledge_cutoff=10, accepted_quality="VERIFIED"))) == 2
     db.close()
+
+
+def test_reject_symlink_source(tmp_path):
+    actual = tmp_path / "real.sqlite"
+    sqlite3.connect(actual).close()
+    link = tmp_path / "link.sqlite"
+    try:
+        link.symlink_to(actual)
+    except (OSError, NotImplementedError):
+        pytest.skip("symlink unavailable")
+    with pytest.raises(ValueError, match="non-symlink"):
+        list(point_in_time_rows(
+            SQLiteSource(link, "ticks"), instrument="BTCUSDT",
+            timeframe="1m", market_type="linear", event_cutoff=1,
+            knowledge_cutoff=1, accepted_quality="VERIFIED"))
