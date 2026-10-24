@@ -15,6 +15,7 @@ def policy():
     r"\\?\C:\model.json", r"\\.\PhysicalDrive0",
     r"C:\safe\..\secret", r"C:\safe\file:stream",
     r"C:\safe\NUL", "C:\\safe\\file.",
+    r"C:\safe\folder.\model.json", r"C:\safe\folder \model.json",
     r"C:\safe\COM9.txt", r"C:\safe\LPT8",
     r"C:\safe\\double", r"C:\safe\.\model", r"C:\safe\..\model",
     "C:\\safe\\bad\\x00name", "C:\\safe\\bad\\x01name",
