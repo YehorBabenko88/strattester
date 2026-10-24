@@ -58,6 +58,11 @@ def pair_dependency_mask(latest_available_ns, cutoffs_ns, max_cells=1_000_000):
 
 
 def triangle_path_valid(mask, i, j, k):
+    n = len(mask)
+    if (any(type(x) is not int or x < 0 or x >= n for x in (i, j, k))
+            or any(len(row) != n or any(type(value) is not bool for value in row)
+                   for row in mask)):
+        raise ValueError("invalid triangle mask or indices")
     return mask[i][j] and mask[i][k] and mask[k][j]
 
 
