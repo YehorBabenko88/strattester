@@ -34,5 +34,25 @@ class MathematicalContractTests(unittest.TestCase):
         self.assertTrue(triangle_path_valid(mask, 1, 0, 1))
 
 
+
+    def test_fail_closed_bad_time_types_and_order(self):
+        row = dict(event_id="x", event_time_ns=10, available_time_ns=30,
+                   bucket_end_ns=20, eligible=True, quality_status="VERIFIED",
+                   gap_status="NONE")
+        for mutation in ({"event_time_ns": True}, {"available_time_ns": 19},
+                         {"eligible": 1}, {"event_time_ns": -1}):
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                validate_observations([{**row, **mutation}], 30, 20)
+        with self.assertRaises(ValueError):
+            validate_observations([row], 20, 21)
+
+    def test_pair_budget_and_invalid_timestamps(self):
+        with self.assertRaises(ValueError):
+            pair_dependency_mask([1, 2, 3], [1, 2, 3], max_cells=8)
+        with self.assertRaises(ValueError):
+            pair_dependency_mask([True], [1])
+        with self.assertRaises(ValueError):
+            pair_dependency_mask([1], [1, 2])
+
 if __name__ == "__main__":
     unittest.main()
