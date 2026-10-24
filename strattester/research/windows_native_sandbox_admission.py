@@ -54,7 +54,8 @@ def reject_unsafe_windows_path(path: str) -> str:
     if type(path) is not str or not path:
         raise SandboxDenied("invalid path")
     if "/" in path:
-        raise SandboxDenied("mixed or forward separators")\n    p = path
+        raise SandboxDenied("mixed or forward separators")
+    p = path
     if "\x00" in p or any(ord(c) < 32 for c in p):
         raise SandboxDenied("control character in path")
     if len(p) < 4 or (p[1] != ":" or p[2] != "\\") or not p[0].isascii() or not p[0].isalpha():
