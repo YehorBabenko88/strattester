@@ -44,3 +44,18 @@ def test_missing_boundaries_fail():
 def test_empty_series_fails():
     with pytest.raises(DataIntegrityError, match="Empty"):
         validate_regular_series([], interval=60, knowledge_cutoff=100)
+
+
+@pytest.mark.parametrize("rows", [[bar(-1)], [bar(0, -1)]])
+def test_negative_timestamp_fails(rows):
+    with pytest.raises(DataIntegrityError, match="Negative"):
+        validate_regular_series(rows, interval=60, knowledge_cutoff=100)
+
+
+@pytest.mark.parametrize("bounds", [
+    {"expected_start": True}, {"expected_end": -1},
+    {"expected_start": 60, "expected_end": 0},
+])
+def test_invalid_boundaries_fail(bounds):
+    with pytest.raises(ValueError):
+        validate_regular_series([bar(0)], interval=60, knowledge_cutoff=100, **bounds)
