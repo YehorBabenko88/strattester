@@ -11,6 +11,11 @@ class MathematicalContractTests(unittest.TestCase):
         for r, a, b in zip(log_returns(p), p, p[1:]):
             self.assertAlmostEqual(math.expm1(r), b / a - 1, places=12)
 
+    def test_extreme_price_ratios_remain_finite(self):
+        returns = log_returns([1e-300, 1e300, 1e-300])
+        self.assertTrue(all(math.isfinite(x) for x in returns))
+        self.assertAlmostEqual(returns[0], -returns[1], places=10)
+
     def test_invalid_price(self):
         with self.assertRaises(ValueError):
             log_returns([100, 0])
