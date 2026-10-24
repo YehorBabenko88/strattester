@@ -6,6 +6,8 @@ def masked_attention_reference(q, k, v, mask):
     mask = np.asarray(mask)
     if q.ndim != 2 or k.ndim != 2 or v.ndim != 2 or q.shape[1] == 0 or k.shape[0] == 0 or q.shape[1] != k.shape[1] or k.shape[0] != v.shape[0] or mask.shape != (q.shape[0], k.shape[0]) or mask.dtype != np.bool_:
         raise ValueError("invalid attention shape or mask")
+    if q.shape[0] * k.shape[0] > 1_000_000:
+        raise ValueError("attention pair budget exceeded")
     if not all(np.isfinite(x).all() for x in (q, k, v)):
         raise ValueError("nonfinite attention inputs")
     logits = q @ k.T / np.sqrt(q.shape[1])
@@ -25,6 +27,8 @@ def triangle_outgoing_reference(pair, mask):
     mask = np.asarray(mask)
     if pair.ndim != 3 or pair.shape[0] == 0 or pair.shape[2] == 0 or pair.shape[0] != pair.shape[1] or mask.shape != pair.shape[:2] or mask.dtype != np.bool_:
         raise ValueError("invalid triangle dimensions")
+    if pair.shape[0] ** 3 * pair.shape[2] > 1_000_000:
+        raise ValueError("triangle compute budget exceeded")
     if not np.isfinite(pair).all():
         raise ValueError("nonfinite triangle")
     n, _, channels = pair.shape
