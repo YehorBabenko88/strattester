@@ -6,7 +6,10 @@ latest revision. A future audited schema may define explicit revision IDs.
 from collections.abc import Mapping, Sequence
 
 
-class RevisionConflictError(ValueError):
+from .alphafold_series_integrity import DataIntegrityError
+
+
+class RevisionConflictError(DataIntegrityError):
     pass
 
 
