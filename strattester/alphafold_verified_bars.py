@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from .alphafold_data_sync import SQLiteSource, bounded_point_in_time_rows
 from .alphafold_series_integrity import validate_regular_series
+from .alphafold_revisions import reject_ambiguous_revisions
 
 
 def load_verified_regular_bars(
@@ -37,6 +38,8 @@ def load_verified_regular_bars(
         knowledge_cutoff=knowledge_cutoff, accepted_quality=accepted_quality,
         max_rows=max_rows,
     )
+    reject_ambiguous_revisions(rows, event_field=source.event_time,
+                               ingestion_field=source.ingestion_time)
     validate_regular_series(
         rows, interval=interval, knowledge_cutoff=knowledge_cutoff,
         expected_start=expected_start, expected_end=event_cutoff,
