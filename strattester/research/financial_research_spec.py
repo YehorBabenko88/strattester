@@ -23,6 +23,8 @@ class FinancialResearchSpec:
             raise ValueError("live execution forbidden")
         if not self.universe or type(self.universe) is not tuple:
             raise ValueError("explicit universe required")
+        if any(type(instrument) is not Instrument for instrument in self.universe):
+            raise ValueError("invalid instrument")
         if len(set(self.universe)) != len(self.universe):
             raise ValueError("duplicate instruments")
         for instrument in self.universe:
