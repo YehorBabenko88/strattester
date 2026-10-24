@@ -15,3 +15,8 @@ def test_quadratic_memory_growth():
 def test_budget_fails_closed():
     with pytest.raises(ValueError):
         admit_pair_shape(1, 256, 32, budget=PairBudget(max_pair_bytes=1024))
+
+@pytest.mark.parametrize('budget', [PairBudget(max_pair_bytes=-1), PairBudget(max_tokens=0), PairBudget(activation_multiplier=0)])
+def test_invalid_policy_is_rejected(budget):
+    with pytest.raises(ValueError):
+        admit_pair_shape(1, 8, 8, budget=budget)
