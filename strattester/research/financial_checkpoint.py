@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 import tempfile
 from .financial_contract import digest, integer
-from .financial_snapshot import canonical_bytes, verified_bytes, unique_object
+from .financial_snapshot import canonical_bytes, verified_bytes, unique_object, bounded_json
 from .financial_structural_model import StructuralConfig, build_structural_model
 
 
@@ -50,6 +50,11 @@ def save_checkpoint(model, path, *, dataset_sha256, seed, max_bytes=8*1024*1024)
         # POSIX. A crash before publication leaves only an unregistered temp.
         try:os.link(temporary,path)
         except FileExistsError as exc:raise ValueError('checkpoint exists; refusing replay/overwrite') from exc
+        temporary.unlink();temporary=None
+        # Verify before returning a registered digest. If this fails, preserve
+        # the unregistered final path for operator recovery: pathname unlink
+        # after an inode check can race and delete an unrelated replacement.
+        verified_bytes(path,sha256(data).hexdigest(),max_bytes)
     finally:
         if temporary is not None:temporary.unlink(missing_ok=True)
     return sha256(data).hexdigest()
@@ -57,7 +62,7 @@ def save_checkpoint(model, path, *, dataset_sha256, seed, max_bytes=8*1024*1024)
 
 def load_checkpoint(path, expected_sha256, *, max_bytes=8*1024*1024):
     import torch
-    payload=json.loads(verified_bytes(path,expected_sha256,max_bytes),object_pairs_hook=unique_object)
+    payload=bounded_json(verified_bytes(path,expected_sha256,max_bytes))
     if set(payload)!={'version','config','dataset_sha256','seed','tensors'} or type(payload['version']) is not int or payload['version']!=1:
         raise ValueError('checkpoint schema')
     digest(payload['dataset_sha256']);integer(payload['seed'],'seed')

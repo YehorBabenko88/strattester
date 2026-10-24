@@ -22,7 +22,11 @@ def test_incomplete_or_stale_execution_never_passes(change):
 
 def test_complete_execution_passes_but_external_blockers_prevent_acceptance():
     assert validate_execution(report(),'a'*40,'cpu',{'file.py::test_a','file.py::test_b'},2)
-    r=aggregate({'cpu':report()},'a'*40,{'cpu'},external={'real_oos':'BLOCKED','gpu':'BLOCKED'})
+    from pathlib import Path
+    import runpy
+    fixture=runpy.run_path(str(Path(__file__).with_name('test_physical_acceptance_attacks.py')))
+    reports,SPECS=fixture['reports'],fixture['SPECS']
+    r=aggregate(reports(),'a'*40,set(SPECS),external={'real_oos':'BLOCKED','gpu':'BLOCKED'})
     assert r['status']=='BLOCKED' and r['trading']=='NO-GO'
 
 

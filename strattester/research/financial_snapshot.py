@@ -31,11 +31,37 @@ def verified_bytes(path, expected_sha256, max_bytes):
     fd=os.open(path,os.O_RDONLY|getattr(os,'O_BINARY',0)|getattr(os,'O_NOFOLLOW',0))
     with os.fdopen(fd,'rb') as stream:
         info=os.fstat(stream.fileno())
+        if info.st_nlink!=1: raise ValueError('artifact hardlink identity rejected')
         if not stat.S_ISREG(info.st_mode) or info.st_size>max_bytes: raise ValueError('artifact size/type budget')
         data=stream.read(max_bytes+1)
+        after=os.fstat(stream.fileno())
+        current=path.lstat()
+        if (after.st_nlink!=1 or (info.st_dev,info.st_ino,info.st_size,info.st_mtime_ns)!=(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns)
+            or (current.st_dev,current.st_ino)!=(info.st_dev,info.st_ino) or path.is_symlink()):
+            raise ValueError('artifact identity changed during read')
     if len(data)>max_bytes: raise ValueError('artifact byte budget')
     if sha256(data).hexdigest()!=expected_sha256: raise ValueError('artifact SHA256 mismatch')
     return data
+
+
+def bounded_json(data):
+    # Scan nesting before the parser can recursively allocate arbitrary objects.
+    depth=0; quoted=False; escaped=False
+    for byte in data:
+        if quoted:
+            if escaped: escaped=False
+            elif byte==92: escaped=True
+            elif byte==34: quoted=False
+        elif byte==34: quoted=True
+        elif byte in (91,123):
+            depth+=1
+            if depth>64: raise ValueError('JSON nesting budget')
+        elif byte in (93,125): depth-=1
+    def invalid_constant(value): raise ValueError('nonfinite JSON constant')
+    try: payload=json.loads(data,object_pairs_hook=unique_object,parse_constant=invalid_constant)
+    except (RecursionError,UnicodeError) as exc: raise ValueError('invalid bounded JSON') from exc
+    if type(payload) is not dict: raise ValueError('JSON object required')
+    return payload
 
 
 def snapshot_bytes(snapshot):
@@ -45,7 +71,7 @@ def snapshot_bytes(snapshot):
 
 def load_snapshot(path, expected_sha256, *, trusted_producers, expected_coherence, max_bytes=8*1024*1024):
     data=verified_bytes(path,expected_sha256,max_bytes)
-    payload=json.loads(data,object_pairs_hook=unique_object)
+    payload=bounded_json(data)
     if set(payload)!={'version','bars','origin_ns','coherence_id','producers'} or type(payload['version']) is not int or payload['version']!=1:
         raise ValueError('BLOCKED: snapshot schema')
     if not expected_coherence or payload['coherence_id']!=expected_coherence:

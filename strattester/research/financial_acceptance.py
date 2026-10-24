@@ -25,7 +25,7 @@ def execution_report(payload,sha,gate,exit_code):
 
 def validate_execution(report, sha, gate, required_nodeids, minimum):
     digest(sha,40)
-    if (not isinstance(report,dict) or report.get('schema')!=1 or report.get('sha')!=sha
+    if (not isinstance(report,dict) or type(report.get('schema')) is not int or report.get('schema')!=1 or report.get('sha')!=sha
         or report.get('gate')!=gate or report.get('status')!='PASS'):
         raise ValueError('missing/stale/blocked gate identity')
     for key in ('passed','failed','errors','skipped','xfailed','xpassed','deselected','collected','exit_code'):
@@ -39,20 +39,33 @@ def validate_execution(report, sha, gate, required_nodeids, minimum):
     return True
 
 
+# These facts have no implemented trusted verifier in this candidate. Caller
+# supplied strings must never authorize a physical trial or promote readiness.
+MANDATORY_EXTERNAL = frozenset(('grid_coherent_snapshot','real_oos','gpu','full_upstream_equivalence'))
+
+
 def aggregate(reports,sha,required_gates,*,external,job_result='success'):
+    from pathlib import Path
+    import json
     digest(sha,40)
+    manifest=json.loads((Path(__file__).resolve().parents[2]/'scripts/financial-gate-manifest.json').read_text())
     failed=[]
     if job_result!='success':failed.append('workflow jobs did not complete successfully')
-    if set(reports)!=set(required_gates):failed.append('missing/extra gate')
-    for gate in required_gates:
+    if set(required_gates)!=set(manifest) or set(reports)!=set(manifest):failed.append('missing/extra gate')
+    for gate,spec in manifest.items():
         try:
-            r=reports[gate]
-            # Required node manifests are enforced by the producer gate script.
-            # Aggregator enforces SHA/identity/counts again, never trusts status alone.
-            validate_execution(r,sha,gate,r.get('nodeids',()),1)
+            validate_execution(reports[gate],sha,gate,spec['nodeids'],spec['minimum'])
+            if set(reports[gate]['nodeids'])!=set(spec['nodeids']):raise ValueError('extra execution nodes')
         except (KeyError,ValueError,TypeError,AttributeError):failed.append(gate)
-    if any(v not in ('PASS','BLOCKED','FAIL') for v in external.values()):failed.append('invalid external state')
+    if type(external) is not dict or any(v not in ('PASS','BLOCKED','FAIL') for v in external.values()):
+        failed.append('invalid external state')
+        external={}
     if any(v=='FAIL' for v in external.values()):failed.append('external failure')
-    status='FAIL' if failed else ('BLOCKED' if any(v!='PASS' for v in external.values()) else 'PASS')
-    return {'schema':1,'sha':sha,'status':status,'trading':'NO-GO','failed':failed,'external':external,
-            'gates':{name:r.get('status','FAIL') for name,r in reports.items()}}
+    # Evidence authenticity is outside self-reported JSON. Until an independently
+    # trusted producer/CI verifier exists, no input can clear these requirements.
+    effective={name:('FAIL' if external.get(name)=='FAIL' else 'BLOCKED') for name in MANDATORY_EXTERNAL}
+    return {'schema':1,'sha':sha,'status':'FAIL' if failed else 'BLOCKED',
+            'trading':'NO-GO','physical_g1':'NOT_AUTHORIZED','failed':failed,
+            'external':effective,'claimed_external':external,
+            'evidence_authenticity':'UNVERIFIED_SELF_REPORT',
+            'gates':{name:r.get('status','FAIL') for name,r in reports.items() if isinstance(r,dict)}}
