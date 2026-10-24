@@ -22,7 +22,8 @@ def market_backbone(closes: Sequence[float], window: int = 16) -> list[tuple[flo
     prices = [float(p) for p in closes]
     if any(not isfinite(p) or p <= 0 for p in prices):
         raise ValueError("closes must be positive finite numbers")
-    returns = [log(prices[i] / prices[i - 1]) for i in range(1, len(prices))]
+    log_prices = [log(p) for p in prices]
+    returns = [log_prices[i] - log_prices[i - 1] for i in range(1, len(prices))]
     points = []
     for end in range(window, len(returns) + 1):
         segment = returns[end - window:end]
