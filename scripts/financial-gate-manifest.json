@@ -710,7 +710,7 @@
     ]
   },
   "training": {
-    "minimum": 49,
+    "minimum": 51,
     "nodeids": [
       "tests/research/test_financial_evaluation.py::test_literal_entry_exit_fees_and_terminal_liquidation",
       "tests/research/test_financial_evaluation.py::test_positions_across_disjoint_labels_pay_entry_and_exit_each_time",
@@ -723,6 +723,8 @@
       "tests/research/test_financial_experiment.py::test_mixed_unconditioned_horizons_are_rejected",
       "tests/research/test_financial_experiment.py::test_instrument_holdout_is_absent_from_training_context",
       "tests/research/test_financial_experiment.py::test_evaluation_failure_cannot_publish_checkpoint",
+      "tests/research/test_financial_experiment.py::test_neural_walk_forward_retrains_fresh_models_and_keeps_fold_evidence",
+      "tests/research/test_financial_experiment.py::test_walk_forward_rejects_overlapping_or_reused_holdouts_before_artifacts",
       "tests/research/test_financial_training.py::test_optimizer_changes_weights_and_reproduces_seed",
       "tests/research/test_financial_training.py::test_cancelled_fit_rolls_back_entire_model",
       "tests/research/test_financial_training.py::test_bad_label_does_not_update_model[nan]",

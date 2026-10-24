@@ -104,8 +104,64 @@ def run_experiment(examples,checkpoint_path,*,train_end,validation_end,test_end,
         raise TrainingCancelled('cancelled before experiment publication')
     model_digest=save_checkpoint(model,checkpoint_path,dataset_sha256=train_digest,seed=seed)
     return {'status':'SYNTHETIC_ENGINEERING_ONLY','real_oos':'BLOCKED','seed':seed,'config':asdict(config),
+            'research_config':{'train_end':train_end,'validation_end':validation_end,'test_end':test_end,
+                               'embargo_ns':embargo_ns,'steps':steps,'fee_bps':fee_bps,'slippage_bps':slippage_bps,
+                               'holdout_symbols':sorted(holdout_symbols)},
             'dataset_sha256':fingerprint([records[k] for k in sorted(records)]),'training_dataset_sha256':train_digest,
             'model_sha256':model_digest,'train_count':len(train),'validation_count':len(val),'test_count':len(test),
             'holdout_count':sum(key_for(s)[2] in holdout_symbols for s in test),'parameters_updated':changed,
             'losses':losses,'threshold':threshold,'controls':controls,'ledger':net,
             'exploratory_ci':interval,'test_metrics':metrics}
+
+
+def run_walk_forward(examples,checkpoint_dir,folds,*,config=StructuralConfig(),steps=20,seed=0,
+                     allow_retraining_on_prior_oos=False,**experiment_options):
+    """Fit a fresh structural model per purged fold; never pool overlapping PnL.
+
+    Expanding deployment-style retraining may reuse prior OOS observations only
+    by explicit opt-in, and is labelled sequential, not independent holdout.
+    Validate ALL temporal windows before publishing any fold's checkpoint.
+    """
+    from pathlib import Path
+    from research.alphafold_training.evaluation import Sample,purged_split
+    from research.alphafold_training.gates import assert_no_cross_partition_label_overlap
+    integer(seed,'seed');config.validate()
+    if type(allow_retraining_on_prior_oos) is not bool:raise ValueError('explicit retraining policy required')
+    examples=list(examples);folds=list(folds)
+    if not examples or len(examples)>1024 or not 1<=len(folds)<=32:raise ValueError('walk-forward resource budget')
+    metadata=[]
+    for e in examples:
+        e.snapshot.validate();e.target.validate()
+        if e.label_end_ns-e.snapshot.origin_ns!=config.horizon_ns:raise ValueError('trained horizon mismatch')
+        bars=[b for b in e.snapshot.bars if b.instrument==e.target and b.timeframe_ns==e.timeframe_ns]
+        if not bars:raise ValueError('missing target history')
+        identity='|'.join((e.target.exchange,e.target.market_type,e.target.symbol,str(e.timeframe_ns)))
+        # This actual available close is only temporal-planner metadata. Each
+        # fitted fold constructs its complete causal return/volatility tracks.
+        metadata.append(Sample(identity,e.snapshot.origin_ns,e.label_end_ns,e.snapshot.origin_ns,(bars[-1].close,),e.forward_log_return))
+    embargo=experiment_options.get('embargo_ns',0)
+    windows=[];prior_test=[];previous_end=None
+    for bounds in folds:
+        if len(bounds)!=3:raise ValueError('fold requires train/validation/test boundaries')
+        for boundary in bounds:integer(boundary,'fold boundary',1)
+        train,val,test=purged_split(metadata,*bounds,embargo)
+        if not train or not val or not test:raise ValueError('nonempty walk-forward partitions required')
+        assert_no_cross_partition_label_overlap(train,val,test)
+        start=min(s.decision_time for s in test);end=max(s.label_end_time for s in test)
+        if previous_end is not None and start<previous_end:raise ValueError('overlapping OOS windows')
+        if not allow_retraining_on_prior_oos:
+            for row in train+val:
+                if any(row.decision_time<p.label_end_time and p.decision_time<row.label_end_time for p in prior_test):
+                    raise ValueError('prior OOS cannot enter later train/validation without explicit sequential retraining')
+        previous_end=end;prior_test.extend(test);windows.append(bounds)
+    root=Path(checkpoint_dir)
+    if root.is_symlink() or root.exists() and not root.is_dir():raise ValueError('ordinary checkpoint directory required')
+    paths=[root/f'fold-{i:03d}.json' for i in range(len(windows))]
+    if any(p.exists() or p.is_symlink() for p in paths):raise ValueError('fold checkpoint exists; refusing replay')
+    root.mkdir(parents=True,exist_ok=True)
+    reports=[run_experiment(examples,path,train_end=a,validation_end=b,test_end=c,
+                            config=config,steps=steps,seed=seed+i,**experiment_options)
+             for i,(path,(a,b,c)) in enumerate(zip(paths,windows))]
+    return {'status':'SYNTHETIC_ENGINEERING_ONLY','real_oos':'BLOCKED','fold_count':len(reports),'folds':reports,
+            'fold_independence':'SEQUENTIAL_RETRAINING' if allow_retraining_on_prior_oos else 'NO_PRIOR_OOS_REUSE',
+            'aggregation':'NO_POOLED_PORTFOLIO_CLAIM'}

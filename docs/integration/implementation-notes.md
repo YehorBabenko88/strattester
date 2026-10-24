@@ -37,6 +37,8 @@ financial-integration.yml checks out the exact PR head (not a synthetic merge), 
 
 Full system acceptance deliberately fails closed with BLOCKED external real_oos, gpu and full_upstream_equivalence requirements. A failed acceptance job is expected until those evidence gaps are resolved; engineering job results remain separately visible. No runner or dataset attestation is fabricated to make this job green. Avoid duplicate push/PR core runs on the integration branch; concurrency cancels superseded runs on the same workflow/PR, retaining latest-HEAD artifacts.
 
+Grid's real producer/MVCC/cross-source coherent snapshot is an additional explicit BLOCKED external requirement (grid_coherent_snapshot). Passing normalized fixture data tests is not production Grid synchronization evidence. Structural walk-forward is executable through run_walk_forward, including preflight of every temporal window, fresh fold checkpoints, explicit prior-OOS reuse policy, and retained split/cost/holdout/training configuration. Overlapping windows and unauthorized OOS reuse are rejected before checkpoint-directory creation. A hand-count correction in the two-fold test includes the second interval's 5400 boundary, giving 12 and 16 test cases respectively.
+
 ## Rulings and limits
 
 - Existing task-isolated clone on integration branch is sufficient; no extra worktree. Wrong choice would risk shared local state, but no agent source branch is checked out for writing.

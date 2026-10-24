@@ -37,7 +37,7 @@ def main(argv=None):
                 try:validate_execution(reports[gate],args.sha,gate,set(specs[gate]['nodeids']),specs[gate]['minimum'])
                 except ValueError:reports[gate]['status']='FAIL'
         result=aggregate(reports,args.sha,set(specs),external={
-            'real_oos':'BLOCKED','gpu':'BLOCKED','full_upstream_equivalence':'BLOCKED'},
+            'grid_coherent_snapshot':'BLOCKED','real_oos':'BLOCKED','gpu':'BLOCKED','full_upstream_equivalence':'BLOCKED'},
             job_result=os.environ.get('ENGINEERING_RESULT','success'))
         (args.output/'acceptance.json').write_text(json.dumps(result,indent=2)+'\n')
         print(json.dumps(result))

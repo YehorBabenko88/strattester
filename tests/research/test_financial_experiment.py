@@ -72,3 +72,38 @@ def test_evaluation_failure_cannot_publish_checkpoint(tmp_path,monkeypatch):
     with pytest.raises(ValueError,match='evaluation failed'):
         run_experiment(examples(),path,train_end=1200,validation_end=2400,test_end=3400,steps=1)
     assert not path.exists()
+
+
+def extended_examples():
+    rows=examples();shifted=[]
+    names=('candle_open_ns','candle_close_ns','event_ns','ingest_ns','available_ns','watermark_ns')
+    for e in rows:
+        bars=tuple(replace(b,**{name:getattr(b,name)+3240 for name in names}) for b in e.snapshot.bars)
+        snapshot=replace(e.snapshot,bars=bars,origin_ns=e.snapshot.origin_ns+3240)
+        shifted.append(replace(e,snapshot=snapshot,label_end_ns=e.label_end_ns+3240))
+    return [*rows,*shifted]
+
+
+def test_neural_walk_forward_retrains_fresh_models_and_keeps_fold_evidence(tmp_path):
+    from strattester.research.financial_experiment import run_walk_forward
+    r=run_walk_forward(extended_examples(),tmp_path/'folds',[(1200,2400,3400),(4500,5400,6600)],
+                       config=StructuralConfig(recycles=0),steps=1,seed=8,allow_retraining_on_prior_oos=True)
+    assert r['fold_count']==2 and r['fold_independence']=='SEQUENTIAL_RETRAINING'
+    # Second test interval includes its 5400 boundary: 5400,5760,6120,6480,
+    # with two instruments and two timeframes at each origin.
+    assert [fold['test_count'] for fold in r['folds']]==[12,16]
+    assert all(fold['parameters_updated'] for fold in r['folds'])
+    assert r['folds'][0]['model_sha256']!=r['folds'][1]['model_sha256']
+    assert r['folds'][1]['research_config']['train_end']==4500
+    assert r['real_oos']=='BLOCKED'
+
+
+def test_walk_forward_rejects_overlapping_or_reused_holdouts_before_artifacts(tmp_path):
+    from strattester.research.financial_experiment import run_walk_forward
+    root=tmp_path/'folds'
+    with pytest.raises(ValueError,match='prior OOS'):
+        run_walk_forward(extended_examples(),root,[(1200,2400,3400),(4500,5400,6600)],steps=1)
+    assert not root.exists()
+    with pytest.raises(ValueError,match='overlap'):
+        run_walk_forward(extended_examples(),root,[(1200,2400,3400),(1800,2880,4500)],steps=1,allow_retraining_on_prior_oos=True)
+    assert not root.exists()
