@@ -30,12 +30,13 @@ def compare_baselines(samples, cfg: ResearchConfig):
         model = factory()
         model.fit([s.features for s in train], [s.forward_return for s in train])
         vp = list(model.predict([s.features for s in val]))
-        tp = list(model.predict([s.features for s in test]))
         assert_prediction_contract(vp, val)
-        assert_prediction_contract(tp, test)
         def positions(pred, threshold):
             return [int(x > threshold) - int(x < -threshold) for x in pred]
         threshold = max(thresholds, key=lambda t: _score(val, positions(vp, t), cfg)["mean_net_return"])
+        # Request test predictions only after threshold selection is finalized.
+        tp = list(model.predict([s.features for s in test]))
+        assert_prediction_contract(tp, test)
         output[name] = {
             "selected_validation_threshold": threshold,
             "validation": _score(val, positions(vp, threshold), cfg),
