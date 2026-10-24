@@ -1,0 +1,73 @@
+name: mathematical-contract-reference
+on:
+  pull_request:
+    paths:
+      - 'research/math_contract_reference.py'
+      - 'research/test_math_contract_reference.py'
+      - 'research/independent_decimal_oracles.py'
+      - 'research/test_independent_decimal_oracles.py'
+      - 'research/independent_time_oracles.py'
+      - 'research/test_independent_time_oracles.py'
+      - 'research/independent_numpy_oracles.py'
+      - 'research/test_independent_numpy_oracles.py'
+      - 'research/independent_gradient_oracles.py'
+      - 'research/test_independent_gradient_oracles.py'
+      - 'research/test_independent_metamorphic_contracts.py'
+      - 'research/independent_purge_oracle.py'
+      - 'research/test_independent_purge_oracle.py'
+      - 'research/independent_normalization_oracle.py'
+      - 'research/test_independent_normalization_oracle.py'
+      - 'research/independent_ledger_oracle.py'
+      - 'research/test_independent_ledger_oracle.py'
+      - 'research/independent_dependency_oracle.py'
+      - 'research/test_independent_dependency_oracle.py'
+      - 'research/independent_timestamp_units.py'
+      - 'research/test_independent_timestamp_units.py'
+      - 'research/independent_candle_boundaries.py'
+      - 'research/test_independent_candle_boundaries.py'
+      - 'research/independent_horizon_oracle.py'
+      - 'research/test_independent_horizon_oracle.py'
+      - 'research/independent_provenance_oracle.py'
+      - 'research/test_independent_provenance_oracle.py'
+      - 'research/independent_precision_oracle.py'
+      - 'research/test_independent_precision_oracle.py'
+      - 'research/independent_series_identity.py'
+      - 'research/test_independent_series_identity.py'
+      - 'research/independent_snapshot_integrity.py'
+      - 'research/test_independent_snapshot_integrity.py'
+      - 'research/independent_event_clock.py'
+      - 'research/test_independent_event_clock.py'
+      - 'research/independent_asof_revisions.py'
+      - 'research/test_independent_asof_revisions.py'
+      - 'research/independent_watermark_oracle.py'
+      - 'research/test_independent_watermark_oracle.py'
+      - 'research/independent_gaussian_stability.py'
+      - 'research/test_independent_gaussian_stability.py'
+      - '.github/workflows/mathematical-contract-reference.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reference:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.11', '3.13']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile reference and tests before execution
+        run: python -m py_compile research/math_contract_reference.py research/test_math_contract_reference.py
+      - name: Install test dependencies for Decimal oracles
+        run: python -m pip install -e '.[dev]' numpy
+      - name: Run independent Decimal and PIT oracles
+        run: python -m pytest -q research/test_independent_decimal_oracles.py research/test_independent_time_oracles.py research/test_independent_numpy_oracles.py research/test_independent_gradient_oracles.py research/test_independent_metamorphic_contracts.py research/test_independent_purge_oracle.py research/test_independent_normalization_oracle.py research/test_independent_ledger_oracle.py research/test_independent_dependency_oracle.py research/test_independent_timestamp_units.py research/test_independent_candle_boundaries.py research/test_independent_horizon_oracle.py research/test_independent_provenance_oracle.py research/test_independent_precision_oracle.py research/test_independent_series_identity.py research/test_independent_snapshot_integrity.py research/test_independent_event_clock.py research/test_independent_asof_revisions.py research/test_independent_watermark_oracle.py research/test_independent_gaussian_stability.py
+      - name: Run independent standard-library contract tests
+        run: python -m unittest discover -s research -p 'test_math_contract_reference.py' -v
