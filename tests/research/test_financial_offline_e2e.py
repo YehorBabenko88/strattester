@@ -56,3 +56,23 @@ def test_resource_admission_precedes_feature_allocation(monkeypatch):
     monkeypatch.setattr(torch,'tensor',reject)
     with pytest.raises(ValueError,match='budget'):
         feature_tracks(synthetic_snapshot(),timeframe_ns=60,config=StructuralConfig(max_tracks=1))
+
+
+def test_prediction_cannot_relabel_the_trained_horizon():
+    model=build_structural_model(StructuralConfig())
+    with pytest.raises(ValueError,match='horizon'):
+        predict_snapshot(synthetic_snapshot(),model,instrument=Instrument('bybit','linear','BTCUSDT'),
+                         timeframe_ns=60,horizon_ns=60,model_sha256='a'*64,available_ns=361)
+
+
+@pytest.mark.parametrize('kind',['unbound','wrong_digest','mutated'])
+def test_prediction_cannot_claim_unverified_or_mutated_model_identity(tmp_path,kind):
+    model=build_structural_model(StructuralConfig())
+    path=tmp_path/'model.json';sha=save_checkpoint(model,path,dataset_sha256='a'*64,seed=0)
+    if kind!='unbound':model,_=load_checkpoint(path,sha)
+    if kind=='wrong_digest':sha='b'*64
+    if kind=='mutated':
+        with torch.no_grad():model.head.bias.add_(1.)
+    with pytest.raises(ValueError,match='checkpoint|identity'):
+        predict_snapshot(synthetic_snapshot(),model,instrument=Instrument('bybit','linear','BTCUSDT'),
+                         timeframe_ns=60,horizon_ns=120,model_sha256=sha,available_ns=361)

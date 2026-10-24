@@ -35,7 +35,13 @@ def feature_tracks(snapshot, *, timeframe_ns, config):
 def predict_snapshot(snapshot, model, *, instrument, timeframe_ns, horizon_ns, model_sha256, available_ns):
     import torch
     integer(horizon_ns,'horizon_ns',1);integer(available_ns,'available_ns');digest(model_sha256)
-    if horizon_ns%timeframe_ns:raise ValueError('horizon must align to timeframe')
+    if horizon_ns!=model.config.horizon_ns or horizon_ns%timeframe_ns:
+        raise ValueError('horizon must equal trained horizon and align to timeframe')
+    from .financial_checkpoint import model_fingerprint
+    identity=getattr(model,'checkpoint_identity',None)
+    if (not isinstance(identity,tuple) or len(identity)!=2 or identity[0]!=model_sha256
+        or identity[1]!=model_fingerprint(model)):
+        raise ValueError('unverified or changed checkpoint identity')
     x,mask,identities=feature_tracks(snapshot,timeframe_ns=timeframe_ns,config=model.config)
     if instrument not in identities:raise ValueError('missing target instrument')
     index=identities.index(instrument)

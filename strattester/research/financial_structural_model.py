@@ -12,6 +12,7 @@ from .financial_contract import integer
 @dataclass(frozen=True)
 class StructuralConfig:
     input_channels: int = 3
+    horizon_ns: int = 120
     hidden: int = 8
     heads: int = 2
     intermediate: int = 4
@@ -112,10 +113,13 @@ def build_structural_model(config=StructuralConfig()):
                 or not 2<=n<=config.max_tokens or c!=config.input_channels):
                 raise ValueError('structural shape budget exceeded')
             parameter=next(self.parameters())
-            if features.dtype!=parameter.dtype or features.device!=parameter.device or mask.device!=features.device:
+            if (features.dtype not in (torch.float32,torch.float64) or features.device.type!='cpu'
+                or features.dtype!=parameter.dtype or features.device!=parameter.device or mask.device!=features.device):
                 raise ValueError('matching model dtype/device required')
             track=b*s*n*h; pair=b*n*n*h; outer=b*n*n*config.intermediate**2
             attention=max(b*s*config.heads*n*n,b*n*config.heads*s*s,b*config.heads*n**3)
+            if max(track,pair,outer,attention,b*n*n*max(h,config.intermediate))>2_000_000:
+                raise ValueError('imported structural operator budget exceeded')
             estimate=(8*track+8*pair+2*outer+4*attention)*features.element_size()*8*config.depth*(config.recycles+1)
             if estimate>config.max_work_bytes: raise ValueError('structural workspace budget exceeded')
             if not torch.isfinite(features).all() or not ((mask==0)|(mask==1)).all(): raise ValueError('nonfinite features or nonbinary mask')

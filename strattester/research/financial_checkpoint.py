@@ -15,6 +15,17 @@ from .financial_snapshot import canonical_bytes, verified_bytes, unique_object
 from .financial_structural_model import StructuralConfig, build_structural_model
 
 
+def model_fingerprint(model):
+    import torch
+    model.config.validate()
+    records={}
+    for name,tensor in model.state_dict().items():
+        if tensor.dtype!=torch.float32 or tensor.device.type!='cpu' or not torch.isfinite(tensor).all():
+            raise ValueError('checkpoint identity requires finite CPU float32 state')
+        records[name]={'shape':list(tensor.shape),'values':tensor.detach().reshape(-1).tolist()}
+    return sha256(canonical_bytes({'config':asdict(model.config),'tensors':records})).hexdigest()
+
+
 def save_checkpoint(model, path, *, dataset_sha256, seed, max_bytes=8*1024*1024):
     import torch
     digest(dataset_sha256);integer(seed,'seed');integer(max_bytes,'max_bytes',1)
@@ -66,4 +77,5 @@ def load_checkpoint(path, expected_sha256, *, max_bytes=8*1024*1024):
             raise ValueError('checkpoint tensor shape/finite contract')
         state[name]=torch.tensor(record['values'],dtype=torch.float32).reshape(tensor.shape)
     model.load_state_dict(state,strict=True);model.eval()
+    model.checkpoint_identity=(expected_sha256,model_fingerprint(model))
     return model,{key:payload[key] for key in ('dataset_sha256','seed','config')}

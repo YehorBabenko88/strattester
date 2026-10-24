@@ -1,4 +1,7 @@
 from copy import deepcopy
+import json
+import subprocess
+import sys
 import pytest
 from strattester.research.financial_acceptance import validate_execution, aggregate
 
@@ -31,3 +34,21 @@ def test_missing_duplicate_or_wrong_gate_cannot_be_aggregated():
 
 def test_cancelled_job_cannot_pass_even_with_complete_test_artifact():
     assert aggregate({'cpu':report()},'a'*40,{'cpu'},external={},job_result='cancelled')['status']=='FAIL'
+
+
+@pytest.mark.parametrize('fail',[False,True])
+def test_real_unittest_subtests_have_exact_accounting(tmp_path,fail):
+    from strattester.research.financial_acceptance import execution_report
+    source=tmp_path/'test_subtest_fixture.py'
+    source.write_text('import unittest\nclass Suite(unittest.TestCase):\n def test_children(self):\n  for v in (0,1):\n   with self.subTest(v=v): self.assertEqual(v, '+('1' if fail else 'v')+')\n')
+    raw=tmp_path/'raw.json'
+    run=subprocess.run([sys.executable,'-m','pytest','-q',str(source),'--json-report',f'--json-report-file={raw}',
+                        f'--basetemp={tmp_path / "cases"}'],capture_output=True,text=True,timeout=30)
+    payload=json.loads(raw.read_text())
+    normalized=execution_report(payload,'a'*40,'math',run.returncode)
+    node=payload['tests'][0]['nodeid']
+    if fail:
+        with pytest.raises(ValueError):validate_execution(normalized,'a'*40,'math',{node},1)
+    else:
+        assert normalized['passed']==1 and normalized['collected']==1
+        assert validate_execution(normalized,'a'*40,'math',{node},1)

@@ -52,6 +52,20 @@ def test_resource_preflight_blocks_track_expansion_before_projection():
     assert not entered;h.remove()
 
 
+def test_preflight_enforces_imported_operator_caps_before_projection():
+    model=build_structural_model(StructuralConfig(recycles=0,max_tokens=110,max_work_bytes=512*1024*1024))
+    entered=[];h=model.input.register_forward_pre_hook(lambda *a:entered.append(True))
+    with pytest.raises(ValueError,match='budget'):model(torch.ones(1,1,110,3),torch.ones(1,1,110,dtype=torch.bool))
+    h.remove();assert not entered
+
+
+def test_unsupported_float16_is_rejected_before_projection():
+    model=build_structural_model(StructuralConfig()).half()
+    entered=[];h=model.input.register_forward_pre_hook(lambda *a:entered.append(True))
+    with pytest.raises(ValueError,match='dtype'):model(torch.ones(1,2,3,3,dtype=torch.float16),torch.tensor([[[1,1,1],[0,0,0]]],dtype=torch.bool))
+    h.remove();assert not entered
+
+
 @pytest.mark.parametrize('cfg',[StructuralConfig(hidden=100000),StructuralConfig(max_parameters=1),StructuralConfig(recycles=1000)])
 def test_constructor_rejects_unbounded_parameters_before_allocation(cfg,monkeypatch):
     monkeypatch.setattr(torch.nn,'Linear',lambda *a,**k:pytest.fail('allocation before admission'))

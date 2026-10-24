@@ -611,7 +611,7 @@
     ]
   },
   "cpu": {
-    "minimum": 92,
+    "minimum": 94,
     "nodeids": [
       "tests/research/test_alphafold_adapter.py::test_any_instrument_and_alignment",
       "tests/research/test_alphafold_adapter.py::test_future_invariance",
@@ -670,6 +670,8 @@
       "tests/research/test_financial_structural_model.py::test_target_track_identity_changes_forecast",
       "tests/research/test_financial_structural_model.py::test_recycling_reuses_learned_operators_and_changes_prediction",
       "tests/research/test_financial_structural_model.py::test_resource_preflight_blocks_track_expansion_before_projection",
+      "tests/research/test_financial_structural_model.py::test_preflight_enforces_imported_operator_caps_before_projection",
+      "tests/research/test_financial_structural_model.py::test_unsupported_float16_is_rejected_before_projection",
       "tests/research/test_financial_structural_model.py::test_constructor_rejects_unbounded_parameters_before_allocation[cfg0]",
       "tests/research/test_financial_structural_model.py::test_constructor_rejects_unbounded_parameters_before_allocation[cfg1]",
       "tests/research/test_financial_structural_model.py::test_constructor_rejects_unbounded_parameters_before_allocation[cfg2]",
@@ -708,14 +710,19 @@
     ]
   },
   "training": {
-    "minimum": 44,
+    "minimum": 49,
     "nodeids": [
       "tests/research/test_financial_evaluation.py::test_literal_entry_exit_fees_and_terminal_liquidation",
       "tests/research/test_financial_evaluation.py::test_positions_across_disjoint_labels_pay_entry_and_exit_each_time",
       "tests/research/test_financial_evaluation.py::test_overlapping_labels_or_invalid_costs_are_rejected",
       "tests/research/test_financial_evaluation.py::test_distribution_score_and_randomized_controls_are_reproducible",
+      "tests/research/test_financial_evaluation.py::test_delayed_control_selects_strictly_prior_observation_of_same_series",
+      "tests/research/test_financial_evaluation.py::test_persistence_control_uses_the_targets_observed_return_channel",
       "tests/research/test_financial_experiment.py::test_multi_instrument_timeframe_purged_experiment_records_real_updates",
       "tests/research/test_financial_experiment.py::test_future_dependency_blocks_before_checkpoint",
+      "tests/research/test_financial_experiment.py::test_mixed_unconditioned_horizons_are_rejected",
+      "tests/research/test_financial_experiment.py::test_instrument_holdout_is_absent_from_training_context",
+      "tests/research/test_financial_experiment.py::test_evaluation_failure_cannot_publish_checkpoint",
       "tests/research/test_financial_training.py::test_optimizer_changes_weights_and_reproduces_seed",
       "tests/research/test_financial_training.py::test_cancelled_fit_rolls_back_entire_model",
       "tests/research/test_financial_training.py::test_bad_label_does_not_update_model[nan]",
@@ -757,7 +764,7 @@
     ]
   },
   "security": {
-    "minimum": 39,
+    "minimum": 41,
     "nodeids": [
       "tests/research/test_alphafold_security.py::test_reject_invalid_or_oversized[shape0]",
       "tests/research/test_alphafold_security.py::test_reject_invalid_or_oversized[shape1]",
@@ -786,6 +793,8 @@
       "tests/research/test_financial_acceptance.py::test_complete_execution_passes_but_external_blockers_prevent_acceptance",
       "tests/research/test_financial_acceptance.py::test_missing_duplicate_or_wrong_gate_cannot_be_aggregated",
       "tests/research/test_financial_acceptance.py::test_cancelled_job_cannot_pass_even_with_complete_test_artifact",
+      "tests/research/test_financial_acceptance.py::test_real_unittest_subtests_have_exact_accounting[False]",
+      "tests/research/test_financial_acceptance.py::test_real_unittest_subtests_have_exact_accounting[True]",
       "tests/research/test_financial_checkpoint.py::test_checkpoint_reloads_in_fresh_process_and_refuses_replay",
       "tests/research/test_financial_checkpoint.py::test_checkpoint_rejects_untrusted_shapes_and_serialization[tamper]",
       "tests/research/test_financial_checkpoint.py::test_checkpoint_rejects_untrusted_shapes_and_serialization[shape]",
@@ -801,11 +810,15 @@
     ]
   },
   "integration": {
-    "minimum": 3,
+    "minimum": 7,
     "nodeids": [
       "tests/research/test_financial_offline_e2e.py::test_snapshot_train_checkpoint_prediction_without_network_or_production_io",
       "tests/research/test_financial_offline_e2e.py::test_misaligned_tracks_and_future_data_block_pipeline",
-      "tests/research/test_financial_offline_e2e.py::test_resource_admission_precedes_feature_allocation"
+      "tests/research/test_financial_offline_e2e.py::test_resource_admission_precedes_feature_allocation",
+      "tests/research/test_financial_offline_e2e.py::test_prediction_cannot_relabel_the_trained_horizon",
+      "tests/research/test_financial_offline_e2e.py::test_prediction_cannot_claim_unverified_or_mutated_model_identity[unbound]",
+      "tests/research/test_financial_offline_e2e.py::test_prediction_cannot_claim_unverified_or_mutated_model_identity[wrong_digest]",
+      "tests/research/test_financial_offline_e2e.py::test_prediction_cannot_claim_unverified_or_mutated_model_identity[mutated]"
     ]
   }
 }

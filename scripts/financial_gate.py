@@ -10,7 +10,7 @@ import tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from strattester.research.financial_acceptance import validate_execution, aggregate
+from strattester.research.financial_acceptance import validate_execution, aggregate, execution_report
 from strattester.research.financial_contract import digest
 
 
@@ -59,13 +59,9 @@ def main(argv=None):
                  f'--basetemp={Path(scratch)/"cases"}',f'@{nodefile}']
         completed=subprocess.run(command,check=False,timeout=900)
         payload=json.loads(raw.read_text()) if raw.is_file() else {}
-    summary=payload.get('summary',{})
-    report={'schema':1,'sha':actual,'gate':args.gate,'status':'PASS','exit_code':completed.returncode,
-            'passed':summary.get('passed',0),'failed':summary.get('failed',0),'errors':summary.get('error',0),
-            'skipped':summary.get('skipped',0),'xfailed':summary.get('xfailed',0),'xpassed':summary.get('xpassed',0),
-            'deselected':summary.get('deselected',0),'collected':summary.get('total',0),
-            'nodeids':[t['nodeid'] for t in payload.get('tests',[]) if t.get('outcome')=='passed'],
-            'python':sys.version,'torch':torch.__version__,'platform':sys.platform}
+    (args.output/f'{args.gate}-pytest.json').write_text(json.dumps(payload,indent=2)+'\n')
+    report=execution_report(payload,actual,args.gate,completed.returncode)
+    report.update(python=sys.version,torch=torch.__version__,platform=sys.platform)
     try:validate_execution(report,actual,args.gate,set(spec['nodeids']),spec['minimum'])
     except ValueError as exc:report['status']='FAIL';report['reason']=str(exc)
     (args.output/f'{args.gate}.json').write_text(json.dumps(report,indent=2)+'\n')

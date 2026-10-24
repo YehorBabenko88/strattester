@@ -24,6 +24,21 @@ def test_distribution_score_and_randomized_controls_are_reproducible():
     report=gaussian_scores([0.,0.],[1.,1.],[0.,0.])
     assert report['nll']==pytest.approx(.9189385332046727)
     args=([[0.],[1.],[2.],[3.]],[.1,-.1,.2,-.2],[[4.],[5.]], [.2,-.2])
-    a=evaluate_controls(*args,seed=3)
-    assert a==evaluate_controls(*args,seed=3)
+    kwargs=dict(train_events=[('BTC',t) for t in range(4)],test_events=[('BTC',4),('BTC',5)],seed=3)
+    a=evaluate_controls(*args,**kwargs)
+    assert a==evaluate_controls(*args,**kwargs)
     assert set(a)=={'zero','mean','persistence','linear','random_signal','label_shuffle','delayed_feature'}
+
+
+def test_delayed_control_selects_strictly_prior_observation_of_same_series():
+    from strattester.research.financial_evaluation import delayed_features
+    history=[[1.],[100.],[2.],[200.],[3.],[300.]]
+    events=[('BTC',10),('ETH',10),('BTC',20),('ETH',20),('BTC',30),('ETH',30)]
+    assert delayed_features(history,events,[('BTC',20),('ETH',20),('BTC',30),('ETH',30)])==[[1.],[100.],[2.],[200.]]
+    with pytest.raises(ValueError):delayed_features(history,events,[('BTC',10)])
+
+
+def test_persistence_control_uses_the_targets_observed_return_channel():
+    r=evaluate_controls([[.1],[.2]],[.1,.2],[[.3],[.4]],[.3,.4],
+                        train_events=[('BTC',0),('BTC',1)],test_events=[('BTC',2),('BTC',3)])
+    assert r['persistence']==0.

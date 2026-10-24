@@ -39,6 +39,6 @@ def test_checkpoint_rejects_untrusted_shapes_and_serialization(tmp_path,kind):
 
 
 def test_installed_evaluation_does_not_depend_on_repository_working_directory(tmp_path):
-    code="from strattester.research.financial_evaluation import evaluate_controls; r=evaluate_controls([[0.],[1.]],[0.,.1],[[2.]],[.2]); assert len(r)==7"
+    code="from strattester.research.financial_evaluation import evaluate_controls; r=evaluate_controls([[0.],[1.]],[0.,.1],[[2.]],[.2],train_events=[('BTC',0),('BTC',1)],test_events=[('BTC',2)]); assert len(r)==7"
     result=subprocess.run([sys.executable,'-I','-c',code],cwd=tmp_path,capture_output=True,text=True,timeout=30)
     assert result.returncode==0,result.stderr

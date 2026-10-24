@@ -17,6 +17,8 @@ One model call predicts ONE explicit origin, not a sequence of online per-positi
 
 The output is Gaussian log-return mu and scale, with scale in [1e-5,10]. Prediction contains exchange/market/symbol, origin, caller-recorded availability, horizon, dataset SHA and model SHA. Gaussian fit/calibration is exploratory, not a validated financial law. A target-track regression found and corrected an initial symmetric pooling error: swapping the target must change its forecast.
 
+The fixed trained horizon is StructuralConfig.horizon_ns (default 120 ns for toy engineering fixtures; production experiments must explicitly set the real horizon in ns). Different input timeframes may share that duration, but labels/predictions cannot silently change it. Verified checkpoint identity and current config/tensor fingerprint are rechecked before typed inference. Instrument holdout excludes both labels and all training context tracks. CPU float32/float64 compute is admitted; safe checkpoint inference requires CPU float32. GPU/half paths are not accepted by this candidate.
+
 ## Numerical mechanisms and provenance
 
 Independent implementations reference AlphaFold modules.py at c77e5d2a8961d1a353632c462914ff0a32a950f6. No upstream executable code, weights or atom output is incorporated into forecasting. Preserve Apache-2.0 attribution for any later copied implementation. Current tests include explicit-index OPM/triangle/column attention, row mask invariance, attention orientation, finite gradients, connected operator hooks, zero/missing masks, recycling and origin-availability perturbation. Full upstream-equivalence acceptance remains BLOCKED pending complete independent reference evidence; selected adaptations are not branded original AlphaFold inference.

@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 import math
 import random
+from bisect import bisect_left
 from statistics import mean
 from .financial_contract import integer, finite
 
@@ -44,19 +45,45 @@ def gaussian_scores(mu,scale,targets):
             'coverage_95':mean(abs(y-m)<=1.959963984540054*s for y,m,s in zip(targets,mu,scale))}
 
 
-def evaluate_controls(train_x,train_y,test_x,test_y,*,seed=0):
+def delayed_features(history_x,history_events,query_events):
+    """Latest strictly earlier feature row from the identical market/series key."""
+    if len(history_x)!=len(history_events) or not history_x:raise ValueError('history shape')
+    groups={};seen=set()
+    for row,(identity,timestamp) in zip(history_x,history_events):
+        integer(timestamp,'feature time')
+        if not isinstance(identity,str) or not identity or (identity,timestamp) in seen:
+            raise ValueError('invalid/duplicate feature identity')
+        seen.add((identity,timestamp));groups.setdefault(identity,[]).append((timestamp,row))
+    for values in groups.values():values.sort(key=lambda item:item[0])
+    result=[]
+    for identity,timestamp in query_events:
+        integer(timestamp,'query time')
+        values=groups.get(identity,[])
+        index=bisect_left([t for t,row in values],timestamp)-1
+        if index<0:raise ValueError('BLOCKED: no strictly prior same-series control feature')
+        result.append(values[index][1])
+    return result
+
+
+def evaluate_controls(train_x,train_y,test_x,test_y,*,train_events,test_events,seed=0,history_x=None,history_events=None):
     """Fit all baseline/negative controls only on the supplied training slice."""
     from research.alphafold_training.baselines import MeanReturnBaseline, RidgeBaseline
     integer(seed,'seed')
-    if not test_y or len(test_x)!=len(test_y):raise ValueError('control shapes')
+    if (not test_y or len(test_x)!=len(test_y) or len(train_x)!=len(train_events)
+        or len(test_x)!=len(test_events)):raise ValueError('control shapes')
+    if history_x is None:
+        history_x=[*train_x,*test_x];history_events=[*train_events,*test_events]
+    delayed=delayed_features(history_x,history_events,test_events)
     rng=random.Random(seed); shuffled=list(train_y);rng.shuffle(shuffled)
     predictions={
         'zero':[0.]*len(test_y),
         'mean':MeanReturnBaseline().fit(train_x,train_y).predict(test_x),
-        'persistence':[train_y[-1]]*len(test_y),
+        # The financial adapter's first channel is the target instrument's
+        # currently observed return, available without any future label.
+        'persistence':[row[0] for row in test_x],
         'linear':RidgeBaseline().fit(train_x,train_y).predict(test_x),
         'random_signal':[rng.choice((-1.,0.,1.)) for _ in test_y],
         'label_shuffle':RidgeBaseline().fit(train_x,shuffled).predict(test_x),
-        'delayed_feature':RidgeBaseline().fit(train_x,train_y).predict([train_x[-1],*test_x[:-1]]),
+        'delayed_feature':RidgeBaseline().fit(train_x,train_y).predict(delayed),
     }
     return {name:mean(abs(finite(y,'target')-finite(p,'prediction')) for y,p in zip(test_y,values)) for name,values in predictions.items()}
