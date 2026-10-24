@@ -1,5 +1,7 @@
 """Offline QA probes for native sandbox evidence (never launches a child)."""
 import hashlib
+import os
+import stat
 from pathlib import Path
 
 from .windows_native_sandbox_admission import SandboxDenied
@@ -36,10 +38,16 @@ def verify_disposable_vm_receipt(receipt, *, expected_target_sha):
 def hash_static_evidence_file(path, *, max_bytes=1024 * 1024):
     """Bounded hash for a disposable static evidence file, not a live DB."""
     path = Path(path)
-    if type(max_bytes) is not int or max_bytes <= 0 or path.is_symlink() or not path.is_file():
+    if type(max_bytes) is not int or max_bytes <= 0 or path.is_symlink():
         raise SandboxDenied("unsafe evidence file")
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor = os.open(path, flags)
     digest = hashlib.sha256()
-    with path.open("rb") as stream:
+    with os.fdopen(descriptor, "rb") as stream:
+        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+            raise SandboxDenied("not a regular evidence file")
         size = 0
         while chunk := stream.read(min(65536, max_bytes - size + 1)):
             size += len(chunk)
