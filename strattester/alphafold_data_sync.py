@@ -48,6 +48,10 @@ def point_in_time_rows(
     Cutoffs must use the exact timestamp unit and convention of the audited
     source schema. This adapter does not convert timestamps or merge shards.
     """
+    if any(isinstance(v, bool) or not isinstance(v, int) or v < 0 for v in (event_cutoff, knowledge_cutoff)):
+        raise ValueError("Cutoffs must be nonnegative integer timestamps")
+    if not all(isinstance(v, str) and v for v in (instrument, timeframe, market_type, accepted_quality)):
+        raise ValueError("Market selectors and quality must be nonempty strings")
     columns = {
         name: _identifier(getattr(source, name))
         for name in (
@@ -58,7 +62,7 @@ def point_in_time_rows(
     if source.path.is_symlink() or not source.path.is_file():
         raise ValueError("Source must be an existing regular non-symlink file")
     uri = source.path.absolute().as_uri() + "?mode=ro"
-    connection = sqlite3.connect(uri, uri=True, isolation_level=None)
+    connection = sqlite3.connect(uri, uri=True, isolation_level=None, timeout=1.0)
     connection.row_factory = sqlite3.Row
     try:
         connection.execute("PRAGMA query_only=ON")
