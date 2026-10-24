@@ -11,7 +11,7 @@ def policy():
 
 
 @pytest.mark.parametrize("path", [
-    "../model.json", r"\\server\share\model.json",
+    "../model.json", "C:/safe/model.json", r"\\server\share\model.json",
     r"\\?\C:\model.json", r"\\.\PhysicalDrive0",
     r"C:\safe\..\secret", r"C:\safe\file:stream",
     r"C:\safe\NUL", "C:\\safe\\file.",
