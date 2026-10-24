@@ -18,3 +18,21 @@ def test_invalid_horizon():
     with pytest.raises(ValueError):
         make_samples("BTCUSDT", "1m", list(range(20)),
                      [100] * 20, window=4, horizon=1)
+
+
+def test_insufficient_history_fails_closed():
+    with pytest.raises(ValueError, match='insufficient history'):
+        make_samples('BTCUSDT', '1m', list(range(7)), [100.0] * 7, window=4, horizon=3)
+
+
+def test_future_changes_do_not_modify_past_features():
+    ts = [i * 60000 for i in range(40)]
+    prices = [100.0 + i for i in range(40)]
+    baseline = make_samples('BTCUSDT', '1m', ts, prices, window=4, horizon=3)
+    altered = prices[:]
+    for i in range(20, 40):
+        altered[i] = prices[i] * 1.5
+    mutated = make_samples('BTCUSDT', '1m', ts, altered, window=4, horizon=3)
+    for a, b in zip(baseline, mutated):
+        if a.origin_timestamp < ts[20]:
+            assert a.representation == b.representation
