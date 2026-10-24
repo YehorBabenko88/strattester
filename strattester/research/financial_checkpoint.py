@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 import tempfile
 from .financial_contract import digest, integer
-from .financial_snapshot import canonical_bytes, verified_bytes, unique_object, bounded_json
+from .financial_snapshot import canonical_bytes, verified_bytes, unique_object, bounded_json, reject_linked_path
 from .financial_structural_model import StructuralConfig, build_structural_model
 
 
@@ -31,6 +31,7 @@ def save_checkpoint(model, path, *, dataset_sha256, seed, max_bytes=8*1024*1024)
     digest(dataset_sha256);integer(seed,'seed');integer(max_bytes,'max_bytes',1)
     model.config.validate()
     path=Path(path)
+    reject_linked_path(path.parent)
     if path.exists() or path.is_symlink(): raise ValueError('checkpoint exists; refusing replay/overwrite')
     tensors={}
     for name,tensor in model.state_dict().items():
