@@ -5,6 +5,8 @@ hash a live SQLite WAL database or PostgreSQL data directory: those require
 a transactionally consistent exported artifact first.
 """
 import hashlib
+import os
+import stat
 from pathlib import Path
 
 
@@ -21,7 +23,13 @@ def verify_immutable_artifact(path: Path, expected_sha256: str, *, max_bytes: in
         raise ArtifactVerificationError("Not a regular non-symlink artifact")
     digest = hashlib.sha256()
     size = 0
-    with path.open("rb") as stream:
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor = os.open(path, flags)
+    with os.fdopen(descriptor, "rb") as stream:
+        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+            raise ArtifactVerificationError("Opened artifact is not a regular file")
         while chunk := stream.read(min(1024 * 1024, max_bytes - size + 1)):
             size += len(chunk)
             if size > max_bytes:
