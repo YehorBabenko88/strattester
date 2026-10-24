@@ -33,6 +33,8 @@ def predict_research_only(spec, snapshot, *, instrument, model_path, model_sha25
     model, metadata = load_checkpoint(model_path, model_sha256)
     if model.config.horizon_ns != spec.forecast_horizon_ns:
         raise ValueError("checkpoint horizon mismatch")
+    if not isinstance(metadata, dict) or metadata.get("config", {}).get("horizon_ns") != spec.forecast_horizon_ns:
+        raise ValueError("checkpoint metadata horizon mismatch")
     return predict_snapshot(snapshot, model, instrument=instrument,
                             timeframe_ns=timeframe_ns, horizon_ns=horizon_ns,
                             model_sha256=model_sha256, available_ns=available_ns)
