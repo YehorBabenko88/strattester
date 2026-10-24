@@ -78,13 +78,14 @@ def evaluate_offline(samples, model_factory, cfg):
     model = model_factory()
     model.fit([s.features for s in train], [s.forward_return for s in train])
     val_pred = list(model.predict([s.features for s in val]))
-    test_pred = list(model.predict([s.features for s in test]))
     assert_prediction_contract(val_pred, val)
-    assert_prediction_contract(test_pred, test)
     thresholds = (0., 0.0005, 0.001, 0.002)
     def positions(pred, threshold):
         return [int(x > threshold) - int(x < -threshold) for x in pred]
     threshold = max(thresholds, key=lambda t: _score(val, positions(val_pred, t), cfg)["mean_net_return"])
+    # Freeze the selection rule before any test prediction is requested.
+    test_pred = list(model.predict([s.features for s in test]))
+    assert_prediction_contract(test_pred, test)
     selected = positions(test_pred, threshold)
     return {
         "status": "RESEARCH_UNVERIFIED",
