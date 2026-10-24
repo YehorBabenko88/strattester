@@ -79,9 +79,12 @@ def validate_purged_splits(train_labels, evaluation_labels, embargo_ns=0):
 
 def train_only_zscore(train_values, test_values):
     """No test data may influence fit statistics; constant feature maps to zero."""
-    if (not train_values or any(type(x) not in (int, float) or not math.isfinite(x)\n                                for x in list(train_values) + list(test_values))):
+    if (not train_values or any(type(x) not in (int, float) or not math.isfinite(x)
+                                for x in list(train_values) + list(test_values))):
         raise ValueError("invalid normalization input")
     mean = math.fsum(train_values) / len(train_values)
     var = math.fsum((x - mean) ** 2 for x in train_values) / len(train_values)
     scale = math.sqrt(var)
-    if not scale and any(x != mean for x in test_values):\n        raise ValueError("unseen value with zero-variance training feature")\n    return [(x - mean) / scale if scale else 0.0 for x in test_values], (mean, scale)
+    if not scale and any(x != mean for x in test_values):
+        raise ValueError("unseen value with zero-variance training feature")
+    return [(x - mean) / scale if scale else 0.0 for x in test_values], (mean, scale)
