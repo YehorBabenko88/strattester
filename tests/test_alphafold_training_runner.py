@@ -26,14 +26,14 @@ class RunnerTests(unittest.TestCase):
         calls = []
         class TrackingModel:
             def fit(self, X, y):
-                calls.append(("fit", len(X)))
+                calls.append(("fit", X[0][0]))
             def predict(self, X):
-                calls.append(("predict", len(X)))
+                calls.append(("predict", X[0][0]))
                 return [0.001] * len(X)
         rows = [Sample("BTC", t, t + 1, t, (float(t),), .001)
                 for t in (1, 3, 5, 11, 13, 15, 21, 23, 25, 27)]
         evaluate_offline(rows, TrackingModel, ResearchConfig(10, 20, 30))
-        self.assertEqual(calls, [("fit", 3), ("predict", 3), ("predict", 4)])
+        self.assertEqual(calls, [("fit", 1.0), ("predict", 11.0), ("predict", 21.0)])
 
     def test_overlap_rejected(self):
         rows = [Sample("BTC", t, t + 3, t, (1.,), .01)
