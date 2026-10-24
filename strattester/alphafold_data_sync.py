@@ -90,3 +90,28 @@ def point_in_time_rows(
         raise
     finally:
         connection.close()
+
+
+def bounded_point_in_time_rows(
+    source: SQLiteSource,
+    *,
+    max_rows: int,
+    **filters,
+) -> tuple[dict, ...]:
+    """Return an all-or-nothing bounded batch; reject oversized result sets.
+
+    The caller must still validate provenance, completeness, timestamp units
+    and source schema before using these rows for ML.
+    """
+    if isinstance(max_rows, bool) or not isinstance(max_rows, int) or max_rows < 1:
+        raise ValueError("max_rows must be a positive integer")
+    reader = point_in_time_rows(source, **filters)
+    rows = []
+    try:
+        for row in reader:
+            if len(rows) >= max_rows:
+                raise ValueError("Snapshot exceeds max_rows; refusing partial batch")
+            rows.append(row)
+        return tuple(rows)
+    finally:
+        reader.close()
