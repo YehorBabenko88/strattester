@@ -113,11 +113,11 @@ namespace StratTester.Native {
                         bool assigned;
                         if (!Native.IsProcessInJob(child.Process, job.DangerousGetHandle(), out assigned) || !assigned) throw new InvalidOperationException("Handle probe job assignment failed");
                         if (Native.ResumeThread(child.Thread) == UInt32.MaxValue) throw new Win32Exception(Marshal.GetLastWin32Error());
-                        if (Native.WaitForSingleObject(child.Process, 10000) != 0) throw new InvalidOperationException("Handle probe timed out");
+                        if (Native.WaitForSingleObject(child.Process, 5000) != 0) throw new InvalidOperationException("Handle probe timed out");
                         uint code;
                         if (!Native.GetExitCodeProcess(child.Process, out code) || code != 110) throw new InvalidOperationException("Handle/environment probe failed");
                     } finally {
-                        Native.TerminateProcess(child.Process, 125); Native.WaitForSingleObject(child.Process, 10000);
+                        Native.TerminateProcess(child.Process, 125); Native.WaitForSingleObject(child.Process, 5000);
                         Native.CloseHandle(child.Thread); Native.CloseHandle(child.Process);
                     }
                 }
