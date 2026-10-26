@@ -17,6 +17,7 @@ def verify_artifact_metadata(items, *, head, run_id):
     if type(items) is not list:
         return {"status": "BLOCKED", "errors": errors + ["invalid_artifacts"]}
     seen = set()
+    artifact_ids = set()
     for index, item in enumerate(items):
         if type(item) is not dict:
             errors.append(f"invalid_item_{index}")
@@ -34,6 +35,11 @@ def verify_artifact_metadata(items, *, head, run_id):
         if prefix in seen:
             errors.append(f"unknown_or_duplicate_{index}")
         seen.add(prefix)
+        artifact_id = item.get("id")
+        if type(artifact_id) is not int or artifact_id <= 0 or artifact_id in artifact_ids:
+            errors.append(f"artifact_id_{index}")
+        else:
+            artifact_ids.add(artifact_id)
         digest = item.get("digest")
         if type(digest) is not str or not DIGEST.fullmatch(digest):
             errors.append(f"digest_{index}")
