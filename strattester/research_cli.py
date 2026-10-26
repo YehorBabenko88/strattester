@@ -24,6 +24,13 @@ def parser():
     experiment=sub.add_parser('experiment')
     experiment.add_argument('--source',required=True);experiment.add_argument('--source-sha256',required=True)
     experiment.add_argument('--output',required=True);experiment.add_argument('--enable-research',action='store_true')
+    walk=sub.add_parser('walk-forward')
+    for flag in ('source','source-sha256','output','trust-store','trust-store-sha256','checkpoint','checkpoint-sha256','openssl-exe','openssl-sha256','scratch-root'):
+        walk.add_argument('--'+flag,required=True)
+    walk.add_argument('--enable-research',action='store_true')
+    fixture=sub.add_parser('prepare-walk-forward')
+    for flag in ('output','openssl-exe','openssl-sha256','scratch-root'):fixture.add_argument('--'+flag,required=True)
+    fixture.add_argument('--seed',type=int,default=31)
     return p
 
 def _required(a,names):
@@ -56,7 +63,14 @@ def _profile(path,expected_sha256):
 def main(argv=None):
     a=parser().parse_args(argv)
     try:
-        if a.command=='experiment':
+        if a.command=='prepare-walk-forward':
+            from .research.financial_walkforward_fixture import prepare_walkforward_fixture
+            v=_verifier(a)
+            result=prepare_walkforward_fixture(a.output,openssl_exe=v.executable,openssl_sha256=v.executable_sha256,scratch_root=v.scratch_root,seed=a.seed)
+        elif a.command=='walk-forward':
+            from .research.financial_walkforward_session import run_walkforward_file
+            result=run_walkforward_file(a.source,a.source_sha256,a.output,trust_store_path=a.trust_store,trust_store_sha256=a.trust_store_sha256,checkpoint_path=a.checkpoint,checkpoint_sha256=a.checkpoint_sha256,verifier=_verifier(a),enable_research=a.enable_research)
+        elif a.command=='experiment':
             from .research.financial_experiment_session import run_experiment_file
             result=run_experiment_file(a.source,a.source_sha256,a.output,enable_research=a.enable_research)
         elif a.command=='prepare':
