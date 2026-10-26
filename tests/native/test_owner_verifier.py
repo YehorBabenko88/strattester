@@ -5,6 +5,7 @@ from pathlib import Path
 @unittest.skipUnless(os.name=='nt' and os.environ.get('NATIVE_BROKER'),'compiled Windows broker required')
 class NativeOwnerTests(unittest.TestCase):
     def signed(self,folder,change=None,include_package=True):
+        folder=folder.resolve(strict=True) # trusted fixture root, not artifact-selected paths
         exe='C:/Program Files/Git/usr/bin/openssl.exe'
         def ssl(*a):return subprocess.run([exe,*a],capture_output=True,check=True).stdout
         ssl('genpkey','-algorithm','ED25519','-outform','DER','-out',str(folder/'key.der'))
@@ -33,6 +34,12 @@ class NativeOwnerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='owner-v2-') as t:
             p=subprocess.run(self.signed(Path(t),include_package=False),capture_output=True,text=True,timeout=20)
             self.assertEqual(p.returncode,78,p.stdout)
+
+    def test_trusted_fixture_setup_resolves_os_temporary_directory_alias(self):
+        with tempfile.TemporaryDirectory(prefix='owner-v2-') as t:
+            folder=Path(t);alias=folder/'..'/folder.name
+            p=subprocess.run(self.signed(alias),capture_output=True,text=True,timeout=20)
+            self.assertEqual(p.returncode,0,p.stdout)
 
     def test_monotonic_owner_clock_rejects_late_admission_and_rollback(self):
         p=subprocess.run([os.environ['NATIVE_BROKER'],'--selftest-owner-clock'],capture_output=True,text=True,timeout=15)
