@@ -34,8 +34,14 @@ def test_prepare_produces_signed_reproducible_offline_session_and_external_owner
     assert template['input_hashes']['package'] is None
     assert (config.parent/'runtime/strattester/research/financial_owner_intent_v2.py').is_file()
     assert (config.parent/'runtime/strattester/research/financial_funding.py').is_file()
+    assert (config.parent/'runtime/strattester/research/financial_torch_runtime.py').is_file()
+    assert (config.parent/'runtime/strattester/research/financial_executable_inventory.py').is_file()
     assert template['package_sha256'] is None
     assert 'owner' not in json.loads((config.parent/'trust.json').read_bytes())['keys'][0]['producer_id']
+    from strattester.research.financial_snapshot import canonical_bytes
+    inert=tmp_path/'inert';inert.write_bytes(b'not executed')
+    inventory=canonical_bytes(dict(version=1,files=[dict(logical_name='inert',absolute_path=str(inert),sha256=sha256(inert.read_bytes()).hexdigest(),size_bytes=inert.stat().st_size)]))
+    (tmp_path/'executables.json').write_bytes(inventory)
     # A fresh isolated interpreter must use packaged modules, not this checkout.
     code='''import sys,json,socket
 from pathlib import Path
@@ -45,6 +51,9 @@ socket.socket.connect=deny;socket.create_connection=deny
 from strattester.research_cli import main
 status=main(sys.argv[2:])
 assert status==0
+from hashlib import sha256
+inventory=root.parent/'executables.json'
+assert main(['verify-executables','--manifest',str(inventory),'--manifest-sha256',sha256(inventory.read_bytes()).hexdigest()])==0
 from strattester.research.financial_funding import FundingWindow,FundingEvent
 from strattester.research.financial_evaluation import Trade,evaluate_ledger
 funding=FundingWindow('fixture/linear/TEST',0,20,20,'a'*64,(FundingEvent('fixture/linear/TEST','event',10,11,'25','bps'),))

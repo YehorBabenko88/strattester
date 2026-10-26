@@ -13,7 +13,8 @@ def data():
     return torch.ones(1,1,3,3),torch.tensor([.01]),torch.ones(1,1,3,dtype=torch.bool)
 
 
-def test_concurrent_training_does_not_overlap_process_rng_windows(monkeypatch):
+@pytest.mark.parametrize('other',['training','checkpoint'])
+def test_concurrent_training_does_not_overlap_process_rng_windows(monkeypatch,tmp_path,other):
     cfg=StructuralConfig(recycles=0)
     a,b=build_structural_model(cfg),build_structural_model(cfg)
     # Warm the real optimizer imports before scheduling the interleaving.
@@ -26,11 +27,20 @@ def test_concurrent_training_does_not_overlap_process_rng_windows(monkeypatch):
     def fb(*args):
         second.set();return forward_b(*args)
     monkeypatch.setattr(a,'forward',fa);monkeypatch.setattr(b,'forward',fb)
+    import strattester.research.financial_checkpoint as checkpoints
+    if other=='checkpoint':
+        path=tmp_path/'model.json'
+        pin=checkpoints.save_checkpoint(b,path,dataset_sha256='a'*64,seed=22)
+        construct=checkpoints.build_structural_model
+        def observed(*args,**kwargs):
+            second.set();return construct(*args,**kwargs)
+        monkeypatch.setattr(checkpoints,'build_structural_model',observed)
     torch.manual_seed(818)
     before=torch.random.get_rng_state().clone()
     deterministic=torch.are_deterministic_algorithms_enabled()
     def worker_b():
-        started.set();return fit_structural(b,*data(),seed=22,steps=1)
+        started.set()
+        return checkpoints.load_checkpoint(path,pin) if other=='checkpoint' else fit_structural(b,*data(),seed=22,steps=1)
     with ThreadPoolExecutor(max_workers=2) as pool:
         left=pool.submit(fit_structural,a,*data(),seed=11,steps=1)
         try:
@@ -110,6 +120,21 @@ def test_parallel_seeded_models_match_sequential_fingerprints():
     expected=[construct(seed) for seed in seeds]
     before=torch.random.get_rng_state().clone()
     with ThreadPoolExecutor(max_workers=4) as pool:actual=list(pool.map(construct,seeds))
+    assert actual==expected
+    assert torch.equal(before,torch.random.get_rng_state())
+
+
+def test_parallel_training_matches_sequential_losses_and_weights():
+    from strattester.research.financial_checkpoint import model_fingerprint
+    cfg=StructuralConfig(recycles=0)
+    def train(seed):
+        model=build_structural_model(cfg,seed=seed)
+        losses=fit_structural(model,*data(),seed=seed,steps=2)
+        return losses,model_fingerprint(model)
+    seeds=[11,22,11]
+    expected=[train(seed) for seed in seeds]
+    before=torch.random.get_rng_state().clone()
+    with ThreadPoolExecutor(max_workers=3) as pool:actual=list(pool.map(train,seeds))
     assert actual==expected
     assert torch.equal(before,torch.random.get_rng_state())
 
