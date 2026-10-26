@@ -47,3 +47,16 @@ def test_duplicate_names_paths_and_manifest_pin_fail_closed(tmp_path):
     payload['files'][1]={**payload['files'][0],'logical_name':'python'};path,pin=publish(tmp_path,payload)
     with pytest.raises(ValueError):verify_executable_inventory(path,pin)
     with pytest.raises(ValueError):verify_executable_inventory(path,'0'*64)
+
+
+@pytest.mark.parametrize('target',['//server/share/tool.exe','\\\\server\\share\\tool.exe',
+    '\\\\?\\C:\\tool.exe','/tmp/tool:stream','/tmp/invalid\x00.exe'])
+def test_nonlocal_or_device_alias_is_rejected_before_target_io(tmp_path,monkeypatch,target):
+    import strattester.research.financial_executable_inventory as inventory
+    payload=fixture(tmp_path);payload['files'][0]['absolute_path']=target;path,pin=publish(tmp_path,payload)
+    original=inventory.verified_bytes
+    def read(file,*args):
+        if str(file)!=str(path):raise AssertionError('target IO before local-path admission')
+        return original(file,*args)
+    monkeypatch.setattr(inventory,'verified_bytes',read)
+    with pytest.raises(ValueError):inventory.verify_executable_inventory(path,pin)

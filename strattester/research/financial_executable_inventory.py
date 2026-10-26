@@ -6,10 +6,20 @@ from .financial_contract import integer,digest
 from .financial_snapshot import verified_bytes,bounded_json
 
 
+def _local_path(path):
+    text=os.fspath(path)
+    if (type(text) is not str or len(text)>1024 or text.startswith(('\\\\','//')) or '\x00' in text
+        or not Path(text).is_absolute() or '..' in Path(text).parts):
+        raise ValueError('absolute local executable inventory path required')
+    drive=2 if re.match(r'^[A-Za-z]:[\\/]',text) else 0
+    if ':' in text[drive:]:raise ValueError('device/alternate-stream path rejected')
+    return text
+
+
 def verify_executable_inventory(manifest_path,manifest_sha256,*,cancel=lambda:False):
     from .financial_session import check_cancel
     check_cancel(cancel)
-    payload=bounded_json(verified_bytes(manifest_path,manifest_sha256,64*1024))
+    payload=bounded_json(verified_bytes(_local_path(manifest_path),manifest_sha256,64*1024))
     if (set(payload)!={'version','files'} or type(payload['version']) is not int or payload['version']!=1
         or type(payload['files']) is not list or not 1<=len(payload['files'])<=32):
         raise ValueError('executable inventory schema/budget')
@@ -20,8 +30,8 @@ def verify_executable_inventory(manifest_path,manifest_sha256,*,cancel=lambda:Fa
         name=row['logical_name'];path=row['absolute_path']
         if type(name) is not str or re.fullmatch('[a-z][a-z0-9_-]{0,63}',name) is None:
             raise ValueError('executable logical identity')
-        if type(path) is not str or len(path)>1024 or not Path(path).is_absolute() or '..' in Path(path).parts:
-            raise ValueError('absolute executable path required')
+        if type(path) is not str:raise ValueError('executable path type')
+        _local_path(path)
         lexical=os.path.normcase(os.path.abspath(path))
         if name in names or lexical in paths:raise ValueError('duplicate executable identity/path')
         names.add(name);paths.add(lexical);digest(row['sha256']);integer(row['size_bytes'],'executable bytes',1)
