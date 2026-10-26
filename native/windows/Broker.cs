@@ -6,27 +6,32 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Collections.Generic;
+using System.Text;
 using Microsoft.Win32.SafeHandles;
 
 namespace StratTester.Native {
     internal static class Broker {
         internal const string Missing = "owner_signature_verifier,filesystem_confinement,network_egress,output_bounds,disposable_vm_verification";
         public static int Main(string[] args) {
+            if (args.Length == 2 && args[0] == "--owned-probe" && args[1] == "COMPONENT_TESTS_ONLY" && HostedVm()) {
+                System.Threading.Thread.Sleep(30000);
+                return 42;
+            }
             if (args.Length > 0 && args[0] == "--selftest-native") {
                 // Operational accident guard only, never trust evidence.
                 if (args.Length != 2 || args[1] != "COMPONENT_TESTS_ONLY" ||
-                    Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true" ||
-                    Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") != "github-hosted" ||
-                    Environment.GetEnvironmentVariable("RUNNER_OS") != "Windows") {
+                    !HostedVm()) {
                     Console.WriteLine("{\"status\":\"REFUSED\",\"reason\":\"DISPOSABLE_HOSTED_VM_REQUIRED\",\"research_process_created\":false}");
                     return 78;
                 }
                 try {
                     ComponentTests.Run();
-                    Console.WriteLine("{\"status\":\"COMPONENT_API_TESTS_PASS\",\"token_privileges_remaining\":0,\"job_limits_queried\":true,\"native_enforcement\":false,\"research_process_created\":false}");
+                    Console.WriteLine("{\"status\":\"COMPONENT_API_TESTS_PASS\",\"token_privileges_remaining\":0,\"job_limits_queried\":true,\"locked_input_fixtures\":true,\"owned_probe_kill_on_close\":true,\"native_enforcement\":false,\"research_process_created\":false}");
                     return 0;
-                } catch (Exception) {
-                    Console.WriteLine("{\"status\":\"COMPONENT_API_TESTS_FAIL\",\"native_enforcement\":false,\"research_process_created\":false}");
+                } catch (Exception error) {
+                    var nativeError = error as Win32Exception;
+                    Console.WriteLine("{\"status\":\"COMPONENT_API_TESTS_FAIL\",\"phase\":\"" + ComponentTests.Phase + "\",\"error_type\":\"" + error.GetType().Name + "\",\"win32_error\":" + (nativeError == null ? 0 : nativeError.NativeErrorCode) + ",\"native_enforcement\":false,\"research_process_created\":false}");
                     return 1;
                 }
             }
@@ -53,6 +58,82 @@ namespace StratTester.Native {
             }
             Console.WriteLine("{\"schema\":1,\"status\":\"USAGE\",\"research_process_created\":false}");
             return 64;
+        }
+        private static bool HostedVm() {
+            return Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true" &&
+                   Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") == "github-hosted" &&
+                   Environment.GetEnvironmentVariable("RUNNER_OS") == "Windows";
+        }
+    }
+
+    // A locked input artifact, not a filesystem sandbox. Parent handles deny
+    // write/delete sharing for the lifetime of the leaf. No untrusted path is
+    // accepted by any CLI mode. This component is only exercised in VM fixtures.
+    internal sealed class LockedInput : IDisposable {
+        private readonly List<KernelHandle> handles = new List<KernelHandle>();
+        internal string Sha256;
+        internal ulong Length;
+        internal uint Volume, FileIndexHigh, FileIndexLow;
+        public void Dispose() { for (int i = handles.Count - 1; i >= 0; i--) handles[i].Dispose(); handles.Clear(); }
+        internal static LockedInput Open(string path, ulong maximumBytes) {
+            if (String.IsNullOrEmpty(path) || path.Length > 240 || maximumBytes == 0 || path.Length < 4 ||
+                !Char.IsLetter(path[0]) || path[1] != ':' || path[2] != '\\' || path.IndexOf('/') >= 0 ||
+                path.IndexOf(':', 2) >= 0 || path.IndexOfAny(new char[] { '\0', '*', '?', '"', '<', '>', '|' }) >= 0)
+                throw new IOException("Noncanonical local path");
+            string[] parts = path.Substring(3).Split('\\');
+            foreach (string part in parts) {
+                if (part.Length == 0 || part == "." || part == ".." || part.EndsWith(".") || part.EndsWith(" ")) throw new IOException("Unsafe component");
+                foreach (char c in part) if (c < 32) throw new IOException("Control character");
+                string stem = part.Split('.')[0].ToUpperInvariant();
+                if (stem == "CON" || stem == "PRN" || stem == "AUX" || stem == "NUL" ||
+                    stem == "CONIN$" || stem == "CONOUT$" ||
+                    (stem.Length == 4 && (stem.StartsWith("COM") || stem.StartsWith("LPT")) && "123456789¹²³".IndexOf(stem[3]) >= 0))
+                    throw new IOException("Device alias");
+            }
+            if (!String.Equals(Path.GetFullPath(path), path, StringComparison.OrdinalIgnoreCase)) throw new IOException("Path normalization");
+            var locked = new LockedInput();
+            try {
+                string current = path.Substring(0, 3);
+                for (int i = -1; i < parts.Length; i++) {
+                    if (i >= 0) current = Path.Combine(current, parts[i]);
+                    bool leaf = i == parts.Length - 1;
+                    var handle = Native.CreateFile(current, leaf ? 0x80000000u : 0x80u, 1, IntPtr.Zero, 3, 0x00200000 | 0x02000000, IntPtr.Zero);
+                    if (handle.IsInvalid) { handle.Dispose(); throw new Win32Exception(Marshal.GetLastWin32Error()); }
+                    locked.handles.Add(handle);
+                    Native.FileInformation info;
+                    if (!Native.GetFileInformationByHandle(handle, out info) || Native.GetFileType(handle) != 1) throw new IOException("Not a disk object");
+                    if ((info.Attributes & 0x400) != 0 || ((info.Attributes & 0x10) != 0) == leaf) throw new IOException("Reparse/type rejected");
+                    Native.AttributeTag tag;
+                    if (!Native.GetFileInformationByHandleEx(handle, 9, out tag, (uint)Marshal.SizeOf(typeof(Native.AttributeTag))) || tag.Tag != 0 || (tag.Attributes & 0x400) != 0)
+                        throw new IOException("Reparse tag rejected");
+                    var name = new StringBuilder(1024);
+                    uint chars = Native.GetFinalPathNameByHandle(handle, name, (uint)name.Capacity, 0);
+                    if (chars == 0 || chars >= name.Capacity || !String.Equals(name.ToString().TrimEnd('\\'), ("\\\\?\\" + current).TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
+                        throw new IOException("Final path mismatch");
+                    if (leaf) {
+                        ulong length = ((ulong)info.SizeHigh << 32) | info.SizeLow;
+                        if (info.Links != 1 || length > maximumBytes) throw new IOException("Link/size rejected");
+                        locked.Length = length; locked.Volume = info.Volume; locked.FileIndexHigh = info.IndexHigh; locked.FileIndexLow = info.IndexLow;
+                        using (var sha = SHA256.Create()) {
+                            byte[] buffer = new byte[65536]; ulong total = 0;
+                            while (true) {
+                                uint read;
+                                if (!Native.ReadFile(handle, buffer, (uint)buffer.Length, out read, IntPtr.Zero)) throw new Win32Exception(Marshal.GetLastWin32Error());
+                                if (read == 0) break;
+                                total += read; if (total > maximumBytes || total > length) throw new IOException("Input grew");
+                                sha.TransformBlock(buffer, 0, (int)read, buffer, 0);
+                            }
+                            sha.TransformFinalBlock(new byte[0], 0, 0);
+                            if (total != length) throw new IOException("Input size changed");
+                            locked.Sha256 = BitConverter.ToString(sha.Hash).Replace("-", "").ToLowerInvariant();
+                        }
+                        Native.FileInformation after;
+                        if (!Native.GetFileInformationByHandle(handle, out after) || after.Volume != info.Volume || after.IndexHigh != info.IndexHigh || after.IndexLow != info.IndexLow || after.SizeHigh != info.SizeHigh || after.SizeLow != info.SizeLow || after.Links != 1)
+                            throw new IOException("Input identity changed");
+                    }
+                }
+                return locked;
+            } catch { locked.Dispose(); throw; }
         }
     }
 
@@ -119,13 +200,18 @@ namespace StratTester.Native {
     }
 
     internal static class ComponentTests {
+        internal static string Phase = "INITIAL";
         internal static void Run() {
+            Phase = "LOCKED_INPUT";
+            TestLockedInput();
+            Phase = "TOKEN_PRIVILEGES";
             using (var token = PreparedComponents.CreatePrivilegeRemovedToken()) {
                 IntPtr p = Native.ReadTokenPrivileges(token);
                 try {
                     if (Marshal.ReadInt32(p) != 0) throw new InvalidOperationException("Privileges remain");
                 } finally { Marshal.FreeHGlobal(p); }
             }
+            Phase = "JOB_QUERY";
             using (var job = PreparedComponents.CreateBoundedJob(67108864, 1000, 10000000)) {
                 int size = Marshal.SizeOf(typeof(Native.ExtendedLimits));
                 IntPtr p = Marshal.AllocHGlobal(size);
@@ -141,10 +227,104 @@ namespace StratTester.Native {
                     if (cpu.ControlFlags != 5 || cpu.CpuRateValue != 1000) throw new InvalidOperationException("CPU query mismatch");
                 } finally { Marshal.FreeHGlobal(p); }
             }
+            Phase = "OWNED_PROBE";
+            TestOwnedProbe();
+        }
+
+        private static void TestLockedInput() {
+            string folder = Path.Combine(Path.GetTempPath(), "native-fixture-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(folder);
+            string path = Path.Combine(folder, "input.txt");
+            string link = Path.Combine(folder, "reparse-link");
+            string hardlink = Path.Combine(folder, "hardlink.txt");
+            try {
+                File.WriteAllBytes(path, new byte[] { 97, 98, 99 });
+                using (var input = LockedInput.Open(path, 3)) {
+                    if (input.Sha256 != "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad" || input.Length != 3) throw new InvalidOperationException("Input hash mismatch");
+                    bool writeDenied = false;
+                    try { using (File.Open(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete)) { } } catch (IOException) { writeDenied = true; }
+                    if (!writeDenied) throw new InvalidOperationException("Input writable while locked");
+                    bool renameDenied = false;
+                    try { Directory.Move(folder, folder + "-moved"); } catch (IOException) { renameDenied = true; }
+                    if (!renameDenied) { Directory.Move(folder + "-moved", folder); throw new InvalidOperationException("Parent mutable while locked"); }
+                }
+                foreach (string bad in new string[] { path + ":stream", Path.Combine(folder, "COM¹.txt"), Path.Combine(folder, "..", "input.txt"), "\\\\.\\NUL" }) {
+                    bool denied = false;
+                    try { using (LockedInput.Open(bad, 3)) { } } catch (IOException) { denied = true; }
+                    if (!denied) throw new InvalidOperationException("Unsafe input path accepted");
+                }
+                bool oversized = false;
+                try { using (LockedInput.Open(path, 2)) { } } catch (IOException) { oversized = true; }
+                if (!oversized) throw new InvalidOperationException("Oversized input accepted");
+                if (!Native.CreateHardLink(hardlink, path, IntPtr.Zero)) throw new Win32Exception(Marshal.GetLastWin32Error());
+                bool hardlinkDenied = false;
+                try { using (LockedInput.Open(path, 3)) { } } catch (IOException) { hardlinkDenied = true; }
+                if (!hardlinkDenied) throw new InvalidOperationException("Hardlinked input accepted");
+                File.Delete(hardlink);
+                if (!Native.CreateSymbolicLink(link, folder, 3) && !Native.CreateSymbolicLink(link, folder, 1)) throw new Win32Exception(Marshal.GetLastWin32Error());
+                bool reparseDenied = false;
+                try { using (LockedInput.Open(Path.Combine(link, "input.txt"), 3)) { } } catch (IOException) { reparseDenied = true; }
+                if (!reparseDenied) throw new InvalidOperationException("Parent reparse accepted");
+            } finally {
+                if (Directory.Exists(link)) Directory.Delete(link);
+                if (File.Exists(hardlink)) File.Delete(hardlink);
+                if (File.Exists(path)) File.Delete(path);
+                if (Directory.Exists(folder)) Directory.Delete(folder);
+            }
+        }
+
+        private static void TestOwnedProbe() {
+            // Only this assembly and literal argv can be launched. No caller path,
+            // environment, script, working directory or command is accepted.
+            string executable = typeof(Broker).Assembly.Location;
+            using (var imageLock = File.Open(executable, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var token = PreparedComponents.CreatePrivilegeRemovedToken()) {
+                KernelHandle job = PreparedComponents.CreateBoundedJob(134217728, 1000, 10000000);
+                var startup = new Native.StartupInfo();
+                startup.Size = (uint)Marshal.SizeOf(typeof(Native.StartupInfo));
+                Native.ProcessInformation child;
+                bool created = Native.CreateProcessAsUser(token, executable,
+                    new StringBuilder("\"" + executable + "\" --owned-probe COMPONENT_TESTS_ONLY"),
+                    IntPtr.Zero, IntPtr.Zero, false, 0x4 | 0x08000000, IntPtr.Zero,
+                    Path.GetDirectoryName(executable), ref startup, out child);
+                if (!created) { job.Dispose(); throw new Win32Exception(Marshal.GetLastWin32Error()); }
+                try {
+                    // Child is suspended. Assignment failure kills it before resume.
+                    if (!Native.AssignProcessToJobObject(job, child.Process)) throw new Win32Exception(Marshal.GetLastWin32Error());
+                    bool assigned;
+                    if (!Native.IsProcessInJob(child.Process, job.DangerousGetHandle(), out assigned) || !assigned) throw new InvalidOperationException("Probe not in job");
+                    if (Native.ResumeThread(child.Thread) == UInt32.MaxValue) throw new Win32Exception(Marshal.GetLastWin32Error());
+                    if (Native.WaitForSingleObject(child.Process, 1000) != 258) throw new InvalidOperationException("Probe did not remain alive");
+                    // Kill-on-close is tested on the owned benign sleeping child.
+                    job.Dispose();
+                    if (Native.WaitForSingleObject(child.Process, 10000) != 0) throw new InvalidOperationException("Kill-on-close failed");
+                    uint exitCode;
+                    if (!Native.GetExitCodeProcess(child.Process, out exitCode) || exitCode == 42 || exitCode == 259) throw new InvalidOperationException("Probe was not terminated");
+                } finally {
+                    // Dedicated direct process handle: cleanup does not depend on
+                    // successful job assignment, resume, or job disposal.
+                    Native.TerminateProcess(child.Process, 125);
+                    Native.WaitForSingleObject(child.Process, 10000);
+                    Native.CloseHandle(child.Thread); Native.CloseHandle(child.Process);
+                    job.Dispose();
+                }
+            }
         }
     }
 
     internal static class Native {
+        [StructLayout(LayoutKind.Sequential)] internal struct AttributeTag { internal uint Attributes, Tag; }
+        [StructLayout(LayoutKind.Sequential)] internal struct FileInformation {
+            internal uint Attributes;
+            internal System.Runtime.InteropServices.ComTypes.FILETIME CreationTime, AccessTime, WriteTime;
+            internal uint Volume, SizeHigh, SizeLow, Links, IndexHigh, IndexLow;
+        }
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)] internal struct StartupInfo {
+            internal uint Size; internal string Reserved, Desktop, Title;
+            internal uint X, Y, XSize, YSize, XCountChars, YCountChars, FillAttribute, Flags;
+            internal ushort ShowWindow, Reserved2Size; internal IntPtr Reserved2, StdInput, StdOutput, StdError;
+        }
+        [StructLayout(LayoutKind.Sequential)] internal struct ProcessInformation { internal IntPtr Process, Thread; internal uint ProcessId, ThreadId; }
         internal static IntPtr ReadTokenPrivileges(KernelHandle token) {
             uint size;
             GetTokenInformation(token, 3, IntPtr.Zero, 0, out size);
@@ -180,5 +360,19 @@ namespace StratTester.Native {
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] internal static extern KernelHandle CreateJobObject(IntPtr attributes, string name);
         [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool SetInformationJobObject(KernelHandle job, int kind, IntPtr information, uint length);
         [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool QueryInformationJobObject(KernelHandle job, int kind, IntPtr information, uint length, out uint returned);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] internal static extern KernelHandle CreateFile(string path, uint access, uint share, IntPtr security, uint disposition, uint flags, IntPtr template);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool GetFileInformationByHandle(KernelHandle file, out FileInformation info);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool GetFileInformationByHandleEx(KernelHandle file, int kind, out AttributeTag tag, uint length);
+        [DllImport("kernel32.dll", SetLastError = true)] internal static extern uint GetFileType(KernelHandle file);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] internal static extern uint GetFinalPathNameByHandle(KernelHandle file, StringBuilder path, uint length, uint flags);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool ReadFile(KernelHandle file, byte[] buffer, uint length, out uint read, IntPtr overlapped);
+        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool CreateProcessAsUser(KernelHandle token, string application, StringBuilder command, IntPtr processAttributes, IntPtr threadAttributes, [MarshalAs(UnmanagedType.Bool)] bool inheritHandles, uint flags, IntPtr environment, string directory, ref StartupInfo startup, out ProcessInformation info);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool AssignProcessToJobObject(KernelHandle job, IntPtr process);
+        [DllImport("kernel32.dll", SetLastError = true)] internal static extern uint ResumeThread(IntPtr thread);
+        [DllImport("kernel32.dll", SetLastError = true)] internal static extern uint WaitForSingleObject(IntPtr handle, uint milliseconds);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool GetExitCodeProcess(IntPtr process, out uint exitCode);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool TerminateProcess(IntPtr process, uint code);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool CreateHardLink(string link, string existing, IntPtr attributes);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.I1)] internal static extern bool CreateSymbolicLink(string link, string target, uint flags);
     }
 }

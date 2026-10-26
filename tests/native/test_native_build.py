@@ -77,5 +77,68 @@ class NativeCliTests(unittest.TestCase):
         self.assertEqual(code, 64)
         self.assertFalse(data['research_process_created'])
 
+class CacheDeletionTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'nt' and os.environ.get('GITHUB_ACTIONS') == 'true' and
+                         os.environ.get('RUNNER_ENVIRONMENT') == 'github-hosted', 'junction fixture only on disposable hosted Windows')
+    def test_hosted_windows_junction_never_deletes_target(self):
+        with tempfile.TemporaryDirectory() as temp:
+            cache = Path(temp) / 'cache'
+            cache.mkdir()
+            outside = Path(temp) / 'outside'
+            outside.mkdir()
+            marker = outside / 'keep'
+            marker.write_text('keep')
+            junction = cache / 'package'
+            subprocess.run(['cmd.exe', '/c', 'mklink', '/J', str(junction), str(outside)],
+                           check=True, capture_output=True, timeout=10)
+            try:
+                with self.assertRaises(ValueError):
+                    build.remove_cached_package(cache, junction)
+                self.assertEqual(marker.read_text(), 'keep')
+            finally:
+                os.rmdir(junction)
+
+    def test_refuses_cache_root_and_outside_paths_without_deleting(self):
+        with tempfile.TemporaryDirectory() as temp:
+            cache = Path(temp) / 'cache'
+            cache.mkdir()
+            outside = Path(temp) / 'outside'
+            outside.mkdir()
+            marker = outside / 'keep.txt'
+            marker.write_text('keep')
+            for target in (cache, outside):
+                with self.assertRaises(ValueError):
+                    build.remove_cached_package(cache, target)
+            self.assertEqual(marker.read_text(), 'keep')
+            self.assertTrue(cache.is_dir())
+
+    def test_removes_only_verified_direct_cache_child(self):
+        with tempfile.TemporaryDirectory() as temp:
+            cache = Path(temp) / 'cache'
+            target = cache / 'package'
+            target.mkdir(parents=True)
+            (target / 'fixture').write_text('temporary')
+            build.remove_cached_package(cache, target)
+            self.assertFalse(target.exists())
+            self.assertTrue(cache.exists())
+
+    def test_refuses_symlink_into_outside_cache(self):
+        with tempfile.TemporaryDirectory() as temp:
+            cache = Path(temp) / 'cache'
+            cache.mkdir()
+            outside = Path(temp) / 'outside'
+            outside.mkdir()
+            marker = outside / 'keep'
+            marker.write_text('keep')
+            link = cache / 'package'
+            try:
+                link.symlink_to(outside, target_is_directory=True)
+            except OSError:
+                self.skipTest('directory symlink privilege unavailable; hosted Windows junction probe required')
+            with self.assertRaises(ValueError):
+                build.remove_cached_package(cache, link)
+            self.assertEqual(marker.read_text(), 'keep')
+            self.assertTrue(link.is_symlink())
+
 if __name__ == '__main__':
     unittest.main()
