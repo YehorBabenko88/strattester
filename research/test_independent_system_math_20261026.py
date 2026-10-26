@@ -95,3 +95,32 @@ def test_metamorphic_price_scale_invariance():
         prices = [math.exp(rng.uniform(-8,8)) for _ in range(10)]
         factor = math.exp(rng.uniform(-5,5))
         assert log_returns(prices) == pytest.approx(log_returns([p*factor for p in prices]),abs=1e-12)
+
+
+def test_gaussian_calibration_coverage_is_not_nll():
+    scores = gaussian_scores([0.,0.,0.], [1.,1.,1.], [0.,1.,3.])
+    assert scores['coverage_95'] == pytest.approx(2/3)
+    assert scores['mae'] == pytest.approx(4/3)
+    assert math.isfinite(scores['nll'])
+
+
+def test_cost_ledger_zero_position_and_extreme_input():
+    flat = evaluate_ledger([Trade('BTCUSDT',0,10,.02,0)],
+                           fee_bps=100, slippage_bps=100, funding_bps=100)
+    assert flat['returns'] == pytest.approx([0.])
+    for bad in (float('nan'),float('inf')):
+        with pytest.raises(ValueError):
+            evaluate_ledger([Trade('BTCUSDT',0,10,bad,1)])
+
+
+def test_target_last_bar_mutation_only_changes_affected_label():
+    times=[i*60_000 for i in range(24)]
+    prices=[100.+i for i in range(24)]
+    base=make_samples('BTCUSDT','1m',times,prices,window=4,horizon=3)
+    altered=prices[:]
+    altered[-1]=altered[-1]*2
+    new=make_samples('BTCUSDT','1m',times,altered,window=4,horizon=3)
+    assert [x.future_log_return for x in base[:-1]] == pytest.approx(
+        [x.future_log_return for x in new[:-1]])
+    assert base[-1].future_log_return != new[-1].future_log_return
+    assert base[-1].representation == new[-1].representation
