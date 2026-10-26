@@ -125,3 +125,18 @@ def test_concurrent_conflicting_jobs_cannot_replace_completed_result(tmp_path):
     assert sum(r is not None for r in receipts)==1
     completed=next(r for r in receipts if r is not None)
     assert sha256(Path(completed['path']).read_bytes()).hexdigest()==completed['sha256']
+
+
+def test_session_publication_replay_excludes_previous_receipt(tmp_path):
+    from strattester.research.financial_session import _publish
+    result = {'prediction': .1, 'provenance': {'config_sha256': 'a'*64}}
+    _publish(result, tmp_path, lambda: False)
+    first = result['publication'].copy()
+    _publish(result, tmp_path, lambda: False)
+    assert result['publication']['job_identity'] == first['job_identity']
+    assert result['publication']['sha256'] == first['sha256']
+    assert result['publication']['status'] == 'REPLAY_VERIFIED'
+    assert len(list(tmp_path.iterdir())) == 1
+    import json
+    assert json.loads(Path(result['publication']['path']).read_bytes())['result'] == {
+        'prediction': .1, 'provenance': {'config_sha256': 'a'*64}}
