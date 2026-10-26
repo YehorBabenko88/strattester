@@ -160,3 +160,18 @@ def test_calibration_rejects_nonfinite_distribution_inputs():
             gaussian_scores([invalid],[1.],[0.])
         with pytest.raises(ValueError):
             gaussian_scores([0.],[invalid],[0.])
+
+
+def test_randomized_horizon_prefix_invariance():
+    rng=random.Random(20261026)
+    times=[i*60_000 for i in range(48)]
+    for _ in range(25):
+        prices=[math.exp(rng.uniform(3,6)) for _ in times]
+        original=make_samples('BTCUSDT','1m',times,prices,window=5,horizon=4)
+        changed=prices[:]
+        changed[-1]*=rng.uniform(1.1,3.)
+        revised=make_samples('BTCUSDT','1m',times,changed,window=5,horizon=4)
+        assert original[0].representation == revised[0].representation
+        assert [s.future_log_return for s in original[:-1]] == pytest.approx(
+            [s.future_log_return for s in revised[:-1]],abs=1e-12)
+        assert original[-1].future_log_return != revised[-1].future_log_return
