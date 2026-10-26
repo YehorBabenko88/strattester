@@ -568,3 +568,46 @@ def test_postgres_explicit_endpoint_pins_credential_free_connect_policy(tmp_path
     with pytest.raises(RuntimeError,match='intentional connection boundary stop'):
         with module._reader(source,lambda:False):pass
     assert captured==dict(host='127.0.0.1',port='45678',dbname='postgres',user='fixture',connect_timeout=3,passfile=os.devnull,password='',sslmode='disable',gssencmode='disable',require_auth='none',autocommit=True)
+
+
+def test_cancel_during_revision_validation_stops_before_next_row(tmp_path, monkeypatch):
+    """Cancellation during CPU validation must not wait for publication."""
+    import strattester.research.financial_grid_exporter as module
+    from strattester.research.financial_training import TrainingCancelled
+    source, _, _ = fixture(tmp_path)
+    validated = []
+    original = module.Bar.validate
+
+    def validate(bar, origin):
+        assert not validated, 'cancelled export continued validating retained revisions'
+        original(bar, origin)
+        validated.append(bar.revision)
+
+    monkeypatch.setattr(module.Bar, 'validate', validate)
+    with pytest.raises(TrainingCancelled, match='cancelled historical export'):
+        run(HistoryProfile(PROFILE, 'epoch', 30, (source,)), tmp_path/'output',
+            cancel=lambda: bool(validated))
+    assert validated == [1]
+    assert not (tmp_path/'output').exists()
+    assert not list(tmp_path.glob('.history-export-*'))
+
+
+@pytest.mark.parametrize('field,value', [
+    ('source_id', 'another-source'), ('snapshot_id', 'another-snapshot'),
+    ('coherence_epoch_id', 'another-epoch'), ('schema_sha256', 'b'*64),
+    ('complete', False), ('first_availability_retained', False),
+    ('revision_history_retained', False), ('event_watermark_ns', 29),
+    ('availability_watermark_ns', 29), ('partitions', []),
+])
+def test_resealed_second_store_cannot_override_pinned_receipt(tmp_path, field, value):
+    """Even an internally consistent seal cannot repair missing source authority."""
+    first, _, _ = fixture(tmp_path)
+    second, rows, meta = fixture(tmp_path, 'two', symbol='ETHUSDT')
+    meta[field] = value
+    with sqlite3.connect(second.location) as con:
+        con.execute('UPDATE history_meta SET payload=?', (canonical_bytes(meta).decode(),))
+    second = replace(second, seal_sha256=history_seal(meta, rows))
+    with pytest.raises(ValueError, match='epoch/seal/completeness/routing facts'):
+        run(HistoryProfile(PROFILE, 'epoch', 30, (first, second)), tmp_path/'output')
+    assert not (tmp_path/'output').exists()
+    assert not list(tmp_path.glob('.history-export-*'))
