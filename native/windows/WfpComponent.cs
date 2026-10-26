@@ -107,14 +107,17 @@ namespace StratTester.Native {
             IntPtr queried = IntPtr.Zero;
             try {
                 Marshal.StructureToPtr(condition, p, false);
-                var filter = new Wfp.Filter { Key = Guid.NewGuid(), Display = new Wfp.Display { Name = "StratTester owned probe deny sockets" },
+                // Windows query-back reports FWPM_FILTER_FLAG_INDEXED (0x40).
+                // Request it explicitly and still require an exact flags match;
+                // persistent, disabled and unknown flags remain unacceptable.
+                var filter = new Wfp.Filter { Key = Guid.NewGuid(), Flags = 0x40, Display = new Wfp.Display { Name = "StratTester owned probe deny sockets" },
                     Layer = layer, Sublayer = sublayer, ConditionCount = 1, Conditions = p, Action = new Wfp.Action { Type = 0x1001 } };
                 ulong id;
                 Wfp.Check(Wfp.FwpmFilterAdd0(engine, ref filter, IntPtr.Zero, out id));
                 Wfp.Check(Wfp.FwpmFilterGetByKey0(engine, ref filter.Key, out queried));
                 var actual = (Wfp.Filter)Marshal.PtrToStructure(queried, typeof(Wfp.Filter));
                 WfpComponent.Detail = "filter_key=" + actual.Key + ",layer=" + actual.Layer + ",sublayer=" + actual.Sublayer + ",action=" + actual.Action.Type + ",count=" + actual.ConditionCount + ",id=" + actual.Id + ",expected_id=" + id + ",flags=" + actual.Flags;
-                if (actual.Key != filter.Key || actual.Layer != layer || actual.Sublayer != sublayer || actual.Action.Type != 0x1001 || actual.ConditionCount != 1 || actual.Id != id || actual.Flags != 0)
+                if (actual.Key != filter.Key || actual.Layer != layer || actual.Sublayer != sublayer || actual.Action.Type != 0x1001 || actual.ConditionCount != 1 || actual.Id != id || actual.Flags != filter.Flags)
                     throw new InvalidOperationException("WFP filter query mismatch");
                 var actualCondition = (Wfp.Condition)Marshal.PtrToStructure(actual.Conditions, typeof(Wfp.Condition));
                 WfpComponent.Detail = "condition_field=" + actualCondition.Field + ",match=" + actualCondition.Match + ",type=" + actualCondition.Value.Type + ",same_blob=" + Wfp.SameBlob(app, actualCondition.Value.Pointer);
