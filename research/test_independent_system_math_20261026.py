@@ -66,7 +66,7 @@ def test_prefix_invariance_and_target_alignment():
     later = make_samples('BTCUSDT', '1m', times, modified, window=4, horizon=3)
     assert base[0].representation == later[0].representation
     assert all(x.target_timestamp - x.origin_timestamp == 3*60_000 for x in base)
-    assert base[-1].target_timestamp == times[-1]
+    assert base[-1].target_timestamp == times[-2]  # observed exclusive range; last possible label omitted
 
 
 def test_pit_negative_future_and_duplicate():
