@@ -38,7 +38,7 @@ def main(argv=None):
                 except ValueError:reports[gate]['status']='FAIL'
         result=aggregate(reports,args.sha,set(specs),external={
             'grid_coherent_snapshot':'BLOCKED','real_oos':'BLOCKED','gpu':'BLOCKED','full_upstream_equivalence':'BLOCKED'},
-            job_result=os.environ.get('ENGINEERING_RESULT','success'))
+            job_result='success' if os.environ.get('ENGINEERING_RESULT')=='success' and os.environ.get('NATIVE_RESULT')=='success' else 'incomplete')
         (args.output/'acceptance.json').write_text(json.dumps(result,indent=2)+'\n')
         print(json.dumps(result))
         return 0 if result['status']=='PASS' else 2

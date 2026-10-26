@@ -1,11 +1,6 @@
 name: windows-native-components
 on:
-  pull_request:
-    paths:
-      - 'native/windows/**'
-      - 'scripts/build_windows_native.py'
-      - 'tests/native/**'
-      - '.github/workflows/windows-native-components.yml'
+  workflow_call:
   workflow_dispatch:
 permissions:
   contents: read

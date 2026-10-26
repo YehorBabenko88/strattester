@@ -98,7 +98,7 @@ def test_disposable_postgres_mvcc_and_seals(tmp_path, monkeypatch):
         import psycopg
     else:
         psycopg=pytest.importorskip('psycopg')
-    candidates=[Path(explicit)] if explicit else [Path('C:/Program Files/PostgreSQL/18/bin'),*sorted(Path('/usr/lib/postgresql').glob('*/bin'),reverse=True)]
+    candidates=[Path(explicit)] if explicit else [*sorted(Path('C:/Program Files/PostgreSQL').glob('*/bin'),reverse=True),*sorted(Path('/usr/lib/postgresql').glob('*/bin'),reverse=True)]
     suffix='.exe' if os.name=='nt' else ''
     binary=next((p for p in candidates if (p/('initdb'+suffix)).is_file()),None)
     if binary is None:

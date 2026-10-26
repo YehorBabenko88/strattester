@@ -8,6 +8,8 @@ concurrency:
   group: financial-integration-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
+  native-components:
+    uses: ./.github/workflows/windows-native-components.yml
   engineering:
     name: ${{ matrix.gate }}
     runs-on: ubuntu-latest
@@ -29,7 +31,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install -e '.[dev]' pytest-json-report
+      - run: python -m pip install -e '.[dev,postgres]' pytest-json-report
       - run: python -m pip install 'torch==2.14.1' --index-url https://download.pytorch.org/whl/cpu
       - name: Run exact-node fail-closed gate
         run: python scripts/financial_gate.py --gate '${{ matrix.gate }}' --sha '${{ github.event.pull_request.head.sha || github.sha }}' --output results/financial-ci
@@ -42,7 +44,7 @@ jobs:
   acceptance:
     name: system-acceptance-NO-GO
     if: always()
-    needs: engineering
+    needs: [engineering, native-components]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -61,6 +63,7 @@ jobs:
       - name: Aggregate mandatory execution and external blockers
         env:
           ENGINEERING_RESULT: ${{ needs.engineering.result }}
+          NATIVE_RESULT: ${{ needs.native-components.result }}
         run: python scripts/financial_gate.py --gate aggregate --sha '${{ github.event.pull_request.head.sha || github.sha }}' --output results/financial-ci
       - uses: actions/upload-artifact@v4
         if: always()

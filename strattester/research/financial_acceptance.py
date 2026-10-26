@@ -41,7 +41,8 @@ def validate_execution(report, sha, gate, required_nodeids, minimum):
 
 # These facts have no implemented trusted verifier in this candidate. Caller
 # supplied strings must never authorize a physical trial or promote readiness.
-MANDATORY_EXTERNAL = frozenset(('grid_coherent_snapshot','real_oos','gpu','full_upstream_equivalence'))
+MANDATORY_EXTERNAL = frozenset(('grid_coherent_snapshot','real_oos','gpu','full_upstream_equivalence',
+                               'windows_native_isolation','physical_g0','owner_g1_authorization'))
 
 
 def aggregate(reports,sha,required_gates,*,external,job_result='success'):
