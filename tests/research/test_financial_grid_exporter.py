@@ -197,7 +197,8 @@ def test_disposable_postgres_mvcc_and_seals(tmp_path, monkeypatch):
     version=subprocess.run([str(binary/('postgres'+suffix)),'--version'],check=True,capture_output=True,text=True,timeout=5).stdout.strip()
     assert version.startswith('postgres (PostgreSQL) ')
     data=tmp_path/'pg-owned';log=tmp_path/'pg-owned.log'
-    subprocess.run([str(binary/('initdb'+suffix)),'-D',str(data),'-A','trust','-U','fixture','--no-locale','--encoding=UTF8'],check=True,capture_output=True,timeout=30)
+    initialized=subprocess.run([str(binary/('initdb'+suffix)),'-D',str(data),'-A','trust','-U','fixture','--no-locale','--encoding=UTF8'],capture_output=True,text=True,timeout=30)
+    assert initialized.returncode==0,initialized.stdout+initialized.stderr
     with socket.socket() as sock:
         sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
     assert port!=5432
