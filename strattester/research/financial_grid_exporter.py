@@ -72,11 +72,12 @@ def history_seal(meta, rows):
 
 
 @contextmanager
-def _reader(source, check):
+def _reader(source, check, *, max_bytes=8*1024*1024):
     if source.engine in ('sqlite', 'sharded_sqlite'):
         path = reject_linked_path(source.location)
         con = sqlite3.connect(path.as_uri()+'?mode=ro', uri=True, isolation_level=None, timeout=1)
         try:
+            con.setlimit(sqlite3.SQLITE_LIMIT_LENGTH,max_bytes)
             con.execute('PRAGMA query_only=ON')
             con.execute('PRAGMA trusted_schema=OFF')
             def progress():
@@ -84,7 +85,7 @@ def _reader(source, check):
                 except Exception: return 1
             con.set_progress_handler(progress, 1000)
             con.execute('BEGIN')
-            schema = tuple(r[0] for r in con.execute("SELECT sql FROM sqlite_master WHERE type='table' ORDER BY name"))
+            schema = tuple(r[0] for r in con.execute("SELECT sql FROM sqlite_master WHERE type='table' ORDER BY name LIMIT 3"))
             if schema != DDL: raise ValueError('BLOCKED: physical schema identity')
             yield con.execute
         except sqlite3.OperationalError:
@@ -100,11 +101,22 @@ def _reader(source, check):
             con.execute('BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
             try:
                 con.execute("SET LOCAL statement_timeout = '5000ms'")
-                columns = con.execute("SELECT table_name,column_name,data_type,is_nullable FROM information_schema.columns WHERE table_schema='public' ORDER BY table_name,ordinal_position").fetchall()
+                columns = con.execute("SELECT table_name,column_name,data_type,is_nullable FROM information_schema.columns WHERE table_schema='public' ORDER BY table_name,ordinal_position LIMIT 3").fetchall()
                 if columns != [('history_meta','payload','text','NO'), ('history_rows','payload','text','NO')]:
                     raise ValueError('BLOCKED: physical schema identity')
-                yield con.execute
-            finally: con.execute('ROLLBACK')
+                cursors=[]
+                def execute(query):
+                    if query.startswith('SELECT payload FROM history_rows') or (query.startswith('SELECT CASE WHEN') and ' FROM history_rows ' in query):
+                        cursor=con.cursor(name='sealed_history_rows_'+str(len(cursors)))
+                        cursors.append(cursor)
+                        cursor.itersize=1;cursor.arraysize=1
+                        cursor.execute(query)
+                        return cursor
+                    return con.execute(query)
+                yield execute
+            finally:
+                for cursor in locals().get('cursors',[]):cursor.close()
+                con.execute('ROLLBACK')
     else: raise ValueError('BLOCKED: unsupported source engine')
 
 
@@ -138,9 +150,10 @@ def export_history(profile, output_dir, *, producer_id, producer_build_sha,
         for p in source.partitions: p.validate()
         partitions.extend(source.partitions)
         if len(partitions)>256: raise ValueError('partition membership budget')
-        with _reader(source,check) as execute:
+        with _reader(source,check,max_bytes=max_bytes) as execute:
+            size='octet_length(payload)' if source.engine=='postgresql' else 'length(CAST(payload AS BLOB))'
             if execute('SELECT count(*) FROM history_meta').fetchone()[0]!=1: raise ValueError('single epoch receipt required')
-            meta_rows=execute('SELECT payload FROM history_meta WHERE length(payload)<=262144').fetchmany(2)
+            meta_rows=execute(f'SELECT payload FROM history_meta WHERE {size}<={min(262144,max_bytes)} LIMIT 2').fetchmany(2)
             if len(meta_rows)!=1: raise ValueError('single epoch receipt required')
             meta=bounded_json(meta_rows[0][0].encode())
             expected={'source_id':source.source_id,'snapshot_id':source.snapshot_id,'coherence_epoch_id':profile.coherence_epoch_id,
@@ -149,11 +162,13 @@ def export_history(profile, output_dir, *, producer_id, producer_build_sha,
                       'partitions':[asdict(p) for p in source.partitions]}
             if any(type(meta.get(k)) is not bool for k in ('complete','first_availability_retained','revision_history_retained')): raise ValueError('historical receipt boolean type')
             if meta!=expected: raise ValueError('BLOCKED: epoch/seal/completeness/routing facts')
-            budget=execute('SELECT count(*),coalesce(sum(length(payload)),0),coalesce(max(length(payload)),0) FROM history_rows').fetchone()
+            budget=execute(f'SELECT count(*),coalesce(sum({size}),0),coalesce(max({size}),0) FROM history_rows').fetchone()
             if budget[0]+total_rows>max_rows or budget[1]+total_bytes>max_bytes or budget[2]>max_bytes: raise ValueError('raw history allocation budget')
             rows=[]
-            for row in execute('SELECT payload FROM history_rows'):
-                check();total_rows+=1;total_bytes+=len(row[0].encode())
+            for row in execute(f'SELECT CASE WHEN {size}<={max_bytes-total_bytes} THEN payload ELSE NULL END AS payload FROM history_rows LIMIT {max_rows-total_rows+1}'):
+                check()
+                if row[0] is None:raise ValueError('raw history cell allocation budget')
+                total_rows+=1;total_bytes+=len(row[0].encode())
                 if total_rows>max_rows or total_bytes>max_bytes: raise ValueError('raw history allocation budget')
                 rows.append(bounded_json(row[0].encode()))
             if history_seal(meta,rows)!=source.seal_sha256: raise ValueError('BLOCKED: historical seal changed')
