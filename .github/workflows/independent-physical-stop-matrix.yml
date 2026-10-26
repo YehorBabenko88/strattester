@@ -1,0 +1,30 @@
+name: independent-physical-stop-matrix
+on:
+  pull_request:
+    paths:
+      - 'research/physical_g1_stop_matrix.py'
+      - 'research/test_physical_g1_stop_matrix.py'
+      - '.github/workflows/independent-physical-stop-matrix.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-stop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        python-version: ['3.11', '3.13']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile
+        run: python -m py_compile research/physical_g1_stop_matrix.py research/test_physical_g1_stop_matrix.py
+      - name: Execute non-authorizing regressions
+        run: python -m unittest discover -s research -p test_physical_g1_stop_matrix.py -v
