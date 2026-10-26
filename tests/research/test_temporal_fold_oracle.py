@@ -9,6 +9,11 @@ class TemporalFoldOracleTests(unittest.TestCase):
         self.assertEqual(validate_folds([([row("BTC", 1, 3)], [row("ETH", 4, 6)],
                                           [row("SOL", 7, 9)])])["fold_count"], 1)
 
+    def test_nonchronological_partitions_rejected(self):
+        with self.assertRaises(ValueError):
+            validate_folds([([row("BTC", 20, 21)], [row("BTC", 1, 2)],
+                             [row("BTC", 30, 31)])])
+
     def test_cross_instrument_label_overlap(self):
         with self.assertRaises(ValueError):
             validate_folds([([row("BTC", 1, 10)], [row("ETH", 9, 12)],
