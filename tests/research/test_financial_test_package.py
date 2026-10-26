@@ -29,6 +29,10 @@ def test_prepare_produces_signed_reproducible_offline_session_and_external_owner
     result=run_session(session,enable_research=True)
     assert result.get('physical_g1')=='NOT_AUTHORIZED' or result['provenance']['physical_g1']=='NOT_AUTHORIZED'
     template=json.loads((config.parent/'owner-plan-template.json').read_bytes())
+    assert template['version']==2
+    assert template['input_hashes']['snapshot']==sha256((config.parent/'snapshot.json').read_bytes()).hexdigest()
+    assert template['input_hashes']['package'] is None
+    assert (config.parent/'runtime/strattester/research/financial_owner_intent_v2.py').is_file()
     assert template['package_sha256'] is None
     assert 'owner' not in json.loads((config.parent/'trust.json').read_bytes())['keys'][0]['producer_id']
     # A fresh isolated interpreter must use packaged modules, not this checkout.

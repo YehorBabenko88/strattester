@@ -26,10 +26,10 @@ jobs:
           $actual = (git rev-parse HEAD).Trim()
           if ($actual -ne $env:SOURCE_SHA) { throw 'Checkout does not match exact PR head' }
           @{
-            schema = 1; source_sha = $actual; scope = 'COMPONENT_API_AND_DIRECT_TCP_ONLY'
+            schema = 1; source_sha = $actual; scope = 'COMPONENT_API_DIRECT_TCP_OWNER_SIGNATURE_AND_NONCE'
             native_enforcement = $false; research_execution = 'BLOCKED'; G1 = 'NOTRUN'
             runner = 'github-hosted-disposable-windows'; qualification = 'NOT_FULL_SANDBOX'
-            missing_controls = @('dns_service_proxy', 'full_filesystem_namespace', 'native_owner_trust_verifier', 'qualified_research_transport', 'output_bounds', 'complete_network_qualification')
+            missing_controls = @('dns_service_proxy', 'full_filesystem_namespace', 'owner_admission_execution_bridge', 'qualified_research_transport', 'output_bounds', 'complete_network_qualification')
           } | ConvertTo-Json -Depth 5 | Set-Content "$env:NATIVE_OUTPUT/scope.json"
           git ls-tree -r HEAD native/windows scripts/build_windows_native.py tests/native | Set-Content "$env:NATIVE_OUTPUT/source-blobs.txt"
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5

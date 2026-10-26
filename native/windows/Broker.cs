@@ -12,7 +12,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace StratTester.Native {
     internal static class Broker {
-        internal const string Missing = "owner_signature_verifier,filesystem_confinement,network_egress,output_bounds,disposable_vm_verification";
+        internal const string Missing = "owner_admission_execution_bridge,filesystem_confinement,network_egress,output_bounds,disposable_vm_verification";
         public static int Main(string[] args) {
             if (args.Length > 0 && args[0] == "--selftest-owner-nonce") {
                 if (args.Length != 2 || args[1] != "COMPONENT_TESTS_ONLY" || !HostedVm()) {

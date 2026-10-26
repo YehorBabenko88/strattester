@@ -22,7 +22,7 @@ RUNTIME_FILES=('strattester/__init__.py','strattester/research_cli.py','strattes
  'strattester/engine/__init__.py','strattester/engine/executor.py','strattester/marketdata/__init__.py','strattester/marketdata/datasets.py')
 RESEARCH_MODULES=('financial_contract','financial_snapshot','financial_signed_export','financial_signatures','financial_checkpoint',
  'financial_structural_model','financial_pipeline','financial_training','financial_evaluation','financial_experiment','financial_offline_jobs',
- 'financial_attested_inference','financial_owner_authorization','financial_test_package','financial_session','financial_report_export','financial_experiment_session',
+ 'financial_attested_inference','financial_owner_authorization','financial_owner_intent_v2','financial_test_package','financial_session','financial_report_export','financial_experiment_session',
  'financial_walkforward_session','financial_walkforward_fixture','financial_grid_exporter','grid_producer_readiness','alphafold_msa_attention','alphafold_outer_product','alphafold_pair_stack',
  'alphafold_triangle','alphafold_triangle_attention','alphafold_security')
 
@@ -115,7 +115,9 @@ def prepare_test_package(output_dir,*,openssl_exe,openssl_sha256,scratch_root,se
         name=distribution.metadata.get('Name')
         if name:lock.append({'name':name,'version':distribution.version,'license':distribution.metadata.get('License-Expression') or distribution.metadata.get('License') or 'UNSPECIFIED'})
     write('dependency-lock.json',canonical_bytes({'python':sys.version,'platform':platform.platform(),'packages':sorted(lock,key=lambda x:x['name'].lower()),'automatic_install':False}))
-    template=dict(version=1,purpose='PHYSICAL_G1_AUTHORIZATION',owner_id=None,key_id=None,target_sha=source_sha,tree_sha=tree_sha,binary_sha256=native_binary_sha256,package_sha256=None,node_identity_sha256=None,issued_at_ns=None,expires_at_ns=None,nonce=None,operations=['synthetic_cpu_inference'],limits=dict(cpu_percent=10,memory_bytes=2147483648,wall_seconds=60,output_bytes=67108864,max_processes=1))
+    intent_inputs={name:sha256((stage/path).read_bytes()).hexdigest() for name,path in dict(snapshot='snapshot.json',manifest='manifest.json',checkpoint='checkpoint.json',trust_store='trust.json',session_config='session.json',experiment_source='experiment-input.json').items()}
+    intent_inputs['package']=None # Fill OUTSIDE the completed ZIP; avoid a hash cycle.
+    template=dict(version=2,purpose='PHYSICAL_G1_AUTHORIZATION',owner_id=None,key_id=None,target_sha=source_sha,tree_sha=tree_sha,binary_sha256=native_binary_sha256,package_sha256=None,vm_identity_sha256=None,input_hashes=intent_inputs,issued_at_ns=None,expires_at_ns=None,nonce=None,operations=['synthetic_cpu_inference'],limits=dict(cpu_percent=10,memory_bytes=2147483648,wall_seconds=60,output_bytes=67108864,max_processes=1))
     write('owner-plan-template.json',canonical_bytes(template))
     write('README.txt',b'PUBLIC SYNTHETIC SOFTWARE FIXTURE ONLY. RFC8032 producer key is publicly known and must NEVER be trusted for real data or owner authorization. No owner key is included. Source files are under runtime/. No exchange client or trading credentials are bundled. Use external config/trust hashes printed by prepare. Owner must complete/sign the plan OUTSIDE this immutable ZIP after hashing it. Native components are not full isolation; test-disposable remains BLOCKED until independently verified controls and separate owner authorization. No G1 is authorized. No synthetic profitability claim. Stop on any hash/identity/network/DB/service/resource mismatch. Preserve partial stages; no automatic destructive cleanup.\n')
     source_manifest={'version':1,'source_sha':source_sha,'tree_sha':tree_sha,'dirty':dirty,'source_files_sha256':code_hashes,'native_binary_sha256':native_binary_sha256,'native_enforcement':'NOT_QUALIFIED','physical_g1':'NOT_AUTHORIZED'}
