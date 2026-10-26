@@ -196,7 +196,7 @@ def test_sqlite_wal_concurrent_writer_keeps_sealed_read_view(tmp_path,monkeypatc
         run(HistoryProfile(PROFILE,'epoch',30,(source,)),tmp_path/'changed')
 
 
-def test_failed_atomic_publication_cleans_stage(tmp_path,monkeypatch):
+def test_failed_atomic_publication_preserves_stage_and_cleanup_inventory(tmp_path,monkeypatch):
     import strattester.research.financial_grid_exporter as module
     source,_,_=fixture(tmp_path)
     def fail(*args):raise OSError('publication failure')
@@ -204,4 +204,46 @@ def test_failed_atomic_publication_cleans_stage(tmp_path,monkeypatch):
     with pytest.raises(OSError,match='publication failure'):
         run(HistoryProfile(PROFILE,'epoch',30,(source,)),tmp_path/'output')
     assert not (tmp_path/'output').exists()
-    assert not list(tmp_path.glob('.history-export-*'))
+    stages=[p for p in tmp_path.glob('.history-export-*') if p.is_dir()]
+    assert len(stages)==1
+    cleanup=json.loads((tmp_path/(stages[0].name+'.cleanup.json')).read_bytes())
+    assert cleanup['automatic_cleanup'] is False
+    assert cleanup['state']=='INCOMPLETE_EXPORT_STAGE'
+
+
+def test_retry_recovers_completed_export_after_child_loses_return_value(tmp_path):
+    import os
+    import subprocess
+    import sys
+    source,_,_=fixture(tmp_path)
+    profile=HistoryProfile(PROFILE,'epoch',30,(source,))
+    target=tmp_path/'completed'
+    code='from strattester.research.financial_grid_exporter import *; import os; '+f'export_history({profile!r},{str(target)!r},producer_id="producer",producer_build_sha="'+('a'*40)+'",key_id="key",export_id="export",issued_at_ns=31); os._exit(17)'
+    child=subprocess.run([sys.executable,'-c',code],capture_output=True,text=True,timeout=20)
+    assert child.returncode==17, child.stderr
+    before={p.name:p.read_bytes() for p in target.iterdir()}
+    recovered=run(profile,target)
+    assert recovered.snapshot.bars[0].close==100.
+    assert {p.name:p.read_bytes() for p in target.iterdir()}==before
+
+
+@pytest.mark.parametrize('kind',['partial','conflicting','extra','changed-source'])
+def test_retry_rejects_partial_conflicting_or_unsealed_existing_output(tmp_path,kind):
+    source,rows,_=fixture(tmp_path)
+    profile=HistoryProfile(PROFILE,'epoch',30,(source,));target=tmp_path/'output'
+    run(profile,target)
+    if kind=='partial':(target/'provenance.json').unlink()
+    elif kind=='conflicting':
+        (target/'snapshot.json').write_bytes(b'{}')
+        manifest=json.loads((target/'unsigned-manifest.json').read_bytes())
+        manifest.update(snapshot_sha256=sha256(b'{}').hexdigest(),snapshot_bytes=2)
+        (target/'unsigned-manifest.json').write_bytes(canonical_bytes(manifest))
+        provenance=json.loads((target/'provenance.json').read_bytes())
+        provenance['snapshot_sha256']=sha256(b'{}').hexdigest()
+        (target/'provenance.json').write_bytes(canonical_bytes(provenance))
+    elif kind=='extra':(target/'extra.json').write_bytes(b'{}')
+    else:
+        with sqlite3.connect(source.location) as con:con.execute('UPDATE history_rows SET payload=? WHERE rowid=1',(canonical_bytes(rows[0]|{'bar':rows[0]['bar']|{'close':999.}}).decode(),))
+    before={p.name:p.read_bytes() for p in target.iterdir()}
+    with pytest.raises(ValueError):run(profile,target)
+    assert {p.name:p.read_bytes() for p in target.iterdir()}==before

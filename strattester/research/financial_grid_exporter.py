@@ -9,11 +9,10 @@ from dataclasses import asdict, dataclass
 from hashlib import sha256
 import os
 from pathlib import Path
-import shutil
 import sqlite3
 import tempfile
 from .financial_contract import Bar, Instrument, Snapshot, digest, integer
-from .financial_snapshot import bounded_json, canonical_bytes, reject_linked_path, snapshot_bytes
+from .financial_snapshot import bounded_json, canonical_bytes, reject_linked_path, snapshot_bytes, verified_bytes
 from .financial_signed_export import MarketPartition, SNAPSHOT_SCHEMA_SHA256, identity
 from .grid_producer_readiness import require_native_grid_export
 
@@ -46,6 +45,25 @@ class ExportArtifacts:
     snapshot_sha256: str
     unsigned_manifest_sha256: str
     provenance_sha256: str
+
+
+
+def _preserve_owned_stage(stage, target, reason):
+    """Leave task data intact and record a non-authoritative cleanup inventory.
+
+    No recursive deletion is attempted: a path can change after a confinement
+    check. The marker lives beside the stage, so a replaced stage is not opened.
+    """
+    marker=stage.parent/(stage.name+'.cleanup.json')
+    try:
+        reject_linked_path(stage.parent)
+        with marker.open('xb') as stream:
+            stream.write(canonical_bytes({'version':1,'state':reason,
+                'stage_path':str(stage.absolute()),'intended_target':str(target.absolute()),
+                'automatic_cleanup':False,'recovery':'RECOMPUTE_FROM_TRUSTED_SEALED_SOURCES'}))
+            stream.flush();os.fsync(stream.fileno())
+    except (OSError,ValueError):
+        pass  # Preserve the original export error; never delete to hide it.
 
 
 def history_seal(meta, rows):
@@ -175,16 +193,27 @@ def export_history(profile, output_dir, *, producer_id, producer_build_sha,
     manifest_data=canonical_bytes(manifest)
     check();target=Path(output_dir).absolute()
     reject_linked_path(target.parent)
-    if target.exists(): raise ValueError('publication destination exists')
+    contents={'snapshot.json':data,'unsigned-manifest.json':manifest_data,'provenance.json':prov}
+    result=ExportArtifacts(snapshot,target,sha256(data).hexdigest(),sha256(manifest_data).hexdigest(),sha256(prov).hexdigest())
+    if target.exists() or target.is_symlink():
+        reject_linked_path(target)
+        if not target.is_dir() or {p.name for p in target.iterdir()}!=set(contents):
+            raise ValueError('incomplete/conflicting publication membership')
+        for name,expected in contents.items():
+            check()
+            actual=verified_bytes(target/name,sha256(expected).hexdigest(),len(expected))
+            if actual!=expected:raise ValueError('conflicting publication bytes')
+        check()
+        return result
     temporary=Path(tempfile.mkdtemp(prefix='.history-export-',dir=target.parent))
     try:
-        for name,content in [('snapshot.json',data),('unsigned-manifest.json',manifest_data),('provenance.json',prov)]:
+        for name,content in contents.items():
             check()
             with (temporary/name).open('xb') as stream: stream.write(content);stream.flush();os.fsync(stream.fileno())
         check();os.rename(temporary,target)
     finally:
-        if temporary.exists(): shutil.rmtree(temporary)
-    return ExportArtifacts(snapshot,target,sha256(data).hexdigest(),sha256(manifest_data).hexdigest(),sha256(prov).hexdigest())
+        if temporary.exists() or temporary.is_symlink():_preserve_owned_stage(temporary,target,'INCOMPLETE_EXPORT_STAGE')
+    return result
 
 
 def sign_rfc_test_export(artifacts, *, openssl_executable, openssl_sha256, scratch_root):
@@ -211,7 +240,8 @@ def sign_rfc_test_export(artifacts, *, openssl_executable, openssl_sha256, scrat
     scratch=reject_linked_path(scratch_root)
     target=artifacts.directory/'signed-test'
     if target.exists(): raise ValueError('signed destination exists')
-    with tempfile.TemporaryDirectory(prefix='rfc-test-sign-',dir=scratch) as directory:
+    directory=tempfile.mkdtemp(prefix='rfc-test-sign-',dir=scratch)
+    try:
         root=Path(directory)
         (root/'key.der').write_bytes(bytes.fromhex('302e020100300506032b657004220420')+seed)
         message=SIGNATURE_DOMAIN+canonical_bytes(unsigned)
@@ -232,5 +262,7 @@ def sign_rfc_test_export(artifacts, *, openssl_executable, openssl_sha256, scrat
                 with (stage/name).open('xb') as stream:stream.write(data);stream.flush();os.fsync(stream.fileno())
             os.rename(stage,target)
         finally:
-            if stage.exists():shutil.rmtree(stage)
+            if stage.exists() or stage.is_symlink():_preserve_owned_stage(stage,target,'INCOMPLETE_TEST_SIGNATURE_STAGE')
+    finally:
+        _preserve_owned_stage(Path(directory),target,'PUBLIC_RFC_TEST_SIGNING_SCRATCH')
     return target/'manifest.json',sha256(manifest).hexdigest()
