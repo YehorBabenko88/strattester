@@ -201,6 +201,7 @@ def export_history(profile, output_dir, *, producer_id, producer_build_sha,
             if history_seal(meta,rows)!=source.seal_sha256: raise ValueError('BLOCKED: historical seal changed')
         groups={}
         for raw in rows:
+            check()
             if set(raw)!={'bar','first_available_ns','source_id','coherence_epoch_id'} or raw['source_id']!=source.source_id or raw['coherence_epoch_id']!=profile.coherence_epoch_id:
                 raise ValueError('historical row identity')
             item=dict(raw['bar']);item['instrument']=Instrument(**item['instrument']);bar=Bar(**item)
@@ -211,6 +212,7 @@ def export_history(profile, output_dir, *, producer_id, producer_build_sha,
             if p not in source.partitions: raise ValueError('shard routing mismatch')
             groups.setdefault((bar.instrument,bar.timeframe_ns,bar.candle_open_ns),[]).append((bar,raw['first_available_ns']))
         for versions in groups.values():
+            check()
             versions.sort(key=lambda v:v[0].revision)
             first=versions[0][0].available_ns
             if [v[0].revision for v in versions]!=list(range(1,len(versions)+1)) or any(v[1]!=first for v in versions): raise ValueError('incomplete first availability/revision history')
