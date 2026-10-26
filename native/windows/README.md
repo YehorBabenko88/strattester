@@ -64,6 +64,16 @@ traversal alone permits the private runtime beneath ordinary user ancestors.
 No shared ancestor or Windows directory ACL is widened. The older
 zero-privilege component remains separate; its count must still be zero.
 
+The headless path also requests and queries Win32k syscall lockdown. A unique,
+non-visible window station and `Default` desktop provide the private USER
+namespace required for session-0 startup. Their protected DACLs grant only the
+current broker user, SYSTEM and this package SID; mandatory labels must be Low
+with no-write-up. The broker queries the names, visibility, exact DACL principals
+and rights, and integrity-label bytes before admission. It restores its own
+original station immediately after creating the private desktop and retains
+the private handles through child cleanup. Existing interactive/service window
+stations and desktops are never modified.
+
 The owned malicious payload attempts input/canary/profile reads and writes,
 IPv4/IPv6 TCP/UDP/loopback, DNS through `DnsQueryEx`, parent-process access,
 ordinary named-object and registry namespace access, child creation, memory

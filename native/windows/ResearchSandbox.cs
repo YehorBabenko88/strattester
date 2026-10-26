@@ -53,7 +53,8 @@ namespace StratTester.Native {
             using (var runtimeSeal = SealedRuntime.Open(Path.GetDirectoryName(image)))
             using (var token = CreateResearchToken())
             using (var job = PreparedComponents.CreateBoundedJob(limits.MemoryBytes, limits.CpuRate, limits.CpuTime100ns))
-            using (var environment = new SandboxEnvironment(profile.Folder)) {
+            using (var environment = new SandboxEnvironment(profile.Folder))
+            using (var desktop = new PrivateDesktop(profile.SidText)) {
                 KernelHandle outputRead, outputWrite;
                 var security = new SandboxNative.SecurityAttributes { Size = (uint)Marshal.SizeOf(typeof(SandboxNative.SecurityAttributes)), Inherit = true };
                 if (!SandboxNative.CreatePipe(out outputRead, out outputWrite, ref security, 4096)) throw new Win32Exception(Marshal.GetLastWin32Error());
@@ -65,6 +66,7 @@ namespace StratTester.Native {
                         var startup = new Native.StartupInfoEx { Attributes = attributes.List };
                         startup.Startup.Size = (uint)Marshal.SizeOf(typeof(Native.StartupInfoEx));
                         startup.Startup.Flags = 0x100;
+                        startup.Startup.Desktop = desktop.Path;
                         startup.Startup.StdInput = inheritedInput.DangerousGetHandle(); startup.Startup.StdOutput = outputWrite.DangerousGetHandle(); startup.Startup.StdError = outputWrite.DangerousGetHandle();
                         var command = new StringBuilder(Quote(image)); foreach (string arg in arguments) command.Append(" ").Append(Quote(arg));
                         Native.ProcessInformation child;
@@ -78,6 +80,7 @@ namespace StratTester.Native {
                         var timer = Stopwatch.StartNew();
                         try {
                             Phase = "VERIFY_BEFORE_RESUME";
+                            desktop.Verify();
                             profile.VerifyToken(child.Process); result.TokenVerified = true;
                             bool assigned;
                             if (!Native.IsProcessInJob(child.Process, job.DangerousGetHandle(), out assigned) || !assigned) throw new InvalidOperationException("Atomic job admission failed");
