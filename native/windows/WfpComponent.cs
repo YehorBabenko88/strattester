@@ -12,6 +12,8 @@ using System.Text;
 namespace StratTester.Native {
     internal static class WfpComponent {
         internal static string Phase = "INITIAL";
+        // Diagnostics contain only formatted integers/GUIDs, never paths/tokens.
+        internal static string Detail = "NONE";
         internal static int Probe(string[] args) {
             int v4, v6;
             if (args.Length != 4 || args[1] != "COMPONENT_TESTS_ONLY" || !Int32.TryParse(args[2], out v4) ||
@@ -111,9 +113,11 @@ namespace StratTester.Native {
                 Wfp.Check(Wfp.FwpmFilterAdd0(engine, ref filter, IntPtr.Zero, out id));
                 Wfp.Check(Wfp.FwpmFilterGetByKey0(engine, ref filter.Key, out queried));
                 var actual = (Wfp.Filter)Marshal.PtrToStructure(queried, typeof(Wfp.Filter));
+                WfpComponent.Detail = "filter_key=" + actual.Key + ",layer=" + actual.Layer + ",sublayer=" + actual.Sublayer + ",action=" + actual.Action.Type + ",count=" + actual.ConditionCount + ",id=" + actual.Id + ",expected_id=" + id + ",flags=" + actual.Flags;
                 if (actual.Key != filter.Key || actual.Layer != layer || actual.Sublayer != sublayer || actual.Action.Type != 0x1001 || actual.ConditionCount != 1 || actual.Id != id || actual.Flags != 0)
                     throw new InvalidOperationException("WFP filter query mismatch");
                 var actualCondition = (Wfp.Condition)Marshal.PtrToStructure(actual.Conditions, typeof(Wfp.Condition));
+                WfpComponent.Detail = "condition_field=" + actualCondition.Field + ",match=" + actualCondition.Match + ",type=" + actualCondition.Value.Type + ",same_blob=" + Wfp.SameBlob(app, actualCondition.Value.Pointer);
                 if (actualCondition.Field != Wfp.AppId || actualCondition.Match != 0 || actualCondition.Value.Type != 12 || !Wfp.SameBlob(app, actualCondition.Value.Pointer))
                     throw new InvalidOperationException("WFP app identity query mismatch");
             } finally {
