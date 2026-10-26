@@ -68,7 +68,7 @@ The manifest exactly matches the signed consumer schema except signature_b64.
 Production signing/key provisioning remains owner work. `sign_rfc_test_export`
 uses only the public RFC8032 test seed and refuses any scope/identity except
 SYNTHETIC_ENGINEERING_ONLY, fixture-grid, rfc-key. It verifies the pinned OpenSSL
-binary hash, verifies its own signature, and atomically publishes signed-test
+binary hash, verifies its own signature, and atomically publishes a sibling <export-name>.signed-test directory
 with manifest.json and a detached signature.ed25519. The existing consumer still
 requires a separately pinned trust store, policy, and OpenSSL verifier. Test keys
 establish engineering interoperability, never native historical correctness.
@@ -117,3 +117,19 @@ retry rejection cases. Failure-stage tests verify preserved inventory, not delet
 Final follow-up designated Python3.12 run: exporter/signed-consumer/native-readiness
 **43 passed in 14.70s**, including all18 exporter cases and the real disposable
 PostgreSQL MVCC fixture, with no skips. `git diff --check` passed.
+
+
+Signed derivatives live outside the immutable three-file export directory, in
+the sibling `<export-name>.signed-test`. Signing scratch must also remain outside
+the export directory. Deterministic Ed25519 signing retries recompute the signed
+manifest and detached signature, then verify exact existing membership and bytes;
+partial/conflicting derivatives are rejected without overwrite. The regression
+test performs export -> sign -> export replay -> signing replay, checks base
+artifact bytes remain unchanged, then verifies conflicting signature rejection.
+Before the fix this regression failed because the signer published inside the
+base export directory.
+
+Sibling signer follow-up final designated Python3.12 verification: **46 passed
+in 15.93s**, including21 exporter cases and the disposable PostgreSQL fixture;
+no skips. Conflicting detached signatures, additional files, and missing files
+are rejected without overwriting existing derivatives. `git diff --check` passed.

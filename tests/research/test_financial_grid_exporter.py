@@ -172,8 +172,7 @@ def test_public_rfc_signer_replays_through_pinned_consumer(tmp_path):
     result=load_attested_export(manifest_path=manifest,manifest_sha256=manifest_sha,snapshot_path=artifacts.directory/'snapshot.json',trust_store_path=tmp_path/'trust.json',trust_store_sha256=sha256(trust).hexdigest(),policy=ExportPolicy('fixture-grid','epoch',30,(SourceIdentity('one','sqlite',SCHEMA_SHA256),),source.partitions,verification_ns=32),verifier=OpenSSLVerifier(exe,exe_sha,tmp_path))
     assert result.snapshot==artifacts.snapshot
     assert (manifest.parent/'signature.ed25519').stat().st_size==64
-    with pytest.raises(ValueError,match='destination exists'):
-        sign_rfc_test_export(artifacts,openssl_executable=exe,openssl_sha256=exe_sha,scratch_root=tmp_path)
+    assert sign_rfc_test_export(artifacts,openssl_executable=exe,openssl_sha256=exe_sha,scratch_root=tmp_path)==(manifest,manifest_sha)
 
 
 def test_sqlite_wal_concurrent_writer_keeps_sealed_read_view(tmp_path,monkeypatch):
@@ -247,3 +246,31 @@ def test_retry_rejects_partial_conflicting_or_unsealed_existing_output(tmp_path,
     before={p.name:p.read_bytes() for p in target.iterdir()}
     with pytest.raises(ValueError):run(profile,target)
     assert {p.name:p.read_bytes() for p in target.iterdir()}==before
+
+
+@pytest.mark.parametrize('conflict',['signature','extra','partial'])
+def test_export_sign_export_retry_and_sign_retry_keep_base_immutable(tmp_path,conflict):
+    import shutil
+    source,rows,meta=fixture(tmp_path)
+    for row in rows:row['bar']['producer']='fixture-grid'
+    with sqlite3.connect(source.location) as con:
+        con.execute('DELETE FROM history_rows')
+        con.executemany('INSERT INTO history_rows VALUES (?)',[(canonical_bytes(row).decode(),) for row in rows])
+    source=replace(source,seal_sha256=history_seal(meta,rows))
+    profile=HistoryProfile(PROFILE,'epoch',30,(source,))
+    def export():return export_history(profile,tmp_path/'export',producer_id='fixture-grid',producer_build_sha='a'*40,key_id='rfc-key',export_id='test',issued_at_ns=31)
+    exe=Path(shutil.which('openssl') or 'C:/Program Files/Git/usr/bin/openssl.exe').resolve()
+    if not exe.is_file():pytest.skip('OpenSSL test binary unavailable')
+    arguments=dict(openssl_executable=exe,openssl_sha256=sha256(exe.read_bytes()).hexdigest(),scratch_root=tmp_path)
+    artifacts=export();before={p.name:p.read_bytes() for p in artifacts.directory.iterdir()}
+    first=sign_rfc_test_export(artifacts,**arguments)
+    assert first[0].parent==tmp_path/'export.signed-test'
+    assert {p.name:p.read_bytes() for p in artifacts.directory.iterdir()}==before
+    recovered=export()
+    assert sign_rfc_test_export(recovered,**arguments)==first
+    if conflict=='signature':(first[0].parent/'signature.ed25519').write_bytes(b'bad')
+    elif conflict=='extra':(first[0].parent/'extra.json').write_bytes(b'{}')
+    else:(first[0].parent/'signature.ed25519').unlink()
+    conflicting_before={p.name:p.read_bytes() for p in first[0].parent.iterdir()}
+    with pytest.raises(ValueError):sign_rfc_test_export(recovered,**arguments)
+    assert {p.name:p.read_bytes() for p in first[0].parent.iterdir()}==conflicting_before
