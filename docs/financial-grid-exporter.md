@@ -51,11 +51,18 @@ qualify the unknown native physical databases for production or G1.
 key_id=..., export_id=..., issued_at_ns=...)` returns `ExportArtifacts` containing
 a frozen Snapshot, directory, and exact SHA256s. It publishes snapshot.json,
 unsigned-manifest.json, and provenance.json together by renaming a staged sibling
-directory on the same filesystem. Existing destinations are rejected; failed or
-cancelled exports leave no published directory. Rows and raw/snapshot bytes have
+directory on the same filesystem. A retry rereads and verifies every externally sealed source, recomputes all three
+artifact bytes, and returns a completed destination only when its exact file
+membership and bytes match. It never trusts hashes stored alongside the output.
+Partial, conflicting, or additional files are rejected without overwriting. Failed
+or cancelled exports leave no published directory. Rows and raw/snapshot bytes have
 hard 100,000 / 8 MiB limits. Cancellation is checked during source reads and
 publication. Callers must use a trusted output parent; hostile concurrent Windows
-namespace changes still require native handle-relative confinement.
+namespace changes still require native handle-relative confinement. Failed export
+and signer stages are preserved with a sibling non-authoritative cleanup inventory;
+no recursive deletion is attempted. Public RFC signing scratch is also preserved
+with an inventory. Interrupted-before-publication scratch is never trusted for
+recovery; a retry recomputes from the source seals.
 
 The manifest exactly matches the signed consumer schema except signature_b64.
 Production signing/key provisioning remains owner work. `sign_rfc_test_export`
@@ -98,3 +105,15 @@ run installed the same dependencies into system Python3.14 as well (including
 its tzdata2026.5 dependency); its broader signed-export tests failed setup because
 that interpreter has no torch. No ML success is attributed to Python3.14. No
 production database or installed PostgreSQL service was used by either run.
+
+
+Replay follow-up verification: the new completed-export test first failed against
+the original destination-exists behavior (1 failed, 4 passed). It uses a separate
+child process that publishes then calls os._exit(17), losing its return value; the
+retry rebuilds from source and verifies the completed bytes. Added partial, extra
+file, conflicting snapshot with updated colocated hashes, and changed-source
+retry rejection cases. Failure-stage tests verify preserved inventory, not deletion.
+
+Final follow-up designated Python3.12 run: exporter/signed-consumer/native-readiness
+**43 passed in 14.70s**, including all18 exporter cases and the real disposable
+PostgreSQL MVCC fixture, with no skips. `git diff --check` passed.
