@@ -10,8 +10,9 @@ test mode:
 
 * Duplicate the current process token using `CreateRestrictedToken`, remove all
   remaining privileges using `AdjustTokenPrivileges(SE_PRIVILEGE_REMOVED)`, then
-  independently query the token privilege count and require zero. No token is
-  assigned to any process; group SIDs and filesystem access are not confined.
+  independently query the token privilege count and require zero. These tokens
+  are assigned only to owned component probes; group SIDs and filesystem access
+  are not confined.
 * Create an unnamed job with kill-on-close, job memory, active-process count 1,
   process CPU time and CPU hard-cap limits. Query the actual kernel values and
   compare them with literal expected values, then close the job. Query success
@@ -107,10 +108,12 @@ guard. It locks an owned `abc` fixture, duplicates its read-only handle as
 inheritable, and creates a distinct inheritable read/write canary handle. A
 STARTUPINFOEX HANDLE_LIST permits only the read-only fixture into an owned
 restricted probe created suspended and assigned to its job before resume. The
-probe checks `abc`, requires ACCESS_DENIED for a zero-byte WriteFile access check,
+probe checks `abc`, seeks to byte zero, attempts a one-byte `x` mutation of this
+owned disposable fixture and requires WriteFile ACCESS_DENIED,
 and verifies that the canary's volume/file identity was not inherited at its
-numeric handle value. It never writes fixture data. The parent also checks the
-fixture still contains `abc`. This samples correct allowlist configuration and
+numeric handle value. Successful mutation fails the component test. The parent
+independently reopens/hashes the fixture and requires the literal SHA256 of `abc`
+and a length of three. This samples correct allowlist configuration and
 read-only access, not an exhaustive handle-leak audit.
 
 All owned probe children receive an explicit Unicode environment allowlist:
