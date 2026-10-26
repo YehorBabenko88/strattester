@@ -14,9 +14,11 @@ REQUIRED = frozenset({
 def evaluate_physical_g1(evidence: object) -> dict:
     if type(evidence) is not dict:
         return {"status": "BLOCKED", "stop": ["invalid_evidence"]}
+    if any(type(k) is not str for k in evidence):
+        return {"status": "BLOCKED", "stop": ["invalid_evidence_key"], "physical_g1_authorized": False}
     missing = sorted(REQUIRED - set(evidence))
     extra = sorted(set(evidence) - REQUIRED)
-    unverified = sorted(k for k in REQUIRED if evidence.get(k) != "INDEPENDENT_VERIFIED")
+    unverified = sorted(k for k in REQUIRED if type(evidence.get(k)) is not str or evidence.get(k) != "INDEPENDENT_VERIFIED")
     stop = sorted(set(missing + extra + unverified))
     # An all-green self-asserted dictionary is not independent authorization.
     if not stop:
