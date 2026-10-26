@@ -28,6 +28,10 @@ def validate_folds(folds, *, allow_prior_oos_retraining=False):
                     raise ValueError("invalid label interval")
         def overlaps(a, b):
             return a.decision_ns < b.end_ns and b.decision_ns < a.end_ns
+        # Chronology must hold even when the label intervals do not overlap.
+        if (max(x.decision_ns for x in train) >= min(x.decision_ns for x in validation)
+                or max(x.decision_ns for x in validation) >= min(x.decision_ns for x in test)):
+            raise ValueError("nonchronological train/validation/test")
         if any(overlaps(a, b) for a in train for b in validation + test):
             raise ValueError("train label overlaps evaluation")
         if any(overlaps(a, b) for a in validation for b in test):
