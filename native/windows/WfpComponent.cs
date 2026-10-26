@@ -59,12 +59,13 @@ namespace StratTester.Native {
         }
         private static uint RunOwned(string image, int port4, int port6) {
             using (var token = PreparedComponents.CreatePrivilegeRemovedToken())
+            using (var environment = new ProbeEnvironment())
             using (var job = PreparedComponents.CreateBoundedJob(134217728, 1000, 50000000)) {
                 var startup = new Native.StartupInfo { Size = (uint)Marshal.SizeOf(typeof(Native.StartupInfo)) };
                 Native.ProcessInformation child;
                 string command = "\"" + image + "\" --owned-network-probe COMPONENT_TESTS_ONLY " + port4 + " " + port6;
                 if (!Native.CreateProcessAsUser(token, image, new StringBuilder(command), IntPtr.Zero, IntPtr.Zero,
-                    false, 0x4 | 0x08000000, IntPtr.Zero, Path.GetDirectoryName(image), ref startup, out child))
+                    false, 0x4 | 0x08000000 | 0x400, environment.Block, Path.GetDirectoryName(image), ref startup, out child))
                     throw new Win32Exception(Marshal.GetLastWin32Error());
                 try {
                     if (!Native.AssignProcessToJobObject(job, child.Process)) throw new Win32Exception(Marshal.GetLastWin32Error());

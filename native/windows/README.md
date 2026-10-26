@@ -100,6 +100,26 @@ BLOCKED regardless of component results. The environment guard is not security
 authorization. No network component runs as part of `--diagnose` or the safe unit
 tests.
 
+## Separately reviewed inherited handle component
+
+`--selftest-handles COMPONENT_TESTS_ONLY` uses the same hosted-VM-only accident
+guard. It locks an owned `abc` fixture, duplicates its read-only handle as
+inheritable, and creates a distinct inheritable read/write canary handle. A
+STARTUPINFOEX HANDLE_LIST permits only the read-only fixture into an owned
+restricted probe created suspended and assigned to its job before resume. The
+probe checks `abc`, requires ACCESS_DENIED for a zero-byte WriteFile access check,
+and verifies that the canary's volume/file identity was not inherited at its
+numeric handle value. It never writes fixture data. The parent also checks the
+fixture still contains `abc`. This samples correct allowlist configuration and
+read-only access, not an exhaustive handle-leak audit.
+
+All owned probe children receive an explicit Unicode environment allowlist:
+only SystemRoot/WINDIR, TEMP/TMP and three operational hosted-VM guard values.
+PATH, COMSPEC and CI token/credential variables are absent. Each owned child
+rejects any environment key outside that allowlist. No parent CI environment
+block is inherited. This component and all child creation modes remain NOTRUN
+locally and cannot enable research execution.
+
 ## Missing mandatory controls
 
 Owner signature/trust verification, restricted SIDs and filesystem confinement,
