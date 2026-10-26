@@ -9,7 +9,7 @@ def fixtures():
     result = []
     for index, name in enumerate(sorted(REQUIRED), start=1):
         prefix = name if name == "native-component-proof" else "financial-" + name
-        result.append(dict(id=index, name=prefix + "-" + HEAD, digest="sha256:" + "a"*64,
+        result.append(dict(id=index, name=prefix + "-" + HEAD, digest="sha256:" + format(index, "064x"),
                            size_in_bytes=100, expired=False,
                            workflow_run={"id": RUN, "head_sha": HEAD}))
     return result
@@ -50,6 +50,11 @@ class ArtifactMetadataTests(unittest.TestCase):
         for item in data:
             if item["name"].startswith("native-component-proof-"):
                 item["name"] = "financial-" + item["name"]
+        self.assertFalse(verify_artifact_metadata(data, head=HEAD, run_id=RUN)["metadata_valid"])
+
+    def test_duplicate_digest(self):
+        data = fixtures()
+        data[1]["digest"] = data[0]["digest"]
         self.assertFalse(verify_artifact_metadata(data, head=HEAD, run_id=RUN)["metadata_valid"])
 
     def test_duplicate_artifact_id(self):
