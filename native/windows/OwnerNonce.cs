@@ -51,7 +51,7 @@ namespace StratTester.Native {
   static void ValidateComponent(string part) {
    if(String.IsNullOrEmpty(part)||part=="."||part==".."||part.EndsWith(".")||part.EndsWith(" "))throw new FormatException("Unsafe path component");
    foreach(char c in part)if(c<32||"\\/:*?\"<>|".IndexOf(c)>=0)throw new FormatException("Unsafe path character");
-   string stem=part.Split('.')[0].ToUpperInvariant();
+   string stem=part.Split('.')[0].TrimEnd(' ').ToUpperInvariant();
    if(stem=="CON"||stem=="PRN"||stem=="AUX"||stem=="NUL"||stem=="CONIN$"||stem=="CONOUT$"||
       (stem.Length==4&&(stem.StartsWith("COM")||stem.StartsWith("LPT"))&&"123456789¹²³".IndexOf(stem[3])>=0))
     throw new FormatException("Device alias");

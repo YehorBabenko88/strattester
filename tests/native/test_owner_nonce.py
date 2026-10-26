@@ -17,7 +17,7 @@ $assembly=[Reflection.Assembly]::LoadFile($env:NATIVE_BROKER)
 $type=$assembly.GetType('StratTester.Native.OwnerNonce',$true)
 $flags=[Reflection.BindingFlags]'Static,NonPublic'
 function Call([string]$name,[object[]]$values){
- try{$type.GetMethod($name,$flags).Invoke($null,$values);return 'RETURNED'}
+ try{$null=$type.GetMethod($name,$flags).Invoke($null,$values);return 'RETURNED'}
  catch{$caught=$_.Exception;while($caught.InnerException){$caught=$caught.InnerException};return $caught.GetType().Name}
 }
 ''' + expression
@@ -53,3 +53,14 @@ ConvertTo-Json -InputObject $values -Compress
 
 def test_owner_nonce_selftest_refuses_physical_host_before_native_filesystem_access():
     assert invoke("ConvertTo-Json -InputObject (Call 'SelfTest' @()) -Compress")=='InvalidOperationException'
+
+
+def test_owner_nonce_device_stems_with_spaces_are_rejected_by_pure_path_validation():
+    # Call only the pure validator for this regression: a missing rejection
+    # must never send an otherwise well-formed path into native filesystem APIs.
+    result=invoke(r'''
+$values=@()
+foreach($bad in @('C:\CON .txt','C:\COM1 .log','C:\LPT1 .log')){$values+=Call 'ValidatePath' @($bad)}
+ConvertTo-Json -InputObject $values -Compress
+''')
+    assert result==['FormatException']*3
