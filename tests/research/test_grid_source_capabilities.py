@@ -261,3 +261,96 @@ def test_same_named_user_type_cannot_impersonate_postgres_numeric(native_postgre
         con.execute('CREATE DOMAIN public.numeric AS pg_catalog.numeric')
         con.execute('ALTER TABLE candles_1m ALTER COLUMN close TYPE public.numeric')
     assert inspect(source(dsn, 'postgresql')).adapter == 'UNRECOGNIZED'
+
+
+@pytest.mark.parametrize('phase', ['after_catalog', 'before_lock'])
+def test_concurrent_lineage_view_replacement_cannot_execute_its_function(native_postgres, monkeypatch, phase):
+    """A real second connection swaps the name after catalog inspection.
+
+    The instrumentation only selects the interleaving; both connections and
+    every catalog/DDL/lineage statement execute against the owned PostgreSQL.
+    """
+    dsn, psycopg = native_postgres
+    with psycopg.connect(dsn, autocommit=True) as writer:
+        writer.execute('''CREATE FUNCTION public.catalog_view_tripwire() RETURNS text
+            LANGUAGE plpgsql VOLATILE AS $$ BEGIN
+            RAISE EXCEPTION 'UNTRUSTED_LINEAGE_VIEW_FUNCTION_EXECUTED'; END $$''')
+        real_execute = psycopg.Connection.execute
+        race = {'attempted': False, 'blocked': False, 'replacement_committed': False}
+
+        def replace_name():
+            race['attempted'] = True
+            try:
+                with writer.transaction():
+                    writer.execute("SET LOCAL lock_timeout = '100ms'")
+                    writer.execute('ALTER TABLE public.schema_migrations RENAME TO original_migrations')
+                    writer.execute('''CREATE VIEW public.schema_migrations AS
+                        SELECT 1::bigint AS version,
+                        public.catalog_view_tripwire() AS name, now() AS applied_at''')
+                race['replacement_committed'] = True
+            except psycopg.errors.LockNotAvailable:
+                race['blocked'] = True
+
+        def execute(connection, query, *args, **kwargs):
+            if (connection is not writer and not race['attempted'] and phase == 'before_lock'
+                    and 'LOCK TABLE' in str(query) and 'public.schema_migrations' in str(query)):
+                replace_name()
+            cursor = real_execute(connection, query, *args, **kwargs)
+            if (connection is not writer and not race['attempted'] and phase == 'after_catalog'
+                    and 'FROM pg_catalog.pg_constraint p' in str(query)):
+                replace_name()
+            return cursor
+
+        monkeypatch.setattr(psycopg.Connection, 'execute', execute)
+        report = inspect(source(dsn, 'postgresql'))
+        if phase == 'after_catalog':
+            assert race == {'attempted': True, 'blocked': True, 'replacement_committed': False}
+            assert report.migration_lineage == 'MATCHED_COMPLETE'
+        else:
+            assert race == {'attempted': True, 'blocked': False, 'replacement_committed': True}
+            assert report.migration_lineage == 'UNVERIFIED'
+            assert report.adapter == 'UNRECOGNIZED'
+        assert report.status == 'BLOCKED' and report.eligible is False
+
+
+def test_absent_lineage_table_remains_unverified_without_creating_it(native_postgres):
+    dsn, psycopg = native_postgres
+    with psycopg.connect(dsn) as con:
+        con.execute('DROP TABLE public.schema_migrations')
+    report = inspect(source(dsn, 'postgresql'))
+    assert report.migration_lineage == 'UNVERIFIED'
+    assert report.adapter == 'UNRECOGNIZED'
+    assert report.migrations == () and not report.eligible
+    with psycopg.connect(dsn) as con:
+        assert con.execute("SELECT to_regclass('public.schema_migrations')").fetchone()[0] is None
+
+
+def test_namespace_replacement_after_oid_recheck_never_evaluates_view(native_postgres, monkeypatch):
+    """A relation lock does not lock its namespace's name against replacement."""
+    dsn, psycopg = native_postgres
+    with psycopg.connect(dsn, autocommit=True) as writer:
+        writer.execute('''CREATE FUNCTION public.namespace_view_tripwire() RETURNS text
+            LANGUAGE plpgsql VOLATILE AS $$ BEGIN
+            RAISE EXCEPTION 'UNTRUSTED_NAMESPACE_VIEW_FUNCTION_EXECUTED'; END $$''')
+        real_execute = psycopg.Connection.execute
+        replaced = False
+
+        def execute(connection, query, *args, **kwargs):
+            nonlocal replaced
+            cursor = real_execute(connection, query, *args, **kwargs)
+            if (connection is not writer and not replaced
+                    and 'EXISTS (SELECT 1 FROM pg_catalog.pg_locks' in str(query)):
+                with writer.transaction():
+                    writer.execute("SET LOCAL lock_timeout = '100ms'")
+                    writer.execute('ALTER SCHEMA public RENAME TO replaced_namespace')
+                    writer.execute('CREATE SCHEMA public')
+                    writer.execute('''CREATE VIEW public.schema_migrations AS
+                        SELECT 1::bigint AS version,
+                        replaced_namespace.namespace_view_tripwire() AS name, now() AS applied_at''')
+                replaced = True
+            return cursor
+
+        monkeypatch.setattr(psycopg.Connection, 'execute', execute)
+        with pytest.raises(psycopg.errors.FeatureNotSupported, match='TABLESAMPLE'):
+            inspect(source(dsn, 'postgresql'))
+        assert replaced
