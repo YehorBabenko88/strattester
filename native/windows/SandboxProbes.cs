@@ -131,8 +131,8 @@ namespace StratTester.Native {
             Directory.CreateDirectory(root);
             string runtime = Path.Combine(root, "runtime"), outside = Path.Combine(root, "outside"), inputPath = Path.Combine(root, "input");
             Directory.CreateDirectory(runtime); Directory.CreateDirectory(outside);
-            string image = Path.Combine(runtime, "StratTester.OwnedSandboxProbe.exe"), canary = Path.Combine(outside, "canary"), registryPath = "Software\\StratTesterProbe-" + Guid.NewGuid().ToString("N");
-            File.Copy(typeof(Broker).Assembly.Location, image); File.WriteAllText(canary, "disposable canary"); File.WriteAllBytes(inputPath, new byte[] { 97, 98, 99 });
+            string image = null, canary = Path.Combine(outside, "canary"), registryPath = "Software\\StratTesterProbe-" + Guid.NewGuid().ToString("N");
+            File.WriteAllText(canary, "disposable canary"); File.WriteAllBytes(inputPath, new byte[] { 97, 98, 99 });
             string eventName = "Local\\StratTesterProbe-" + Guid.NewGuid().ToString("N");
             string profileFolder = null;
             try {
@@ -150,10 +150,10 @@ namespace StratTester.Native {
                     try {
                         using (var profile = new AppContainerProfile())
                         using (var input = LockedInput.Open(inputPath, 3)) {
-                            profileFolder = profile.Folder; profile.GrantReadTree(runtime);
+                            profileFolder = profile.Folder; image = PreparePython(profile, runtime); profile.GrantReadTree(runtime);
                             Phase = "ADVERSARIAL_LPAC";
-                            var result = ResearchSandbox.RunOwned(profile, image, new string[] { "--owned-sandbox-probe", "COMPONENT_TESTS_ONLY", "adversarial", inputPath, canary, profile.Folder,
-                                ((IPEndPoint)tcp4.LocalEndpoint).Port.ToString(), ((IPEndPoint)tcp6.LocalEndpoint).Port.ToString(), "sandbox-" + Guid.NewGuid().ToString("N") + ".strattester.invalid", Process.GetCurrentProcess().Id.ToString(), eventName, registryPath }, input, Normal, CancellationToken.None, null);
+                            var result = ResearchSandbox.RunOwned(profile, image, PythonCommand(image, "adversarial", new string[] { inputPath, canary, profile.Folder,
+                                ((IPEndPoint)tcp4.LocalEndpoint).Port.ToString(), ((IPEndPoint)tcp6.LocalEndpoint).Port.ToString(), "sandbox-" + Guid.NewGuid().ToString("N") + ".strattester.invalid", Process.GetCurrentProcess().Id.ToString(), eventName, registryPath }), input, Normal, CancellationToken.None, null);
                             LastDetail = "exit=" + result.ExitCode + ",reason=" + result.StopReason + ",bytes=" + result.OutputBytes + ",output=" + SafeDetail(result.Output);
                             if (result.ExitCode != 200 || !result.TokenVerified || !result.JobVerified || result.StopReason != "EXIT") throw new InvalidOperationException("Adversarial probe failed");
                             if (dns.Count != 0 || tcp4.Pending() || tcp6.Pending()) throw new InvalidOperationException("Observed sandbox network escape");
@@ -161,7 +161,7 @@ namespace StratTester.Native {
                             Emit("ADVERSARIAL", result);
                             TestLimits(profile, image, input);
                             Phase = "PYTHON_SYNTHETIC";
-                            RunPython(profile, runtime, input);
+                            RunPython(profile, image, input);
                         }
                     } finally { tcp4.Stop(); tcp6.Stop(); }
                 }
@@ -194,18 +194,26 @@ namespace StratTester.Native {
             if (result.StopReason != "EXIT" || result.ExitCode != 205 || result.Output != "MEMORY_DENIED" || result.PeakJobMemory > 268435456 || result.PeakJobMemory < 67108864) throw new InvalidOperationException("Memory limit failed"); Emit("MEMORY", result);
         }
         private static SandboxResult RunMode(AppContainerProfile profile, string image, LockedInput input, string mode, SandboxLimits limits, CancellationToken cancel) {
-            return ResearchSandbox.RunOwned(profile, image, new string[] { "--owned-sandbox-probe", "COMPONENT_TESTS_ONLY", mode }, input, limits, cancel, null);
+            return ResearchSandbox.RunOwned(profile, image, PythonCommand(image, mode, new string[0]), input, limits, cancel, null);
         }
-        private static void RunPython(AppContainerProfile profile, string runtime, LockedInput input) {
+        private static string[] PythonCommand(string image, string mode, string[] extra) {
+            var command = new List<string> { "-I", "-S", "-B", Path.Combine(Path.GetDirectoryName(image), "owned_adversary.py"), "COMPONENT_TESTS_ONLY", mode };
+            command.AddRange(extra); return command.ToArray();
+        }
+        private static string PreparePython(AppContainerProfile profile, string runtime) {
             // The workflow prepares an isolated embedded Python runtime, copied into
             // the owned read-only tree. Never grant RX to an installed host runtime.
             string source = Environment.GetEnvironmentVariable("STRATTESTER_OWNED_PYTHON");
             if (String.IsNullOrEmpty(source) || !Path.IsPathRooted(source) || !File.Exists(Path.Combine(source, "python.exe"))) throw new InvalidOperationException("Owned embedded Python fixture required");
-            string target = Path.Combine(runtime, "python"); CopyTree(source, target); profile.GrantReadTree(target);
-            string script = Path.Combine(target, "synthetic.py");
-            File.WriteAllText(script, "import json,sys\nraw=sys.stdin.buffer.read(4)\nassert raw==b'abc'\nxs=[float(i) for i in range(1,101)]\nmean=sum(xs)/len(xs)\nvariance=sum((x-mean)**2 for x in xs)/len(xs)\nprint(json.dumps({'schema':1,'synthetic_only':True,'n':len(xs),'mean':mean,'variance':variance},sort_keys=True,separators=(',',':')))\n", new UTF8Encoding(false));
+            string probe = Environment.GetEnvironmentVariable("STRATTESTER_OWNED_PROBE_SCRIPT");
+            if (String.IsNullOrEmpty(probe) || !Path.IsPathRooted(probe)) throw new InvalidOperationException("Owned probe source required");
+            string target = Path.Combine(runtime, "python"); CopyTree(source, target);
+            File.Copy(probe, Path.Combine(target, "owned_adversary.py"));
             profile.GrantReadTree(target);
-            var result = ResearchSandbox.RunOwned(profile, Path.Combine(target, "python.exe"), new string[] { "-I", "-S", "-B", script }, input, Normal, CancellationToken.None, null);
+            return Path.Combine(target, "python.exe");
+        }
+        private static void RunPython(AppContainerProfile profile, string image, LockedInput input) {
+            var result = RunMode(profile, image, input, "synthetic", Normal, CancellationToken.None);
             LastDetail = "python_exit=" + result.ExitCode + ",reason=" + result.StopReason + ",output=" + SafeDetail(result.Output);
             if (result.ExitCode != 0 || result.Output.Trim() != "{\"mean\":50.5,\"n\":100,\"schema\":1,\"synthetic_only\":true,\"variance\":833.25}") throw new InvalidOperationException("Synthetic Python worker failed");
             Emit("PYTHON_SYNTHETIC", result);

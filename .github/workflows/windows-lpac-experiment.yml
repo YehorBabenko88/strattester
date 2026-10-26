@@ -52,6 +52,7 @@ jobs:
           $owned = "$env:RUNNER_TEMP/lpac-owned-embedded-python"
           Expand-Archive -LiteralPath $archive -DestinationPath $owned
           "STRATTESTER_OWNED_PYTHON=$owned" >> $env:GITHUB_ENV
+          "STRATTESTER_OWNED_PROBE_SCRIPT=$env:GITHUB_WORKSPACE/native/windows/probes/owned_adversary.py" >> $env:GITHUB_ENV
           @{ schema = 1; python_version = '3.12.10'; archive_sha256 = $digest } | ConvertTo-Json | Set-Content "$env:NATIVE_OUTPUT/python-input.json"
       - name: Build twice and run safe contracts
         id: build

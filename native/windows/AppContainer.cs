@@ -10,6 +10,7 @@ using System.Security.Principal;
 
 namespace StratTester.Native {
     internal sealed class AppContainerProfile : IDisposable {
+        internal static string VerificationPhase = "INITIAL";
         internal readonly string Name;
         internal readonly string SidText;
         internal IntPtr Sid;
@@ -63,23 +64,30 @@ namespace StratTester.Native {
             }
         }
         internal void VerifyToken(IntPtr process) {
+            VerificationPhase = "OPEN_CHILD_TOKEN";
             KernelHandle token;
             if (!Native.OpenProcessToken(process, 8, out token)) throw new Win32Exception(Marshal.GetLastWin32Error());
             using (token) {
-                if (ReadScalar(token, 29) != 1 || ReadScalar(token, 46) != 1 || ReadScalar(token, 30) != 0)
+                VerificationPhase = "QUERY_APP_CONTAINER"; int app = ReadScalar(token, 29);
+                VerificationPhase = "QUERY_LPAC"; int lpac = ReadScalar(token, 46);
+                VerificationPhase = "QUERY_CAPABILITIES"; int caps = ReadScalar(token, 30);
+                if (app != 1 || lpac != 1 || caps != 0)
                     throw new InvalidOperationException("Not zero-capability LPAC");
+                VerificationPhase = "QUERY_PACKAGE_SID";
                 IntPtr data = ReadToken(token, 31);
                 try {
                     IntPtr sid = Marshal.ReadIntPtr(data);
                     if (sid == IntPtr.Zero || new SecurityIdentifier(sid).Value != SidText) throw new InvalidOperationException("Wrong package identity");
                 } finally { Marshal.FreeHGlobal(data); }
-                data = Native.ReadTokenPrivileges(token);
+                VerificationPhase = "QUERY_CHILD_PRIVILEGES"; data = Native.ReadTokenPrivileges(token);
                 try { if (Marshal.ReadInt32(data) != 0) throw new InvalidOperationException("Child privileges remain"); }
                 finally { Marshal.FreeHGlobal(data); }
             }
             uint flags;
+            VerificationPhase = "QUERY_CHILD_POLICY";
             if (!SandboxNative.GetProcessMitigationPolicy(process, 13, out flags, new UIntPtr(4)) || (flags & 1) != 1)
                 throw new InvalidOperationException("Child process policy missing");
+            VerificationPhase = "TOKEN_VERIFIED";
         }
         internal static int ReadScalar(KernelHandle token, int kind) {
             IntPtr data = ReadToken(token, kind);
