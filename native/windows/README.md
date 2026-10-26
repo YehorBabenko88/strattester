@@ -14,8 +14,20 @@ test mode:
   assigned to any process; group SIDs and filesystem access are not confined.
 * Create an unnamed job with kill-on-close, job memory, active-process count 1,
   process CPU time and CPU hard-cap limits. Query the actual kernel values and
-  compare them with literal expected values, then close the job. No process is
-  assigned. Query success demonstrates API configuration, not limit enforcement.
+  compare them with literal expected values, then close the job. Query success
+  demonstrates API configuration, not CPU/RAM limit enforcement.
+* Open a local artifact with retained ancestor and leaf handles denying
+  write/delete sharing. Open reparse points themselves, query attributes/tags,
+  verify final handle paths, reject hardlinks/device/ADS paths, and hash a bounded
+  leaf while retaining volume/file identity. Hosted scratch fixtures test normal
+  hashing, conflicting writes/ancestor renames, hardlinks and parent symlinks.
+  This is an input artifact component; it does not confine arbitrary filesystem
+  access or exclude preexisting writable mappings.
+* Launch only the executing assembly with literal sleeping probe arguments,
+  restricted token, no inherited handles and CREATE_SUSPENDED. Assign and query
+  the job before resume, require the benign probe to remain alive, close the job
+  and verify termination. Direct process handles provide cleanup on errors.
+  No caller-provided executable, script or research workload can be launched.
 
 `--diagnose` reads only the executable hash and existing current-process job
 membership. It does not create tokens/jobs/processes, set policy, touch services,
@@ -54,16 +66,17 @@ The mode requires GITHUB_ACTIONS=true, RUNNER_ENVIRONMENT=github-hosted and
 RUNNER_OS=Windows as an operational accident guard. These values are spoofable,
 are **not authorization/trust evidence**, and never enable `--launch`. The only
 success status is COMPONENT_API_TESTS_PASS, with native_enforcement=false. Tests
-create/query/close owned kernel objects only; there are no research or probe
-children. Local native component testing is NOTRUN. Hosted results must be bound
+create/query/close owned kernel objects and scratch input fixtures, plus one owned
+benign sleeping probe child. There are no research children. Local native
+component testing is NOTRUN. Hosted results must be bound
 to exact source/binary hashes and must not be relabeled sandbox/G1 acceptance.
 
 ## Missing mandatory controls
 
 Owner signature/trust verification, restricted SIDs and filesystem confinement,
-atomic reparse/ADS/device and handle validation, explicit inherited read-only
-handle allowlist, suspended child creation/job assignment before resume,
-wall-clock/output limits, and WFP/AppContainer IPv4/IPv6/DNS/loopback egress
+full filesystem namespace confinement beyond the input handle component, explicit
+inherited read-only handle allowlist for research, qualified research child
+lifecycle, wall-clock/output limits, and WFP/AppContainer IPv4/IPv6/DNS/loopback egress
 confinement are **NOT IMPLEMENTED**. Adversarial process tests and complete native
 sandbox enforcement are **NOTRUN**. No fallback subprocess exists. All of these
 must be implemented, independently reviewed and verified in disposable Windows

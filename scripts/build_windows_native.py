@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import tempfile
 import urllib.request
@@ -37,6 +38,20 @@ def extract_verified(archive, expected, destination):
         package.extractall(destination)
 
 
+def remove_cached_package(cache, destination):
+    """Delete only a checked direct child; never follow a junction/symlink."""
+    cache_root = cache.resolve(strict=True)
+    resolved = destination.resolve(strict=True)
+    if resolved == cache_root or resolved.parent != cache_root:
+        raise ValueError("cache cleanup target is outside the intended cache")
+    attributes = destination.lstat()
+    if destination.is_symlink() or getattr(attributes, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400):
+        raise ValueError("cache cleanup refuses reparse/symlink targets")
+    if not destination.is_dir():
+        raise ValueError("cache cleanup requires an ordinary directory")
+    shutil.rmtree(destination)
+
+
 def build(root, output, cache):
     if os.name != "nt":
         raise RuntimeError("Windows build requires .NET Framework 4.7.2+")
@@ -52,7 +67,7 @@ def build(root, output, cache):
         # Re-extract verified input on each build; never execute stale cache binaries.
         destination = cache / (name + "." + version)
         if destination.exists():
-            shutil.rmtree(destination)
+            remove_cached_package(cache, destination)
         destination.mkdir()
         extract_verified(archive, digest, destination)
         unpacked.append(destination)
