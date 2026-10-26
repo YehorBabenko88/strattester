@@ -5,7 +5,7 @@ from decimal import Decimal, localcontext
 
 import pytest
 
-from research.math_contract_reference import log_returns, sample_volatility, validate_observations
+from research.math_contract_reference import (log_returns, sample_volatility, validate_observations, train_only_zscore, validate_purged_splits, pair_dependency_mask, triangle_path_valid)
 from strattester.research.financial_evaluation import Trade, evaluate_ledger, gaussian_scores
 from strattester.research.financial_structure_dataset import make_samples
 
@@ -124,3 +124,23 @@ def test_target_last_bar_mutation_only_changes_affected_label():
         [x.future_log_return for x in new[:-1]])
     assert base[-1].future_log_return != new[-1].future_log_return
     assert base[-1].representation == new[-1].representation
+
+
+def test_train_only_normalization_is_immune_to_test_mutation():
+    first, stats = train_only_zscore([1.,2.,3.],[4.,5.])
+    later, updated = train_only_zscore([1.,2.,3.],[4.,5.,1e8])
+    assert stats == updated
+    assert first == pytest.approx(later[:2])
+    with pytest.raises(ValueError):
+        train_only_zscore([2.,2.],[3.])
+
+
+def test_purge_embargo_boundary_and_triangle_path():
+    with pytest.raises(ValueError):
+        validate_purged_splits([(0,10)],[(10,20)])
+    with pytest.raises(ValueError):
+        validate_purged_splits([(0,10)],[(12,20)],embargo_ns=2)
+    assert validate_purged_splits([(0,10)],[(13,20)],embargo_ns=2)
+    mask=pair_dependency_mask([10,30,10],[20,20,20])
+    assert not triangle_path_valid(mask,0,2,1)
+    assert triangle_path_valid(mask,0,2,2)
