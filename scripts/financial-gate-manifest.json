@@ -1123,7 +1123,7 @@
     ]
   },
   "integration": {
-    "minimum": 63,
+    "minimum": 66,
     "nodeids": [
       "tests/research/test_financial_attested_inference.py::test_aggregate_budget_rejects_before_checkpoint_model_allocation",
       "tests/research/test_financial_attested_inference.py::test_cancellation_precedes_all_artifact_io",
@@ -1147,6 +1147,9 @@
       "tests/research/test_financial_attested_inference.py::test_prediction_cannot_be_available_before_signature_verification",
       "tests/research/test_financial_attested_inference.py::test_signed_data_model_prediction_provenance_and_offline_backtest",
       "tests/research/test_financial_attested_inference.py::test_signed_multi_market_export_preserves_target_identity_under_track_permutation",
+      "tests/research/test_financial_experiment_session.py::test_cli_experiment_trains_reloads_forecasts_and_backtests_three_instruments_two_timeframes",
+      "tests/research/test_financial_experiment_session.py::test_experiment_denies_unpinned_unenabled_real_scope_and_cancellation",
+      "tests/research/test_financial_experiment_session.py::test_experiment_exact_schema_and_preparation_budget_fail_without_publication",
       "tests/research/test_financial_offline_bridge.py::test_invalid_request_rejected_before_artifact_load[changes0]",
       "tests/research/test_financial_offline_bridge.py::test_invalid_request_rejected_before_artifact_load[changes1]",
       "tests/research/test_financial_offline_bridge.py::test_invalid_request_rejected_before_artifact_load[changes2]",

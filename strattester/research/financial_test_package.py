@@ -22,7 +22,7 @@ RUNTIME_FILES=('strattester/__init__.py','strattester/research_cli.py','strattes
  'strattester/engine/__init__.py','strattester/engine/executor.py','strattester/marketdata/__init__.py','strattester/marketdata/datasets.py')
 RESEARCH_MODULES=('financial_contract','financial_snapshot','financial_signed_export','financial_signatures','financial_checkpoint',
  'financial_structural_model','financial_pipeline','financial_training','financial_evaluation','financial_experiment','financial_offline_jobs',
- 'financial_attested_inference','financial_owner_authorization','financial_test_package','financial_session','financial_report_export',
+ 'financial_attested_inference','financial_owner_authorization','financial_test_package','financial_session','financial_report_export','financial_experiment_session',
  'financial_grid_exporter','grid_producer_readiness','alphafold_msa_attention','alphafold_outer_product','alphafold_pair_stack',
  'alphafold_triangle','alphafold_triangle_attention','alphafold_security')
 
@@ -80,6 +80,21 @@ def prepare_test_package(output_dir,*,openssl_exe,openssl_sha256,scratch_root,se
     policy=dict(producer_id='fixture-grid',coherence_epoch_id=epoch,knowledge_cutoff_ns=origin,verification_ns=origin+10,scope='SYNTHETIC_ENGINEERING_ONLY',sources=[dict(source_id='public-fixture',engine='fixture',schema_sha256=SNAPSHOT_SCHEMA_SHA256)],partitions=partitions)
     config=dict(version=1,manifest_path='manifest.json',manifest_sha256=sha256(manifest_bytes).hexdigest(),snapshot_path='snapshot.json',checkpoint_path='checkpoint.json',checkpoint_sha256=checkpoint_sha,trust_store_path='trust.json',instrument=asdict(Instrument('bybit','linear','BTCUSDT')),timeframe_ns=60_000_000_000,horizon_ns=600_000_000_000,available_ns=origin+10,policy=policy,max_work_bytes=512*1024*1024)
     config_data=canonical_bytes(config);write('session.json',config_data)
+    # Independent direct-label synthetic experiment, never a producer receipt.
+    from .financial_experiment import Example
+    examples=[];ns=1_000_000_000
+    for at in (360,720,1080,1440,1800,2160,2520,2880,3240):
+        for frame in (60,120):
+            history=[]
+            for k,symbol in enumerate(('BTCUSDT','ETHUSDT','SOLUSDT')):
+                for j in range(3):
+                    t=(at-(3-j)*frame)*ns
+                    history.append(Bar(Instrument('bybit','linear',symbol),frame*ns,t,t+frame*ns,t+frame*ns-1,t+frame*ns,t+frame*ns,at*ns,100.+j+k+at/10000,'VERIFIED',True,True,1,'public-software-fixture',source_sha))
+            history=Snapshot(tuple(history),at*ns,'synthetic-experiment',('public-software-fixture',))
+            for k,symbol in enumerate(('BTCUSDT','ETHUSDT','SOLUSDT')):
+                examples.append(asdict(Example(history,Instrument('bybit','linear',symbol),frame*ns,(at+120)*ns,.001*(k-1))))
+    experiment=canonical_bytes(dict(version=1,scope='SYNTHETIC_ENGINEERING_ONLY',examples=examples,config=asdict(StructuralConfig(horizon_ns=120*ns,recycles=0)),train_end=1200*ns,validation_end=2400*ns,test_end=3400*ns,holdout_symbols=['SOLUSDT'],steps=1,seed=seed,fee_bps=2.,slippage_bps=1.,embargo_ns=0))
+    write('experiment-input.json',experiment)
     write('experiment.json',canonical_bytes({'status':'SYNTHETIC_SOFTWARE_VALIDATION_ONLY','seed':seed,'initialization_seed':seed,'optimizer_steps':2,'losses':losses,'dataset_sha256':dataset_sha,'manifest_sha256':sha256(manifest_bytes).hexdigest(),'trust_store_sha256':sha256(trust).hexdigest(),'checkpoint_sha256':checkpoint_sha,'source_sha':source_sha,'tree_sha':tree_sha,'source_dirty':dirty,'model_config':asdict(model.config),'real_oos':'BLOCKED','physical_g1':'NOT_AUTHORIZED'}))
     files=[*RUNTIME_FILES,*['strattester/research/'+m+'.py' for m in RESEARCH_MODULES]]
     files.extend(str(p.relative_to(repo)).replace('\\','/') for p in (repo/'research/alphafold_training').glob('*.py'))
@@ -91,6 +106,9 @@ def prepare_test_package(output_dir,*,openssl_exe,openssl_sha256,scratch_root,se
     for path in (repo/'native/windows').glob('*'):
         if path.suffix in ('.cs','.md','.json'):write('source/native/windows/'+path.name,path.read_bytes())
     if (repo/'scripts/build_windows_native.py').is_file():write('source/scripts/build_windows_native.py',(repo/'scripts/build_windows_native.py').read_bytes())
+    for name in ('scripts/physical_g0_inventory.ps1','docs/finalization/physical-plan.md'):
+        path=repo/name
+        if path.is_file():write('source/'+name,path.read_bytes())
     if binary_data is not None:write('native/StratTester.Native.exe',binary_data)
     lock=[]
     for distribution in importlib.metadata.distributions():

@@ -114,11 +114,21 @@ def test_disposable_postgres_mvcc_and_seals(tmp_path, monkeypatch):
     with log.open('wb') as stream:
         # Own TCP-only fixture: never use the installed cluster's shared Unix
         # socket directory (e.g. /var/run/postgresql on hosted Linux).
-        process=subprocess.Popen([str(binary/('postgres'+suffix)),'-D',str(data),'-p',str(port),'-h','127.0.0.1','-c','max_connections=8','-c','unix_socket_directories='],stdin=subprocess.DEVNULL,stdout=stream,stderr=subprocess.STDOUT)
+        process=None if os.name=='nt' else subprocess.Popen([str(binary/('postgres'+suffix)),'-D',str(data),'-p',str(port),'-h','127.0.0.1','-c','max_connections=8','-c','unix_socket_directories='],stdin=subprocess.DEVNULL,stdout=stream,stderr=subprocess.STDOUT)
         dsn=f'host=127.0.0.1 port={port} dbname=postgres user=fixture connect_timeout=1'
         try:
+            if os.name=='nt':
+                stream.close() # pg_ctl owns the log; no conflicting CRT handle.
+                # pg_ctl itself drops administrative privileges on Windows;
+                # direct postgres.exe intentionally refuses an elevated runner.
+                # A background postmaster can retain inherited pipe handles:
+                # use a task-owned regular log, never communicate() on pipes.
+                control_log=tmp_path/'pg-control.log'
+                with control_log.open('wb') as control:
+                    started=subprocess.run([str(binary/'pg_ctl.exe'),'-D',str(data),'-l',str(log),'-o',f'-p {port} -h 127.0.0.1 -c max_connections=8 -c unix_socket_directories=', '-w','-t','20','start'],stdout=control,stderr=subprocess.STDOUT,timeout=30)
+                assert started.returncode==0,control_log.read_text()+log.read_text()
             for attempt in range(100):
-                if process.poll() is not None:pytest.fail(log.read_text())
+                if process is not None and process.poll() is not None:pytest.fail(log.read_text())
                 try:
                     with psycopg.connect(dsn):pass
                     break
@@ -164,7 +174,7 @@ def test_disposable_postgres_mvcc_and_seals(tmp_path, monkeypatch):
         finally:
             # Stop precisely this owned cluster using its explicit data directory.
             subprocess.run([str(binary/('pg_ctl'+suffix)),'-D',str(data),'-m','immediate','-w','stop'],capture_output=True,timeout=15)
-            process.wait(timeout=15)
+            if process is not None:process.wait(timeout=15)
 
 
 def test_public_rfc_signer_replays_through_pinned_consumer(tmp_path):

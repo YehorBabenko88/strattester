@@ -140,4 +140,19 @@ No inspected financial inference route imports an exchange order client. That sc
 
 The implemented research route can be described as an explicit signed-data CPU prediction/report system with bounded software admission and separate synthetic training/evaluation APIs. Its current ownership boundaries do not authorize production trading or physical G1.
 
+### Post-audit explicit experiment entry point
+
+PR34 d4938bd adds `research_cli experiment` →
+`financial_experiment_session.run_experiment_file` → bounded externally pinned
+synthetic-only JSON → typed snapshots/examples → `run_experiment` → fresh
+training/checkpoint → hash-verified `load_checkpoint` → target-specific
+`predict_snapshot` for each purged test example → `evaluate_ledger` and
+`gaussian_scores` with exact replay comparison → atomic checkpoint/result
+directory. Three-instrument/two-timeframe subprocess tests exercise 18 test
+forecasts. This explicit path closes the CLI training/prediction/evaluation
+reachability gap described above; signed producer inference remains a
+separate entry point. Synthetic labels cannot promote real OOS readiness.
+Output refuses overwrite and cancellation prevents publication. Filesystem
+races and OS ceilings still require qualified native confinement.
+
 Other research prototypes such as `financial_evoformer.build_financial_model` and `financial_structure_dataset.make_samples` have their own tests but are not called by the inspected CLI/session/financial-strategy/pipeline/structural-model path. Their presence must not be counted as an additional connected prediction stage.

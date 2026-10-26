@@ -43,7 +43,7 @@ exact head. This ledger never transfers older PASS to newer source.
 | P2 | Public RFC fixture key accepted for owner signature verification | FIXED: byte-level known-key denial; ephemeral test keys; 2RED then24GREEN including signature suite |
 | P2 | Packaged native build script misplaced relative to C# sources | FIXED: preserve source/scripts layout; 1RED then15GREEN package/owner tests |
 | P2 | Source PR22 stale triangle oracle and PR18 Decimal precision dependence | Rejected weaker collision; imported useful oracle precision fixed |
-| P2 | CLI prediction does not itself drive model retraining and ledger evaluation | Separate explicit experiment path under development; do not claim full CLI chain until verified |
+| P2 | CLI prediction did not drive model retraining and ledger evaluation | FIXED by explicit synthetic-only experiment command: train, hash-verified reload, target forecasts, ledger and Gaussian metric replay; real OOS remains BLOCKED |
 | P2 | Offline dependency manifest is versions/licenses, not complete hash-locked wheelhouse | OPEN packaging limitation; no automatic install |
 | P3 | Temporary interrupted/test compiler directories retained | Evidence retained; guarded cleanup manifest required, no broad recursive removal |
 
@@ -86,3 +86,22 @@ TRADING_READINESS=NO_GO
 No source file, synthetic metric, owner signature alone or green workflow can
 clear missing native controls, GPU qualification, producer facts or real OOS.
 System acceptance intentionally remains BLOCKED even when engineering passes.
+
+## Subsequent same-cycle verification
+
+PR34 source d4938bd8dc04c7e76b366c68f7f42cfb8df27869 adds the explicit
+`experiment` command. Independent review and subprocess regression cover
+three instruments/two timeframes, 18 replayed forecasts, actual optimizer
+updates and recomputed cost ledger. Direct-label JSON is restricted to
+SYNTHETIC_ENGINEERING_ONLY; it cannot claim signed real producer data.
+Packaged runtime includes the new module and a separate synthetic input.
+
+Common-head bfa6c2ca8bceeb5022e16277b8c15692bbda92b7 hosted run40344181757
+found a real Linux fixture failure (shared Unix socket directory). d30d428
+fixed own TCP-only startup: run40344521828 has all seven software gates and
+native component job successful; system acceptance remains intentionally
+BLOCKED. Windows full regression then exposed direct postgres.exe refusing
+elevated hosted runners. Use pg_ctl's own restricted process startup, scoped
+only to the fixture data directory. Its regular control log avoids inherited
+pipe lifetimes, and no installed service is changed. Preserve both failed
+and passing runs; final-head CI evidence is published separately.

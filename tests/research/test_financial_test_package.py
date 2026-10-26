@@ -2,6 +2,8 @@ from pathlib import Path
 from hashlib import sha256
 import json
 import runpy
+import subprocess
+import sys
 import pytest
 
 
@@ -29,6 +31,30 @@ def test_prepare_produces_signed_reproducible_offline_session_and_external_owner
     template=json.loads((config.parent/'owner-plan-template.json').read_bytes())
     assert template['package_sha256'] is None
     assert 'owner' not in json.loads((config.parent/'trust.json').read_bytes())['keys'][0]['producer_id']
+    # A fresh isolated interpreter must use packaged modules, not this checkout.
+    code='''import sys,json,socket
+from pathlib import Path
+root=Path(sys.argv[1]);sys.path.insert(0,str(root/'runtime'))
+def deny(*a,**k):raise AssertionError('offline network attempted')
+socket.socket.connect=deny;socket.create_connection=deny
+from strattester.research_cli import main
+status=main(sys.argv[2:])
+assert status==0
+for name,module in list(sys.modules.items()):
+ if (name=='strattester' or name.startswith('strattester.') or name.startswith('research.alphafold_training')) and getattr(module,'__file__',None):
+  assert Path(module.__file__).is_relative_to(root/'runtime'),(name,module.__file__)
+'''
+    completed=subprocess.run([sys.executable,'-I','-c',code,str(config.parent),'run','--enable-research',
+        '--config',str(config),'--config-sha256',p['config_sha256'],'--trust-store-sha256',p['trust_store_sha256'],
+        '--openssl-exe',str(exe),'--openssl-sha256',sha256(exe.read_bytes()).hexdigest(),'--scratch-root',str(tmp_path)],
+        cwd=config.parent,text=True,capture_output=True,timeout=60)
+    assert completed.returncode==0,completed.stdout+completed.stderr
+    experiment=config.parent/'experiment-input.json'
+    assert experiment.is_file()
+    completed=subprocess.run([sys.executable,'-I','-c',code,str(config.parent),'experiment','--enable-research',
+        '--source',str(experiment),'--source-sha256',sha256(experiment.read_bytes()).hexdigest(),
+        '--output',str(tmp_path/'experiment-result')],cwd=config.parent,text=True,capture_output=True,timeout=60)
+    assert completed.returncode==0,completed.stdout+completed.stderr
 
 
 def test_prepare_refuses_existing_output_and_unknown_binary(tmp_path):
