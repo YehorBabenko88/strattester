@@ -238,8 +238,10 @@ def sign_rfc_test_export(artifacts, *, openssl_executable, openssl_sha256, scrat
         raise ValueError('public RFC signer restricted to fixture-grid/rfc-key synthetic engineering')
     verified_bytes(artifacts.directory/'snapshot.json',unsigned['snapshot_sha256'],8*1024*1024)
     scratch=reject_linked_path(scratch_root)
-    target=artifacts.directory/'signed-test'
-    if target.exists(): raise ValueError('signed destination exists')
+    base=reject_linked_path(artifacts.directory)
+    if scratch==base or base in scratch.parents:raise ValueError('signing scratch must be outside immutable export')
+    target=base.with_name(base.name+'.signed-test')
+    reject_linked_path(target.parent)
     directory=tempfile.mkdtemp(prefix='rfc-test-sign-',dir=scratch)
     try:
         root=Path(directory)
@@ -256,9 +258,18 @@ def sign_rfc_test_export(artifacts, *, openssl_executable, openssl_sha256, scrat
         signature=(root/'signature').read_bytes()
         OpenSSLVerifier(executable,openssl_sha256,scratch).verify(public,message,signature)
         manifest=canonical_bytes(unsigned|{'signature_b64':base64.b64encode(signature).decode()})
-        stage=Path(tempfile.mkdtemp(prefix='.signed-test-',dir=artifacts.directory))
+        contents={'manifest.json':manifest,'signature.ed25519':signature}
+        if target.exists() or target.is_symlink():
+            reject_linked_path(target)
+            if not target.is_dir() or {p.name for p in target.iterdir()}!=set(contents):
+                raise ValueError('incomplete/conflicting test signature membership')
+            for name,expected in contents.items():
+                if verified_bytes(target/name,sha256(expected).hexdigest(),len(expected))!=expected:
+                    raise ValueError('conflicting test signature bytes')
+            return target/'manifest.json',sha256(manifest).hexdigest()
+        stage=Path(tempfile.mkdtemp(prefix='.signed-test-',dir=target.parent))
         try:
-            for name,data in [('manifest.json',manifest),('signature.ed25519',signature)]:
+            for name,data in contents.items():
                 with (stage/name).open('xb') as stream:stream.write(data);stream.flush();os.fsync(stream.fileno())
             os.rename(stage,target)
         finally:
