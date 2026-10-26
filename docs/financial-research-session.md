@@ -55,3 +55,35 @@ DSNs, passwords or stack traces. Keyboard cancellation returns code 130; runtime
 cancellation checks precede stages and result publication. Memory budgets are
 software admission controls. Native resource caps are NOT_ENFORCED. Owned scratch
 ACLs and pinned OpenSSL installation/library protection remain deployment duties.
+
+## Explicit synthetic prediction-to-backtest experiment
+
+`python -m strattester.research_cli experiment --source experiment.json
+--source-sha256 INDEPENDENT_PIN --output NEW_DIRECTORY --enable-research`
+runs the existing canonical experiment trainer, reloads the hash-verified
+checkpoint, forecasts the exact purged test examples and computes a cost-adjusted
+ledger plus Gaussian evaluation from those reloaded-model predictions. The
+replayed ledger and metrics must exactly match the canonical experiment before
+anything is published. The new output directory contains `checkpoint.json` and
+`result.json`; the latter binds every forecast to the model SHA, source SHA,
+training dataset SHA, frozen validation-selected threshold, costs and evaluation.
+Existing output directories are never reused or overwritten.
+
+The externally pinned source is bounded to 4 MiB and has exactly these keys:
+`version` (integer 1), `scope` (exactly `SYNTHETIC_ENGINEERING_ONLY`), `examples`,
+`config`, `train_end`, `validation_end`, `test_end`, `holdout_symbols`, `steps`,
+`seed`, `fee_bps`, `slippage_bps`, `embargo_ns`. `config` supplies every field of
+`StructuralConfig`; omitted or extra fields are rejected. Each example has exactly
+`snapshot`, `target`, `timeframe_ns`, `label_end_ns`, `forward_log_return`.
+A snapshot has exactly `bars`, `origin_ns`, `coherence_id`, `producers`; each bar
+and instrument supplies exactly its financial contract dataclass fields. Arrays
+become immutable typed tuples after bounded schema checks. At most 1024 examples,
+100000 aggregate bars, 1000 optimizer steps and the configured preparation/work
+budgets are admitted. Serialized source plus model work is capped at 512 MiB by
+conservative software admission; native resource caps remain NOT_ENFORCED.
+
+Direct JSON labels carry no producer attestation. This command always labels the
+result SYNTHETIC_ENGINEERING_ONLY with real_oos BLOCKED and trading NO-GO, even
+when a user supplies market-like labels. Forecast availability at the synthetic
+origin models experiment ordering and makes no deployment latency claim. There
+is no broker, order, service, network or native launch path in this command.
