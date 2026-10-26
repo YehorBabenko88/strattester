@@ -47,7 +47,7 @@ jobs:
         if: always() && steps.build.outcome == 'success'
         shell: pwsh
         run: |
-          $env:NATIVE_BROKER = "$env:NATIVE_OUTPUT/build/StratTester.Native.exe"
+          $env:NATIVE_BROKER = (Resolve-Path "$env:NATIVE_OUTPUT/build/StratTester.Native.exe").Path
           & $env:NATIVE_BROKER --diagnose | Tee-Object "$env:NATIVE_OUTPUT/diagnose.json"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m pytest tests/native -q --basetemp="$env:RUNNER_TEMP/native-safe-tests" --junitxml="$env:NATIVE_OUTPUT/native-tests.xml" --json-report --json-report-file="$env:NATIVE_OUTPUT/native-tests.json" 2>&1 | Tee-Object "$env:NATIVE_OUTPUT/contracts.log"
