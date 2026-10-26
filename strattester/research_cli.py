@@ -21,6 +21,9 @@ def parser():
             q.add_argument('--launch',action='store_true')
             for flag in ('plan','plan-sha256','signature','signature-sha256','owner-trust-store','owner-trust-store-sha256','owner-id','target-sha','tree-sha','binary-sha256','package-sha256','node-identity'):
                 q.add_argument('--'+flag)
+    experiment=sub.add_parser('experiment')
+    experiment.add_argument('--source',required=True);experiment.add_argument('--source-sha256',required=True)
+    experiment.add_argument('--output',required=True);experiment.add_argument('--enable-research',action='store_true')
     return p
 
 def _required(a,names):
@@ -53,7 +56,10 @@ def _profile(path,expected_sha256):
 def main(argv=None):
     a=parser().parse_args(argv)
     try:
-        if a.command=='prepare':
+        if a.command=='experiment':
+            from .research.financial_experiment_session import run_experiment_file
+            result=run_experiment_file(a.source,a.source_sha256,a.output,enable_research=a.enable_research)
+        elif a.command=='prepare':
             _required(a,('output',));v=_verifier(a)
             from .research.financial_test_package import prepare_test_package
             result=prepare_test_package(a.output,openssl_exe=v.executable,openssl_sha256=v.executable_sha256,scratch_root=v.scratch_root,seed=a.seed)
