@@ -24,6 +24,21 @@ class StopMatrixTests(unittest.TestCase):
         forged["network_ipv4_ipv6_dns_udp_loopback"] = "NOT_RUN"
         self.assertIn("network_ipv4_ipv6_dns_udp_loopback", evaluate_physical_g1(forged)["stop"])
 
+    def test_hostile_evidence_value_does_not_self_attest(self):
+        class ForgedStatus:
+            def __eq__(self, other):
+                return other == "INDEPENDENT_VERIFIED"
+        forged = {key: "INDEPENDENT_VERIFIED" for key in REQUIRED}
+        forged["owner_signature"] = ForgedStatus()
+        result = evaluate_physical_g1(forged)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertIn("owner_signature", result["stop"])
+
+    def test_invalid_key_type_denied(self):
+        forged = {key: "INDEPENDENT_VERIFIED" for key in REQUIRED}
+        forged[5] = "PASS"
+        self.assertIn("invalid_evidence_key", evaluate_physical_g1(forged)["stop"])
+
     def test_extra_evidence_key_blocks(self):
         forged = {key: "INDEPENDENT_VERIFIED" for key in REQUIRED}
         forged["override"] = "PASS"
