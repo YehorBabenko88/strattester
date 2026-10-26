@@ -71,6 +71,32 @@ def history_seal(meta, rows):
     return sha256(canonical_bytes({'meta': meta, 'rows': sorted(rows, key=canonical_bytes)})).hexdigest()
 
 
+
+def _explicit_postgres_parameters(location):
+    """Accept one explicit credential-free endpoint; never discover libpq defaults."""
+    import re
+    from psycopg.conninfo import conninfo_to_dict
+    if any(name.upper().startswith('PG') and name.upper()!='PG_BINDIR' for name in os.environ):
+        raise ValueError('ambient libpq configuration rejected')
+    if type(location) is not str or not 1<=len(location)<=4096:
+        raise ValueError('explicit PostgreSQL configuration required')
+    try: parameters=conninfo_to_dict(location)
+    except Exception:raise ValueError('invalid explicit PostgreSQL configuration') from None
+    required={'host','port','dbname','user'}
+    if not required.issubset(parameters) or set(parameters)-required-{'connect_timeout'}:
+        raise ValueError('explicit PostgreSQL endpoint required; discovery/credential parameters forbidden')
+    if (not re.fullmatch(r'[A-Za-z0-9.:-]{1,256}',parameters['host'])
+        or not parameters['port'].isdigit() or not 1<=int(parameters['port'])<=65535
+        or any(not re.fullmatch(r'[A-Za-z0-9_.-]{1,128}',parameters[k]) for k in ('dbname','user'))):
+        raise ValueError('invalid explicit PostgreSQL endpoint')
+    timeout=parameters.get('connect_timeout','3')
+    if not timeout.isdigit() or not 1<=int(timeout)<=3:raise ValueError('PostgreSQL connection timeout policy')
+    # This prototype supports credential-free research/fixture authentication.
+    # A production TLS/credential policy requires a separately reviewed profile.
+    return {**parameters,'connect_timeout':int(timeout),'passfile':os.devnull,
+            'password':'','sslmode':'disable','gssencmode':'disable','require_auth':'none'}
+
+
 @contextmanager
 def _reader(source, check, *, max_bytes=8*1024*1024):
     if source.engine in ('sqlite', 'sharded_sqlite'):
@@ -97,7 +123,8 @@ def _reader(source, check, *, max_bytes=8*1024*1024):
     elif source.engine == 'postgresql':
         # No service management or fallback discovery. Only the explicit DSN is used.
         import psycopg
-        with psycopg.connect(source.location, autocommit=True, connect_timeout=3) as con:
+        parameters=_explicit_postgres_parameters(source.location)
+        with psycopg.connect(**parameters,autocommit=True) as con:
             con.execute('BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
             try:
                 con.execute("SET LOCAL statement_timeout = '5000ms'")
