@@ -1,0 +1,15 @@
+{
+  "tests/native/test_native_build.py::CacheDeletionTests::test_hosted_windows_junction_never_deletes_target": "Windows-specific platform test: retained in Windows full regression",
+  "tests/native/test_native_build.py::NativeCliTests::test_diagnose_rejects_extra_arguments": "compiled Windows broker: required in native-components job",
+  "tests/native/test_native_build.py::NativeCliTests::test_diagnostic_binds_actual_binary_and_stays_blocked": "compiled Windows broker: required in native-components job",
+  "tests/native/test_native_build.py::NativeCliTests::test_handle_selftest_is_refused_without_disposable_vm_guard": "compiled Windows broker: required in native-components job",
+  "tests/native/test_native_build.py::NativeCliTests::test_launch_does_not_execute_arbitrary_command": "compiled Windows broker: required in native-components job",
+  "tests/native/test_native_build.py::NativeCliTests::test_selftest_is_refused_without_disposable_vm_guard": "compiled Windows broker: required in native-components job",
+  "tests/native/test_native_build.py::NativeCliTests::test_wfp_selftest_is_refused_without_disposable_vm_guard": "compiled Windows broker: required in native-components job",
+  "tests/research/test_alphafold_triangle.py::test_gpu_cpu_forward_parity": "real GPU required",
+  "tests/research/test_alphafold_triangle_attention.py::test_cuda_cpu_forward": "real GPU required",
+  "tests/research/test_financial_filesystem_security.py::test_ancestor_windows_junction_is_rejected[artifact]": "Windows-specific platform test: retained in Windows full regression",
+  "tests/research/test_financial_filesystem_security.py::test_ancestor_windows_junction_is_rejected[sqlite]": "Windows-specific platform test: retained in Windows full regression",
+  "tests/research/test_financial_filesystem_security.py::test_checkpoint_publication_rejects_junction_parent": "Windows-specific platform test: retained in Windows full regression",
+  "tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services": "Windows PowerShell lifecycle: retained in Windows full regression"
+}

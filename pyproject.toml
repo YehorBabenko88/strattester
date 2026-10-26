@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=84.1,<85"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,12 +9,14 @@ requires-python = ">=3.11"
 dependencies = ["requests>=2.31,<3", "psutil>=5.9,<8", "tzdata>=2025.2"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8,<10"]
-postgres = ["psycopg[binary]>=3.1,<4"]
+dev = ["pytest>=8.2,<10", "pytest-json-report>=1.5,<2", "numpy>=2,<3", "filelock>=4.2.1,<5"]
+research = ["torch==2.14.1", "pytest-json-report>=1.5,<2", "filelock>=4.2.1,<5"]
+postgres = ["psycopg[binary]>=3.3.6,<4"]
 
 [tool.setuptools.packages.find]
-include = ["strattester*"]
+include = ["strattester*", "research.alphafold_training*"]
 exclude = ["service*", "tests*", "docs*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--import-mode=importlib"

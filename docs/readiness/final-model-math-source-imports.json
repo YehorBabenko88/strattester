@@ -1,0 +1,1205 @@
+{
+  "baseline_head": "5d715987d03d4a26d31a48e9767697bbd171cd33",
+  "scope": "Test-only selective import; no production code, workflows or global manifest edits",
+  "gpu_status": "EXTERNALLY BLOCKED: no GPU/G1 execution authorized or performed",
+  "files": [
+    {
+      "source_pr": 29,
+      "source_head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+      "path": ".github/workflows/cycle3-structural-invariants.yml",
+      "source_blob_sha1": "3fb312da8dad5a9799e80045c9acbe9f84f96b15",
+      "action": "reject",
+      "reason": "Workflow, readiness claim, or vulnerable report checker excluded; owned by integration root",
+      "adaptations": [],
+      "tests": []
+    },
+    {
+      "source_pr": 29,
+      "source_head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+      "path": "docs/readiness/UPSTREAM_MECHANISM_READINESS_GPT1_CYCLE3.md",
+      "source_blob_sha1": "4973c03b34ee6e63132c0f192e3548b1cc04dcf3",
+      "action": "reject",
+      "reason": "Workflow, readiness claim, or vulnerable report checker excluded; owned by integration root",
+      "adaptations": [],
+      "tests": []
+    },
+    {
+      "source_pr": 29,
+      "source_head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+      "path": "scripts/cycle3_structural_report_gate.py",
+      "source_blob_sha1": "7a0407aec2b9f91ef97b5d1bc3d46d64a2532347",
+      "action": "reject",
+      "reason": "Workflow, readiness claim, or vulnerable report checker excluded; owned by integration root",
+      "adaptations": [],
+      "tests": []
+    },
+    {
+      "source_pr": 29,
+      "source_head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+      "path": "tests/research/test_cycle3_checkpoint_readiness.py",
+      "source_blob_sha1": "018065be56a6be226ab60e947a9aae857d02a226",
+      "action": "import",
+      "reason": "CPU structural contract coverage",
+      "adaptations": [
+        "Mandatory CPU torch import: dependency absence fails collection"
+      ],
+      "tests": [
+        "python -m pytest -q tests/research/test_cycle3_checkpoint_readiness.py",
+        "CPU torch dependency mandatory; CPU synthetic tensors only; no GPU/G1 claim"
+      ],
+      "imported_sha256": "1b0a0fc7a8bf253bce742edc9eeed86195c2bce339abe41b2e0207b675faa19f",
+      "imported_git_blob_sha1": "0c30215a7a36180ea82a661882c09bc460d7a7b4",
+      "verified_test_nodeids": [
+        "tests/research/test_cycle3_checkpoint_readiness.py::test_optimizer_update_and_in_memory_reload_equivalence",
+        "tests/research/test_cycle3_checkpoint_readiness.py::test_equations_version_is_explicit_for_checkpoint_candidate"
+      ],
+      "verified_outcomes": {
+        "passed": 2
+      }
+    },
+    {
+      "source_pr": 29,
+      "source_head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+      "path": "tests/research/test_cycle3_cpu_contract.py",
+      "source_blob_sha1": "c9abac5ebc37edb020585c6930f6c3f511f7d77c",
+      "action": "import",
+      "reason": "CPU structural contract coverage",
+      "adaptations": [
+        "Mandatory CPU torch import: dependency absence fails collection"
+      ],
+      "tests": [
+        "python -m pytest -q tests/research/test_cycle3_cpu_contract.py",
+        "CPU torch dependency mandatory; CPU synthetic tensors only; no GPU/G1 claim"
+      ],
+      "imported_sha256": "93641833c914cec31c529a72f1af881d5e33ad576fa5e89d56638f4a785ad9a5",
+      "imported_git_blob_sha1": "f87dff3bbcaa729fe8e5d29cc9fa8a65ef0dcdae",
+      "verified_test_nodeids": [
+        "tests/research/test_cycle3_cpu_contract.py::test_cpu_forward_backward_dtype_contract[dtype0]",
+        "tests/research/test_cycle3_cpu_contract.py::test_cpu_forward_backward_dtype_contract[dtype1]",
+        "tests/research/test_cycle3_cpu_contract.py::test_target_all_masked_refused",
+        "tests/research/test_cycle3_cpu_contract.py::test_nonfinite_features_rejected_before_projection"
+      ],
+      "verified_outcomes": {
+        "passed": 4
+      }
+    },
+    {
+      "source_pr": 29,
+      "source_head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+      "path": "tests/research/test_cycle3_forecast_contract.py",
+      "source_blob_sha1": "f24a0de442d9c283b416e38d28f0d1a05030bb4f",
+      "action": "import",
+      "reason": "CPU structural contract coverage",
+      "adaptations": [
+        "Mandatory CPU torch import: dependency absence fails collection"
+      ],
+      "tests": [
+        "python -m pytest -q tests/research/test_cycle3_forecast_contract.py",
+        "CPU torch dependency mandatory; CPU synthetic tensors only; no GPU/G1 claim"
+      ],
+      "imported_sha256": "95ae1669586e9806be6c4c099490ed8b4d63914da9e1b6cb5f6ce696653a7672",
+      "imported_git_blob_sha1": "64d41a7ea412760ae5efe927ce1180e5a9dda0ae",
+      "verified_test_nodeids": [
+        "tests/research/test_cycle3_forecast_contract.py::test_explicit_target_identity_is_semantically_significant",
+        "tests/research/test_cycle3_forecast_contract.py::test_masked_suffix_does_not_change_origin_prediction",
+        "tests/research/test_cycle3_forecast_contract.py::test_distribution_positive_finite_at_origin[0]",
+        "tests/research/test_cycle3_forecast_contract.py::test_distribution_positive_finite_at_origin[1]",
+        "tests/research/test_cycle3_forecast_contract.py::test_distribution_positive_finite_at_origin[2]"
+      ],
+      "verified_outcomes": {
+        "passed": 5
+      }
+    },
+    {
+      "source_pr": 29,
+      "source_head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+      "path": "tests/research/test_cycle3_gradient_oracle.py",
+      "source_blob_sha1": "ab6e9b890293f3d912f6d5750e3e39bafcf2e3c9",
+      "action": "import",
+      "reason": "CPU structural contract coverage",
+      "adaptations": [
+        "Mandatory CPU torch import: dependency absence fails collection"
+      ],
+      "tests": [
+        "python -m pytest -q tests/research/test_cycle3_gradient_oracle.py",
+        "CPU torch dependency mandatory; CPU synthetic tensors only; no GPU/G1 claim"
+      ],
+      "imported_sha256": "bbc62c0f8b51c77638450792878914dcfa3f05a07b3e126533db7eea81416f00",
+      "imported_git_blob_sha1": "2ee022e117c5a780ed918d01f827bae195ef7c97",
+      "verified_test_nodeids": [
+        "tests/research/test_cycle3_gradient_oracle.py::test_input_gradient_matches_central_difference[0]",
+        "tests/research/test_cycle3_gradient_oracle.py::test_input_gradient_matches_central_difference[1]",
+        "tests/research/test_cycle3_gradient_oracle.py::test_masked_input_gradient_exact_zero"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 29,
+      "source_head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+      "path": "tests/research/test_cycle3_operator_connectivity.py",
+      "source_blob_sha1": "46036414b8c7bcd1ea0dc1709e7337e2ad3b6bd8",
+      "action": "import",
+      "reason": "CPU structural contract coverage",
+      "adaptations": [
+        "Mandatory CPU torch import: dependency absence fails collection"
+      ],
+      "tests": [
+        "python -m pytest -q tests/research/test_cycle3_operator_connectivity.py",
+        "CPU torch dependency mandatory; CPU synthetic tensors only; no GPU/G1 claim"
+      ],
+      "imported_sha256": "58ca678f84a547641c6a7c0c8f4a941cff99c2f9a171744fc5a5e15e12270801",
+      "imported_git_blob_sha1": "8e910682b7527813ec18597eeb9cd2129029b10d",
+      "verified_test_nodeids": [
+        "tests/research/test_cycle3_operator_connectivity.py::test_all_required_operators_connected_to_forecast",
+        "tests/research/test_cycle3_operator_connectivity.py::test_nonfinite_mask_rejected[nan]",
+        "tests/research/test_cycle3_operator_connectivity.py::test_nonfinite_mask_rejected[inf]",
+        "tests/research/test_cycle3_operator_connectivity.py::test_nonfinite_mask_rejected[-inf]",
+        "tests/research/test_cycle3_operator_connectivity.py::test_batch_budget_preprojection"
+      ],
+      "verified_outcomes": {
+        "passed": 5
+      }
+    },
+    {
+      "source_pr": 29,
+      "source_head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+      "path": "tests/research/test_cycle3_report_gate.py",
+      "source_blob_sha1": "61f9d970be2a0f1369d63576ad595495b26fbfcb",
+      "action": "reject",
+      "reason": "Workflow, readiness claim, or vulnerable report checker excluded; owned by integration root",
+      "adaptations": [],
+      "tests": []
+    },
+    {
+      "source_pr": 29,
+      "source_head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+      "path": "tests/research/test_cycle3_resource_admission.py",
+      "source_blob_sha1": "960ea928a5a7e896b9c3af7b004008f628753651",
+      "action": "import",
+      "reason": "CPU structural contract coverage",
+      "adaptations": [
+        "Mandatory CPU torch import: dependency absence fails collection"
+      ],
+      "tests": [
+        "python -m pytest -q tests/research/test_cycle3_resource_admission.py",
+        "CPU torch dependency mandatory; CPU synthetic tensors only; no GPU/G1 claim"
+      ],
+      "imported_sha256": "7efa557caf9a22c7df29942f5bac05c8568ed1d22f82061f7b2ccc1d8293fafc",
+      "imported_git_blob_sha1": "89a5eefe89d42d69d4476a87e60680586a1054e0",
+      "verified_test_nodeids": [
+        "tests/research/test_cycle3_resource_admission.py::test_configuration_limits_fail_before_allocation[max_batch-33]",
+        "tests/research/test_cycle3_resource_admission.py::test_configuration_limits_fail_before_allocation[max_tracks-65]",
+        "tests/research/test_cycle3_resource_admission.py::test_configuration_limits_fail_before_allocation[max_tokens-257]",
+        "tests/research/test_cycle3_resource_admission.py::test_configuration_limits_fail_before_allocation[depth-9]",
+        "tests/research/test_cycle3_resource_admission.py::test_configuration_limits_fail_before_allocation[recycles-5]",
+        "tests/research/test_cycle3_resource_admission.py::test_configuration_limits_fail_before_allocation[hidden-129]",
+        "tests/research/test_cycle3_resource_admission.py::test_configuration_limits_fail_before_allocation[intermediate-65]",
+        "tests/research/test_cycle3_resource_admission.py::test_workspace_budget_rejected_before_projection",
+        "tests/research/test_cycle3_resource_admission.py::test_wrong_dtype_rejected_before_projection"
+      ],
+      "verified_outcomes": {
+        "passed": 9
+      }
+    },
+    {
+      "source_pr": 29,
+      "source_head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+      "path": "tests/research/test_cycle3_structural_invariants.py",
+      "source_blob_sha1": "f51c47695083787757a6e36fb05e46fd47317482",
+      "action": "import",
+      "reason": "CPU structural contract coverage",
+      "adaptations": [
+        "Mandatory CPU torch import: dependency absence fails collection"
+      ],
+      "tests": [
+        "python -m pytest -q tests/research/test_cycle3_structural_invariants.py",
+        "CPU torch dependency mandatory; CPU synthetic tensors only; no GPU/G1 claim"
+      ],
+      "imported_sha256": "6509cb5b1190f6a66021ba87f1ad85af5cc6869901fa4267de031f257561fe30",
+      "imported_git_blob_sha1": "69448753773a0521285b0c9ea6e972cd981cdbb4",
+      "verified_test_nodeids": [
+        "tests/research/test_cycle3_structural_invariants.py::test_target_fixed_context_permutation_equivariance[0]",
+        "tests/research/test_cycle3_structural_invariants.py::test_target_fixed_context_permutation_equivariance[1]",
+        "tests/research/test_cycle3_structural_invariants.py::test_target_fixed_context_permutation_equivariance[2]",
+        "tests/research/test_cycle3_structural_invariants.py::test_unavailable_context_perturbation_no_effect[0]",
+        "tests/research/test_cycle3_structural_invariants.py::test_unavailable_context_perturbation_no_effect[1]",
+        "tests/research/test_cycle3_structural_invariants.py::test_unavailable_context_perturbation_no_effect[2]",
+        "tests/research/test_cycle3_structural_invariants.py::test_active_gradients_and_deterministic_eval[0]",
+        "tests/research/test_cycle3_structural_invariants.py::test_active_gradients_and_deterministic_eval[1]",
+        "tests/research/test_cycle3_structural_invariants.py::test_active_gradients_and_deterministic_eval[2]",
+        "tests/research/test_cycle3_structural_invariants.py::test_equations_version_rejected_before_module_allocation"
+      ],
+      "verified_outcomes": {
+        "passed": 10
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": ".github/workflows/mathematical-contract-reference.yml",
+      "source_blob_sha1": "b89436eac07bf885aa3142a7a38af5ec42c4e974",
+      "action": "reject",
+      "reason": "Preserve existing root file and stronger production differential coverage",
+      "adaptations": [],
+      "tests": [],
+      "preserved_root_blob_sha1": "3ca0f78347a129f5684a61887868852e7f17d273"
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "docs/MATHEMATICAL_SYSTEM_READINESS.md",
+      "source_blob_sha1": "1fc345ea583911ce30914c55eff4d049ab0eb059",
+      "action": "reject",
+      "reason": "Workflow, readiness claim, or vulnerable report checker excluded; owned by integration root",
+      "adaptations": [],
+      "tests": []
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "docs/contracts/grid_strattester_ml_math_v0.1.md",
+      "source_blob_sha1": "73a51aeff8510edd7c82f41239699d6785f89742",
+      "action": "reject",
+      "reason": "Preserve existing root file and stronger production differential coverage",
+      "adaptations": [],
+      "tests": [],
+      "preserved_root_blob_sha1": "73a51aeff8510edd7c82f41239699d6785f89742"
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_asof_revisions.py",
+      "source_blob_sha1": "838c9e68ac7139d24611eb351c71112da769b2ee",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_asof_revisions.py"
+      ],
+      "imported_sha256": "5f893d377c026ddc77c2933ec365ba2b12a6ecbfcc672f66a9413a43b81abece",
+      "imported_git_blob_sha1": "838c9e68ac7139d24611eb351c71112da769b2ee",
+      "verified_test_nodeids": [
+        "research/test_independent_asof_revisions.py::test_future_revision_does_not_rewrite_past",
+        "research/test_independent_asof_revisions.py::test_ingestion_order_invariance",
+        "research/test_independent_asof_revisions.py::test_duplicate_revision_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_candle_boundaries.py",
+      "source_blob_sha1": "a2404c8378800d0f752455b51b9ef30273b348d9",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_candle_boundaries.py"
+      ],
+      "imported_sha256": "d7d585e4fc28b6243f4e13c1917d5e8173faab5021df0f9ae548c6f8f7ee9b8f",
+      "imported_git_blob_sha1": "a2404c8378800d0f752455b51b9ef30273b348d9",
+      "verified_test_nodeids": [
+        "research/test_independent_candle_boundaries.py::test_one_minute_inclusive_exchange_close",
+        "research/test_independent_candle_boundaries.py::test_misaligned_and_partial_buckets_fail_closed",
+        "research/test_independent_candle_boundaries.py::test_invalid_last_timestamp"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_decimal_oracles.py",
+      "source_blob_sha1": "8c17fc574ea885bcd4b8b858e51b95f9f0a3444b",
+      "action": "reject",
+      "reason": "Preserve existing root file and stronger production differential coverage",
+      "adaptations": [],
+      "tests": [],
+      "preserved_root_blob_sha1": "8c17fc574ea885bcd4b8b858e51b95f9f0a3444b"
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_dependency_oracle.py",
+      "source_blob_sha1": "868091ee183de638486128bc98e0974f9abb1521",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_dependency_oracle.py"
+      ],
+      "imported_sha256": "656d2bb26a43b6f95c3ca01dab0a02785892fc9a82ed5edc03565366698d33de",
+      "imported_git_blob_sha1": "868091ee183de638486128bc98e0974f9abb1521",
+      "verified_test_nodeids": [
+        "research/test_independent_dependency_oracle.py::test_triangle_indirect_future_dependency_is_rejected",
+        "research/test_independent_dependency_oracle.py::test_cycles_and_missing_edges_fail_closed",
+        "research/test_independent_dependency_oracle.py::test_permutation_invariance"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_event_clock.py",
+      "source_blob_sha1": "a7d6104074978728649477d066af1fa2a12d6d5e",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_event_clock.py"
+      ],
+      "imported_sha256": "16825f04b402922f97174f8adab0606d12989e7c6db4f22e6206430c0c7f981b",
+      "imported_git_blob_sha1": "a7d6104074978728649477d066af1fa2a12d6d5e",
+      "verified_test_nodeids": [
+        "research/test_independent_event_clock.py::test_valid_out_of_order_ingestion_rows",
+        "research/test_independent_event_clock.py::test_noncausal_clock_rejected[row0]",
+        "research/test_independent_event_clock.py::test_noncausal_clock_rejected[row1]",
+        "research/test_independent_event_clock.py::test_noncausal_clock_rejected[row2]",
+        "research/test_independent_event_clock.py::test_duplicate_event_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 5
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_gaussian_stability.py",
+      "source_blob_sha1": "cfd2d545a5a3d61be06c8ffba9d5915e4acfa6f5",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_gaussian_stability.py"
+      ],
+      "imported_sha256": "a414bc1ed2337a2e0c62fda2e7c1273fb3139be5b097b83af759ae2bffe1b5b8",
+      "imported_git_blob_sha1": "cfd2d545a5a3d61be06c8ffba9d5915e4acfa6f5",
+      "verified_test_nodeids": [
+        "research/test_independent_gaussian_stability.py::test_normal_gaussian_matches_analytic",
+        "research/test_independent_gaussian_stability.py::test_overflow_rejected",
+        "research/test_independent_gaussian_stability.py::test_nonfinite_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_gradient_oracles.py",
+      "source_blob_sha1": "1c79c2a1ca2dfc068f0457310cd9f7e6d8b348d8",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_gradient_oracles.py"
+      ],
+      "imported_sha256": "40c7094ac0f600b8575bd0bc2b20e43d4ccd61e7d01cb42a0d0a53c140831364",
+      "imported_git_blob_sha1": "1c79c2a1ca2dfc068f0457310cd9f7e6d8b348d8",
+      "verified_test_nodeids": [
+        "research/test_independent_gradient_oracles.py::test_gaussian_gradient_vs_finite_difference[0.0-1.0]",
+        "research/test_independent_gradient_oracles.py::test_gaussian_gradient_vs_finite_difference[0.3-0.7]",
+        "research/test_independent_gradient_oracles.py::test_gaussian_gradient_vs_finite_difference[-0.5-2.0]",
+        "research/test_independent_gradient_oracles.py::test_invalid_gradient_request_fails_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 4
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_horizon_oracle.py",
+      "source_blob_sha1": "9595f7f2f7f6c04b531e42662983f3026af2cfe5",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_horizon_oracle.py"
+      ],
+      "imported_sha256": "962064df168fc498b529f3077365e1c081e6c4dee653ccb76a32c21d6557de20",
+      "imported_git_blob_sha1": "9595f7f2f7f6c04b531e42662983f3026af2cfe5",
+      "verified_test_nodeids": [
+        "research/test_independent_horizon_oracle.py::test_target_horizon_and_availability",
+        "research/test_independent_horizon_oracle.py::test_target_horizon_does_not_use_intermediate_future_as_origin",
+        "research/test_independent_horizon_oracle.py::test_gap_and_invalid_horizon_fail_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_ledger_oracle.py",
+      "source_blob_sha1": "156e353cfe4ea8caebe343b374a87b2384f40d39",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_ledger_oracle.py"
+      ],
+      "imported_sha256": "9a277fe99a87cca464b7b16beba066fb17a0b98f81beae287d55cdef819b800e",
+      "imported_git_blob_sha1": "156e353cfe4ea8caebe343b374a87b2384f40d39",
+      "verified_test_nodeids": [
+        "research/test_independent_ledger_oracle.py::test_costs_reduce_long_and_short_pnl",
+        "research/test_independent_ledger_oracle.py::test_disjoint_roundtrip_boundary_and_overlap",
+        "research/test_independent_ledger_oracle.py::test_invalid_costs_and_position_fail_closed",
+        "research/test_independent_ledger_oracle.py::test_zero_position_has_zero_costs"
+      ],
+      "verified_outcomes": {
+        "passed": 4
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_normalization_oracle.py",
+      "source_blob_sha1": "c4e14279ebed031419187b685b6f5a36480a35ac",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_normalization_oracle.py"
+      ],
+      "imported_sha256": "a12f48a917bb13388c6eb422a9f120a1b829ad9b369aa315249160343bfac01e",
+      "imported_git_blob_sha1": "c4e14279ebed031419187b685b6f5a36480a35ac",
+      "verified_test_nodeids": [
+        "research/test_independent_normalization_oracle.py::test_test_distribution_never_refits_scaler",
+        "research/test_independent_normalization_oracle.py::test_translation_and_positive_scale_invariance",
+        "research/test_independent_normalization_oracle.py::test_constant_train_unseen_test_fails_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_numpy_oracles.py",
+      "source_blob_sha1": "23e7b6fa741b2b2d350dfba776ee9ccebd35e11e",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_numpy_oracles.py"
+      ],
+      "imported_sha256": "7ff3da5943413e38ad80a23180a3b76c89944fc2578b0f98bc7816f7d867656f",
+      "imported_git_blob_sha1": "23e7b6fa741b2b2d350dfba776ee9ccebd35e11e",
+      "verified_test_nodeids": [
+        "research/test_independent_numpy_oracles.py::test_masked_attention_excludes_future_and_fully_masked_rows",
+        "research/test_independent_numpy_oracles.py::test_triangle_outgoing_orientation_and_mask",
+        "research/test_independent_numpy_oracles.py::test_attention_rejects_invalid_mask",
+        "research/test_independent_numpy_oracles.py::test_empty_attention_and_triangle_fail_closed",
+        "research/test_independent_numpy_oracles.py::test_oracle_resource_admission_fails_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 5
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_precision_oracle.py",
+      "source_blob_sha1": "2c183c2b0f676019bf47854eb2d06da4fea1739e",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_precision_oracle.py"
+      ],
+      "imported_sha256": "99d8f6e41ff258e99ce61d40bb7e42ce7f0848c8923909f9dbca9b7408edbe92",
+      "imported_git_blob_sha1": "2c183c2b0f676019bf47854eb2d06da4fea1739e",
+      "verified_test_nodeids": [
+        "research/test_independent_precision_oracle.py::test_float32_rounding_tolerance",
+        "research/test_independent_precision_oracle.py::test_float64_strict_and_float32_looser",
+        "research/test_independent_precision_oracle.py::test_float32_overflow_and_nonfinite_fail_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_provenance_oracle.py",
+      "source_blob_sha1": "ada872e791b9f605808ef21bb03889f2fd56a35c",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_provenance_oracle.py"
+      ],
+      "imported_sha256": "3f11d7f9ed5b85c628da65974a27c80b184bef21961789a684d316dde955750a",
+      "imported_git_blob_sha1": "ada872e791b9f605808ef21bb03889f2fd56a35c",
+      "verified_test_nodeids": [
+        "research/test_independent_provenance_oracle.py::test_canonical_digest_order_invariance",
+        "research/test_independent_provenance_oracle.py::test_tamper_and_ambiguous_units",
+        "research/test_independent_provenance_oracle.py::test_missing_commit_and_hash_fail_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_purge_oracle.py",
+      "source_blob_sha1": "b9c5b187130e5d20a6abfdf965623fb8e030329d",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_purge_oracle.py"
+      ],
+      "imported_sha256": "d6d089b08b10d20f9c8c1f616889ee7b6202990998f54ec962ea92a3b5e9579f",
+      "imported_git_blob_sha1": "b9c5b187130e5d20a6abfdf965623fb8e030329d",
+      "verified_test_nodeids": [
+        "research/test_independent_purge_oracle.py::test_touching_label_boundaries_are_overlap",
+        "research/test_independent_purge_oracle.py::test_embargo_is_symmetric",
+        "research/test_independent_purge_oracle.py::test_randomized_translation_invariance"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_series_identity.py",
+      "source_blob_sha1": "fdf00d20e7735fd4d4eaafcde09c75ed65c79e81",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_series_identity.py"
+      ],
+      "imported_sha256": "bbf87caa3f122ac110c1e7b9e2bdfebf5c86515014cd7244cb4f297cc0120dcd",
+      "imported_git_blob_sha1": "fdf00d20e7735fd4d4eaafcde09c75ed65c79e81",
+      "verified_test_nodeids": [
+        "research/test_independent_series_identity.py::test_same_series_identity",
+        "research/test_independent_series_identity.py::test_mixed_series_rejected[changed0]",
+        "research/test_independent_series_identity.py::test_mixed_series_rejected[changed1]",
+        "research/test_independent_series_identity.py::test_mixed_series_rejected[changed2]",
+        "research/test_independent_series_identity.py::test_duplicate_series_timestamp_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 5
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_snapshot_integrity.py",
+      "source_blob_sha1": "99922e248564f8086c6577bcd10f561c216be9bd",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_snapshot_integrity.py"
+      ],
+      "imported_sha256": "93cfe6fd26b86d82d729fd0d808bdd3dfce7328bdc41029ca8ff650d7c13b282",
+      "imported_git_blob_sha1": "99922e248564f8086c6577bcd10f561c216be9bd",
+      "verified_test_nodeids": [
+        "research/test_independent_snapshot_integrity.py::test_exact_snapshot_digest",
+        "research/test_independent_snapshot_integrity.py::test_snapshot_budget_and_malformed_digest"
+      ],
+      "verified_outcomes": {
+        "passed": 2
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_time_oracles.py",
+      "source_blob_sha1": "398730a3415036819295b8601f0d0efa853b2242",
+      "action": "reject",
+      "reason": "Preserve existing root file and stronger production differential coverage",
+      "adaptations": [],
+      "tests": [],
+      "preserved_root_blob_sha1": "398730a3415036819295b8601f0d0efa853b2242"
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_timestamp_units.py",
+      "source_blob_sha1": "7190338e2ae9682c8337d65d142c456b45126735",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_timestamp_units.py"
+      ],
+      "imported_sha256": "aa0aae32c00ab53b78fdd60b5a336b534c72b93b954806250a3861688b092c74",
+      "imported_git_blob_sha1": "7190338e2ae9682c8337d65d142c456b45126735",
+      "verified_test_nodeids": [
+        "research/test_independent_timestamp_units.py::test_all_units_exact_roundtrips",
+        "research/test_independent_timestamp_units.py::test_lossy_downcast_fails_closed",
+        "research/test_independent_timestamp_units.py::test_boolean_and_unknown_unit_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/independent_watermark_oracle.py",
+      "source_blob_sha1": "f67ef6454cfaae047e4d3c3e062c49b17f204251",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_watermark_oracle.py"
+      ],
+      "imported_sha256": "c7f194fc749e76d63816e9ad087cc25041bbdd9170236b746429d3964b0adc1a",
+      "imported_git_blob_sha1": "f67ef6454cfaae047e4d3c3e062c49b17f204251",
+      "verified_test_nodeids": [
+        "research/test_independent_watermark_oracle.py::test_monotone_watermark_allows_equal_values",
+        "research/test_independent_watermark_oracle.py::test_regression_and_future_cutoff_rejected",
+        "research/test_independent_watermark_oracle.py::test_boolean_timestamp_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/math_contract_reference.py",
+      "source_blob_sha1": "ce14ddff7bbce725bc61c4e962babfcb681569d0",
+      "action": "reject",
+      "reason": "Preserve existing root file and stronger production differential coverage",
+      "adaptations": [],
+      "tests": [],
+      "preserved_root_blob_sha1": "ce14ddff7bbce725bc61c4e962babfcb681569d0"
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_asof_revisions.py",
+      "source_blob_sha1": "92e3890c01903faa4baa61bc48b1913917ee68cc",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_asof_revisions.py"
+      ],
+      "imported_sha256": "3abf6eb6b726a977a757dd91e89923b49f3cbfdd8fb2e6480b4e0a607c4b39ed",
+      "imported_git_blob_sha1": "92e3890c01903faa4baa61bc48b1913917ee68cc",
+      "verified_test_nodeids": [
+        "research/test_independent_asof_revisions.py::test_future_revision_does_not_rewrite_past",
+        "research/test_independent_asof_revisions.py::test_ingestion_order_invariance",
+        "research/test_independent_asof_revisions.py::test_duplicate_revision_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_candle_boundaries.py",
+      "source_blob_sha1": "6f4706d624a31a0081f8bde89537c79b2e72f61d",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_candle_boundaries.py"
+      ],
+      "imported_sha256": "a8e1caab40ea8ae389a88abb0dc1e67dde7709b2a369742eff01829235f60a0a",
+      "imported_git_blob_sha1": "6f4706d624a31a0081f8bde89537c79b2e72f61d",
+      "verified_test_nodeids": [
+        "research/test_independent_candle_boundaries.py::test_one_minute_inclusive_exchange_close",
+        "research/test_independent_candle_boundaries.py::test_misaligned_and_partial_buckets_fail_closed",
+        "research/test_independent_candle_boundaries.py::test_invalid_last_timestamp"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_decimal_oracles.py",
+      "source_blob_sha1": "f6dd72e67eb31ab853dea4407247d57ac8279dff",
+      "action": "reject",
+      "reason": "Preserve existing root file and stronger production differential coverage",
+      "adaptations": [],
+      "tests": [],
+      "preserved_root_blob_sha1": "128ab015db3b5d24801a834b1bb4f45f0452a1ef"
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_dependency_oracle.py",
+      "source_blob_sha1": "f9e8af11776503f92563450130843b86779df9c8",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_dependency_oracle.py"
+      ],
+      "imported_sha256": "071d748d1d8cdafcdfcda1d2e7edfb963538e1d2b05dfaa75cbc68bc005a53a7",
+      "imported_git_blob_sha1": "f9e8af11776503f92563450130843b86779df9c8",
+      "verified_test_nodeids": [
+        "research/test_independent_dependency_oracle.py::test_triangle_indirect_future_dependency_is_rejected",
+        "research/test_independent_dependency_oracle.py::test_cycles_and_missing_edges_fail_closed",
+        "research/test_independent_dependency_oracle.py::test_permutation_invariance"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_event_clock.py",
+      "source_blob_sha1": "ed0216edc6c23d1905974c857fde4c89d8585ca4",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_event_clock.py"
+      ],
+      "imported_sha256": "69ac982bad1e942976651ac1635b27f7c5c2c258d5740488362b35cb10a92a3e",
+      "imported_git_blob_sha1": "ed0216edc6c23d1905974c857fde4c89d8585ca4",
+      "verified_test_nodeids": [
+        "research/test_independent_event_clock.py::test_valid_out_of_order_ingestion_rows",
+        "research/test_independent_event_clock.py::test_noncausal_clock_rejected[row0]",
+        "research/test_independent_event_clock.py::test_noncausal_clock_rejected[row1]",
+        "research/test_independent_event_clock.py::test_noncausal_clock_rejected[row2]",
+        "research/test_independent_event_clock.py::test_duplicate_event_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 5
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_gaussian_stability.py",
+      "source_blob_sha1": "ac9561a5e5037617a59fd05912467933c5c32631",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_gaussian_stability.py"
+      ],
+      "imported_sha256": "153023fc4c37bb53db63c875fd78eccf5518bc73e69f5105a49dafe23b21eba1",
+      "imported_git_blob_sha1": "ac9561a5e5037617a59fd05912467933c5c32631",
+      "verified_test_nodeids": [
+        "research/test_independent_gaussian_stability.py::test_normal_gaussian_matches_analytic",
+        "research/test_independent_gaussian_stability.py::test_overflow_rejected",
+        "research/test_independent_gaussian_stability.py::test_nonfinite_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_gradient_oracles.py",
+      "source_blob_sha1": "e474afc790c9bb80072a9d75198e89fed2f63892",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_gradient_oracles.py"
+      ],
+      "imported_sha256": "35fb044340095f2da840240bcd19a2b52dc53606fdbdde0a6a748bea38c0ffa8",
+      "imported_git_blob_sha1": "e474afc790c9bb80072a9d75198e89fed2f63892",
+      "verified_test_nodeids": [
+        "research/test_independent_gradient_oracles.py::test_gaussian_gradient_vs_finite_difference[0.0-1.0]",
+        "research/test_independent_gradient_oracles.py::test_gaussian_gradient_vs_finite_difference[0.3-0.7]",
+        "research/test_independent_gradient_oracles.py::test_gaussian_gradient_vs_finite_difference[-0.5-2.0]",
+        "research/test_independent_gradient_oracles.py::test_invalid_gradient_request_fails_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 4
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_horizon_oracle.py",
+      "source_blob_sha1": "d6913b58ea85a3a81ab75d1d24c8ba7cb4060912",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [
+        "Reproduced RED: precision-70 oracle compared to ambient precision-28 expected result; calculate expected result in localcontext precision 70. No helper/production equations changed."
+      ],
+      "tests": [
+        "python -m pytest -q research/test_independent_horizon_oracle.py"
+      ],
+      "imported_sha256": "75358f45ada092eddf1eca252191a1df8542e5bbf8435d9314b64ab4e07ecc6b",
+      "imported_git_blob_sha1": "10ec153c066d0bb90733347c0d3e7c051297593f",
+      "verified_test_nodeids": [
+        "research/test_independent_horizon_oracle.py::test_target_horizon_and_availability",
+        "research/test_independent_horizon_oracle.py::test_target_horizon_does_not_use_intermediate_future_as_origin",
+        "research/test_independent_horizon_oracle.py::test_gap_and_invalid_horizon_fail_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_ledger_oracle.py",
+      "source_blob_sha1": "579c03a244e482309d62ff912d83f6cf2fdb236e",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_ledger_oracle.py"
+      ],
+      "imported_sha256": "95965395e5715034bb792fbe70b35fcdb41f69b06b5f88b4d303c7dafdbdb48b",
+      "imported_git_blob_sha1": "579c03a244e482309d62ff912d83f6cf2fdb236e",
+      "verified_test_nodeids": [
+        "research/test_independent_ledger_oracle.py::test_costs_reduce_long_and_short_pnl",
+        "research/test_independent_ledger_oracle.py::test_disjoint_roundtrip_boundary_and_overlap",
+        "research/test_independent_ledger_oracle.py::test_invalid_costs_and_position_fail_closed",
+        "research/test_independent_ledger_oracle.py::test_zero_position_has_zero_costs"
+      ],
+      "verified_outcomes": {
+        "passed": 4
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_metamorphic_contracts.py",
+      "source_blob_sha1": "0ea43e4425661958cd79da90ad15dbe81aac62e3",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_metamorphic_contracts.py"
+      ],
+      "imported_sha256": "2b09af5c86632ff97905e7c034647e346f43863cfadfc7cd9e0d1b4f46a49be0",
+      "imported_git_blob_sha1": "0ea43e4425661958cd79da90ad15dbe81aac62e3",
+      "verified_test_nodeids": [
+        "research/test_independent_metamorphic_contracts.py::test_randomized_unit_roundtrips",
+        "research/test_independent_metamorphic_contracts.py::test_randomized_return_telescoping",
+        "research/test_independent_metamorphic_contracts.py::test_timeframe_partition_aggregation_invariant"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_normalization_oracle.py",
+      "source_blob_sha1": "6c9f5c9899362eae0bdc0e76ce58acc6286de1e6",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_normalization_oracle.py"
+      ],
+      "imported_sha256": "f18f0a04090f68f8cbb64d99838b623808b0470931ac03afd10f6a12db41bd32",
+      "imported_git_blob_sha1": "6c9f5c9899362eae0bdc0e76ce58acc6286de1e6",
+      "verified_test_nodeids": [
+        "research/test_independent_normalization_oracle.py::test_test_distribution_never_refits_scaler",
+        "research/test_independent_normalization_oracle.py::test_translation_and_positive_scale_invariance",
+        "research/test_independent_normalization_oracle.py::test_constant_train_unseen_test_fails_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_numpy_oracles.py",
+      "source_blob_sha1": "4bcb28fb51a304ad857189a74dc700560f18bdcc",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_numpy_oracles.py"
+      ],
+      "imported_sha256": "16e368c50af3b8ffb5d720f1a1061d9e0246963239d32ee95a224e969a99ba6e",
+      "imported_git_blob_sha1": "4bcb28fb51a304ad857189a74dc700560f18bdcc",
+      "verified_test_nodeids": [
+        "research/test_independent_numpy_oracles.py::test_masked_attention_excludes_future_and_fully_masked_rows",
+        "research/test_independent_numpy_oracles.py::test_triangle_outgoing_orientation_and_mask",
+        "research/test_independent_numpy_oracles.py::test_attention_rejects_invalid_mask",
+        "research/test_independent_numpy_oracles.py::test_empty_attention_and_triangle_fail_closed",
+        "research/test_independent_numpy_oracles.py::test_oracle_resource_admission_fails_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 5
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_precision_oracle.py",
+      "source_blob_sha1": "ba02d4ab57aaa53a58f822d294e28b39d92131b2",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_precision_oracle.py"
+      ],
+      "imported_sha256": "54ef913c38e70067569f198bc1289ce55d4ef0cf9004d514cdbcb1ef181ba392",
+      "imported_git_blob_sha1": "ba02d4ab57aaa53a58f822d294e28b39d92131b2",
+      "verified_test_nodeids": [
+        "research/test_independent_precision_oracle.py::test_float32_rounding_tolerance",
+        "research/test_independent_precision_oracle.py::test_float64_strict_and_float32_looser",
+        "research/test_independent_precision_oracle.py::test_float32_overflow_and_nonfinite_fail_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_provenance_oracle.py",
+      "source_blob_sha1": "7be818839bc9a1a06dae55837ffd14f50508a699",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_provenance_oracle.py"
+      ],
+      "imported_sha256": "3126ef8f0b4960e55aea2cca2de546ab50ca43662f5234f5fb2f14202b61cf99",
+      "imported_git_blob_sha1": "7be818839bc9a1a06dae55837ffd14f50508a699",
+      "verified_test_nodeids": [
+        "research/test_independent_provenance_oracle.py::test_canonical_digest_order_invariance",
+        "research/test_independent_provenance_oracle.py::test_tamper_and_ambiguous_units",
+        "research/test_independent_provenance_oracle.py::test_missing_commit_and_hash_fail_closed"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_purge_oracle.py",
+      "source_blob_sha1": "172c4f0b682322bf1172b83e3591292f0376b0be",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_purge_oracle.py"
+      ],
+      "imported_sha256": "7f964e4c9e0fb4b35fadf89f3ec211dbfed51d46072b18cc99910aa6c1e2c337",
+      "imported_git_blob_sha1": "172c4f0b682322bf1172b83e3591292f0376b0be",
+      "verified_test_nodeids": [
+        "research/test_independent_purge_oracle.py::test_touching_label_boundaries_are_overlap",
+        "research/test_independent_purge_oracle.py::test_embargo_is_symmetric",
+        "research/test_independent_purge_oracle.py::test_randomized_translation_invariance"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_series_identity.py",
+      "source_blob_sha1": "028c29ad1d928ed556f3e9b4946e7729b367b1e5",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_series_identity.py"
+      ],
+      "imported_sha256": "f6d877fa7ee4a83c7886c91a7cf7417eb37edc39fb612bc45a31971e760e62c6",
+      "imported_git_blob_sha1": "028c29ad1d928ed556f3e9b4946e7729b367b1e5",
+      "verified_test_nodeids": [
+        "research/test_independent_series_identity.py::test_same_series_identity",
+        "research/test_independent_series_identity.py::test_mixed_series_rejected[changed0]",
+        "research/test_independent_series_identity.py::test_mixed_series_rejected[changed1]",
+        "research/test_independent_series_identity.py::test_mixed_series_rejected[changed2]",
+        "research/test_independent_series_identity.py::test_duplicate_series_timestamp_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 5
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_snapshot_integrity.py",
+      "source_blob_sha1": "296e58788f89734638a633713c5aaa7c82cb4717",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_snapshot_integrity.py"
+      ],
+      "imported_sha256": "cef28f31faa482cce5898c53aa6d433470003242c03a861f9faf5586e66b9d32",
+      "imported_git_blob_sha1": "296e58788f89734638a633713c5aaa7c82cb4717",
+      "verified_test_nodeids": [
+        "research/test_independent_snapshot_integrity.py::test_exact_snapshot_digest",
+        "research/test_independent_snapshot_integrity.py::test_snapshot_budget_and_malformed_digest"
+      ],
+      "verified_outcomes": {
+        "passed": 2
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_time_oracles.py",
+      "source_blob_sha1": "78381817017d007595f2b2c216eb1dfb2c0d5cef",
+      "action": "reject",
+      "reason": "Preserve existing root file and stronger production differential coverage",
+      "adaptations": [],
+      "tests": [],
+      "preserved_root_blob_sha1": "78381817017d007595f2b2c216eb1dfb2c0d5cef"
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_timestamp_units.py",
+      "source_blob_sha1": "dbadc09ac5f692773a1f5cd565a70c72c59c25c8",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_timestamp_units.py"
+      ],
+      "imported_sha256": "1087045b5c638efd4f60aff38b29d74dfe598c799ee989c626fdd46c56087b25",
+      "imported_git_blob_sha1": "dbadc09ac5f692773a1f5cd565a70c72c59c25c8",
+      "verified_test_nodeids": [
+        "research/test_independent_timestamp_units.py::test_all_units_exact_roundtrips",
+        "research/test_independent_timestamp_units.py::test_lossy_downcast_fails_closed",
+        "research/test_independent_timestamp_units.py::test_boolean_and_unknown_unit_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_independent_watermark_oracle.py",
+      "source_blob_sha1": "1f8046e5aac4d3e16ce98f39f5c343acfaa724c0",
+      "action": "import",
+      "reason": "Independent test-only mathematical reference coverage",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q research/test_independent_watermark_oracle.py"
+      ],
+      "imported_sha256": "be6e035050d2f052d5afa4e15ee65f99f288ece32ec677ef28df3501afe7a7df",
+      "imported_git_blob_sha1": "1f8046e5aac4d3e16ce98f39f5c343acfaa724c0",
+      "verified_test_nodeids": [
+        "research/test_independent_watermark_oracle.py::test_monotone_watermark_allows_equal_values",
+        "research/test_independent_watermark_oracle.py::test_regression_and_future_cutoff_rejected",
+        "research/test_independent_watermark_oracle.py::test_boolean_timestamp_rejected"
+      ],
+      "verified_outcomes": {
+        "passed": 3
+      }
+    },
+    {
+      "source_pr": 18,
+      "source_head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "path": "research/test_math_contract_reference.py",
+      "source_blob_sha1": "14675ad7e163cc13631f47c77ba6e313365d95a6",
+      "action": "reject",
+      "reason": "Preserve existing root file and stronger production differential coverage",
+      "adaptations": [],
+      "tests": [],
+      "preserved_root_blob_sha1": "2239508f04180f4b59b818be5a09d66b2719ccd4"
+    },
+    {
+      "source_pr": 23,
+      "source_head": "1dcd46a500e74bedd730cdc77c9b761511b0a082",
+      "path": "tests/research/test_financial_independent_oracles.py",
+      "source_blob_sha1": "fb9ba63e409b5b555afbec67b82724fadc4643e7",
+      "action": "import",
+      "reason": "Four offline regressions against existing integrated financial evaluation and reference oracles",
+      "adaptations": [],
+      "tests": [
+        "python -m pytest -q tests/research/test_financial_independent_oracles.py"
+      ],
+      "imported_sha256": "7e915e052d61b1fed47eb20945fe9f1a3d87ca4700b2ec084e82280d297d5a33",
+      "imported_git_blob_sha1": "fb9ba63e409b5b555afbec67b82724fadc4643e7",
+      "verified_test_nodeids": [
+        "tests/research/test_financial_independent_oracles.py::IntegratedFinancialOracleTests::test_boundary_intervals_half_open",
+        "tests/research/test_financial_independent_oracles.py::IntegratedFinancialOracleTests::test_gaussian_closed_form_oracle",
+        "tests/research/test_financial_independent_oracles.py::IntegratedFinancialOracleTests::test_invalid_funding_fail_closed",
+        "tests/research/test_financial_independent_oracles.py::IntegratedFinancialOracleTests::test_long_short_flat_roundtrip_oracle"
+      ],
+      "verified_outcomes": {
+        "passed": 3,
+        "subtests passed": 1
+      }
+    },
+    {
+      "source_pr": 22,
+      "source_head": "bea8f3009a21b4db1b222b03e7769a185ae11e86",
+      "path": "research/upstream_mechanism_reference.py",
+      "source_blob_sha1": "62ba98dff671be26b3723d69e39239b3bb246a8c",
+      "action": "reject",
+      "reason": "Obsolete incoming triangle equation contradicts root equations-v2; root independent NumPy oracle preserved",
+      "adaptations": [],
+      "tests": [
+        "Root tests/research/test_structural_upstream_differential.py retained"
+      ]
+    }
+  ],
+  "verification": {
+    "decimal_red": "work/final-model-math-decimal-red.log: 1 failed, 2 passed; expected Decimal context mismatch",
+    "coverage_limits": [
+      "Reference-only oracle agreement is not production integration proof",
+      "Structural connectivity observes calls and finite gradients, not ablation contribution of every operator",
+      "Optimizer smoke test checks any update and in-memory tensor state reload, not durable checkpoint/optimizer resume",
+      "No GPU/G1, real-data training or financial performance validation"
+    ],
+    "command": "python -m pytest -q tests/research research --basetemp=../tmp-final-model-math-import-20261026 --json-report --json-report-file=../final-model-math-import-green.json --junitxml=../final-model-math-import-green.xml",
+    "result": "715 passed, 2 pre-existing skipped, 7 subtests passed in 31.85s; zero failures/errors",
+    "new_imported_test_nodes": 103,
+    "new_imported_outcomes": {
+      "passed": 102,
+      "subtests passed": 1
+    },
+    "decimal_green": "3 passed; work/final-model-math-decimal-green.log",
+    "cpu_dependencies": "Python 3.12.10, torch 2.14.1+cpu, numpy; existing financial-venv; no installation",
+    "initial_environment_error": "Default pytest temp directory permission denied: 591 passed/2 skipped/124 setup errors. Same full set passed with fresh explicit basetemp.",
+    "raw_pytest_json_summary": {
+      "passed": 713,
+      "skipped": 2,
+      "subtests passed": 2,
+      "total": 717,
+      "collected": 717
+    },
+    "preexisting_skipped_nodes": [
+      {
+        "nodeid": "tests/research/test_alphafold_triangle.py::test_gpu_cpu_forward_parity",
+        "reason": "('C:\\\\Users\\\\LS-5\\\\Documents\\\\Codex\\\\2026-10-24\\\\files-pasted-by-the-user-codex\\\\work\\\\final-model-math\\\\tests\\\\research\\\\test_alphafold_triangle.py', 41, 'Skipped: CUDA unavailable')"
+      },
+      {
+        "nodeid": "tests/research/test_alphafold_triangle_attention.py::test_cuda_cpu_forward",
+        "reason": "('C:\\\\Users\\\\LS-5\\\\Documents\\\\Codex\\\\2026-10-24\\\\files-pasted-by-the-user-codex\\\\work\\\\final-model-math\\\\tests\\\\research\\\\test_alphafold_triangle_attention.py', 45, 'Skipped: CUDA unavailable')"
+      }
+    ],
+    "raw_evidence_files": [
+      "work/final-model-math-decimal-red.log",
+      "work/final-model-math-decimal-green.log",
+      "work/final-model-math-import-tests.log",
+      "work/final-model-math-import-tests.json",
+      "work/final-model-math-import-tests.xml",
+      "work/final-model-math-import-green.log",
+      "work/final-model-math-import-green.json",
+      "work/final-model-math-import-green.xml"
+    ]
+  }
+}

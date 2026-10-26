@@ -1,0 +1,2645 @@
+{
+  "runs": [
+    {
+      "pr": 15,
+      "runs": [
+        {
+          "id": 40097864981,
+          "event": "push",
+          "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40097864981"
+        },
+        {
+          "id": 40097816291,
+          "event": "push",
+          "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40097816291"
+        },
+        {
+          "id": 40097666757,
+          "event": "pull_request",
+          "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40097666757"
+        },
+        {
+          "id": 40097663352,
+          "event": "push",
+          "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40097663352"
+        }
+      ]
+    },
+    {
+      "pr": 16,
+      "runs": [
+        {
+          "id": 40101274631,
+          "event": "pull_request",
+          "head_sha": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "alphafold-research-cpu",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101274631"
+        },
+        {
+          "id": 40101274637,
+          "event": "pull_request",
+          "head_sha": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101274637"
+        },
+        {
+          "id": 40101270809,
+          "event": "push",
+          "head_sha": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101270809"
+        }
+      ]
+    },
+    {
+      "pr": 17,
+      "runs": [
+        {
+          "id": 40101289325,
+          "event": "pull_request",
+          "head_sha": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101289325"
+        },
+        {
+          "id": 40101286032,
+          "event": "push",
+          "head_sha": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101286032"
+        }
+      ]
+    },
+    {
+      "pr": 18,
+      "runs": [
+        {
+          "id": 40101287318,
+          "event": "pull_request",
+          "head_sha": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "mathematical-contract-reference",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101287318"
+        },
+        {
+          "id": 40101287330,
+          "event": "pull_request",
+          "head_sha": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101287330"
+        },
+        {
+          "id": 40101283443,
+          "event": "push",
+          "head_sha": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101283443"
+        }
+      ]
+    },
+    {
+      "pr": 19,
+      "runs": [
+        {
+          "id": 40101298294,
+          "event": "pull_request",
+          "head_sha": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101298294"
+        },
+        {
+          "id": 40101294895,
+          "event": "push",
+          "head_sha": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101294895"
+        }
+      ]
+    },
+    {
+      "pr": 20,
+      "runs": [
+        {
+          "id": 40101308879,
+          "event": "pull_request",
+          "head_sha": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101308879"
+        },
+        {
+          "id": 40101305155,
+          "event": "push",
+          "head_sha": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "tests",
+          "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101305155"
+        }
+      ]
+    }
+  ],
+  "pull_request_job_evidence": [
+    {
+      "pr": 15,
+      "source_head": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+      "run": {
+        "id": 40097666757,
+        "event": "pull_request",
+        "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40097666757"
+      },
+      "job": {
+        "id": 120883209285,
+        "name": "pytest (windows-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40097666757,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T13:20:34.4356752Z ##[group]Operating System\r",
+        "2026-10-24T13:20:34.4357361Z Microsoft Windows Server 2025\r",
+        "2026-10-24T13:20:40.0230223Z HEAD is now at cae0794 Merge 02bb79796b9627345b8f7c98a50349d044e5b7be into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T13:20:40.3529418Z Successfully set up CPython (3.11.9)\r",
+        "2026-10-24T13:21:09.5950540Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]\r",
+        "2026-10-24T13:21:17.8550496Z ======================= 543 passed, 1 skipped in 19.82s =======================\r"
+      ]
+    },
+    {
+      "pr": 15,
+      "source_head": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+      "run": {
+        "id": 40097666757,
+        "event": "pull_request",
+        "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40097666757"
+      },
+      "job": {
+        "id": 120883209375,
+        "name": "pytest (ubuntu-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40097666757,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T13:20:35.2562334Z ##[group]Operating System",
+        "2026-10-24T13:20:35.2562734Z Ubuntu",
+        "2026-10-24T13:20:35.2565791Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T13:20:36.4719910Z HEAD is now at cae0794 Merge 02bb79796b9627345b8f7c98a50349d044e5b7be into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T13:20:36.5847753Z Successfully set up CPython (3.11.17)",
+        "2026-10-24T13:20:42.2362021Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]",
+        "2026-10-24T13:20:44.0162732Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T13:20:44.0534002Z ======================== 542 passed, 2 skipped in 3.69s ========================"
+      ]
+    },
+    {
+      "pr": 15,
+      "source_head": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+      "run": {
+        "id": 40097666757,
+        "event": "pull_request",
+        "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40097666757"
+      },
+      "job": {
+        "id": 120883209473,
+        "name": "pytest (ubuntu-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40097666757,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T13:20:39.4851880Z ##[group]Operating System",
+        "2026-10-24T13:20:39.4852249Z Ubuntu",
+        "2026-10-24T13:20:39.4855236Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T13:20:41.2382742Z HEAD is now at cae0794 Merge 02bb79796b9627345b8f7c98a50349d044e5b7be into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T13:20:41.3572662Z Successfully set up CPython (3.13.16)",
+        "2026-10-24T13:20:49.1565840Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]",
+        "2026-10-24T13:20:51.0372844Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T13:20:51.0686034Z ======================== 542 passed, 2 skipped in 4.28s ========================"
+      ]
+    },
+    {
+      "pr": 15,
+      "source_head": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+      "run": {
+        "id": 40097666757,
+        "event": "pull_request",
+        "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40097666757"
+      },
+      "job": {
+        "id": 120883209496,
+        "name": "pytest (windows-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40097666757,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T13:20:42.2377228Z ##[group]Operating System\r",
+        "2026-10-24T13:20:42.2377913Z Microsoft Windows Server 2025\r",
+        "2026-10-24T13:20:47.9603693Z HEAD is now at cae0794 Merge 02bb79796b9627345b8f7c98a50349d044e5b7be into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T13:20:48.2946841Z Successfully set up CPython (3.13.16)\r",
+        "2026-10-24T13:21:17.4220555Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]\r",
+        "2026-10-24T13:21:26.6056781Z ======================= 543 passed, 1 skipped in 24.12s =======================\r"
+      ]
+    },
+    {
+      "pr": 16,
+      "source_head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "run": {
+        "id": 40101274631,
+        "event": "pull_request",
+        "head_sha": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "alphafold-research-cpu",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101274631"
+      },
+      "job": {
+        "id": 120893749887,
+        "name": "cpu-operators",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101274631,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Install CPU PyTorch and test dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Assert PyTorch is importable",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Run fail-closed structural gate",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:11:44.4286297Z ##[group]Operating System",
+        "2026-10-24T14:11:44.4286715Z Ubuntu",
+        "2026-10-24T14:11:44.4289549Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:11:45.6803063Z HEAD is now at 3c64318 Merge 5aadb120ac37f4832ea74c055051878c6a3171c6 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:11:45.8612267Z Successfully set up CPython (3.11.17)",
+        "2026-10-24T14:12:00.3806271Z Successfully installed MarkupSafe-3.0.3 filelock-3.32.3 fsspec-2026.7.0 jinja2-3.1.6 mpmath-1.3.0 networkx-3.6.1 sympy-1.14.0 torch-2.14.1+cpu typing-extensions-4.16.0",
+        "2026-10-24T14:12:04.7936233Z 37 passed, 2 deselected in 1.17s",
+        "2026-10-24T14:12:05.1529847Z PASS: 37 mandatory CPU structural tests; no skips"
+      ]
+    },
+    {
+      "pr": 16,
+      "source_head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "run": {
+        "id": 40101274637,
+        "event": "pull_request",
+        "head_sha": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101274637"
+      },
+      "job": {
+        "id": 120893749895,
+        "name": "pytest (windows-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101274637,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:12:19.3811735Z ##[group]Operating System\r",
+        "2026-10-24T14:12:19.3812359Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:12:25.5744632Z HEAD is now at 3c64318 Merge 5aadb120ac37f4832ea74c055051878c6a3171c6 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:12:25.9031717Z Successfully set up CPython (3.13.16)\r",
+        "2026-10-24T14:12:57.0947699Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]\r",
+        "2026-10-24T14:13:06.8480659Z ====================== 543 passed, 10 skipped in 25.56s =======================\r"
+      ]
+    },
+    {
+      "pr": 16,
+      "source_head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "run": {
+        "id": 40101274637,
+        "event": "pull_request",
+        "head_sha": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101274637"
+      },
+      "job": {
+        "id": 120893750092,
+        "name": "pytest (ubuntu-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101274637,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:11:55.2759200Z ##[group]Operating System",
+        "2026-10-24T14:11:55.2759725Z Ubuntu",
+        "2026-10-24T14:11:55.2763651Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:11:56.7433339Z HEAD is now at 3c64318 Merge 5aadb120ac37f4832ea74c055051878c6a3171c6 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:11:56.8950930Z Successfully set up CPython (3.11.17)",
+        "2026-10-24T14:12:04.7890328Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]",
+        "2026-10-24T14:12:06.8172749Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T14:12:06.8588971Z ======================= 542 passed, 11 skipped in 5.10s ========================"
+      ]
+    },
+    {
+      "pr": 16,
+      "source_head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "run": {
+        "id": 40101274637,
+        "event": "pull_request",
+        "head_sha": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101274637"
+      },
+      "job": {
+        "id": 120893750105,
+        "name": "pytest (ubuntu-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101274637,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:12:30.0901814Z ##[group]Operating System",
+        "2026-10-24T14:12:30.0902376Z Ubuntu",
+        "2026-10-24T14:12:30.0906327Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:12:32.3871620Z HEAD is now at 3c64318 Merge 5aadb120ac37f4832ea74c055051878c6a3171c6 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:12:32.5533695Z Successfully set up CPython (3.13.16)",
+        "2026-10-24T14:12:46.5342585Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]",
+        "2026-10-24T14:12:49.3559320Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T14:12:49.4128569Z ======================= 542 passed, 11 skipped in 10.18s ======================="
+      ]
+    },
+    {
+      "pr": 16,
+      "source_head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "run": {
+        "id": 40101274637,
+        "event": "pull_request",
+        "head_sha": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101274637"
+      },
+      "job": {
+        "id": 120893750144,
+        "name": "pytest (windows-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101274637,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:12:38.0618448Z ##[group]Operating System\r",
+        "2026-10-24T14:12:38.0619508Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:12:43.7803183Z HEAD is now at 3c64318 Merge 5aadb120ac37f4832ea74c055051878c6a3171c6 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:12:44.1263366Z Successfully set up CPython (3.11.9)\r",
+        "2026-10-24T14:13:24.0016168Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]\r",
+        "2026-10-24T14:13:34.9197657Z ====================== 543 passed, 10 skipped in 33.54s =======================\r"
+      ]
+    },
+    {
+      "pr": 17,
+      "source_head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "run": {
+        "id": 40101289325,
+        "event": "pull_request",
+        "head_sha": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101289325"
+      },
+      "job": {
+        "id": 120893791266,
+        "name": "pytest (ubuntu-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101289325,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:11:48.6905355Z ##[group]Operating System",
+        "2026-10-24T14:11:48.6906393Z Ubuntu",
+        "2026-10-24T14:11:48.6915013Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:11:50.1710241Z HEAD is now at 4c55307 Merge d282a869f54a75e55bac5b519dd63ca845376a2a into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:11:50.3951046Z Successfully set up CPython (3.11.17)",
+        "2026-10-24T14:12:01.4969877Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T14:12:01.5500182Z ======================== 563 passed, 1 skipped in 5.07s ========================"
+      ]
+    },
+    {
+      "pr": 17,
+      "source_head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "run": {
+        "id": 40101289325,
+        "event": "pull_request",
+        "head_sha": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101289325"
+      },
+      "job": {
+        "id": 120893791408,
+        "name": "pytest (ubuntu-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101289325,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:13:04.9334240Z ##[group]Operating System",
+        "2026-10-24T14:13:04.9335002Z Ubuntu",
+        "2026-10-24T14:13:04.9340326Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:13:06.0890947Z HEAD is now at 4c55307 Merge d282a869f54a75e55bac5b519dd63ca845376a2a into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:13:06.2773784Z Successfully set up CPython (3.13.16)",
+        "2026-10-24T14:13:19.3642188Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T14:13:19.4114359Z ======================== 563 passed, 1 skipped in 5.65s ========================"
+      ]
+    },
+    {
+      "pr": 17,
+      "source_head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "run": {
+        "id": 40101289325,
+        "event": "pull_request",
+        "head_sha": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101289325"
+      },
+      "job": {
+        "id": 120893791422,
+        "name": "pytest (windows-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101289325,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:13:11.5609601Z ##[group]Operating System\r",
+        "2026-10-24T14:13:11.5610641Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:13:38.5920024Z HEAD is now at 4c55307 Merge d282a869f54a75e55bac5b519dd63ca845376a2a into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:13:39.8392757Z Successfully set up CPython (3.11.9)\r",
+        "2026-10-24T14:14:29.1990988Z ============================ 564 passed in 28.70s =============================\r"
+      ]
+    },
+    {
+      "pr": 17,
+      "source_head": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "run": {
+        "id": 40101289325,
+        "event": "pull_request",
+        "head_sha": "d282a869f54a75e55bac5b519dd63ca845376a2a",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101289325"
+      },
+      "job": {
+        "id": 120893791478,
+        "name": "pytest (windows-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101289325,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:13:11.7679222Z ##[group]Operating System\r",
+        "2026-10-24T14:13:11.7679930Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:13:18.4836697Z HEAD is now at 4c55307 Merge d282a869f54a75e55bac5b519dd63ca845376a2a into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:13:18.7651502Z Successfully set up CPython (3.13.16)\r",
+        "2026-10-24T14:14:14.2419724Z ============================ 564 passed in 40.18s =============================\r"
+      ]
+    },
+    {
+      "pr": 18,
+      "source_head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "run": {
+        "id": 40101287318,
+        "event": "pull_request",
+        "head_sha": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "mathematical-contract-reference",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101287318"
+      },
+      "job": {
+        "id": 120893784916,
+        "name": "reference (windows-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101287318,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Compile reference and tests before execution",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run independent standard-library contract tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:04.9683026Z ##[group]Operating System\r",
+        "2026-10-24T14:14:04.9683687Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:14:10.6432918Z HEAD is now at a1602bc Merge 9b7465c7336ffa9d14eaa01162043b5cab297c9b into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:14:12.9023529Z Successfully set up CPython (3.11.9)\r",
+        "2026-10-24T14:14:14.8837284Z Ran 12 tests in 0.002s\r",
+        "2026-10-24T14:14:14.8837595Z OK\r"
+      ]
+    },
+    {
+      "pr": 18,
+      "source_head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "run": {
+        "id": 40101287318,
+        "event": "pull_request",
+        "head_sha": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "mathematical-contract-reference",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101287318"
+      },
+      "job": {
+        "id": 120893785062,
+        "name": "reference (windows-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101287318,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Compile reference and tests before execution",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run independent standard-library contract tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:28.7357562Z ##[group]Operating System\r",
+        "2026-10-24T14:14:28.7358243Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:14:34.1724603Z HEAD is now at a1602bc Merge 9b7465c7336ffa9d14eaa01162043b5cab297c9b into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:14:36.2939832Z Successfully set up CPython (3.13.16)\r",
+        "2026-10-24T14:14:38.1354800Z Ran 12 tests in 0.013s\r",
+        "2026-10-24T14:14:38.1355235Z OK\r"
+      ]
+    },
+    {
+      "pr": 18,
+      "source_head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "run": {
+        "id": 40101287318,
+        "event": "pull_request",
+        "head_sha": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "mathematical-contract-reference",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101287318"
+      },
+      "job": {
+        "id": 120893785128,
+        "name": "reference (ubuntu-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101287318,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Compile reference and tests before execution",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run independent standard-library contract tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:13:31.4771823Z ##[group]Operating System",
+        "2026-10-24T14:13:31.4772477Z Ubuntu",
+        "2026-10-24T14:13:31.4777305Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:13:32.8384198Z HEAD is now at a1602bc Merge 9b7465c7336ffa9d14eaa01162043b5cab297c9b into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:13:33.1230510Z Successfully set up CPython (3.11.17)",
+        "2026-10-24T14:13:34.0025983Z Ran 12 tests in 0.001s",
+        "2026-10-24T14:13:34.0026520Z OK"
+      ]
+    },
+    {
+      "pr": 18,
+      "source_head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "run": {
+        "id": 40101287318,
+        "event": "pull_request",
+        "head_sha": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "mathematical-contract-reference",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101287318"
+      },
+      "job": {
+        "id": 120893785151,
+        "name": "reference (ubuntu-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101287318,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Compile reference and tests before execution",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run independent standard-library contract tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:31.4853045Z ##[group]Operating System",
+        "2026-10-24T14:14:31.4853989Z Ubuntu",
+        "2026-10-24T14:14:31.4858768Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:14:32.6077706Z HEAD is now at a1602bc Merge 9b7465c7336ffa9d14eaa01162043b5cab297c9b into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:14:32.8747390Z Successfully set up CPython (3.13.16)",
+        "2026-10-24T14:14:33.2836640Z Ran 12 tests in 0.001s",
+        "2026-10-24T14:14:33.2837497Z OK"
+      ]
+    },
+    {
+      "pr": 18,
+      "source_head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "run": {
+        "id": 40101287330,
+        "event": "pull_request",
+        "head_sha": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101287330"
+      },
+      "job": {
+        "id": 120893784948,
+        "name": "pytest (ubuntu-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101287330,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:12.7959574Z ##[group]Operating System",
+        "2026-10-24T14:14:12.7960322Z Ubuntu",
+        "2026-10-24T14:14:12.7965127Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:14:14.2669528Z HEAD is now at a1602bc Merge 9b7465c7336ffa9d14eaa01162043b5cab297c9b into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:14:14.4520085Z Successfully set up CPython (3.13.16)",
+        "2026-10-24T14:14:27.8610591Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T14:14:27.9034355Z ======================== 518 passed, 1 skipped in 5.38s ========================"
+      ]
+    },
+    {
+      "pr": 18,
+      "source_head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "run": {
+        "id": 40101287330,
+        "event": "pull_request",
+        "head_sha": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101287330"
+      },
+      "job": {
+        "id": 120893785095,
+        "name": "pytest (windows-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101287330,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:17.6667751Z ##[group]Operating System\r",
+        "2026-10-24T14:14:17.6668470Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:14:23.6562961Z HEAD is now at a1602bc Merge 9b7465c7336ffa9d14eaa01162043b5cab297c9b into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:14:24.0022472Z Successfully set up CPython (3.11.9)\r",
+        "2026-10-24T14:15:01.6313375Z ============================ 519 passed in 21.17s =============================\r"
+      ]
+    },
+    {
+      "pr": 18,
+      "source_head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "run": {
+        "id": 40101287330,
+        "event": "pull_request",
+        "head_sha": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101287330"
+      },
+      "job": {
+        "id": 120893785107,
+        "name": "pytest (windows-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101287330,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:13:47.4059281Z ##[group]Operating System\r",
+        "2026-10-24T14:13:47.4059833Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:13:53.3688273Z HEAD is now at a1602bc Merge 9b7465c7336ffa9d14eaa01162043b5cab297c9b into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:13:53.6528860Z Successfully set up CPython (3.13.16)\r",
+        "2026-10-24T14:14:31.5740366Z ============================ 519 passed in 24.02s =============================\r"
+      ]
+    },
+    {
+      "pr": 18,
+      "source_head": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "run": {
+        "id": 40101287330,
+        "event": "pull_request",
+        "head_sha": "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101287330"
+      },
+      "job": {
+        "id": 120893785349,
+        "name": "pytest (ubuntu-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101287330,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:24.8270497Z ##[group]Operating System",
+        "2026-10-24T14:14:24.8271247Z Ubuntu",
+        "2026-10-24T14:14:24.8275990Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:14:26.2098252Z HEAD is now at a1602bc Merge 9b7465c7336ffa9d14eaa01162043b5cab297c9b into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:14:26.3987988Z Successfully set up CPython (3.11.17)",
+        "2026-10-24T14:14:36.3544719Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T14:14:36.3989103Z ======================== 518 passed, 1 skipped in 4.66s ========================"
+      ]
+    },
+    {
+      "pr": 19,
+      "source_head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "run": {
+        "id": 40101298294,
+        "event": "pull_request",
+        "head_sha": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101298294"
+      },
+      "job": {
+        "id": 120893816736,
+        "name": "pytest (ubuntu-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101298294,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:13.7044342Z ##[group]Operating System",
+        "2026-10-24T14:14:13.7044989Z Ubuntu",
+        "2026-10-24T14:14:13.7050188Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:14:15.0439940Z HEAD is now at 2e17eba Merge 0df7233c0f14f5a481889d914b5b96b70692bf12 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:14:15.2272203Z Successfully set up CPython (3.13.16)",
+        "2026-10-24T14:14:26.3473830Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T14:14:26.3907029Z ============== 552 passed, 1 skipped, 18 subtests passed in 5.73s =============="
+      ]
+    },
+    {
+      "pr": 19,
+      "source_head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "run": {
+        "id": 40101298294,
+        "event": "pull_request",
+        "head_sha": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101298294"
+      },
+      "job": {
+        "id": 120893816851,
+        "name": "pytest (windows-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101298294,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:22.5567323Z ##[group]Operating System\r",
+        "2026-10-24T14:14:22.5567963Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:14:28.2506417Z HEAD is now at 2e17eba Merge 0df7233c0f14f5a481889d914b5b96b70692bf12 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:14:28.5824145Z Successfully set up CPython (3.13.16)\r",
+        "2026-10-24T14:15:17.3230553Z ================== 553 passed, 18 subtests passed in 32.94s ===================\r"
+      ]
+    },
+    {
+      "pr": 19,
+      "source_head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "run": {
+        "id": 40101298294,
+        "event": "pull_request",
+        "head_sha": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101298294"
+      },
+      "job": {
+        "id": 120893816859,
+        "name": "pytest (windows-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101298294,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:13:58.9613130Z ##[group]Operating System\r",
+        "2026-10-24T14:13:58.9613739Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:14:05.1550691Z HEAD is now at 2e17eba Merge 0df7233c0f14f5a481889d914b5b96b70692bf12 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:14:05.4890601Z Successfully set up CPython (3.11.9)\r",
+        "2026-10-24T14:15:11.1435781Z ================== 553 passed, 18 subtests passed in 47.84s ===================\r"
+      ]
+    },
+    {
+      "pr": 19,
+      "source_head": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "run": {
+        "id": 40101298294,
+        "event": "pull_request",
+        "head_sha": "0df7233c0f14f5a481889d914b5b96b70692bf12",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101298294"
+      },
+      "job": {
+        "id": 120893816942,
+        "name": "pytest (ubuntu-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101298294,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:21.4557304Z ##[group]Operating System",
+        "2026-10-24T14:14:21.4558502Z Ubuntu",
+        "2026-10-24T14:14:21.4567311Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:14:22.6328965Z HEAD is now at 2e17eba Merge 0df7233c0f14f5a481889d914b5b96b70692bf12 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:14:22.8316153Z Successfully set up CPython (3.11.17)",
+        "2026-10-24T14:14:33.8129167Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T14:14:33.8787897Z ============== 552 passed, 1 skipped, 18 subtests passed in 5.48s =============="
+      ]
+    },
+    {
+      "pr": 20,
+      "source_head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "run": {
+        "id": 40101308879,
+        "event": "pull_request",
+        "head_sha": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101308879"
+      },
+      "job": {
+        "id": 120893847800,
+        "name": "pytest (ubuntu-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101308879,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:24.7026306Z ##[group]Operating System",
+        "2026-10-24T14:14:24.7027049Z Ubuntu",
+        "2026-10-24T14:14:24.7031762Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:14:26.1503354Z HEAD is now at 00347a0 Merge bcf47a2cb8a6200790f77aadf52292311eec3c09 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:14:26.3328353Z Successfully set up CPython (3.11.17)",
+        "2026-10-24T14:14:33.9655363Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]",
+        "2026-10-24T14:14:33.9664784Z tests/research/test_financial_evoformer.py::test_reject_pair_memory_before_allocation SKIPPED [ 45%]",
+        "2026-10-24T14:14:33.9674383Z tests/research/test_financial_evoformer.py::test_reject_nonfinite_and_mismatched_dtype SKIPPED [ 45%]",
+        "2026-10-24T14:14:36.0297755Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T14:14:36.0750733Z ======================== 561 passed, 4 skipped in 4.90s ========================"
+      ]
+    },
+    {
+      "pr": 20,
+      "source_head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "run": {
+        "id": 40101308879,
+        "event": "pull_request",
+        "head_sha": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101308879"
+      },
+      "job": {
+        "id": 120893847917,
+        "name": "pytest (ubuntu-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101308879,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:37.7230874Z ##[group]Operating System",
+        "2026-10-24T14:14:37.7231551Z Ubuntu",
+        "2026-10-24T14:14:37.7236099Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md",
+        "2026-10-24T14:14:39.2889530Z HEAD is now at 00347a0 Merge bcf47a2cb8a6200790f77aadf52292311eec3c09 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+        "2026-10-24T14:14:39.4621401Z Successfully set up CPython (3.13.16)",
+        "2026-10-24T14:14:46.4046890Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]",
+        "2026-10-24T14:14:46.4055578Z tests/research/test_financial_evoformer.py::test_reject_pair_memory_before_allocation SKIPPED [ 45%]",
+        "2026-10-24T14:14:46.4064077Z tests/research/test_financial_evoformer.py::test_reject_nonfinite_and_mismatched_dtype SKIPPED [ 45%]",
+        "2026-10-24T14:14:48.6502339Z tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services SKIPPED [ 98%]",
+        "2026-10-24T14:14:48.6934864Z ======================== 561 passed, 4 skipped in 4.66s ========================"
+      ]
+    },
+    {
+      "pr": 20,
+      "source_head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "run": {
+        "id": 40101308879,
+        "event": "pull_request",
+        "head_sha": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101308879"
+      },
+      "job": {
+        "id": 120893847974,
+        "name": "pytest (windows-latest, 3.13)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101308879,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:38.6958245Z ##[group]Operating System\r",
+        "2026-10-24T14:14:38.6958986Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:14:43.6856267Z HEAD is now at 00347a0 Merge bcf47a2cb8a6200790f77aadf52292311eec3c09 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:14:43.9494465Z Successfully set up CPython (3.13.16)\r",
+        "2026-10-24T14:15:23.1609599Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]\r",
+        "2026-10-24T14:15:23.1620509Z tests/research/test_financial_evoformer.py::test_reject_pair_memory_before_allocation SKIPPED [ 45%]\r",
+        "2026-10-24T14:15:23.1630587Z tests/research/test_financial_evoformer.py::test_reject_nonfinite_and_mismatched_dtype SKIPPED [ 45%]\r",
+        "2026-10-24T14:15:35.7681896Z ======================= 562 passed, 3 skipped in 35.13s =======================\r"
+      ]
+    },
+    {
+      "pr": 20,
+      "source_head": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "run": {
+        "id": 40101308879,
+        "event": "pull_request",
+        "head_sha": "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "tests",
+        "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40101308879"
+      },
+      "job": {
+        "id": 120893847998,
+        "name": "pytest (windows-latest, 3.11)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 40101308879,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install -e .[dev]",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Run python -m pytest -v",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Parse PowerShell scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          }
+        ]
+      },
+      "evidence": [
+        "2026-10-24T14:14:37.3771810Z ##[group]Operating System\r",
+        "2026-10-24T14:14:37.3772554Z Microsoft Windows Server 2025\r",
+        "2026-10-24T14:14:44.4413476Z HEAD is now at 00347a0 Merge bcf47a2cb8a6200790f77aadf52292311eec3c09 into 37ff7e9d12a4d2dccd788fc493c28557dbe8bcea\r",
+        "2026-10-24T14:14:44.7872569Z Successfully set up CPython (3.11.9)\r",
+        "2026-10-24T14:15:38.5498029Z tests/research/test_financial_evoformer.py::test_optional_model_forward_and_gradients SKIPPED [ 44%]\r",
+        "2026-10-24T14:15:38.5509493Z tests/research/test_financial_evoformer.py::test_reject_pair_memory_before_allocation SKIPPED [ 45%]\r",
+        "2026-10-24T14:15:38.5520392Z tests/research/test_financial_evoformer.py::test_reject_nonfinite_and_mismatched_dtype SKIPPED [ 45%]\r",
+        "2026-10-24T14:15:56.7510352Z ======================= 562 passed, 3 skipped in 48.56s =======================\r"
+      ]
+    }
+  ]
+}
