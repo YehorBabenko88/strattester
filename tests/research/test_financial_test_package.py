@@ -45,6 +45,12 @@ socket.socket.connect=deny;socket.create_connection=deny
 from strattester.research_cli import main
 status=main(sys.argv[2:])
 assert status==0
+from strattester.research.financial_funding import FundingWindow,FundingEvent
+from strattester.research.financial_evaluation import Trade,evaluate_ledger
+funding=FundingWindow('fixture/linear/TEST',0,20,20,'a'*64,(FundingEvent('fixture/linear/TEST','event',10,11,'25','bps'),))
+funded=evaluate_ledger([Trade(funding.instrument,0,20,0.,1)],funding_windows=(funding,))
+assert funded['returns']==[-.0025]
+assert funded['funding_status']=='RESEARCH_CONTRACT_ONLY_NOT_PRODUCER_AUTHENTICATED'
 for name,module in list(sys.modules.items()):
  if (name=='strattester' or name.startswith('strattester.') or name.startswith('research.alphafold_training')) and getattr(module,'__file__',None):
   assert Path(module.__file__).is_relative_to(root/'runtime'),(name,module.__file__)
