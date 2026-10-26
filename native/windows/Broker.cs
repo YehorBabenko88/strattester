@@ -14,6 +14,22 @@ namespace StratTester.Native {
     internal static class Broker {
         internal const string Missing = "owner_signature_verifier,filesystem_confinement,network_egress,output_bounds,disposable_vm_verification";
         public static int Main(string[] args) {
+            if (args.Length > 0 && args[0] == "--owned-network-probe" && HostedVm()) return WfpComponent.Probe(args);
+            if (args.Length > 0 && args[0] == "--selftest-wfp") {
+                if (args.Length != 2 || args[1] != "COMPONENT_TESTS_ONLY" || !HostedVm()) {
+                    Console.WriteLine("{\"status\":\"REFUSED\",\"reason\":\"DISPOSABLE_HOSTED_VM_REQUIRED\",\"research_process_created\":false}");
+                    return 78;
+                }
+                try {
+                    WfpComponent.Run();
+                    Console.WriteLine("{\"status\":\"WFP_OWNED_SOCKET_COMPONENT_PASS\",\"native_enforcement\":false,\"research_process_created\":false,\"dns_service_proxy\":\"NOTIMPLEMENTED\",\"arbitrary_child_identity\":\"NOTIMPLEMENTED\"}");
+                    return 0;
+                } catch (Exception error) {
+                    var nativeError = error as Win32Exception;
+                    Console.WriteLine("{\"status\":\"WFP_OWNED_SOCKET_COMPONENT_FAIL\",\"phase\":\"" + WfpComponent.Phase + "\",\"error_type\":\"" + error.GetType().Name + "\",\"win32_error\":" + (nativeError == null ? 0 : nativeError.NativeErrorCode) + ",\"native_enforcement\":false,\"research_process_created\":false}");
+                    return 1;
+                }
+            }
             if (args.Length == 2 && args[0] == "--owned-probe" && args[1] == "COMPONENT_TESTS_ONLY" && HostedVm()) {
                 System.Threading.Thread.Sleep(30000);
                 return 42;
