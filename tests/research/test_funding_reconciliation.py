@@ -16,6 +16,11 @@ class FundingReconciliationTests(unittest.TestCase):
         result = reconcile_funding([Trade("SOL", 10, 20, .01, 1)], [], fee_bps=10)
         self.assertAlmostEqual(result["net_returns"][0], .008)
 
+    def test_duplicate_unused_funding_rejected(self):
+        event = FundingEvent("ETH", 100, .001)
+        with self.assertRaises(ValueError):
+            reconcile_funding([Trade("SOL", 10, 20, .01, 1)], [event, event])
+
     def test_duplicate_funding_rejected(self):
         event = FundingEvent("SOL", 15, .001)
         with self.assertRaises(ValueError):
