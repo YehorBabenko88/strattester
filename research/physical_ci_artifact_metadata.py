@@ -18,6 +18,7 @@ def verify_artifact_metadata(items, *, head, run_id):
         return {"status": "BLOCKED", "errors": errors + ["invalid_artifacts"]}
     seen = set()
     artifact_ids = set()
+    digests = set()
     for index, item in enumerate(items):
         if type(item) is not dict:
             errors.append(f"invalid_item_{index}")
@@ -41,8 +42,10 @@ def verify_artifact_metadata(items, *, head, run_id):
         else:
             artifact_ids.add(artifact_id)
         digest = item.get("digest")
-        if type(digest) is not str or not DIGEST.fullmatch(digest):
+        if type(digest) is not str or not DIGEST.fullmatch(digest) or digest in digests:
             errors.append(f"digest_{index}")
+        else:
+            digests.add(digest)
         if type(item.get("size_in_bytes")) is not int or item["size_in_bytes"] <= 0:
             errors.append(f"size_{index}")
         if item.get("expired") is not False:
