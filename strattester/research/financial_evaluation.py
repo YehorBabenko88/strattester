@@ -16,14 +16,19 @@ class Trade:
     position: int
 
 
-def evaluate_ledger(trades, *, fee_bps=0., slippage_bps=0., funding_bps=0.):
+def evaluate_ledger(trades, *, fee_bps=0., slippage_bps=0., funding_bps=0., funding_windows=None):
     """Independent entry/exit for each disjoint label; liquidate every horizon.
 
     Funding is an explicit flat nonnegative per-horizon charge supplied by the evaluator,
     not a fabricated exchange schedule. No leveraged fills are simulated.
+    Opt-in funding_windows replaces that flat charge with bounded software-only
+    signed settlement bps on fixed entry notional; it supplies no producer proof.
     """
+    trades=list(trades)
     costs=[finite(v,'cost') for v in (fee_bps,slippage_bps,funding_bps)]
     if any(v<0 for v in costs) or not trades:raise ValueError('costs/nonempty ledger')
+    if funding_windows is not None and funding_bps != 0:
+        raise ValueError('cannot combine flat funding charge and funding events')
     previous={};returns=[];turnover=0
     for trade in sorted(trades,key=lambda x:(x.start_ns,x.instrument)):
         integer(trade.start_ns,'start');integer(trade.end_ns,'end',1)
@@ -33,8 +38,15 @@ def evaluate_ledger(trades, *, fee_bps=0., slippage_bps=0., funding_bps=0.):
         previous[trade.instrument]=trade.end_ns
         changed=2*abs(trade.position);turnover+=changed
         returns.append(trade.position*trade.simple_return-changed*(fee_bps+slippage_bps)/10000-abs(trade.position)*funding_bps/10000)
+    if funding_windows is not None:
+        from .financial_funding import funding_adjustments
+        adjustments=funding_adjustments(sorted(trades,key=lambda x:(x.start_ns,x.instrument)),funding_windows)
+        returns=[value+adjustment for value,adjustment in zip(returns,adjustments)]
     if not all(math.isfinite(v) for v in returns):raise ValueError('nonfinite ledger return')
-    return {'returns':returns,'turnover':turnover,'mean':mean(returns),'accounting':'simple-return, independent round trips; no leveraged portfolio simulator'}
+    report={'returns':returns,'turnover':turnover,'mean':mean(returns),'accounting':'simple-return, independent round trips; no leveraged portfolio simulator'}
+    if funding_windows is not None:
+        report['funding_status']='RESEARCH_CONTRACT_ONLY_NOT_PRODUCER_AUTHENTICATED'
+    return report
 
 
 def gaussian_scores(mu,scale,targets):
