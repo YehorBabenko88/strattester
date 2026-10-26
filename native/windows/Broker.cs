@@ -14,6 +14,7 @@ namespace StratTester.Native {
     internal static class Broker {
         internal const string Missing = "owner_signature_verifier,filesystem_confinement,network_egress,output_bounds,disposable_vm_verification";
         public static int Main(string[] args) {
+            if (args.Length > 0 && (args[0] == "--verify-owner" || args[0] == "--owner-vm-identity")) return OwnerIntent.Dispatch(args);
             if (args.Length > 0 && args[0] == "--owned-handle-probe" && HostedVm()) return ProbeEnvironment.IsMinimal() ? HandleComponent.Probe(args) : 103;
             if (args.Length > 0 && args[0] == "--selftest-handles") {
                 if (args.Length != 2 || args[1] != "COMPONENT_TESTS_ONLY" || !HostedVm()) {

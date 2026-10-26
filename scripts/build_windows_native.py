@@ -18,6 +18,7 @@ import zipfile
 PACKAGES = (
     ("microsoft.net.compilers", "3.11.0", "e4a540a9cb41d15e6e1cc05fa2cadb847454df9ebe49d683cded2780506ef880"),
     ("microsoft.netframework.referenceassemblies.net472", "1.0.3", "ffa0a5570a39f911399164d0581ffddef99b5e3dfbaa5f220e5ce22969bcf57c"),
+    ("bouncycastle.cryptography", "2.7.0", "f091ffccab4d03993e660bace277659a79dee0972f54d7f1f4bd46d680966241"),
 )
 
 
@@ -73,11 +74,25 @@ def build(root, output, cache):
         unpacked.append(destination)
     compiler = unpacked[0] / "tools/csc.exe"
     references = unpacked[1] / "build/.NETFramework/v4.7.2"
+    crypto = unpacked[2] / "lib/net461/BouncyCastle.Cryptography.dll"
+    identity = {"source_sha": "0" * 40, "tree_sha": "0" * 40, "dirty": True}
+    try:
+        def git(*args):
+            return subprocess.run(['git', '-C', str(root), *args], check=True, capture_output=True, text=True).stdout.strip()
+        identity = dict(source_sha=git('rev-parse', 'HEAD'), tree_sha=git('rev-parse', 'HEAD^{tree}'), dirty=bool(git('status', '--porcelain')))
+    except subprocess.CalledProcessError:
+        pass  # Unversioned source may build components, never owner admission.
     output.mkdir(parents=True, exist_ok=True)
     source = root / "native/windows/Broker.cs"
     sources = sorted((root / "native/windows").glob("*.cs"))
     binaries = []
     with tempfile.TemporaryDirectory(prefix="native-rebuild-", dir=output) as scratch:
+        context = Path(scratch) / 'BuildIdentity.cs'
+        context.write_text('namespace StratTester.Native { internal static class BuildIdentity {'
+            + 'internal const string SourceSha="' + identity['source_sha'] + '";'
+            + 'internal const string TreeSha="' + identity['tree_sha'] + '";'
+            + 'internal static readonly bool Dirty=' + str(identity['dirty']).lower() + ';'
+            + 'internal const string CryptoSha256="' + sha256(crypto) + '";}}', encoding='ascii')
         for iteration in ("one", "two"):
             folder = Path(scratch) / iteration
             folder.mkdir()
@@ -86,7 +101,8 @@ def build(root, output, cache):
                        "/platform:x64", "/optimize+", "/deterministic+", "/debug-",
                        "/warnaserror+", "/langversion:7.3", "/out:" + str(binary),
                        "/reference:" + str(references / "mscorlib.dll"),
-                       "/reference:" + str(references / "System.dll")] + [str(path) for path in sources]
+                       "/reference:" + str(references / "System.dll"),
+                       "/resource:" + str(crypto) + ",StratTester.BouncyCastle.dll", str(context)] + [str(path) for path in sources]
             subprocess.run(command, check=True, cwd=root)
             binaries.append(binary.read_bytes())
         if binaries[0] != binaries[1]:
@@ -98,6 +114,8 @@ def build(root, output, cache):
                 "deterministic_rebuild_equal": True, "target": "net472-windows-x64",
                 "packages": [{"id": n, "version": v, "sha256": h} for n, v, h in PACKAGES],
                 "native_enforcement": False, "component_tests": "NOTRUN", "research_execution": "BLOCKED"}
+    manifest.update(identity)
+    manifest['embedded_verifier_sha256'] = sha256(crypto)
     (output / "build-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(manifest, sort_keys=True))
 
