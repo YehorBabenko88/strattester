@@ -70,6 +70,8 @@ def funding_adjustments(trades, windows):
     """One complete caller-asserted window per exact instrument; (entry, exit]."""
     if type(windows) is not tuple or not 1 <= len(windows) <= 256:
         raise ValueError('BLOCKED: missing/bounded funding coverage required')
+    if sum(len(w.events) for w in windows if type(w) is FundingWindow and type(w.events) is tuple)>10000:
+        raise ValueError('aggregate funding event budget')
     by_instrument={}
     for window in windows:
         if type(window) is not FundingWindow:raise ValueError('invalid funding window')

@@ -27,6 +27,10 @@ def test_v2_rejects_extra_keys_boolean_limits_and_excess_input_budget():
     from strattester.research.financial_owner_intent_v2 import canonical_owner_intent
     p=payload();p['extra']=0
     with pytest.raises(ValueError):canonical_owner_intent(p,now_ns=150)
+    p=payload();p['limits']['cpu_percent']=True
+    with pytest.raises(ValueError):canonical_owner_intent(p,now_ns=150)
+    p=payload();p['input_hashes']={str(i):'f'*64 for i in range(65)}
+    with pytest.raises(ValueError):canonical_owner_intent(p,now_ns=150)
 
 
 @pytest.mark.parametrize('field', ['cpu_percent','memory_bytes','wall_seconds','output_bytes','max_processes'])
@@ -46,8 +50,4 @@ def test_owner_exact_expiry_and_input_hash_bounds():
     p['expires_at_ns']=p['issued_at_ns']+600_000_000_001
     with pytest.raises(ValueError):canonical_owner_intent(p,now_ns=150)
     p=payload();p['input_hashes']['package']='0'*64
-    with pytest.raises(ValueError):canonical_owner_intent(p,now_ns=150)
-    p=payload();p['limits']['cpu_percent']=True
-    with pytest.raises(ValueError):canonical_owner_intent(p,now_ns=150)
-    p=payload();p['input_hashes']={str(i):'f'*64 for i in range(65)}
     with pytest.raises(ValueError):canonical_owner_intent(p,now_ns=150)

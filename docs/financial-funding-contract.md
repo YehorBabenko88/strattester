@@ -21,7 +21,7 @@ Rates are bounded decimal strings with explicit unit `bps`. Positive rates mean
 longs pay shorts; negative rates reverse the transfer. Cash return adjustment is
 `-position * sum(rate_bps / 10000)` on fixed entry notional. Flat positions pay
 zero. Rates are bounded to absolute 10000 bps as a research input limit, not an
-exchange claim. Windows are bounded to 256 and events to 10000 per window;
+exchange claim. Windows are bounded to 256 and events to 10000 in total;
 identity strings and decimal inputs have length limits. Duplicate event IDs or
 settlement timestamps within an instrument are rejected. Settlements must lie
 within coverage, availability must be at or after settlement, and both coverage

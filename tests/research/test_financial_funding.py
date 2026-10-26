@@ -75,3 +75,24 @@ def test_bounded_contract_rejects_duplicate_windows_and_future_coverage():
     with pytest.raises(ValueError):evaluate_ledger([trade],funding_windows=(window(),window()))
     with pytest.raises(ValueError):replace(window(),as_of_ns=19).validate()
     with pytest.raises(ValueError):replace(window(),source_sha256='not evidence').validate()
+
+
+def test_funding_admission_bounds_total_events_across_instruments():
+    from strattester.research.financial_funding import FundingEvent, FundingWindow
+    windows=tuple(FundingWindow(instrument,0,6000,6000,'a'*64,
+        tuple(FundingEvent(instrument,str(t),t,t,'0','bps') for t in range(1,5002)))
+        for instrument in ('venue/linear/A','venue/linear/B'))
+    trades=[Trade(w.instrument,0,6000,0.,1) for w in windows]
+    with pytest.raises(ValueError,match='aggregate funding event budget'):
+        evaluate_ledger(trades,funding_windows=windows)
+
+
+def test_funding_cancelling_settlements_match_decimal_under_permutation():
+    from itertools import permutations
+    events=tuple(replace(window().events[0],event_id=str(i),settlement_ns=i,available_ns=i,rate=rate)
+                 for i,rate in enumerate(('10000','0.000000000001','-10000'),1))
+    expected=-sum((Decimal(e.rate)/Decimal(10000) for e in events),Decimal(0))
+    trade=Trade(window().instrument,0,20,0.,1)
+    for ordered in permutations(events):
+        report=evaluate_ledger([trade],funding_windows=(window(ordered),))
+        assert report['returns'][0]==pytest.approx(float(expected),rel=1e-14,abs=1e-30)
