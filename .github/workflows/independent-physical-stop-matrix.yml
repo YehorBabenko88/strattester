@@ -4,6 +4,8 @@ on:
     paths:
       - 'research/physical_g1_stop_matrix.py'
       - 'research/test_physical_g1_stop_matrix.py'
+      - 'research/physical_ci_artifact_metadata.py'
+      - 'research/test_physical_ci_artifact_metadata.py'
       - '.github/workflows/independent-physical-stop-matrix.yml'
   workflow_dispatch:
 permissions:
@@ -25,6 +27,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Compile
-        run: python -m py_compile research/physical_g1_stop_matrix.py research/test_physical_g1_stop_matrix.py
+        run: python -m py_compile research/physical_g1_stop_matrix.py research/test_physical_g1_stop_matrix.py research/physical_ci_artifact_metadata.py research/test_physical_ci_artifact_metadata.py
       - name: Execute non-authorizing regressions
-        run: python -m unittest discover -s research -p test_physical_g1_stop_matrix.py -v
+        run: python -m unittest discover -s research -p test_physical_*.py -v
