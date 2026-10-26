@@ -14,6 +14,10 @@ import tempfile
 from .financial_contract import integer
 from .financial_snapshot import verified_bytes, bounded_json
 
+# This key's private seed is intentionally distributed with software fixtures.
+# Renaming its producer/key IDs cannot turn it into real producer authority.
+PUBLIC_SOFTWARE_FIXTURE_KEYS=frozenset((bytes.fromhex('3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c'),))
+
 
 def decode64(value,size):
     if type(value) is not str or len(value)>4*((size+2)//3):raise ValueError('invalid base64 size')

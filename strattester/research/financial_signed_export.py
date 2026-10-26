@@ -8,7 +8,7 @@ from hashlib import sha256
 from pathlib import Path
 from .financial_contract import Instrument,Bar,Snapshot,integer,digest
 from .financial_snapshot import canonical_bytes,bounded_json,verified_bytes,load_snapshot
-from .financial_signatures import OpenSSLVerifier,load_trust_store,decode64
+from .financial_signatures import OpenSSLVerifier,load_trust_store,decode64,PUBLIC_SOFTWARE_FIXTURE_KEYS
 
 SIGNATURE_DOMAIN=b'STRATTESTER_GRID_EXPORT_V1\x00'
 SNAPSHOT_SCHEMA_SHA256=sha256(canonical_bytes({'version':1,'Instrument':[f.name for f in fields(Instrument)],'Bar':[f.name for f in fields(Bar)],'Snapshot':[f.name for f in fields(Snapshot)]})).hexdigest()
@@ -98,6 +98,8 @@ def load_attested_export(*,manifest_path,manifest_sha256,snapshot_path,trust_sto
     trust=load_trust_store(trust_store_path,trust_store_sha256);check()
     key=trust.key(m['producer_id'],m['key_id'],m['issued_at_ns'])
     trust.key(m['producer_id'],m['key_id'],policy.verification_ns)
+    if policy.scope=='PRODUCER_ATTESTED_RESEARCH' and key in PUBLIC_SOFTWARE_FIXTURE_KEYS:
+        raise ValueError('public fixture key cannot authenticate real producer research')
     unsigned={k:v for k,v in m.items() if k!='signature_b64'}
     verifier.verify(key,SIGNATURE_DOMAIN+canonical_bytes(unsigned),decode64(m['signature_b64'],64));check()
     if type(m['sources']) is not list or len(m['sources'])!=len(policy.sources):raise ValueError('source membership')
