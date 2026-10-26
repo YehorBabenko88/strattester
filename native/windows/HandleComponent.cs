@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace StratTester.Native {
     // Explicit Unicode allowlist; no CI tokens, credentials, PATH or COMSPEC.
@@ -41,9 +42,12 @@ namespace StratTester.Native {
                 if (Native.GetFileInformationByHandle(canary, out info) && info.Volume == volume && info.IndexHigh == high && info.IndexLow == low) return 112;
                 byte[] data = new byte[4]; uint count;
                 if (!Native.ReadFile(input, data, 4, out count, IntPtr.Zero) || count != 3 || data[0] != 97 || data[1] != 98 || data[2] != 99) return 113;
-                // A zero-byte write checks granted access without modifying data.
+                // This deliberately attempts a one-byte mutation of the owned
+                // disposable fixture. Success is a failure, never isolation.
+                long position;
+                if (!Native.SetFilePointerEx(input, 0, out position, 0) || position != 0) return 115;
                 uint written;
-                if (Native.WriteFile(input, new byte[0], 0, out written, IntPtr.Zero) || Marshal.GetLastWin32Error() != 5) return 114;
+                if (Native.WriteFile(input, new byte[] { 120 }, 1, out written, IntPtr.Zero) || Marshal.GetLastWin32Error() != 5) return 114;
                 return 110;
             }
         }
@@ -70,7 +74,12 @@ namespace StratTester.Native {
                         }
                     }
                 }
-                if (File.ReadAllText(inputPath) != "abc") throw new InvalidOperationException("Read-only fixture changed");
+                using (var file = File.OpenRead(inputPath))
+                using (var sha = SHA256.Create()) {
+                    if (file.Length != 3 || BitConverter.ToString(sha.ComputeHash(file)).Replace("-", "").ToLowerInvariant() !=
+                        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+                        throw new InvalidOperationException("Read-only fixture changed");
+                }
             } finally {
                 if (File.Exists(inputPath)) File.Delete(inputPath);
                 if (File.Exists(canaryPath)) File.Delete(canaryPath);
