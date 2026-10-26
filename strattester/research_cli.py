@@ -31,6 +31,9 @@ def parser():
     fixture=sub.add_parser('prepare-walk-forward')
     for flag in ('output','openssl-exe','openssl-sha256','scratch-root'):fixture.add_argument('--'+flag,required=True)
     fixture.add_argument('--seed',type=int,default=31)
+    inventory=sub.add_parser('verify-executables')
+    inventory.add_argument('--manifest',required=True)
+    inventory.add_argument('--manifest-sha256',required=True)
     return p
 
 def _required(a,names):
@@ -63,7 +66,10 @@ def _profile(path,expected_sha256):
 def main(argv=None):
     a=parser().parse_args(argv)
     try:
-        if a.command=='prepare-walk-forward':
+        if a.command=='verify-executables':
+            from .research.financial_executable_inventory import verify_executable_inventory
+            result=verify_executable_inventory(a.manifest,a.manifest_sha256)
+        elif a.command=='prepare-walk-forward':
             from .research.financial_walkforward_fixture import prepare_walkforward_fixture
             v=_verifier(a)
             result=prepare_walkforward_fixture(a.output,openssl_exe=v.executable,openssl_sha256=v.executable_sha256,scratch_root=v.scratch_root,seed=a.seed)
