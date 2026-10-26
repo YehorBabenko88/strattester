@@ -10,7 +10,7 @@ REQUIRED = frozenset({"core", "data", "training", "security", "math", "cpu",
 def verify_artifact_metadata(items, *, head, run_id):
     """Validate GitHub API metadata only, not downloaded ZIP bytes."""
     errors = []
-    if not isinstance(head, str) or not SHA.fullmatch(head):
+    if type(head) is not str or not SHA.fullmatch(head):
         errors.append("invalid_head")
     if type(run_id) is not int or run_id <= 0:
         errors.append("invalid_run_id")
@@ -26,9 +26,12 @@ def verify_artifact_metadata(items, *, head, run_id):
             errors.append(f"name_{index}")
             continue
         prefix = name[:-(len(head) + 1)]
-        if prefix.startswith("financial-"):
-            prefix = prefix[len("financial-"):]
-        if prefix not in REQUIRED or prefix in seen:
+        expected_names = {("native-component-proof" if kind == "native-component-proof" else "financial-" + kind): kind for kind in REQUIRED}
+        if prefix not in expected_names:
+            errors.append(f"unknown_or_duplicate_{index}")
+            continue
+        prefix = expected_names[prefix]
+        if prefix in seen:
             errors.append(f"unknown_or_duplicate_{index}")
         seen.add(prefix)
         digest = item.get("digest")
