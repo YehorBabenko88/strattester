@@ -9,7 +9,7 @@
 - These are GitHub refs observed at audit start, not proof of physical Grid PostgreSQL schema or math executable parity.
 
 ## Independent tests
-`research/test_independent_system_math_20261026.py` tests Decimal-vs-float64 log returns and telescoping, sample/population volatility, Decimal Gaussian NLL, simplified roundtrip ledger, target horizon, causal prefix invariance, duplicate events and future availability. Fixed random seed. Hosted matrix Windows/Linux Python 3.11/3.13 publishes JUnit.
+`research/test_independent_system_math_20261026.py` tests Decimal-vs-float64 log returns and telescoping, sample/population volatility, Decimal Gaussian NLL, simplified roundtrip ledger, target horizon, causal prefix invariance, duplicate events and future availability. Additional negative cases reject NaN/Inf/zero prices, duplicate/out-of-order timestamps and test price-scale metamorphic invariance. Fixed random seed. Hosted matrix Windows/Linux Python 3.11/3.13 publishes JUnit.
 
 ## Equations
 `r_t=ln(P_t)-ln(P_(t-1))`, `R_t=expm1(r_t)`; sample sigma `sqrt(sum((r-mean)^2)/(n-1))`; Gaussian NLL `ln(sigma)+(y-mu)^2/(2 sigma^2)+0.5 ln(2 pi)` for positive standard deviation. Independent roundtrip cash score `position*simple_return - 2|position|(fee+slippage)/10000 - |position|funding/10000` is not a portfolio simulator.
