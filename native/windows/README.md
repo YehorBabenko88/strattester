@@ -46,15 +46,23 @@ read/execute access; the profile does not provide a writable output directory.
 The experiment requests LPAC through
 `PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY` and a
 `SECURITY_CAPABILITIES` structure containing no capabilities. It uses a
-privilege-removed token, the child-process restriction, an atomic job-list
+restricted token retaining only `SeChangeNotifyPrivilege`, the child-process restriction, an atomic job-list
 attribute, and a handle list containing only retained read-only stdin and one
 combined stdout/stderr pipe. It creates the child suspended and independently
-checks its token identity, zero privileges, zero capabilities, LPAC state and
+checks its token identity, the exact `SeChangeNotifyPrivilege` LUID and enabled
+attributes, zero capabilities, LPAC state and
 job limits before resume. Every runtime leaf is held with denied write/delete
 sharing during execution. A bounded capture reader kills the job on output
 overflow; wall time, cancellation and error paths terminate and reap the child.
 Job configuration includes kill-on-close, one active process, CPU time, CPU rate
 and total committed job memory. Configuration alone is not enforcement proof.
+
+The one retained privilege bypasses directory traversal checks; it does not grant
+file read, directory listing, creation, write or deletion. The zero-privilege
+LPAC failed before Python entry; the hosted experiment tests whether restoring
+traversal alone permits the private runtime beneath ordinary user ancestors.
+No shared ancestor or Windows directory ACL is widened. The older
+zero-privilege component remains separate; its count must still be zero.
 
 The owned malicious payload attempts input/canary/profile reads and writes,
 IPv4/IPv6 TCP/UDP/loopback, DNS through `DnsQueryEx`, parent-process access,

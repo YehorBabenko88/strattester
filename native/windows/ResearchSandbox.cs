@@ -50,7 +50,7 @@ namespace StratTester.Native {
             if (!Native.DuplicateHandle(Native.GetCurrentProcess(), input.Leaf, Native.GetCurrentProcess(), out inheritedInput, 0x80000000u, true, 0)) throw new Win32Exception(Marshal.GetLastWin32Error());
             using (inheritedInput)
             using (var runtimeSeal = SealedRuntime.Open(Path.GetDirectoryName(image)))
-            using (var token = PreparedComponents.CreatePrivilegeRemovedToken())
+            using (var token = CreateResearchToken())
             using (var job = PreparedComponents.CreateBoundedJob(limits.MemoryBytes, limits.CpuRate, limits.CpuTime100ns))
             using (var environment = new SandboxEnvironment(profile.Folder)) {
                 KernelHandle outputRead, outputWrite;
@@ -119,6 +119,27 @@ namespace StratTester.Native {
                     }
                 }
             }
+        }
+        private static KernelHandle CreateResearchToken() {
+            KernelHandle original;
+            if (!Native.OpenProcessToken(Native.GetCurrentProcess(), 0x0002 | 0x0008 | 0x0001 | 0x0020, out original)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            using (original) {
+                KernelHandle restricted;
+                // Preserve only the API's deliberate SeChangeNotify exception:
+                // bypass traverse checking, never file read/list/write access.
+                // No shared ancestor ACL is changed to let the runtime traverse.
+                if (!Native.CreateRestrictedToken(original, 1, 0, IntPtr.Zero, 0, IntPtr.Zero, 0, IntPtr.Zero, out restricted)) throw new Win32Exception(Marshal.GetLastWin32Error());
+                try { VerifyResearchPrivileges(restricted); return restricted; } catch { restricted.Dispose(); throw; }
+            }
+        }
+        internal static void VerifyResearchPrivileges(KernelHandle token) {
+            long expected;
+            if (!SandboxNative.LookupPrivilegeValue(null, "SeChangeNotifyPrivilege", out expected)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            IntPtr data = Native.ReadTokenPrivileges(token);
+            try {
+                if (Marshal.ReadInt32(data) != 1 || Marshal.ReadInt64(data, 4) != expected || (Marshal.ReadInt32(data, 12) & 2) == 0 || (Marshal.ReadInt32(data, 12) & ~3) != 0)
+                    throw new InvalidOperationException("Research privilege allowlist mismatch");
+            } finally { Marshal.FreeHGlobal(data); }
         }
         private sealed class SealedRuntime : IDisposable {
             private readonly List<LockedInput> files = new List<LockedInput>();

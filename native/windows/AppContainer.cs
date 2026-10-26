@@ -79,9 +79,7 @@ namespace StratTester.Native {
                     IntPtr sid = Marshal.ReadIntPtr(data);
                     if (sid == IntPtr.Zero || new SecurityIdentifier(sid).Value != SidText) throw new InvalidOperationException("Wrong package identity");
                 } finally { Marshal.FreeHGlobal(data); }
-                VerificationPhase = "QUERY_CHILD_PRIVILEGES"; data = Native.ReadTokenPrivileges(token);
-                try { if (Marshal.ReadInt32(data) != 0) throw new InvalidOperationException("Child privileges remain"); }
-                finally { Marshal.FreeHGlobal(data); }
+                VerificationPhase = "QUERY_CHILD_PRIVILEGES"; ResearchSandbox.VerifyResearchPrivileges(token);
             }
             uint flags;
             VerificationPhase = "QUERY_CHILD_POLICY";
@@ -178,6 +176,7 @@ namespace StratTester.Native {
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool ConvertStringSecurityDescriptorToSecurityDescriptor(string text, uint revision, out IntPtr descriptor, out uint length);
         [DllImport("advapi32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool AccessCheck(IntPtr descriptor, KernelHandle token, uint desired, ref GenericMapping mapping, IntPtr privileges, ref uint bytes, out uint granted, [MarshalAs(UnmanagedType.Bool)] out bool status);
         [DllImport("kernel32.dll")] internal static extern IntPtr LocalFree(IntPtr memory);
+        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool LookupPrivilegeValue(string system, string name, out long luid);
         [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool GetProcessMitigationPolicy(IntPtr process, int policy, out uint value, UIntPtr bytes);
         [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool CreatePipe(out KernelHandle read, out KernelHandle write, ref SecurityAttributes security, uint bytes);
         [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool SetHandleInformation(KernelHandle handle, uint mask, uint flags);

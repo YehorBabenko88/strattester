@@ -42,7 +42,16 @@ def guard():
             if not 4 <= returned.value <= 1048576:
                 raise RuntimeError("token size")
             buffer = c.create_string_buffer(returned.value)
-            if not a.GetTokenInformation(token, kind, buffer, len(buffer), c.byref(returned)) or w.DWORD.from_buffer(buffer).value:
+            if not a.GetTokenInformation(token, kind, buffer, len(buffer), c.byref(returned)):
+                raise c.WinError(c.get_last_error())
+            if kind == 3:
+                a.LookupPrivilegeValueW.argtypes = [w.LPCWSTR, w.LPCWSTR, c.POINTER(c.c_longlong)]
+                expected = c.c_longlong()
+                if not a.LookupPrivilegeValueW(None, "SeChangeNotifyPrivilege", c.byref(expected)):
+                    raise c.WinError(c.get_last_error())
+                if w.DWORD.from_buffer(buffer).value != 1 or c.c_longlong.from_buffer(buffer, 4).value != expected.value or w.DWORD.from_buffer(buffer, 12).value & 2 == 0 or w.DWORD.from_buffer(buffer, 12).value & ~3:
+                    raise RuntimeError("privilege allowlist")
+            elif w.DWORD.from_buffer(buffer).value:
                 raise RuntimeError("token capabilities or privileges")
     finally:
         k.CloseHandle(token)
