@@ -104,3 +104,18 @@ def test_session_offline_actual_inference_has_no_network(tmp_path,monkeypatch):
     monkeypatch.setattr(socket,'create_connection',lambda *a,**k:pytest.fail('network accessed'))
     from strattester.research.financial_session import run_session
     assert run_session(s,enable_research=True)['status']=='RESEARCH_PREDICTION'
+
+def test_disposable_cli_rejects_caller_selected_verification_clock():
+    from strattester.research_cli import parser
+    with pytest.raises(SystemExit):parser().parse_args(['test-disposable','--now-ns','1'])
+
+def test_connected_profile_relative_database_uses_profile_directory_not_cwd(tmp_path):
+    from strattester.research_cli import _profile
+    from strattester.research.financial_snapshot import canonical_bytes
+    folder=tmp_path/'package';folder.mkdir();(folder/'history.db').write_bytes(b'db')
+    raw=dict(kind='SEALED_VERSIONED_HISTORY_V1',coherence_epoch_id='epoch',knowledge_cutoff_ns=1,scope='SYNTHETIC_ENGINEERING_ONLY',sources=[dict(source_id='one',engine='sqlite',location='history.db',snapshot_id='cut',seal_sha256='a'*64,partitions=[dict(exchange='bybit',market_type='linear',symbol='BTCUSDT',timeframe_ns=1)])])
+    data=canonical_bytes(raw);path=folder/'profile.json';path.write_bytes(data)
+    profile=_profile(path,sha256(data).hexdigest())
+    assert profile.sources[0].location==str(folder/'history.db')
+    raw['sources'][0]['location']='../history.db';data=canonical_bytes(raw);path.write_bytes(data)
+    with pytest.raises(ValueError,match='path'):_profile(path,sha256(data).hexdigest())

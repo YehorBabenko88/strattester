@@ -33,7 +33,9 @@ Connected research requires `run --mode connected --enable-research --profile
 PROFILE_JSON --profile-sha256 EXTERNAL_PIN --export-metadata METADATA_JSON
 --export-metadata-sha256 EXTERNAL_PIN --connected-output NEW_DIRECTORY`.
 The profile encodes HistoryProfile and HistorySource records, including externally
-pinned history seals and explicit source locations. Metadata contains producer_id,
+pinned history seals and explicit source locations. Relative SQLite/sharded SQLite
+locations must be plain filenames and are resolved from the pinned profile directory;
+absolute locations are explicit operator inputs and linked paths are rejected. Metadata contains producer_id,
 producer_build_sha, key_id, export_id and issued_at_ns. Only the controlled read-only
 sealed versioned history exporter runs. A normal export stops at
 AWAITING_PRODUCER_SIGNATURE; no unsigned inference route exists. An explicit
@@ -42,7 +44,8 @@ the same signature verification, checkpoint and registry inference path. Native
 Grid latest-state schemas remain BLOCKED before database access.
 
 `test-disposable` requires every owner plan/signature/trust/hash/identity input.
-Even a verified owner signature is necessary but insufficient: independent native
+The CLI always uses its current system clock for owner verification; callers cannot
+select a past verification time. Even a verified owner signature is necessary but insufficient: independent native
 all-controls evidence is unavailable, so this command returns BLOCKED and never
 launches the broker or consumes an authorization nonce. `--launch` does not alter
 that rule. Physical G1 remains NOT_AUTHORIZED; trading remains NO-GO.
