@@ -129,9 +129,23 @@ def test_disposable_postgres_mvcc_and_seals(tmp_path, monkeypatch):
                 for row in rows:con.execute('INSERT INTO history_rows VALUES (%s)',(canonical_bytes(row).decode(),))
             source=replace(source,engine='postgresql',location=dsn)
             original=module._reader
+            # Exercise transfer bounds directly, independently of the exporter's
+            # already-bounded same-MVCC count/byte preflight.
+            with psycopg.connect(dsn) as writer:
+                with writer.cursor() as cursor:cursor.executemany('INSERT INTO history_rows VALUES (%s)',[('{}',)]*1024)
+            with original(source,lambda:False) as execute:
+                cursor=execute('SELECT payload FROM history_rows LIMIT 1027')
+                assert getattr(cursor,'name',None), 'history transfer must use named server cursor'
+                assert cursor.itersize==1
+                observed=0
+                for transferred in cursor:
+                    observed+=1
+                    assert cursor.pgresult is None or cursor.pgresult.ntuples<=1
+                assert observed==1026
+            with psycopg.connect(dsn) as writer:writer.execute("DELETE FROM history_rows WHERE payload='{}'")
             @contextmanager
-            def concurrent_reader(s,check):
-                with original(s,check) as execute:
+            def concurrent_reader(s,check,**limits):
+                with original(s,check,**limits) as execute:
                     assert execute('SHOW transaction_isolation').fetchone()[0]=='repeatable read'
                     assert execute('SHOW transaction_read_only').fetchone()[0]=='on'
                     execute('SELECT payload FROM history_meta').fetchone() # establish MVCC snapshot
@@ -181,8 +195,8 @@ def test_sqlite_wal_concurrent_writer_keeps_sealed_read_view(tmp_path,monkeypatc
     source,rows,_=fixture(tmp_path)
     original=module._reader
     @contextmanager
-    def concurrent_reader(s,check):
-        with original(s,check) as execute:
+    def concurrent_reader(s,check,**limits):
+        with original(s,check,**limits) as execute:
             assert execute('PRAGMA query_only').fetchone()[0]==1
             execute('SELECT payload FROM history_meta').fetchone()
             with sqlite3.connect(s.location) as writer:
@@ -274,3 +288,34 @@ def test_export_sign_export_retry_and_sign_retry_keep_base_immutable(tmp_path,co
     conflicting_before={p.name:p.read_bytes() for p in first[0].parent.iterdir()}
     with pytest.raises(ValueError):sign_rfc_test_export(recovered,**arguments)
     assert {p.name:p.read_bytes() for p in first[0].parent.iterdir()}==conflicting_before
+
+
+def test_sqlite_helper_rejects_oversized_cell_before_python_decode(tmp_path):
+    import strattester.research.financial_grid_exporter as module
+    source,_,_=fixture(tmp_path)
+    with sqlite3.connect(source.location) as con:
+        con.execute('DELETE FROM history_rows')
+        con.execute('INSERT INTO history_rows VALUES (?)',('x'*(8*1024*1024+1),))
+    # Direct helper probe: public export already rejects this at aggregate
+    # preflight. The connection-level cap is an additional independent boundary.
+    with module._reader(source,lambda:False) as execute:
+        with pytest.raises(sqlite3.DataError,match='too big'):
+            execute('SELECT payload FROM history_rows LIMIT 1').fetchone()
+
+
+def test_utf8_octet_budget_rejects_history_before_json_parsing(tmp_path,monkeypatch):
+    import strattester.research.financial_grid_exporter as module
+    source,rows,meta=fixture(tmp_path,symbol='💰'*100)
+    payloads=[json.dumps(row,ensure_ascii=False) for row in rows]
+    with sqlite3.connect(source.location) as con:
+        con.execute('UPDATE history_meta SET payload=?',(json.dumps(meta,ensure_ascii=False),))
+        con.execute('DELETE FROM history_rows')
+        con.executemany('INSERT INTO history_rows VALUES (?)',[(text,) for text in payloads])
+    parsed=[];original=module.bounded_json
+    def parse(data):
+        parsed.append(data)
+        return original(data)
+    monkeypatch.setattr(module,'bounded_json',parse)
+    with pytest.raises(ValueError,match='raw history allocation budget'):
+        run(HistoryProfile(PROFILE,'epoch',30,(source,)),tmp_path/'output',max_bytes=sum(map(len,payloads)))
+    assert len(parsed)==1 # metadata only; raw history rejected by octet preflight

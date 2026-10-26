@@ -133,3 +133,23 @@ Sibling signer follow-up final designated Python3.12 verification: **46 passed
 in 15.93s**, including21 exporter cases and the disposable PostgreSQL fixture;
 no skips. Conflicting detached signatures, additional files, and missing files
 are rejected without overwriting existing derivatives. `git diff --check` passed.
+
+Read-transfer defense follow-up: the existing public exporter already performed
+count/sum/max preflight in the same stable read-only MVCC transaction before
+history transfer. The review did **not** confirm an unbounded public-export OOM
+vulnerability. Additional independent defenses now use a PostgreSQL named
+server-side row cursor (one-row fetch batches), SQL row LIMIT and per-cell octet
+predicates, bounded schema/metadata result sets, and SQLite SQLITE_LIMIT_LENGTH
+configured before source queries. Preflight now counts UTF8 octets rather than
+text characters. A direct helper regression observes PostgreSQL pgresult.ntuples
+never exceeding one across1026 rows, and SQLite rejecting an oversized cell
+before Python decoding. Those new helper requirements failed on the previous
+implementation and pass now; they do not bypass the public export preflight to
+claim a previously demonstrated public vulnerability. UTF8 history over the byte
+budget is rejected before raw-history JSON parsing. Database service policy,
+read-only repeatable read, seals, native BLOCKED status, and dependencies remain
+unchanged.
+
+Final bounded-transfer verification in the designated Python3.12 environment:
+**48 passed in14.57s**, including23 exporter cases and actual PostgreSQL named
+cursor batch inspection; no skips. `git diff --check` passed.
