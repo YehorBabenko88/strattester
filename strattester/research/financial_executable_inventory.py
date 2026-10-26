@@ -8,11 +8,16 @@ from .financial_snapshot import verified_bytes,bounded_json
 
 def _local_path(path):
     text=os.fspath(path)
-    if (type(text) is not str or len(text)>1024 or text.startswith(('\\\\','//')) or '\x00' in text
+    if (type(text) is not str or len(text)>1024 or text.replace('\\','/').startswith('//') or '\x00' in text
         or not Path(text).is_absolute() or '..' in Path(text).parts):
         raise ValueError('absolute local executable inventory path required')
     drive=2 if re.match(r'^[A-Za-z]:[\\/]',text) else 0
     if ':' in text[drive:]:raise ValueError('device/alternate-stream path rejected')
+    for component in text.replace('\\','/').split('/'):
+        stem=component.split('.')[0].rstrip(' ').upper()
+        if (component.endswith((' ','.')) or stem in ('CON','PRN','AUX','NUL','CONIN$','CONOUT$')
+            or re.fullmatch(r'(COM|LPT)[1-9¹²³]',stem)):
+            raise ValueError('noncanonical/device path component rejected')
     return text
 
 
