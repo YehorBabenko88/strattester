@@ -14,7 +14,23 @@ namespace StratTester.Native {
     internal static class Broker {
         internal const string Missing = "owner_signature_verifier,filesystem_confinement,network_egress,output_bounds,disposable_vm_verification";
         public static int Main(string[] args) {
-            if (args.Length > 0 && args[0] == "--owned-network-probe" && HostedVm()) return WfpComponent.Probe(args);
+            if (args.Length > 0 && args[0] == "--owned-handle-probe" && HostedVm()) return ProbeEnvironment.IsMinimal() ? HandleComponent.Probe(args) : 103;
+            if (args.Length > 0 && args[0] == "--selftest-handles") {
+                if (args.Length != 2 || args[1] != "COMPONENT_TESTS_ONLY" || !HostedVm()) {
+                    Console.WriteLine("{\"status\":\"REFUSED\",\"reason\":\"DISPOSABLE_HOSTED_VM_REQUIRED\",\"research_process_created\":false}");
+                    return 78;
+                }
+                try {
+                    HandleComponent.Run();
+                    Console.WriteLine("{\"status\":\"READONLY_HANDLE_COMPONENT_PASS\",\"native_enforcement\":false,\"research_process_created\":false}");
+                    return 0;
+                } catch (Exception error) {
+                    var nativeError = error as Win32Exception;
+                    Console.WriteLine("{\"status\":\"READONLY_HANDLE_COMPONENT_FAIL\",\"error_type\":\"" + error.GetType().Name + "\",\"win32_error\":" + (nativeError == null ? 0 : nativeError.NativeErrorCode) + ",\"native_enforcement\":false,\"research_process_created\":false}");
+                    return 1;
+                }
+            }
+            if (args.Length > 0 && args[0] == "--owned-network-probe" && HostedVm()) return ProbeEnvironment.IsMinimal() ? WfpComponent.Probe(args) : 103;
             if (args.Length > 0 && args[0] == "--selftest-wfp") {
                 if (args.Length != 2 || args[1] != "COMPONENT_TESTS_ONLY" || !HostedVm()) {
                     Console.WriteLine("{\"status\":\"REFUSED\",\"reason\":\"DISPOSABLE_HOSTED_VM_REQUIRED\",\"research_process_created\":false}");
@@ -31,6 +47,7 @@ namespace StratTester.Native {
                 }
             }
             if (args.Length == 2 && args[0] == "--owned-probe" && args[1] == "COMPONENT_TESTS_ONLY" && HostedVm()) {
+                if (!ProbeEnvironment.IsMinimal()) return 103;
                 System.Threading.Thread.Sleep(30000);
                 return 42;
             }
@@ -87,6 +104,7 @@ namespace StratTester.Native {
     // accepted by any CLI mode. This component is only exercised in VM fixtures.
     internal sealed class LockedInput : IDisposable {
         private readonly List<KernelHandle> handles = new List<KernelHandle>();
+        internal KernelHandle Leaf { get { return handles[handles.Count - 1]; } }
         internal string Sha256;
         internal ulong Length;
         internal uint Volume, FileIndexHigh, FileIndexLow;
@@ -155,6 +173,7 @@ namespace StratTester.Native {
 
     internal sealed class KernelHandle : SafeHandleZeroOrMinusOneIsInvalid {
         public KernelHandle() : base(true) { }
+        internal KernelHandle(IntPtr value, bool owns) : base(owns) { SetHandle(value); }
         protected override bool ReleaseHandle() { return Native.CloseHandle(handle); }
     }
 
@@ -294,14 +313,15 @@ namespace StratTester.Native {
             // environment, script, working directory or command is accepted.
             string executable = typeof(Broker).Assembly.Location;
             using (var imageLock = File.Open(executable, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var token = PreparedComponents.CreatePrivilegeRemovedToken()) {
+            using (var token = PreparedComponents.CreatePrivilegeRemovedToken())
+            using (var environment = new ProbeEnvironment()) {
                 KernelHandle job = PreparedComponents.CreateBoundedJob(134217728, 1000, 10000000);
                 var startup = new Native.StartupInfo();
                 startup.Size = (uint)Marshal.SizeOf(typeof(Native.StartupInfo));
                 Native.ProcessInformation child;
                 bool created = Native.CreateProcessAsUser(token, executable,
                     new StringBuilder("\"" + executable + "\" --owned-probe COMPONENT_TESTS_ONLY"),
-                    IntPtr.Zero, IntPtr.Zero, false, 0x4 | 0x08000000, IntPtr.Zero,
+                    IntPtr.Zero, IntPtr.Zero, false, 0x4 | 0x08000000 | 0x400, environment.Block,
                     Path.GetDirectoryName(executable), ref startup, out child);
                 if (!created) { job.Dispose(); throw new Win32Exception(Marshal.GetLastWin32Error()); }
                 try {
@@ -341,6 +361,7 @@ namespace StratTester.Native {
             internal ushort ShowWindow, Reserved2Size; internal IntPtr Reserved2, StdInput, StdOutput, StdError;
         }
         [StructLayout(LayoutKind.Sequential)] internal struct ProcessInformation { internal IntPtr Process, Thread; internal uint ProcessId, ThreadId; }
+        [StructLayout(LayoutKind.Sequential)] internal struct StartupInfoEx { internal StartupInfo Startup; internal IntPtr Attributes; }
         internal static IntPtr ReadTokenPrivileges(KernelHandle token) {
             uint size;
             GetTokenInformation(token, 3, IntPtr.Zero, 0, out size);
@@ -390,5 +411,12 @@ namespace StratTester.Native {
         [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool TerminateProcess(IntPtr process, uint code);
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool CreateHardLink(string link, string existing, IntPtr attributes);
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.I1)] internal static extern bool CreateSymbolicLink(string link, string target, uint flags);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool DuplicateHandle(IntPtr sourceProcess, KernelHandle source, IntPtr targetProcess, out KernelHandle target, uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, uint options);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool InitializeProcThreadAttributeList(IntPtr attributes, uint count, uint flags, ref UIntPtr bytes);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool UpdateProcThreadAttribute(IntPtr attributes, uint flags, UIntPtr kind, IntPtr value, UIntPtr size, IntPtr previous, IntPtr returned);
+        [DllImport("kernel32.dll")] internal static extern void DeleteProcThreadAttributeList(IntPtr attributes);
+        [DllImport("advapi32.dll", EntryPoint = "CreateProcessAsUserW", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool CreateProcessAsUserEx(KernelHandle token, string application, StringBuilder command, IntPtr processAttributes, IntPtr threadAttributes, [MarshalAs(UnmanagedType.Bool)] bool inheritHandles, uint flags, IntPtr environment, string directory, ref StartupInfoEx startup, out ProcessInformation info);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool SetFilePointerEx(KernelHandle file, long distance, out long position, uint method);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool WriteFile(KernelHandle file, byte[] buffer, uint length, out uint written, IntPtr overlapped);
     }
 }

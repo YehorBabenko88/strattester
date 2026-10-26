@@ -78,6 +78,12 @@ class NativeCliTests(unittest.TestCase):
         self.assertEqual(data['reason'], 'DISPOSABLE_HOSTED_VM_REQUIRED')
         self.assertFalse(data['research_process_created'])
 
+    def test_handle_selftest_is_refused_without_disposable_vm_guard(self):
+        code, data = self.invoke('--selftest-handles', 'COMPONENT_TESTS_ONLY')
+        self.assertEqual(code, 78)
+        self.assertEqual(data['reason'], 'DISPOSABLE_HOSTED_VM_REQUIRED')
+        self.assertFalse(data['research_process_created'])
+
     def test_diagnose_rejects_extra_arguments(self):
         code, data = self.invoke('--diagnose', '--launch')
         self.assertEqual(code, 64)
