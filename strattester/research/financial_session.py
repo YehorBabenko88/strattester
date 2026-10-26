@@ -94,5 +94,8 @@ def _publish(result,output_root,cancel):
     from .financial_offline_jobs import publish_result
     from .financial_snapshot import canonical_bytes
     check_cancel(cancel)
-    identity=sha256(canonical_bytes(result)).hexdigest()
-    result['publication']=publish_result(output_root,identity,result)
+    # A receipt describes publication and is not part of the research output.
+    # Reusing an in-memory result must recompute the same immutable artifact.
+    payload={key:value for key,value in result.items() if key!='publication'}
+    identity=sha256(canonical_bytes(payload)).hexdigest()
+    result['publication']=publish_result(output_root,identity,payload)
