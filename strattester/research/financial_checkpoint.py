@@ -73,7 +73,12 @@ def load_checkpoint(path, expected_sha256, *, max_bytes=8*1024*1024):
         raise ValueError('checkpoint model equations version required')
     try: config=StructuralConfig(**payload['config']).validate()
     except (TypeError,AttributeError) as exc: raise ValueError('checkpoint config') from exc
-    model=build_structural_model(config)
+    # Initial values are replaced by checkpoint tensors. Preserve the caller
+    # CPU RNG even if construction or later tensor validation fails. This
+    # process-global save/restore is not isolation from concurrent RNG users;
+    # callers must serialize threaded training/loading or use separate processes.
+    with torch.random.fork_rng(devices=[]):
+        model=build_structural_model(config)
     expected=model.state_dict()
     if not isinstance(payload['tensors'],dict) or set(expected)!=set(payload['tensors']):raise ValueError('checkpoint tensor names')
     state={}

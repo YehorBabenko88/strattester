@@ -42,3 +42,22 @@ def test_installed_evaluation_does_not_depend_on_repository_working_directory(tm
     code="from strattester.research.financial_evaluation import evaluate_controls; r=evaluate_controls([[0.],[1.]],[0.,.1],[[2.]],[.2],train_events=[('BTC',0),('BTC',1)],test_events=[('BTC',2)]); assert len(r)==7"
     result=subprocess.run([sys.executable,'-I','-c',code],cwd=tmp_path,capture_output=True,text=True,timeout=30)
     assert result.returncode==0,result.stderr
+
+
+@pytest.mark.parametrize('malformed', [False, True])
+def test_checkpoint_load_preserves_caller_cpu_rng(tmp_path, malformed):
+    path = tmp_path/'model.json'
+    expected = save_checkpoint(build_structural_model(), path, dataset_sha256='a'*64, seed=0)
+    if malformed:
+        payload = json.loads(path.read_bytes())
+        payload['tensors'][next(iter(payload['tensors']))]['shape'] = [99999]
+        path.write_text(json.dumps(payload))
+        expected = sha256(path.read_bytes()).hexdigest()
+    torch.manual_seed(123)
+    before = torch.random.get_rng_state().clone()
+    if malformed:
+        with pytest.raises(ValueError, match='tensor shape'):
+            load_checkpoint(path, expected)
+    else:
+        load_checkpoint(path, expected)
+    assert torch.equal(before, torch.random.get_rng_state())
