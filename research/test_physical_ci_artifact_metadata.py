@@ -7,9 +7,9 @@ RUN = 40350796074
 
 def fixtures():
     result = []
-    for name in sorted(REQUIRED):
+    for index, name in enumerate(sorted(REQUIRED), start=1):
         prefix = name if name == "native-component-proof" else "financial-" + name
-        result.append(dict(name=prefix + "-" + HEAD, digest="sha256:" + "a"*64,
+        result.append(dict(id=index, name=prefix + "-" + HEAD, digest="sha256:" + "a"*64,
                            size_in_bytes=100, expired=False,
                            workflow_run={"id": RUN, "head_sha": HEAD}))
     return result
@@ -50,6 +50,16 @@ class ArtifactMetadataTests(unittest.TestCase):
         for item in data:
             if item["name"].startswith("native-component-proof-"):
                 item["name"] = "financial-" + item["name"]
+        self.assertFalse(verify_artifact_metadata(data, head=HEAD, run_id=RUN)["metadata_valid"])
+
+    def test_duplicate_artifact_id(self):
+        data = fixtures()
+        data[1]["id"] = data[0]["id"]
+        self.assertFalse(verify_artifact_metadata(data, head=HEAD, run_id=RUN)["metadata_valid"])
+
+    def test_missing_artifact_id(self):
+        data = fixtures()
+        del data[0]["id"]
         self.assertFalse(verify_artifact_metadata(data, head=HEAD, run_id=RUN)["metadata_valid"])
 
     def test_boolean_run_id(self):
