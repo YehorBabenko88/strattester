@@ -319,3 +319,37 @@ def test_utf8_octet_budget_rejects_history_before_json_parsing(tmp_path,monkeypa
     with pytest.raises(ValueError,match='raw history allocation budget'):
         run(HistoryProfile(PROFILE,'epoch',30,(source,)),tmp_path/'output',max_bytes=sum(map(len,payloads)))
     assert len(parsed)==1 # metadata only; raw history rejected by octet preflight
+
+
+@pytest.mark.parametrize('dsn,ambient',[('dbname=postgres',None),('host=127.0.0.1 port=45678 dbname=postgres user=fixture','PGHOST'),('host=127.0.0.1 port=45678 dbname=postgres user=fixture','PGPASSWORD'),('host=127.0.0.1 port=45678 dbname=postgres user=fixture service=hidden',None),('host=127.0.0.1 port=45678 dbname=postgres user=fixture options=hidden',None)])
+def test_postgres_config_rejects_hidden_defaults_before_connect(tmp_path,monkeypatch,dsn,ambient):
+    import os
+    import psycopg
+    import strattester.research.financial_grid_exporter as module
+    for name in tuple(os.environ):
+        if name.upper().startswith('PG') and name!='PG_BINDIR':monkeypatch.delenv(name)
+    if ambient:monkeypatch.setenv(ambient,'must-not-be-logged')
+    monkeypatch.setattr(psycopg,'connect',lambda *a,**k:pytest.fail('physical connect reached'))
+    source=HistorySource('source','postgresql',dsn,'cut','a'*64,(MarketPartition('bybit','linear','BTCUSDT',10),))
+    with pytest.raises(ValueError) as failure:
+        with module._reader(source,lambda:False):pass
+    assert 'must-not-be-logged' not in str(failure.value)
+
+
+def test_postgres_explicit_endpoint_pins_credential_free_connect_policy(tmp_path,monkeypatch):
+    import os
+    import psycopg
+    import strattester.research.financial_grid_exporter as module
+    for name in tuple(os.environ):
+        if name.upper().startswith('PG') and name.upper()!='PG_BINDIR':monkeypatch.delenv(name)
+    monkeypatch.setenv('PG_BINDIR','test-metadata-only')
+    captured={}
+    def connect(*args,**kwargs):
+        assert not args
+        captured.update(kwargs)
+        raise RuntimeError('intentional connection boundary stop')
+    monkeypatch.setattr(psycopg,'connect',connect)
+    source=HistorySource('source','postgresql','host=127.0.0.1 port=45678 dbname=postgres user=fixture','cut','a'*64,(MarketPartition('bybit','linear','BTCUSDT',10),))
+    with pytest.raises(RuntimeError,match='intentional connection boundary stop'):
+        with module._reader(source,lambda:False):pass
+    assert captured==dict(host='127.0.0.1',port='45678',dbname='postgres',user='fixture',connect_timeout=3,passfile=os.devnull,password='',sslmode='disable',gssencmode='disable',require_auth='none',autocommit=True)

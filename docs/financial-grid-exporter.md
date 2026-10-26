@@ -153,3 +153,23 @@ unchanged.
 Final bounded-transfer verification in the designated Python3.12 environment:
 **48 passed in14.57s**, including23 exporter cases and actual PostgreSQL named
 cursor batch inspection; no skips. `git diff --check` passed.
+
+Explicit PostgreSQL configuration boundary: DSNs must name exactly one host,
+port, dbname, and user; only an optional connect_timeout in1..3 seconds is
+accepted. Service/options/password/passfile and arbitrary additional DSN
+parameters are rejected before connecting. Ambient PG* environment configuration
+is rejected without echoing values; PG_BINDIR alone is allowed as fixture-binary
+metadata. The adapter passes all connection parameters explicitly, pins passfile
+to os.devnull, and disables password, SSL/client-certificate and GSS discovery.
+`require_auth=none` restricts this prototype to credential-free research/fixture
+authentication. Production credentials and TLS provisioning require a separate
+owner-qualified profile and are not automatically discovered. These are new
+configuration-boundary defenses, not a claim of a demonstrated production
+exploit. Five pre-connect spy regressions failed on the previous implementation
+and pass with this policy; the actual owned PostgreSQL fixture still passes.
+
+Final explicit-DSN boundary verification: designated Python3.12 environment,
+**54 passed in14.59s**, including29 exporter cases and the actual disposable
+PostgreSQL fixture; no skips. Positive connection spy verifies explicit endpoint,
+null passfile, disabled ambient credential mechanisms, and allowed PG_BINDIR
+metadata. `git diff --check` passed. No dependencies or installed services changed.
