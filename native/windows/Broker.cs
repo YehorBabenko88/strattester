@@ -1,4 +1,4 @@
-// Windows native admission broker. No research process creation path exists.
+// Windows native admission broker. Arbitrary research launch remains blocked.
 // Prepared Win32 components are NOT enforcement evidence; see README.md.
 using System;
 using System.ComponentModel;
@@ -14,6 +14,23 @@ namespace StratTester.Native {
     internal static class Broker {
         internal const string Missing = "owner_signature_verifier,filesystem_confinement,network_egress,output_bounds,disposable_vm_verification";
         public static int Main(string[] args) {
+            if (args.Length > 0 && (args[0] == "--selftest-sandbox" || args[0] == "--owned-sandbox-probe")) {
+                if (args.Length < 2 || args[1] != "COMPONENT_TESTS_ONLY" || !HostedVm()) {
+                    Console.WriteLine("{\"status\":\"REFUSED\",\"reason\":\"DISPOSABLE_HOSTED_VM_REQUIRED\",\"research_process_created\":false}");
+                    return 78;
+                }
+                if (args[0] == "--owned-sandbox-probe") return SandboxProbes.Probe(args);
+                if (args.Length != 2) return 64;
+                try {
+                    SandboxProbes.Run();
+                    Console.WriteLine("{\"status\":\"LPAC_OWNED_SANDBOX_COMPONENT_PASS\",\"native_enforcement\":false,\"research_process_created\":false,\"scope\":\"OWNED_FIXTURES_ONLY\",\"full_filesystem_qualification\":\"INCOMPLETE\",\"owner_authorized_research\":\"BLOCKED\"}");
+                    return 0;
+                } catch (Exception error) {
+                    var nativeError = error as Win32Exception;
+                    Console.WriteLine("{\"status\":\"LPAC_OWNED_SANDBOX_COMPONENT_FAIL\",\"phase\":\"" + SandboxProbes.Phase + "\",\"engine_phase\":\"" + ResearchSandbox.Phase + "\",\"detail\":\"" + SandboxProbes.LastDetail + "\",\"error_type\":\"" + error.GetType().Name + "\",\"win32_error\":" + (nativeError == null ? 0 : nativeError.NativeErrorCode) + ",\"native_enforcement\":false,\"research_process_created\":false}");
+                    return 1;
+                }
+            }
             if (args.Length > 0 && args[0] == "--owned-handle-probe" && HostedVm()) return ProbeEnvironment.IsMinimal() ? HandleComponent.Probe(args) : 103;
             if (args.Length > 0 && args[0] == "--selftest-handles") {
                 if (args.Length != 2 || args[1] != "COMPONENT_TESTS_ONLY" || !HostedVm()) {
@@ -92,7 +109,7 @@ namespace StratTester.Native {
             Console.WriteLine("{\"schema\":1,\"status\":\"USAGE\",\"research_process_created\":false}");
             return 64;
         }
-        private static bool HostedVm() {
+        internal static bool HostedVm() {
             return Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true" &&
                    Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") == "github-hosted" &&
                    Environment.GetEnvironmentVariable("RUNNER_OS") == "Windows";

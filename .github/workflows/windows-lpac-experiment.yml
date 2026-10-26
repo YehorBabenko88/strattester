@@ -1,0 +1,80 @@
+name: Windows LPAC owned sandbox experiment
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'native/windows/**'
+      - 'tests/native/**'
+      - 'scripts/build_windows_native.py'
+      - '.github/workflows/windows-lpac-experiment.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: lpac-owned-experiment-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+jobs:
+  disposable-lpac-owned-fixtures:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      NATIVE_OUTPUT: results/lpac-owned
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Create task-private Python and record exact bounded scope
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force $env:NATIVE_OUTPUT | Out-Null
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:SOURCE_SHA) { throw 'Exact source head mismatch' }
+          python -m venv "$env:RUNNER_TEMP/lpac-build-venv"
+          "LPAC_BUILD_PYTHON=$env:RUNNER_TEMP/lpac-build-venv/Scripts/python.exe" >> $env:GITHUB_ENV
+          @{
+            schema = 1; source_sha = $actual; source_tree = (git rev-parse 'HEAD^{tree}').Trim()
+            native_enforcement = $false; research_execution = 'BLOCKED'; G1 = 'NOTRUN'
+            qualification = 'OWNED_LPAC_FIXTURES_ONLY'; full_filesystem_namespace = 'INCOMPLETE'
+            owner_authenticated_launch = 'NOTIMPLEMENTED'; replay_admission = 'NOTIMPLEMENTED'
+          } | ConvertTo-Json -Depth 5 | Set-Content "$env:NATIVE_OUTPUT/scope.json"
+      - name: Prepare pinned isolated embedded Python fixture
+        shell: pwsh
+        run: |
+          $archive = "$env:RUNNER_TEMP/python-3.12.10-embed-amd64.zip"
+          Invoke-WebRequest 'https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip' -OutFile $archive
+          $digest = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($digest -ne '4acbed6dd1c744b0376e3b1cf57ce906f9dc9e95e68824584c8099a63025a3c3') { throw 'Embedded Python digest mismatch' }
+          $owned = "$env:RUNNER_TEMP/lpac-owned-embedded-python"
+          Expand-Archive -LiteralPath $archive -DestinationPath $owned
+          "STRATTESTER_OWNED_PYTHON=$owned" >> $env:GITHUB_ENV
+          @{ schema = 1; python_version = '3.12.10'; archive_sha256 = $digest } | ConvertTo-Json | Set-Content "$env:NATIVE_OUTPUT/python-input.json"
+      - name: Build twice and run safe contracts
+        id: build
+        shell: pwsh
+        run: |
+          & $env:LPAC_BUILD_PYTHON scripts/build_windows_native.py --output "$env:NATIVE_OUTPUT/build" --cache "$env:RUNNER_TEMP/lpac-compiler-cache" 2>&1 | Tee-Object "$env:NATIVE_OUTPUT/build.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:NATIVE_BROKER = "$env:NATIVE_OUTPUT/build/StratTester.Native.exe"
+          & $env:LPAC_BUILD_PYTHON -m unittest discover -s tests/native -v 2>&1 | Tee-Object "$env:NATIVE_OUTPUT/contracts.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Actual owned malicious LPAC probes and synthetic worker
+        if: always() && steps.build.outcome == 'success'
+        shell: pwsh
+        run: |
+          & "$env:NATIVE_OUTPUT/build/StratTester.Native.exe" --selftest-sandbox COMPONENT_TESTS_ONLY 2>&1 | Tee-Object "$env:NATIVE_OUTPUT/sandbox.jsonl"
+          $nativeCode = $LASTEXITCODE
+          $receipt = Get-Content "$env:NATIVE_OUTPUT/sandbox.jsonl" | Select-Object -Last 1 | ConvertFrom-Json
+          if ($nativeCode -ne 0) { exit $nativeCode }
+          if ($receipt.status -ne 'LPAC_OWNED_SANDBOX_COMPONENT_PASS' -or $receipt.native_enforcement -ne $false -or $receipt.research_process_created -ne $false -or $receipt.owner_authorized_research -ne 'BLOCKED') { throw 'Invalid component-only sandbox receipt' }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: lpac-owned-proof-${{ github.event.pull_request.head.sha || github.sha }}
+          path: results/lpac-owned/
+          if-no-files-found: error
+          retention-days: 14
