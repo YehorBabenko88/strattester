@@ -234,13 +234,30 @@ def _postgres(source, check, add, row_limit):
             con.execute("SET LOCAL idle_in_transaction_session_timeout = '5000ms'")
             con.execute('SET LOCAL row_security = off')
             check()
+            # Acquire the name's relation lock before establishing the catalog
+            # snapshot. Locking after metadata inspection can instead lock a
+            # replacement view while REPEATABLE READ still shows the old table.
+            # ONLY avoids locking an inheritance tree. LOCK never evaluates a
+            # view's target expressions; non-table targets are rejected below.
+            migration_oid = None
+            con.execute('SAVEPOINT migration_catalog_lock')
+            try:
+                con.execute('LOCK TABLE ONLY public.schema_migrations IN ACCESS SHARE MODE')
+            except (psycopg.errors.UndefinedTable, psycopg.errors.WrongObjectType):
+                con.execute('ROLLBACK TO SAVEPOINT migration_catalog_lock')
+            else:
+                migration_oid = con.execute(
+                    "SELECT pg_catalog.to_regclass('public.schema_migrations')::oid").fetchone()[0]
+            con.execute('RELEASE SAVEPOINT migration_catalog_lock')
             relations = {}
-            for table, kind, rls, forced in con.execute('''
-                SELECT c.relname,c.relkind,c.relrowsecurity,c.relforcerowsecurity
+            relation_oids = {}
+            for oid, table, kind, rls, forced in con.execute('''
+                SELECT c.oid,c.relname,c.relkind,c.relrowsecurity,c.relforcerowsecurity
                 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
                 WHERE n.nspname='public' ORDER BY c.relname LIMIT %s''', (row_limit+1,)):
                 add('relation', (table, kind, rls, forced))
                 relations[table] = (kind, rls, forced)
+                relation_oids[table] = oid
             columns = {}
             column_shapes = {}
             for table, column, datatype, type_schema, nullable, modifier, generated, identity_ in con.execute('''
@@ -267,16 +284,33 @@ def _postgres(source, check, add, row_limit):
                 keys.setdefault(table, []).append(column)
             migrations = ()
             lineage = 'UNVERIFIED'
-            if (relations.get('schema_migrations') == ('r', False, False)
+            if (migration_oid is not None
+                    and relation_oids.get('schema_migrations') == migration_oid
+                    and relations.get('schema_migrations') == ('r', False, False)
                     and tuple(columns.get('schema_migrations', ())) == _POSTGRES['schema_migrations']
+                    and all(shape == ('pg_catalog', -1, '', '')
+                            for shape in column_shapes.get('schema_migrations', ()))
                     and tuple(keys.get('schema_migrations', ())) == ('version',)):
-                # Lock the verified plain table so concurrent DDL cannot swap it
-                # for a view before reading its bounded lineage claims.
-                con.execute('LOCK TABLE public.schema_migrations IN ACCESS SHARE MODE')
+                # A current name resolver and the actual held relation lock
+                # must agree with the catalog OID, not just the table's name.
+                bound = con.execute('''SELECT
+                    pg_catalog.to_regclass('public.schema_migrations')::oid = %s,
+                    EXISTS (SELECT 1 FROM pg_catalog.pg_locks
+                        WHERE pid=pg_catalog.pg_backend_pid() AND relation=%s
+                        AND mode='AccessShareLock' AND granted)''',
+                    (migration_oid, migration_oid)).fetchone()
+                if bound != (True, True):
+                    raise ValueError('migration relation identity changed')
                 claims = []
+                # Namespace names can still be replaced after the OID check.
+                # PostgreSQL rejects TABLESAMPLE on views during parse analysis,
+                # before rewrite/planning can evaluate any view expression.
+                # SYSTEM(100) reads all blocks of the verified plain table;
+                # ONLY and tableoid exclude inherited/replacement-table rows.
                 for version, name in con.execute('''SELECT version,
                     CASE WHEN octet_length(name)<=128 THEN name END
-                    FROM public.schema_migrations ORDER BY version LIMIT 47'''):
+                    FROM ONLY public.schema_migrations TABLESAMPLE pg_catalog.system(100)
+                    WHERE tableoid=%s ORDER BY version LIMIT 47''', (migration_oid,)):
                     if name is None: raise ValueError('migration cell budget')
                     add('migration_claim', (version, name))
                     claims.append((version, name))

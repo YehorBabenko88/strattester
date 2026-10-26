@@ -17,6 +17,17 @@ Only a verified ordinary `schema_migrations` table is read for at most 47 bounde
 version/name claims. A view or an RLS-enabled lineage table is not trusted.
 There is no service discovery or service management in production code.
 
+The PostgreSQL reader locks the lineage relation before catalog inspection or
+establishing its catalog snapshot, and then binds its resolver/catalog OID and
+held relation lock. Two-connection tests prove that concurrent rename/view
+replacement cannot slip between catalog inspection and a later lock. A separate
+namespace-replacement test changes the containing schema after the OID recheck.
+The final claim query uses `ONLY`, an expected `tableoid`, and
+`TABLESAMPLE pg_catalog.system(100)`: PostgreSQL rejects a view at parse analysis
+before evaluating its expressions, while the 100-percent block scan preserves
+all ordinary-table claims. An absent relation remains unverified; no table is
+created. These checks do not establish a producer epoch or data-history seal.
+
 `catalog_sha256` fingerprints the observed catalog projection. It does not hash
 market contents or live database bytes and cannot be supplied as a history seal.
 `source_commit` names the source audit baseline, not the deployed producer build.
@@ -89,8 +100,8 @@ installation or existing database/service is involved. Native history, real OOS,
 physical G1, production mutations, and trading remain unqualified.
 
 Validation on Windows/Python 3.12.10, PostgreSQL 18.6, and psycopg 3.3.6:
-the complete repository suite passed with **1,116 passed, 12 skipped, and 21
-successful subtests**. All 19 new catalog cases passed. The skips are six native
+the complete repository suite passed with **1,120 passed, 12 skipped, and 21
+successful subtests**. All 23 new catalog cases passed. The skips are six native
 CLI tests requiring `NATIVE_BROKER`, two native cache link/junction fixtures
 requiring disposable-host/Windows privileges, two CUDA parity cases without
 CUDA, and two artifact/data-source symlink fixtures without symlink privileges.
