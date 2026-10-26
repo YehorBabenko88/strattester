@@ -38,6 +38,117 @@ def isolate_postgres_fixture_environment(monkeypatch):
     return explicit
 
 
+def owned_postgres_fixture_root(tmp_path):
+    """Grant only a fresh hosted-Windows fixture child to the current user SID.
+
+    PostgreSQL drops Administrators privileges; Python 3.13 pytest ancestors
+    can then be inaccessible. Do not repair pytest, workspace or runner ACLs.
+    Upstream rationale: postgres/.github/workflows/pg-ci.yml Windows ACL step.
+    Hosted operational flags select fixture setup, never G1 authorization.
+    """
+    import csv
+    import io
+    import os
+    import re
+    import subprocess
+    import sys
+    import tempfile
+    from strattester.research.financial_snapshot import reject_linked_path
+    if (sys.platform!='win32' or os.environ.get('GITHUB_ACTIONS')!='true'
+        or os.environ.get('RUNNER_ENVIRONMENT')!='github-hosted'
+        or os.environ.get('RUNNER_OS')!='Windows'):
+        return tmp_path
+    runner=Path(os.environ.get('RUNNER_TEMP',''))
+    if not runner.is_absolute():raise ValueError('absolute RUNNER_TEMP required')
+    runner=reject_linked_path(runner)
+    if not runner.is_dir():raise ValueError('RUNNER_TEMP directory required')
+    windows=Path(os.environ.get('SystemRoot',''))
+    if not windows.is_absolute():raise ValueError('absolute SystemRoot required')
+    windows=reject_linked_path(windows)
+    identified=subprocess.run([str(windows/'System32'/'whoami.exe'),'/user','/fo','csv','/nh'],capture_output=True,text=True,timeout=10)
+    identified.check_returncode()
+    rows=list(csv.reader(io.StringIO(identified.stdout)))
+    if (len(rows)!=1 or len(rows[0])!=2
+        or re.fullmatch(r'S-1-5-21-(?:[0-9]{1,10}-){3}[0-9]{1,10}',rows[0][1]) is None):
+        raise ValueError('one current-user SID required')
+    sid=rows[0][1]
+    owned=reject_linked_path(tempfile.mkdtemp(prefix='strattester-pg-',dir=runner))
+    if owned.parent!=runner or not owned.name.startswith('strattester-pg-') or not owned.is_dir():
+        raise ValueError('new owned child required for ACL grant')
+    granted=subprocess.run([str(windows/'System32'/'icacls.exe'),str(owned),'/grant',f'*{sid}:(OI)(CI)F','/Q'],capture_output=True,text=True,timeout=10)
+    granted.check_returncode()
+    # Preserve this owned fixture for diagnostics; never recursively delete it
+    # or change any ancestor's ACL. Hosted runner disposal owns final cleanup.
+    return owned
+
+
+def mock_hosted_postgres_root(tmp_path,monkeypatch,*,sid_csv='"runneradmin","S-1-5-21-123-456-789-1001"\n',failed_tool=None):
+    import subprocess
+    import sys
+    runner=tmp_path/'runner-temp';runner.mkdir()
+    windows=tmp_path/'windows';windows.mkdir()
+    monkeypatch.setattr(sys,'platform','win32')
+    for name,value in {'GITHUB_ACTIONS':'true','RUNNER_ENVIRONMENT':'github-hosted','RUNNER_OS':'Windows','RUNNER_TEMP':str(runner),'SystemRoot':str(windows)}.items():
+        monkeypatch.setenv(name,value)
+    calls=[]
+    def command(argv,**kwargs):
+        calls.append(argv)
+        assert kwargs.get('shell',False) is False
+        assert kwargs['timeout']==10
+        tool=Path(argv[0]).name
+        assert tool in ('whoami.exe','icacls.exe')
+        return subprocess.CompletedProcess(argv,int(tool==failed_tool),sid_csv if tool=='whoami.exe' else '', 'intentional failure' if tool==failed_tool else '')
+    monkeypatch.setattr(subprocess,'run',command)
+    return runner,windows,calls
+
+
+def test_hosted_postgres_root_grants_only_new_unique_child_to_current_user_sid(tmp_path,monkeypatch):
+    runner,windows,calls=mock_hosted_postgres_root(tmp_path,monkeypatch)
+    first=owned_postgres_fixture_root(tmp_path);second=owned_postgres_fixture_root(tmp_path)
+    assert first!=second and first.parent==second.parent==runner
+    assert first.is_dir() and second.is_dir()
+    assert calls==[
+        [str(windows/'System32'/'whoami.exe'),'/user','/fo','csv','/nh'],
+        [str(windows/'System32'/'icacls.exe'),str(first),'/grant','*S-1-5-21-123-456-789-1001:(OI)(CI)F','/Q'],
+        [str(windows/'System32'/'whoami.exe'),'/user','/fo','csv','/nh'],
+        [str(windows/'System32'/'icacls.exe'),str(second),'/grant','*S-1-5-21-123-456-789-1001:(OI)(CI)F','/Q']]
+
+
+@pytest.mark.parametrize('platform,github,runner,runner_os',[
+    ('linux','true','github-hosted','Linux'),('win32','false','github-hosted','Windows'),
+    ('win32','true','self-hosted','Windows'),('win32','true','github-hosted','Linux')])
+def test_nonhosted_postgres_root_never_changes_acl(tmp_path,monkeypatch,platform,github,runner,runner_os):
+    import subprocess
+    import sys
+    monkeypatch.setattr(sys,'platform',platform)
+    for name,value in {'GITHUB_ACTIONS':github,'RUNNER_ENVIRONMENT':runner,'RUNNER_OS':runner_os}.items():monkeypatch.setenv(name,value)
+    monkeypatch.setattr(subprocess,'run',lambda *a,**k:pytest.fail('nonhosted ACL command attempted'))
+    assert owned_postgres_fixture_root(tmp_path)==tmp_path
+
+
+@pytest.mark.parametrize('sid_csv',['"runner","S-1-5-32-544"\n','"runner","not-a-sid"\n','"runner","S-1-5-21-1-2-3-4"\n"other","S-1-5-21-1-2-3-5"\n'],ids=['group-sid','malformed','multiple'])
+def test_hosted_postgres_root_rejects_nonuser_or_ambiguous_sid(tmp_path,monkeypatch,sid_csv):
+    runner,windows,calls=mock_hosted_postgres_root(tmp_path,monkeypatch,sid_csv=sid_csv)
+    with pytest.raises(ValueError,match='SID'):owned_postgres_fixture_root(tmp_path)
+    assert all(Path(argv[0]).name=='whoami.exe' for argv in calls)
+    assert list(runner.iterdir())==[]
+
+
+@pytest.mark.parametrize('failed_tool',['whoami.exe','icacls.exe'])
+def test_hosted_postgres_root_rejects_failed_identity_or_acl_command(tmp_path,monkeypatch,failed_tool):
+    import subprocess
+    mock_hosted_postgres_root(tmp_path,monkeypatch,failed_tool=failed_tool)
+    with pytest.raises(subprocess.CalledProcessError):owned_postgres_fixture_root(tmp_path)
+
+
+def test_hosted_postgres_root_rejects_parent_as_acl_target(tmp_path,monkeypatch):
+    import tempfile
+    runner,windows,calls=mock_hosted_postgres_root(tmp_path,monkeypatch)
+    monkeypatch.setattr(tempfile,'mkdtemp',lambda **kwargs:str(runner))
+    with pytest.raises(ValueError,match='owned child'):owned_postgres_fixture_root(tmp_path)
+    assert all(Path(argv[0]).name=='whoami.exe' for argv in calls)
+
+
 @pytest.mark.parametrize('binary_variable',['PG_BINDIR','STRATTESTER_TEST_PG_BIN'])
 def test_owned_postgres_fixture_clears_ambient_libpq_but_preserves_binary_pin(monkeypatch,binary_variable):
     import os
@@ -196,7 +307,8 @@ def test_disposable_postgres_mvcc_and_seals(tmp_path, monkeypatch):
         pytest.skip('optional local PostgreSQL fixture binaries unavailable')
     version=subprocess.run([str(binary/('postgres'+suffix)),'--version'],check=True,capture_output=True,text=True,timeout=5).stdout.strip()
     assert version.startswith('postgres (PostgreSQL) ')
-    data=tmp_path/'pg-owned';log=tmp_path/'pg-owned.log'
+    pg_root=owned_postgres_fixture_root(tmp_path)
+    data=pg_root/'pg-owned';log=pg_root/'pg-owned.log'
     initialized=subprocess.run([str(binary/('initdb'+suffix)),'-D',str(data),'-A','trust','-U','fixture','--no-locale','--encoding=UTF8'],capture_output=True,text=True,timeout=30)
     assert initialized.returncode==0,initialized.stdout+initialized.stderr
     with socket.socket() as sock:
@@ -214,7 +326,7 @@ def test_disposable_postgres_mvcc_and_seals(tmp_path, monkeypatch):
                 # direct postgres.exe intentionally refuses an elevated runner.
                 # A background postmaster can retain inherited pipe handles:
                 # use a task-owned regular log, never communicate() on pipes.
-                control_log=tmp_path/'pg-control.log'
+                control_log=pg_root/'pg-control.log'
                 with control_log.open('wb') as control:
                     started=subprocess.run([str(binary/'pg_ctl.exe'),'-D',str(data),'-l',str(log),'-o',f'-p {port} -h 127.0.0.1 -c max_connections=8 -c unix_socket_directories=', '-w','-t','20','start'],stdout=control,stderr=subprocess.STDOUT,timeout=30)
                 assert started.returncode==0,control_log.read_text()+log.read_text()

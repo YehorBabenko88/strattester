@@ -573,7 +573,7 @@
     ]
   },
   "data": {
-    "minimum": 123,
+    "minimum": 134,
     "nodeids": [
       "research/test_independent_snapshot_integrity.py::test_exact_snapshot_digest",
       "research/test_independent_snapshot_integrity.py::test_snapshot_budget_and_malformed_digest",
@@ -589,7 +589,18 @@
       "tests/research/test_financial_grid_exporter.py::test_fail_closed_no_partial_artifacts[history]",
       "tests/research/test_financial_grid_exporter.py::test_fail_closed_no_partial_artifacts[schema]",
       "tests/research/test_financial_grid_exporter.py::test_failed_atomic_publication_preserves_stage_and_cleanup_inventory",
+      "tests/research/test_financial_grid_exporter.py::test_hosted_postgres_root_grants_only_new_unique_child_to_current_user_sid",
+      "tests/research/test_financial_grid_exporter.py::test_hosted_postgres_root_rejects_failed_identity_or_acl_command[icacls.exe]",
+      "tests/research/test_financial_grid_exporter.py::test_hosted_postgres_root_rejects_failed_identity_or_acl_command[whoami.exe]",
+      "tests/research/test_financial_grid_exporter.py::test_hosted_postgres_root_rejects_nonuser_or_ambiguous_sid[group-sid]",
+      "tests/research/test_financial_grid_exporter.py::test_hosted_postgres_root_rejects_nonuser_or_ambiguous_sid[malformed]",
+      "tests/research/test_financial_grid_exporter.py::test_hosted_postgres_root_rejects_nonuser_or_ambiguous_sid[multiple]",
+      "tests/research/test_financial_grid_exporter.py::test_hosted_postgres_root_rejects_parent_as_acl_target",
       "tests/research/test_financial_grid_exporter.py::test_native_blocks_before_path_access",
+      "tests/research/test_financial_grid_exporter.py::test_nonhosted_postgres_root_never_changes_acl[linux-true-github-hosted-Linux]",
+      "tests/research/test_financial_grid_exporter.py::test_nonhosted_postgres_root_never_changes_acl[win32-false-github-hosted-Windows]",
+      "tests/research/test_financial_grid_exporter.py::test_nonhosted_postgres_root_never_changes_acl[win32-true-github-hosted-Linux]",
+      "tests/research/test_financial_grid_exporter.py::test_nonhosted_postgres_root_never_changes_acl[win32-true-self-hosted-Windows]",
       "tests/research/test_financial_grid_exporter.py::test_owned_postgres_fixture_clears_ambient_libpq_but_preserves_binary_pin[PG_BINDIR]",
       "tests/research/test_financial_grid_exporter.py::test_owned_postgres_fixture_clears_ambient_libpq_but_preserves_binary_pin[STRATTESTER_TEST_PG_BIN]",
       "tests/research/test_financial_grid_exporter.py::test_owned_postgres_shutdown_failure_cannot_pass[exit]",

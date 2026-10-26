@@ -105,3 +105,20 @@ elevated hosted runners. Use pg_ctl's own restricted process startup, scoped
 only to the fixture data directory. Its regular control log avoids inherited
 pipe lifetimes, and no installed service is changed. Preserve both failed
 and passing runs; final-head CI evidence is published separately.
+
+Windows3.13 initdb diagnostics subsequently identified a restricted-token
+traversal failure at pytest's private temp ancestor. The hosted-only fixture
+now creates a unique RUNNER_TEMP child and grants only that child to the
+current user SID; no parent/workspace ACL is repaired. Eleven mock regressions
+exercise exact ACL scope, user identity, failures and nonhosted refusal. Real
+hosted execution remains required at the final head.
+
+A PyPI advisory-metadata check of the proposed offline dependency set found
+published advisories for filelock3.32.3, pip25.0.1 and setuptools78.1.0. The
+development environment was updated to filelock4.2.1 / pip26.2.2 /
+setuptools84.1.0, all MIT and compatible with supported Python versions.
+Project/CI minimums now exclude those older versions. Focused exporter,
+packaged runtime and experiment regression:52 passed; pip check reports no
+broken requirements. Registry metadata is a dated observation, not a complete
+security certification. Preserve pre-fix metadata as RED evidence; re-create
+the final wheelhouse/hash lock and package using the corrected environment.
