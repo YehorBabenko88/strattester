@@ -13,6 +13,8 @@ class FinancialResearchContext:
     request: AttestedInferenceRequest
     policy: ExportPolicy
     verifier: OpenSSLVerifier
+    max_work_bytes: int = 512*1024*1024
+    cancel: object = lambda: False
 
 
 class FinancialStructuralResearch:
@@ -23,7 +25,7 @@ class FinancialStructuralResearch:
     def run_context(self,context,checkpoint=None):
         if type(context) is not FinancialResearchContext or checkpoint is not None:
             raise ValueError('offline financial research context required; mutable store execution prohibited')
-        result=run_attested_offline(context.request,policy=context.policy,verifier=context.verifier)
+        result=run_attested_offline(context.request,policy=context.policy,verifier=context.verifier,max_work_bytes=context.max_work_bytes,cancel=context.cancel)
         return {'mode':'OFFLINE_RESEARCH_ONLY','status':'RESEARCH_PREDICTION','trades':[],
                 'prediction':asdict(result.prediction),'provenance':result.provenance}
 
@@ -47,4 +49,3 @@ def execute_financial_research(registry,context,*,research_only=False):
     if definition.enabled is not True:raise ValueError('financial research strategy disabled; explicit enable required')
     output=FinancialStructuralResearch().run_context(context)
     return StrategyResult(definition.id,definition.version,strategy_fingerprint(definition),output)
-
