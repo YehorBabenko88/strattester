@@ -144,3 +144,19 @@ def test_purge_embargo_boundary_and_triangle_path():
     mask=pair_dependency_mask([10,30,10],[20,20,20])
     assert not triangle_path_valid(mask,0,2,1)
     assert triangle_path_valid(mask,0,2,2)
+
+
+def test_extreme_positive_prices_log_returns_remain_finite():
+    prices=[1e-300,1e300,1e-300,1e300]
+    returns=log_returns(prices)
+    assert len(returns)==3
+    assert all(math.isfinite(x) for x in returns)
+    assert returns[0] == pytest.approx(math.log(1e300)-math.log(1e-300))
+
+
+def test_calibration_rejects_nonfinite_distribution_inputs():
+    for invalid in (float('nan'),float('inf'),float('-inf')):
+        with pytest.raises(ValueError):
+            gaussian_scores([invalid],[1.],[0.])
+        with pytest.raises(ValueError):
+            gaussian_scores([0.],[invalid],[0.])
