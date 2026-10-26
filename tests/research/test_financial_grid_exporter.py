@@ -611,3 +611,34 @@ def test_resealed_second_store_cannot_override_pinned_receipt(tmp_path, field, v
         run(HistoryProfile(PROFILE, 'epoch', 30, (first, second)), tmp_path/'output')
     assert not (tmp_path/'output').exists()
     assert not list(tmp_path.glob('.history-export-*'))
+
+@pytest.mark.parametrize('field', ['event_watermark_ns', 'availability_watermark_ns', 'partition_timeframe_ns'])
+def test_resealed_receipt_rejects_float_substitution_for_integer_facts(tmp_path, field):
+    source, rows, meta = fixture(tmp_path)
+    if field == 'partition_timeframe_ns':
+        meta['partitions'][0]['timeframe_ns'] = 10.0
+    else:
+        meta[field] = 30.0
+    with sqlite3.connect(source.location) as con:
+        con.execute('UPDATE history_meta SET payload=?', (canonical_bytes(meta).decode(),))
+    source = replace(source, seal_sha256=history_seal(meta, rows))
+    with pytest.raises(ValueError, match='epoch/seal/completeness/routing facts'):
+        run(HistoryProfile(PROFILE, 'epoch', 30, (source,)), tmp_path/'output')
+    assert not (tmp_path/'output').exists()
+    assert not list(tmp_path.glob('.history-export-*'))
+
+
+@pytest.mark.parametrize('failure', ['revision-gap', 'duplicate-revision', 'first-availability', 'reversed-availability'])
+def test_resealed_revision_history_still_requires_complete_ordered_first_availability(tmp_path, failure):
+    source, rows, meta = fixture(tmp_path)
+    if failure == 'revision-gap': rows[1]['bar']['revision'] = 3
+    elif failure == 'duplicate-revision': rows[1]['bar']['revision'] = 1
+    elif failure == 'first-availability': rows[1]['first_available_ns'] = 40
+    else: rows[1]['bar']['available_ns'] = 10
+    with sqlite3.connect(source.location) as con:
+        con.execute('DELETE FROM history_rows')
+        con.executemany('INSERT INTO history_rows VALUES (?)', [(canonical_bytes(row).decode(),) for row in rows])
+    source = replace(source, seal_sha256=history_seal(meta, rows))
+    with pytest.raises(ValueError, match='availability|revision'):
+        run(HistoryProfile(PROFILE, 'epoch', 30, (source,)), tmp_path/'output')
+    assert not (tmp_path/'output').exists()

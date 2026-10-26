@@ -188,7 +188,9 @@ def export_history(profile, output_dir, *, producer_id, producer_build_sha,
                       'event_watermark_ns':profile.knowledge_cutoff_ns,'availability_watermark_ns':profile.knowledge_cutoff_ns,
                       'partitions':[asdict(p) for p in source.partitions]}
             if any(type(meta.get(k)) is not bool for k in ('complete','first_availability_retained','revision_history_retained')): raise ValueError('historical receipt boolean type')
-            if meta!=expected: raise ValueError('BLOCKED: epoch/seal/completeness/routing facts')
+            # Python equality aliases JSON floats/bools to integer source facts.
+            # Compare the canonical sealed representation before rebuilding receipts.
+            if canonical_bytes(meta)!=canonical_bytes(expected): raise ValueError('BLOCKED: epoch/seal/completeness/routing facts')
             budget=execute(f'SELECT count(*),coalesce(sum({size}),0),coalesce(max({size}),0) FROM history_rows').fetchone()
             if budget[0]+total_rows>max_rows or budget[1]+total_bytes>max_bytes or budget[2]>max_bytes: raise ValueError('raw history allocation budget')
             rows=[]
