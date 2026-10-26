@@ -1,0 +1,4 @@
+'\\/server/share/tool.exe' '\\\\server\\share' True '\\/server/share/tool.exe'
+'/\\server/share/tool.exe' '\\\\server\\share' True '/\\server/share/tool.exe'
+'C:/NUL' 'C:' True 'C:/NUL'
+'C:/folder/CON' 'C:' True 'C:/folder/CON'
