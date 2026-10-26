@@ -22,3 +22,15 @@ class SourceIdentityTests(unittest.TestCase):
   with tempfile.TemporaryDirectory() as t:
    r=Path(t);self.fixture(r);(r/'.git/info/exclude').write_text('hidden.cs\n');(r/'native/windows/hidden.cs').write_bytes(b'evil source\n')
    identity,files=build.source_snapshot(r);self.assertTrue(identity['dirty']);self.assertNotIn('native/windows/hidden.cs',files)
+ def test_git_replace_blob_cannot_change_bytes_bound_to_source_tree(self):
+  with tempfile.TemporaryDirectory() as t:
+   r=Path(t);git=self.fixture(r)
+   original=git('rev-parse','HEAD:native/windows/Broker.cs')
+   replacement=subprocess.run(['git','-C',str(r),'hash-object','-w','--stdin'],input=b'replacement source\n',capture_output=True,check=True).stdout.decode().strip()
+   git('replace',original,replacement)
+   git('update-index','--skip-worktree','native/windows/Broker.cs')
+   (r/'native/windows/Broker.cs').write_bytes(b'replacement source\n')
+   self.assertEqual(git('status','--porcelain'),'')
+   identity,files=build.source_snapshot(r)
+   self.assertEqual(files['native/windows/Broker.cs'],b'committed source\n')
+   self.assertTrue(identity['dirty'])

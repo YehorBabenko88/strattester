@@ -30,7 +30,9 @@ def sha256(path):
 def source_snapshot(root):
     """Compile immutable Git objects, never a mutable working-tree glob."""
     def git(*args, binary=False):
-        result = subprocess.run(['git', '-C', str(root), *args], check=True, capture_output=True)
+        # Replacement refs can change blob bytes while retaining the original
+        # source/tree IDs. Read the actual objects named by the captured commit.
+        result = subprocess.run(['git', '--no-replace-objects', '-C', str(root), *args], check=True, capture_output=True)
         return result.stdout if binary else result.stdout.decode().strip()
     head = git('rev-parse', 'HEAD')
     tree = git('rev-parse', head + '^{tree}')
