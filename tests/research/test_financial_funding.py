@@ -75,3 +75,30 @@ def test_bounded_contract_rejects_duplicate_windows_and_future_coverage():
     with pytest.raises(ValueError):evaluate_ledger([trade],funding_windows=(window(),window()))
     with pytest.raises(ValueError):replace(window(),as_of_ns=19).validate()
     with pytest.raises(ValueError):replace(window(),source_sha256='not evidence').validate()
+
+
+def test_mixed_signed_settlements_and_market_isolation_match_decimal_oracle():
+    # Identical symbol, settlement and event ID on distinct venues must not mix.
+    instruments=('venue/perpetual/BTC','other/perpetual/BTC')
+    rates=(('25','-40'),('-10','5'))
+    windows=[]
+    for instrument,market_rates in zip(instruments,rates):
+        events=tuple(FundingEvent(instrument,str(t),t,t,rate,'bps')
+                     for t,rate in zip((10,20),market_rates))
+        windows.append(FundingWindow(instrument,0,20,20,'a'*64,events[::-1]))
+    trades=[Trade(instruments[0],0,20,.125,1),Trade(instruments[1],0,20,.125,-1)]
+    # Deliberately reverse trades, windows, and settlements independently.
+    result=evaluate_ledger(trades[::-1],funding_windows=tuple(windows[::-1]))
+    expected={instrument:float(Decimal(position)*Decimal('.125')
+               -Decimal(position)*sum(map(Decimal,market_rates))/10000)
+              for instrument,position,market_rates in zip(instruments,(1,-1),rates)}
+    assert result['returns']==pytest.approx([expected[t.instrument]
+        for t in sorted(trades,key=lambda t:(t.start_ns,t.instrument))],abs=1e-15)
+
+
+def test_invalid_unused_gap_events_are_rejected_through_ledger_api():
+    event=window().events[0]
+    # Settlement 10 has no position exposure; invalid duplicate data still fails.
+    trades=[Trade(event.instrument,0,5,0.,1),Trade(event.instrument,15,20,0.,-1)]
+    with pytest.raises(ValueError,match='duplicate'):
+        evaluate_ledger(trades,funding_windows=(window((event,event)),))
