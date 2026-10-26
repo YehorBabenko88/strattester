@@ -7,6 +7,8 @@ No biological code or weights are imported; reference: pinned upstream modules.p
 """
 from dataclasses import dataclass
 from .financial_contract import integer
+from .financial_torch_runtime import serialize_cpu_research,cpu_research_state
+from contextlib import nullcontext
 
 
 @dataclass(frozen=True)
@@ -75,7 +77,8 @@ def build_column_attention(channels, heads):
     return ColumnAttention()
 
 
-def build_structural_model(config=StructuralConfig()):
+@serialize_cpu_research
+def build_structural_model(config=StructuralConfig(),*,seed=None):
     config.validate()
     import torch
     from torch import nn
@@ -154,4 +157,5 @@ def build_structural_model(config=StructuralConfig()):
             result=torch.stack((raw[:,0],torch.nn.functional.softplus(raw[:,1]).clamp(1e-5,10.)),-1)
             if not torch.isfinite(result).all(): raise ValueError('nonfinite financial distribution')
             return result
-    return FinancialStructuralModel()
+    with cpu_research_state(seed=seed) if seed is not None else nullcontext():
+        return FinancialStructuralModel()

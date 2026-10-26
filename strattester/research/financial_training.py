@@ -1,11 +1,13 @@
 """Deterministic bounded Gaussian training; no I/O or implicit checkpoints."""
 import math
+from .financial_torch_runtime import serialize_cpu_research,cpu_research_state
 
 
 class TrainingCancelled(RuntimeError):
     pass
 
 
+@serialize_cpu_research
 def fit_structural(model, features, targets, mask, *, seed=0, steps=20, learning_rate=.001, cancel=lambda:False):
     import torch
     from .financial_contract import integer, finite
@@ -21,11 +23,9 @@ def fit_structural(model, features, targets, mask, *, seed=0, steps=20, learning
     if targets.dtype!=features.dtype or targets.device!=features.device or not torch.isfinite(targets).all(): raise ValueError('invalid labels')
     before={name:value.detach().clone() for name,value in model.state_dict().items()}
     previous_mode=model.training
-    deterministic=torch.are_deterministic_algorithms_enabled()
     losses=[]
     try:
-        with torch.random.fork_rng(devices=[]):
-            torch.manual_seed(seed);torch.use_deterministic_algorithms(True)
+        with cpu_research_state(seed=seed,deterministic=True):
             optimizer=torch.optim.Adam(model.parameters(),lr=learning_rate)
             model.train()
             for step in range(steps):
@@ -51,4 +51,3 @@ def fit_structural(model, features, targets, mask, *, seed=0, steps=20, learning
         raise
     finally:
         model.train(previous_mode)
-        torch.use_deterministic_algorithms(deterministic)

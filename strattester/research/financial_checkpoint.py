@@ -13,6 +13,7 @@ import tempfile
 from .financial_contract import digest, integer
 from .financial_snapshot import canonical_bytes, verified_bytes, unique_object, bounded_json, reject_linked_path
 from .financial_structural_model import StructuralConfig, build_structural_model
+from .financial_torch_runtime import cpu_research_state
 
 
 def model_fingerprint(model):
@@ -75,9 +76,9 @@ def load_checkpoint(path, expected_sha256, *, max_bytes=8*1024*1024):
     except (TypeError,AttributeError) as exc: raise ValueError('checkpoint config') from exc
     # Initial values are replaced by checkpoint tensors. Preserve the caller
     # CPU RNG even if construction or later tensor validation fails. This
-    # process-global save/restore is not isolation from concurrent RNG users;
-    # callers must serialize threaded training/loading or use separate processes.
-    with torch.random.fork_rng(devices=[]):
+    # All participating constructors/fits share the same cooperative CPU slot;
+    # unrelated Torch callers still require separate coordination/processes.
+    with cpu_research_state():
         model=build_structural_model(config)
     expected=model.state_dict()
     if not isinstance(payload['tensors'],dict) or set(expected)!=set(payload['tensors']):raise ValueError('checkpoint tensor names')

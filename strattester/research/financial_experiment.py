@@ -111,8 +111,7 @@ def run_experiment(examples,checkpoint_path,*,train_end,validation_end,test_end,
     for partition in (val,test):
         evaluate_ledger([Trade(s.instrument,s.decision_time,s.label_end_time,math.expm1(s.forward_return),0) for s in partition])
     if len({tuple(x.shape[1:]) for x in tensors.values()})!=1:raise ValueError('fixed aligned window shape required; no implicit padding')
-    torch.manual_seed(seed)
-    model=build_structural_model(config)
+    model=build_structural_model(config,seed=seed)
     before={n:p.detach().clone() for n,p in model.named_parameters()}
     train_x=[];train_masks=[]
     for s in train:
