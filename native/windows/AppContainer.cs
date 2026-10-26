@@ -85,6 +85,9 @@ namespace StratTester.Native {
             VerificationPhase = "QUERY_CHILD_POLICY";
             if (!SandboxNative.GetProcessMitigationPolicy(process, 13, out flags, new UIntPtr(4)) || (flags & 1) != 1)
                 throw new InvalidOperationException("Child process policy missing");
+            VerificationPhase = "QUERY_WIN32K_LOCKDOWN";
+            if (!SandboxNative.GetProcessMitigationPolicy(process, 4, out flags, new UIntPtr(4)) || flags != 1)
+                throw new InvalidOperationException("Win32k lockdown missing");
             VerificationPhase = "TOKEN_VERIFIED";
         }
         internal static bool IsLpac(KernelHandle primary) {
@@ -132,17 +135,18 @@ namespace StratTester.Native {
         private bool initialized;
         internal SandboxAttributes(AppContainerProfile profile, KernelHandle job, IntPtr[] handles) {
             UIntPtr bytes = UIntPtr.Zero;
-            Native.InitializeProcThreadAttributeList(IntPtr.Zero, 5, 0, ref bytes);
+            Native.InitializeProcThreadAttributeList(IntPtr.Zero, 6, 0, ref bytes);
             if (bytes.ToUInt64() == 0 || bytes.ToUInt64() > 1048576) throw new Win32Exception(Marshal.GetLastWin32Error());
             List = Marshal.AllocHGlobal((int)bytes.ToUInt64());
             try {
-                if (!Native.InitializeProcThreadAttributeList(List, 5, 0, ref bytes)) throw new Win32Exception(Marshal.GetLastWin32Error());
+                if (!Native.InitializeProcThreadAttributeList(List, 6, 0, ref bytes)) throw new Win32Exception(Marshal.GetLastWin32Error());
                 initialized = true;
                 Add(0x20009, new SandboxNative.SecurityCapabilities { AppContainerSid = profile.Sid, Capabilities = IntPtr.Zero, CapabilityCount = 0, Reserved = 0 });
                 Add(0x2000f, 1u); // PROCESS_CREATION_ALL_APPLICATION_PACKAGES_OPT_OUT
                 Add(0x2000e, 1u); // PROCESS_CREATION_CHILD_PROCESS_RESTRICTED
                 AddPointers(0x20002, handles); // Explicit handles only, no ambient inheritance.
                 AddPointers(0x2000d, new IntPtr[] { job.DangerousGetHandle() }); // Atomic job admission.
+                Add(0x20007, 0x10000000UL); // Headless worker: disable Win32k system calls.
             } catch { Dispose(); throw; }
         }
         private void Add<T>(uint key, T value) where T : struct {

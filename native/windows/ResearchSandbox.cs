@@ -40,6 +40,7 @@ namespace StratTester.Native {
     }
     internal static class ResearchSandbox {
         internal static string Phase = "INITIAL";
+        internal static uint LastProcessId;
         // This is an owned fixture API, not an authorization boundary. It is only
         // reachable through --selftest-sandbox after the disposable-host guard.
         internal static SandboxResult RunOwned(AppContainerProfile profile, string image, string[] arguments,
@@ -70,6 +71,7 @@ namespace StratTester.Native {
                         Phase = "CREATE_SUSPENDED_LPAC";
                         if (!Native.CreateProcessAsUserEx(token, image, command, IntPtr.Zero, IntPtr.Zero, true, 0x4 | 0x80000 | 0x08000000 | 0x400, environment.Block, Path.GetDirectoryName(image), ref startup, out child))
                             throw new Win32Exception(Marshal.GetLastWin32Error());
+                        LastProcessId = child.ProcessId;
                         Thread reader = null;
                         var result = new SandboxResult { StopReason = "EXIT" };
                         var capture = new BoundedCapture(outputRead, limits.OutputBytes, job);

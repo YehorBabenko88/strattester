@@ -27,7 +27,7 @@ namespace StratTester.Native {
                     return 0;
                 } catch (Exception error) {
                     var nativeError = error as Win32Exception;
-                    Console.WriteLine("{\"status\":\"LPAC_OWNED_SANDBOX_COMPONENT_FAIL\",\"phase\":\"" + SandboxProbes.Phase + "\",\"engine_phase\":\"" + ResearchSandbox.Phase + "\",\"token_phase\":\"" + AppContainerProfile.VerificationPhase + "\",\"detail\":\"" + SandboxProbes.LastDetail + "\",\"error_type\":\"" + error.GetType().Name + "\",\"win32_error\":" + (nativeError == null ? 0 : nativeError.NativeErrorCode) + ",\"native_enforcement\":false,\"research_process_created\":false}");
+                    Console.WriteLine("{\"status\":\"LPAC_OWNED_SANDBOX_COMPONENT_FAIL\",\"phase\":\"" + SandboxProbes.Phase + "\",\"engine_phase\":\"" + ResearchSandbox.Phase + "\",\"token_phase\":\"" + AppContainerProfile.VerificationPhase + "\",\"child_pid\":" + ResearchSandbox.LastProcessId + ",\"detail\":\"" + SandboxProbes.LastDetail + "\",\"error_type\":\"" + error.GetType().Name + "\",\"win32_error\":" + (nativeError == null ? 0 : nativeError.NativeErrorCode) + ",\"native_enforcement\":false,\"research_process_created\":false}");
                     return 1;
                 }
             }
