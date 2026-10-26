@@ -66,12 +66,12 @@ namespace StratTester.Native {
         internal void VerifyToken(IntPtr process) {
             VerificationPhase = "OPEN_CHILD_TOKEN";
             KernelHandle token;
-            if (!Native.OpenProcessToken(process, 8, out token)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            if (!Native.OpenProcessToken(process, 8 | 2, out token)) throw new Win32Exception(Marshal.GetLastWin32Error());
             using (token) {
                 VerificationPhase = "QUERY_APP_CONTAINER"; int app = ReadScalar(token, 29);
-                VerificationPhase = "QUERY_LPAC"; int lpac = ReadScalar(token, 46);
+                VerificationPhase = "CHECK_LPAC_AUTHORIZATION"; bool lpac = IsLpac(token);
                 VerificationPhase = "QUERY_CAPABILITIES"; int caps = ReadScalar(token, 30);
-                if (app != 1 || lpac != 1 || caps != 0)
+                if (app != 1 || !lpac || caps != 0)
                     throw new InvalidOperationException("Not zero-capability LPAC");
                 VerificationPhase = "QUERY_PACKAGE_SID";
                 IntPtr data = ReadToken(token, 31);
@@ -88,6 +88,26 @@ namespace StratTester.Native {
             if (!SandboxNative.GetProcessMitigationPolicy(process, 13, out flags, new UIntPtr(4)) || (flags & 1) != 1)
                 throw new InvalidOperationException("Child process policy missing");
             VerificationPhase = "TOKEN_VERIFIED";
+        }
+        internal static bool IsLpac(KernelHandle primary) {
+            // Class 46 is not a supported GetTokenInformation contract on the
+            // hosted OS (ERROR_INVALID_PARAMETER even for a real LPAC). Verify
+            // the documented authorization distinction instead: AAP must not
+            // grant access, while ARAP must grant the same requested read right.
+            KernelHandle token;
+            if (!SandboxNative.DuplicateToken(primary, 2, out token)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            using (token) return !PackageAccess(token, "S-1-15-2-1") && PackageAccess(token, "S-1-15-2-2");
+        }
+        private static bool PackageAccess(KernelHandle token, string sid) {
+            IntPtr descriptor; uint length;
+            if (!SandboxNative.ConvertStringSecurityDescriptorToSecurityDescriptor("O:SYG:SYD:(A;;0x1;;;WD)(A;;0x1;;;" + sid + ")", 1, out descriptor, out length)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            IntPtr privileges = Marshal.AllocHGlobal(1024);
+            try {
+                var mapping = new SandboxNative.GenericMapping { Read = 1, Write = 2, Execute = 4, All = 7 };
+                uint bytes = 1024, granted; bool access;
+                if (!SandboxNative.AccessCheck(descriptor, token, 1, ref mapping, privileges, ref bytes, out granted, out access)) throw new Win32Exception(Marshal.GetLastWin32Error());
+                return access && (granted & 1) == 1;
+            } finally { Marshal.FreeHGlobal(privileges); SandboxNative.LocalFree(descriptor); }
         }
         internal static int ReadScalar(KernelHandle token, int kind) {
             IntPtr data = ReadToken(token, kind);
@@ -149,10 +169,15 @@ namespace StratTester.Native {
     internal static class SandboxNative {
         [StructLayout(LayoutKind.Sequential)] internal struct SecurityCapabilities { internal IntPtr AppContainerSid, Capabilities; internal uint CapabilityCount, Reserved; }
         [StructLayout(LayoutKind.Sequential)] internal struct SecurityAttributes { internal uint Size; internal IntPtr Descriptor; [MarshalAs(UnmanagedType.Bool)] internal bool Inherit; }
+        [StructLayout(LayoutKind.Sequential)] internal struct GenericMapping { internal uint Read, Write, Execute, All; }
         [DllImport("userenv.dll", CharSet = CharSet.Unicode)] internal static extern int CreateAppContainerProfile(string name, string displayName, string description, IntPtr capabilities, uint count, out IntPtr sid);
         [DllImport("userenv.dll", CharSet = CharSet.Unicode)] internal static extern int DeleteAppContainerProfile(string name);
         [DllImport("userenv.dll", CharSet = CharSet.Unicode)] internal static extern int GetAppContainerFolderPath(string sid, out IntPtr folder);
         [DllImport("advapi32.dll")] internal static extern IntPtr FreeSid(IntPtr sid);
+        [DllImport("advapi32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool DuplicateToken(KernelHandle source, int level, out KernelHandle impersonation);
+        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool ConvertStringSecurityDescriptorToSecurityDescriptor(string text, uint revision, out IntPtr descriptor, out uint length);
+        [DllImport("advapi32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool AccessCheck(IntPtr descriptor, KernelHandle token, uint desired, ref GenericMapping mapping, IntPtr privileges, ref uint bytes, out uint granted, [MarshalAs(UnmanagedType.Bool)] out bool status);
+        [DllImport("kernel32.dll")] internal static extern IntPtr LocalFree(IntPtr memory);
         [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool GetProcessMitigationPolicy(IntPtr process, int policy, out uint value, UIntPtr bytes);
         [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool CreatePipe(out KernelHandle read, out KernelHandle write, ref SecurityAttributes security, uint bytes);
         [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool SetHandleInformation(KernelHandle handle, uint mask, uint flags);

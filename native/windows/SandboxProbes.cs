@@ -77,8 +77,8 @@ namespace StratTester.Native {
         }
         private static bool OwnLpac() {
             KernelHandle token;
-            if (!Native.OpenProcessToken(Native.GetCurrentProcess(), 8, out token)) return false;
-            using (token) return AppContainerProfile.ReadScalar(token, 29) == 1 && AppContainerProfile.ReadScalar(token, 46) == 1 && AppContainerProfile.ReadScalar(token, 30) == 0;
+            if (!Native.OpenProcessToken(Native.GetCurrentProcess(), 8 | 2, out token)) return false;
+            using (token) return AppContainerProfile.ReadScalar(token, 29) == 1 && AppContainerProfile.IsLpac(token) && AppContainerProfile.ReadScalar(token, 30) == 0;
         }
         private static void CheckEnvironment() {
             string[] names = { "GITHUB_ACTIONS", "RUNNER_ENVIRONMENT", "RUNNER_OS", "SystemRoot", "WINDIR", "TEMP", "TMP", "LOCALAPPDATA" };

@@ -27,13 +27,15 @@ def guard():
             or len(sys.argv) < 3 or sys.argv[1] != "COMPONENT_TESTS_ONLY"):
         raise RuntimeError("host guard")
     token = w.HANDLE()
-    if not a.OpenProcessToken(k.GetCurrentProcess(), 8, c.byref(token)):
+    if not a.OpenProcessToken(k.GetCurrentProcess(), 8 | 2, c.byref(token)):
         raise c.WinError(c.get_last_error())
     try:
-        for kind, expected in ((29, 1), (46, 1)):
+        for kind, expected in ((29, 1),):
             value, returned = w.DWORD(), w.DWORD()
             if not a.GetTokenInformation(token, kind, c.byref(value), 4, c.byref(returned)) or value.value != expected:
                 raise RuntimeError("not LPAC")
+        if package_access(token, "S-1-15-2-1") or not package_access(token, "S-1-15-2-2"):
+            raise RuntimeError("LPAC authorization differential")
         for kind in (3, 30):
             returned = w.DWORD()
             a.GetTokenInformation(token, kind, None, 0, c.byref(returned))
@@ -49,6 +51,33 @@ def guard():
         raise RuntimeError("environment leaked")
 
 
+class Mapping(c.Structure):
+    _fields_ = [("read", w.DWORD), ("write", w.DWORD), ("execute", w.DWORD), ("all", w.DWORD)]
+
+
+def package_access(primary, sid):
+    a.DuplicateToken.argtypes = [w.HANDLE, c.c_int, c.POINTER(w.HANDLE)]
+    a.ConvertStringSecurityDescriptorToSecurityDescriptorW.argtypes = [w.LPCWSTR, w.DWORD, c.POINTER(c.c_void_p), c.POINTER(w.DWORD)]
+    a.AccessCheck.argtypes = [c.c_void_p, w.HANDLE, w.DWORD, c.POINTER(Mapping), c.c_void_p, c.POINTER(w.DWORD), c.POINTER(w.DWORD), c.POINTER(w.BOOL)]
+    k.LocalFree.argtypes = [c.c_void_p]
+    token, descriptor, size = w.HANDLE(), c.c_void_p(), w.DWORD()
+    if not a.DuplicateToken(primary, 2, c.byref(token)):
+        raise c.WinError(c.get_last_error())
+    try:
+        text = "O:SYG:SYD:(A;;0x1;;;WD)(A;;0x1;;;" + sid + ")"
+        if not a.ConvertStringSecurityDescriptorToSecurityDescriptorW(text, 1, c.byref(descriptor), c.byref(size)):
+            raise c.WinError(c.get_last_error())
+        privileges, required, granted, status = c.create_string_buffer(1024), w.DWORD(1024), w.DWORD(), w.BOOL()
+        mapping = Mapping(1, 2, 4, 7)
+        if not a.AccessCheck(descriptor, token, 1, c.byref(mapping), privileges, c.byref(required), c.byref(granted), c.byref(status)):
+            raise c.WinError(c.get_last_error())
+        return bool(status.value and granted.value & 1)
+    finally:
+        if descriptor:
+            k.LocalFree(descriptor)
+        k.CloseHandle(token)
+
+
 def denied_file(path, mode):
     try:
         with open(path, mode) as stream:
@@ -59,6 +88,19 @@ def denied_file(path, mode):
     except PermissionError:
         return
     raise RuntimeError("filesystem access not denied")
+
+
+def denied_acl_change(path):
+    # Attempt to replace an owned fixture's DACL with a NULL DACL. Owner rights
+    # must not let the lowbox grant itself unbounded filesystem output access.
+    a.InitializeSecurityDescriptor.argtypes = [c.c_void_p, w.DWORD]
+    a.SetSecurityDescriptorDacl.argtypes = [c.c_void_p, w.BOOL, c.c_void_p, w.BOOL]
+    a.SetFileSecurityW.argtypes = [w.LPCWSTR, w.DWORD, c.c_void_p]
+    descriptor = c.create_string_buffer(64)
+    if not a.InitializeSecurityDescriptor(descriptor, 1) or not a.SetSecurityDescriptorDacl(descriptor, True, None, False):
+        raise c.WinError(c.get_last_error())
+    if a.SetFileSecurityW(path, 4, descriptor) or c.get_last_error() != 5:
+        raise RuntimeError("ACL mutation not explicitly denied")
 
 
 def denied_socket(family, kind, address, port):
@@ -120,10 +162,15 @@ def adversarial(args):
         raise RuntimeError("inherited input writable")
     denied_file(input_path, "rb")
     denied_file(canary, "rb")
+    denied_file("\\\\?\\" + canary, "rb")
     denied_file(canary, "wb")
+    denied_file(canary + ":escape", "wb")
     denied_file(os.path.join(profile, "escape"), "wb")
     denied_file(os.path.join(os.path.dirname(profile), "escape"), "wb")
-    print("CHECK:filesystem,input_handle,environment", flush=True)
+    denied_acl_change(profile)
+    denied_acl_change(os.path.dirname(profile))
+    denied_acl_change(os.path.dirname(sys.executable))
+    print("CHECK:filesystem,input_handle,environment,acl_write", flush=True)
     for family, address, port in ((socket.AF_INET, "127.0.0.1", int(port4)), (socket.AF_INET6, "::1", int(port6))):
         denied_socket(family, socket.SOCK_STREAM, address, port)
         denied_socket(family, socket.SOCK_DGRAM, address, port)
