@@ -42,7 +42,7 @@ namespace StratTester.Native {
                     return 0;
                 } catch (Exception error) {
                     var nativeError = error as Win32Exception;
-                    Console.WriteLine("{\"status\":\"WFP_OWNED_SOCKET_COMPONENT_FAIL\",\"phase\":\"" + WfpComponent.Phase + "\",\"error_type\":\"" + error.GetType().Name + "\",\"win32_error\":" + (nativeError == null ? 0 : nativeError.NativeErrorCode) + ",\"native_enforcement\":false,\"research_process_created\":false}");
+                    Console.WriteLine("{\"status\":\"WFP_OWNED_SOCKET_COMPONENT_FAIL\",\"phase\":\"" + WfpComponent.Phase + "\",\"detail\":\"" + WfpComponent.Detail + "\",\"error_type\":\"" + error.GetType().Name + "\",\"win32_error\":" + (nativeError == null ? 0 : nativeError.NativeErrorCode) + ",\"native_enforcement\":false,\"research_process_created\":false}");
                     return 1;
                 }
             }
@@ -257,7 +257,7 @@ namespace StratTester.Native {
                     if (limits.Basic.LimitFlags != (0x2000 | 0x200 | 0x8 | 0x2) || limits.Basic.ActiveProcessLimit != 1 ||
                         limits.Basic.PerProcessUserTimeLimit != 10000000 || limits.JobMemoryLimit.ToUInt64() != 67108864)
                         throw new InvalidOperationException("Job query mismatch");
-                    if (!Native.QueryInformationJobObject(job, 15, p, (uint)size, out returned)) throw new Win32Exception(Marshal.GetLastWin32Error());
+                    if (!Native.QueryInformationJobObject(job, 15, p, (uint)Marshal.SizeOf(typeof(Native.CpuRate)), out returned)) throw new Win32Exception(Marshal.GetLastWin32Error());
                     var cpu = (Native.CpuRate)Marshal.PtrToStructure(p, typeof(Native.CpuRate));
                     if (cpu.ControlFlags != 5 || cpu.CpuRateValue != 1000) throw new InvalidOperationException("CPU query mismatch");
                 } finally { Marshal.FreeHGlobal(p); }
