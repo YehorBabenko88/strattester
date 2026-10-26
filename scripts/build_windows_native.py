@@ -75,6 +75,7 @@ def build(root, output, cache):
     references = unpacked[1] / "build/.NETFramework/v4.7.2"
     output.mkdir(parents=True, exist_ok=True)
     source = root / "native/windows/Broker.cs"
+    sources = sorted((root / "native/windows").glob("*.cs"))
     binaries = []
     with tempfile.TemporaryDirectory(prefix="native-rebuild-", dir=output) as scratch:
         for iteration in ("one", "two"):
@@ -85,7 +86,7 @@ def build(root, output, cache):
                        "/platform:x64", "/optimize+", "/deterministic+", "/debug-",
                        "/warnaserror+", "/langversion:7.3", "/out:" + str(binary),
                        "/reference:" + str(references / "mscorlib.dll"),
-                       "/reference:" + str(references / "System.dll"), str(source)]
+                       "/reference:" + str(references / "System.dll")] + [str(path) for path in sources]
             subprocess.run(command, check=True, cwd=root)
             binaries.append(binary.read_bytes())
         if binaries[0] != binaries[1]:
@@ -93,6 +94,7 @@ def build(root, output, cache):
     target = output / "StratTester.Native.exe"
     target.write_bytes(binaries[0])
     manifest = {"schema": 1, "binary_sha256": sha256(target), "source_sha256": sha256(source),
+                "sources": {path.relative_to(root).as_posix(): sha256(path) for path in sources},
                 "deterministic_rebuild_equal": True, "target": "net472-windows-x64",
                 "packages": [{"id": n, "version": v, "sha256": h} for n, v, h in PACKAGES],
                 "native_enforcement": False, "component_tests": "NOTRUN", "research_execution": "BLOCKED"}

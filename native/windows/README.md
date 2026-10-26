@@ -71,6 +71,35 @@ benign sleeping probe child. There are no research children. Local native
 component testing is NOTRUN. Hosted results must be bound
 to exact source/binary hashes and must not be relabeled sandbox/G1 acceptance.
 
+## Separately reviewed WFP socket component
+
+`--selftest-wfp COMPONENT_TESTS_ONLY` has the same hosted-VM guard and must be
+reviewed/invoked separately. It starts owned IPv4/IPv6 loopback listeners and
+copies this executable to a unique task-owned probe path. Only that path is
+targeted by four terminating block filters at ALE_AUTH_CONNECT and
+ALE_AUTH_RECV_ACCEPT (both address families). There are no netsh/firewall-wide
+rules, remote servers, credential inputs or changes to the runner executable's
+network policy. Policy lives in a dynamic WFP session; session close removes it.
+
+The test requires successful restricted owned-probe connections to BOTH live
+listeners before filtering; then queries all four installed kernel filters,
+including exact application identity blob; requires WSAEACCES on BOTH connection
+attempts; closes the policy session; and requires successful recovery connections
+to the same listeners. A missing route, refused port, timeout, lack of WFP access,
+or unavailable IPv6 fails the component test. It never counts those as isolation.
+Each owned child is created suspended, assigned to the bounded job before resume,
+waited with a timeout and cleaned up through its direct handle.
+
+This experiment is **NOTRUN locally**. Its only success label is
+WFP_OWNED_SOCKET_COMPONENT_PASS, with native_enforcement=false. It demonstrates
+only direct TCP socket policy for the owned executable. It does not verify
+incoming receive behavior, UDP, DNS Client service proxy behavior, other executable
+identities, full descendant isolation, or all application network mechanisms.
+Those remain explicit qualification blockers. `--launch` remains unconditional
+BLOCKED regardless of component results. The environment guard is not security
+authorization. No network component runs as part of `--diagnose` or the safe unit
+tests.
+
 ## Missing mandatory controls
 
 Owner signature/trust verification, restricted SIDs and filesystem confinement,
@@ -97,3 +126,7 @@ Win32 contracts: [CreateRestrictedToken](https://learn.microsoft.com/windows/win
 [AdjustTokenPrivileges](https://learn.microsoft.com/windows/win32/api/securitybaseapi/nf-securitybaseapi-adjusttokenprivileges),
 [job limits](https://learn.microsoft.com/windows/win32/api/winnt/ns-winnt-jobobject_extended_limit_information),
 and [CPU rate](https://learn.microsoft.com/windows/win32/api/winnt/ns-winnt-jobobject_cpu_rate_control_information).
+
+WFP API/layout sources: [FwpmEngineOpen0](https://learn.microsoft.com/windows/win32/api/fwpmu/nf-fwpmu-fwpmengineopen0),
+[FWPM_FILTER0](https://learn.microsoft.com/windows/win32/api/fwpmtypes/ns-fwpmtypes-fwpm_filter0),
+and Microsoft's [SDK declarations](https://github.com/microsoft/win32metadata/blob/main/generation/WinSDK/RecompiledIdlHeaders/um/fwpmu.h).
