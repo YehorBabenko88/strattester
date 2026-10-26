@@ -112,7 +112,9 @@ def test_disposable_postgres_mvcc_and_seals(tmp_path, monkeypatch):
         sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
     assert port!=5432
     with log.open('wb') as stream:
-        process=subprocess.Popen([str(binary/('postgres'+suffix)),'-D',str(data),'-p',str(port),'-h','127.0.0.1','-c','max_connections=8'],stdin=subprocess.DEVNULL,stdout=stream,stderr=subprocess.STDOUT)
+        # Own TCP-only fixture: never use the installed cluster's shared Unix
+        # socket directory (e.g. /var/run/postgresql on hosted Linux).
+        process=subprocess.Popen([str(binary/('postgres'+suffix)),'-D',str(data),'-p',str(port),'-h','127.0.0.1','-c','max_connections=8','-c','unix_socket_directories='],stdin=subprocess.DEVNULL,stdout=stream,stderr=subprocess.STDOUT)
         dsn=f'host=127.0.0.1 port={port} dbname=postgres user=fixture connect_timeout=1'
         try:
             for attempt in range(100):
