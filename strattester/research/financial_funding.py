@@ -5,6 +5,7 @@ Coverage is a caller assertion. It cannot unblock signed research sessions.
 """
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+from math import fsum
 from .financial_contract import integer, digest
 
 
@@ -86,6 +87,6 @@ def funding_adjustments(trades, windows):
         if trade.start_ns < window.start_ns or trade.end_ns > window.end_ns:
             raise ValueError('BLOCKED: incomplete funding interval coverage')
         # Fixed unit entry notional, no mark-price/notional revaluation simulator.
-        output.append(-trade.position*sum(e.rate_bps()/10000 for e in window.events
+        output.append(-trade.position*fsum(e.rate_bps()/10000 for e in window.events
                       if trade.start_ns < e.settlement_ns <= trade.end_ns))
     return output
