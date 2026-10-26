@@ -221,6 +221,7 @@ def main():
     if mode == "adversarial":
         return adversarial(sys.argv[3:])
     if mode == "sleep":
+        print("CHECK:sleep_started", flush=True)
         time.sleep(30)
         return 199
     if mode == "cpu":

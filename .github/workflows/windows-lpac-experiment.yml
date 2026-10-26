@@ -67,8 +67,23 @@ jobs:
         if: always() && steps.build.outcome == 'success'
         shell: pwsh
         run: |
+          $diagnosticZip = "$env:RUNNER_TEMP/ProcessMonitor.zip"
+          Invoke-WebRequest 'https://download.sysinternals.com/files/ProcessMonitor.zip' -OutFile $diagnosticZip
+          $diagnosticRoot = "$env:RUNNER_TEMP/lpac-procmon"
+          Expand-Archive -LiteralPath $diagnosticZip -DestinationPath $diagnosticRoot
+          $diagnostic = Join-Path $diagnosticRoot 'Procmon64.exe'
+          $signature = Get-AuthenticodeSignature -LiteralPath $diagnostic
+          if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') { throw 'Untrusted Microsoft diagnostic tool' }
+          @{ schema = 1; purpose = 'DISPOSABLE_VM_LOADER_DIAGNOSIS_ONLY'; archive_sha256 = (Get-FileHash -LiteralPath $diagnosticZip -Algorithm SHA256).Hash; binary_sha256 = (Get-FileHash -LiteralPath $diagnostic -Algorithm SHA256).Hash; signer = $signature.SignerCertificate.Subject } | ConvertTo-Json | Set-Content "$env:NATIVE_OUTPUT/diagnostic-tool.json"
+          $pml = Join-Path $env:RUNNER_TEMP 'lpac-loader.pml'
+          Start-Process -FilePath $diagnostic -ArgumentList @('/AcceptEula', '/Quiet', '/Minimized', '/BackingFile', $pml) -WindowStyle Hidden
+          Start-Sleep -Seconds 2
           & "$env:NATIVE_OUTPUT/build/StratTester.Native.exe" --selftest-sandbox COMPONENT_TESTS_ONLY 2>&1 | Tee-Object "$env:NATIVE_OUTPUT/sandbox.jsonl"
           $nativeCode = $LASTEXITCODE
+          Start-Process -FilePath $diagnostic -ArgumentList '/Terminate' -WindowStyle Hidden -Wait
+          $csv = Join-Path $env:RUNNER_TEMP 'lpac-loader.csv'
+          Start-Process -FilePath $diagnostic -ArgumentList @('/AcceptEula', '/Quiet', '/OpenLog', $pml, '/SaveAs', $csv) -WindowStyle Hidden -Wait
+          Import-Csv -LiteralPath $csv | Where-Object { $_.'Process Name' -in @('python.exe', 'StratTester.Native.exe') -and $_.Result -in @('ACCESS DENIED', 'PRIVILEGE NOT HELD', 'PATH NOT FOUND', 'NAME NOT FOUND') } | Select-Object 'Process Name', PID, Operation, Path, Result, Detail | Export-Csv -NoTypeInformation "$env:NATIVE_OUTPUT/loader-denials.csv"
           $receipt = Get-Content "$env:NATIVE_OUTPUT/sandbox.jsonl" | Select-Object -Last 1 | ConvertFrom-Json
           if ($nativeCode -ne 0) { exit $nativeCode }
           if ($receipt.status -ne 'LPAC_OWNED_SANDBOX_COMPONENT_PASS' -or $receipt.native_enforcement -ne $false -or $receipt.research_process_created -ne $false -or $receipt.owner_authorized_research -ne 'BLOCKED') { throw 'Invalid component-only sandbox receipt' }

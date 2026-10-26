@@ -180,21 +180,24 @@ namespace StratTester.Native {
             if (result.StopReason != "OUTPUT_LIMIT" || result.OutputBytes != 4096) throw new InvalidOperationException("Output limit failed"); Emit("OUTPUT", result);
             Phase = "WALL_LIMIT";
             result = RunMode(profile, image, input, "sleep", new SandboxLimits(536870912, 10000, 100000000, 1500, 4096), CancellationToken.None);
-            if (result.StopReason != "WALL_LIMIT" || result.WallMilliseconds > 8000) throw new InvalidOperationException("Wall limit failed"); Emit("WALL", result);
+            if (result.StopReason != "WALL_LIMIT" || result.WallMilliseconds > 8000 || !result.Output.Contains("CHECK:sleep_started")) throw new InvalidOperationException("Wall limit failed"); Emit("WALL", result);
             Phase = "CANCELLATION";
             using (var cancel = new CancellationTokenSource()) {
-                cancel.CancelAfter(1500); result = RunMode(profile, image, input, "sleep", Normal, cancel.Token);
-                if (result.StopReason != "CANCELLED" || result.WallMilliseconds > 8000) throw new InvalidOperationException("Cancellation failed"); Emit("CANCEL", result);
+                result = ResearchSandbox.RunOwned(profile, image, PythonCommand(image, "sleep", new string[0]), input, Normal, cancel.Token, delegate { cancel.CancelAfter(1500); });
+                if (result.StopReason != "CANCELLED" || result.WallMilliseconds > 8000 || !result.Output.Contains("CHECK:sleep_started")) throw new InvalidOperationException("Cancellation failed"); Emit("CANCEL", result);
             }
             Phase = "CPU_LIMIT";
-            result = RunMode(profile, image, input, "cpu", new SandboxLimits(536870912, 10000, 10000000, 15000, 4096), CancellationToken.None);
-            if (result.StopReason != "EXIT" || result.ExitCode == 0 || result.UserTime100ns < 8000000 || result.UserTime100ns > 30000000) throw new InvalidOperationException("CPU time limit failed"); Emit("CPU", result);
+            result = RunMode(profile, image, input, "cpu", new SandboxLimits(536870912, 1000, 10000000, 15000, 4096), CancellationToken.None);
+            double normalizedCpu = (result.UserTime100ns + result.KernelTime100ns) / (10000.0 * Math.Max(1, result.WallMilliseconds) * Environment.ProcessorCount);
+            if (result.StopReason != "EXIT" || result.ExitCode == 0 || result.UserTime100ns < 8000000 || result.UserTime100ns > 30000000 || normalizedCpu > 0.15) throw new InvalidOperationException("CPU time/hard-cap limit failed"); Emit("CPU", result);
             Phase = "MEMORY_LIMIT";
             result = RunMode(profile, image, input, "memory", new SandboxLimits(268435456, 10000, 100000000, 15000, 4096), CancellationToken.None);
             if (result.StopReason != "EXIT" || result.ExitCode != 205 || result.Output != "MEMORY_DENIED" || result.PeakJobMemory > 268435456 || result.PeakJobMemory < 67108864) throw new InvalidOperationException("Memory limit failed"); Emit("MEMORY", result);
         }
         private static SandboxResult RunMode(AppContainerProfile profile, string image, LockedInput input, string mode, SandboxLimits limits, CancellationToken cancel) {
-            return ResearchSandbox.RunOwned(profile, image, PythonCommand(image, mode, new string[0]), input, limits, cancel, null);
+            var result = ResearchSandbox.RunOwned(profile, image, PythonCommand(image, mode, new string[0]), input, limits, cancel, null);
+            LastDetail = "mode=" + mode + ",exit=" + result.ExitCode + ",reason=" + result.StopReason + ",wall=" + result.WallMilliseconds + ",user_cpu=" + result.UserTime100ns + ",peak_memory=" + result.PeakJobMemory + ",output=" + SafeDetail(result.Output);
+            return result;
         }
         private static string[] PythonCommand(string image, string mode, string[] extra) {
             var command = new List<string> { "-I", "-S", "-B", Path.Combine(Path.GetDirectoryName(image), "owned_adversary.py"), "COMPONENT_TESTS_ONLY", mode };
