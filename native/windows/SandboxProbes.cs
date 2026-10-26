@@ -116,9 +116,9 @@ namespace StratTester.Native {
                 Marshal.Copy(new byte[96], 0, servers, 96);
                 // MaxCount follows Microsoft's DNSAsyncQuery native sample (one
                 // DNS_ADDR), matching AddrCount; backing allocation is 96 bytes.
-                Marshal.WriteInt32(servers, 0, 1); Marshal.WriteInt32(servers, 4, 1); Marshal.WriteInt16(servers, 12, 2);
-                Marshal.WriteInt16(servers, 32, 2); Marshal.WriteInt16(servers, 34, 0x3500); Marshal.WriteInt32(servers, 36, 0x0100007f);
-                var request = new SandboxProbeNative.DnsRequest { Version = 1, Name = name, Type = 1, Options = 8 | 32 | 64 | 128 | 256 | 2048, Servers = servers };
+                Marshal.WriteInt32(servers, 0, 1); Marshal.WriteInt32(servers, 4, 1);
+                Marshal.WriteInt16(servers, 32, 2); Marshal.WriteInt32(servers, 36, 0x0100007f);
+                var request = new SandboxProbeNative.DnsRequest { Version = 1, Name = name, Type = 1, Options = 8, Servers = servers };
                 var result = new SandboxProbeNative.DnsResult { Version = 1 };
                 uint status = SandboxProbeNative.DnsQueryEx(ref request, ref result, IntPtr.Zero);
                 if (result.Records != IntPtr.Zero) SandboxProbeNative.DnsRecordListFree(result.Records, 1);
