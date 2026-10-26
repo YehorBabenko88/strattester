@@ -77,3 +77,21 @@ def test_pit_negative_future_and_duplicate():
         validate_observations([row],9,9)
     with pytest.raises(ValueError):
         validate_observations([row,row],10,9)
+
+
+def test_nonfinite_extreme_and_out_of_order_negative_cases():
+    for prices in ([100., float('nan'), 101.], [100., float('inf'), 101.], [100., 0., 101.]):
+        with pytest.raises(ValueError):
+            log_returns(prices)
+    for times in ([0, 60_000, 60_000, 180_000, 240_000, 300_000, 360_000, 420_000],
+                  [0, 120_000, 60_000, 180_000, 240_000, 300_000, 360_000, 420_000]):
+        with pytest.raises(ValueError):
+            make_samples('BTCUSDT','1m',times,[100.]*len(times),window=3,horizon=2)
+
+
+def test_metamorphic_price_scale_invariance():
+    rng = random.Random(19)
+    for _ in range(100):
+        prices = [math.exp(rng.uniform(-8,8)) for _ in range(10)]
+        factor = math.exp(rng.uniform(-5,5))
+        assert log_returns(prices) == pytest.approx(log_returns([p*factor for p in prices]),abs=1e-12)
