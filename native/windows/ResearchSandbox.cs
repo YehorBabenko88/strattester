@@ -1,6 +1,7 @@
 // Disposable hosted-only engine. There is deliberately no public research launch API.
 using System;
 using System.ComponentModel;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -48,7 +49,7 @@ namespace StratTester.Native {
             KernelHandle inheritedInput;
             if (!Native.DuplicateHandle(Native.GetCurrentProcess(), input.Leaf, Native.GetCurrentProcess(), out inheritedInput, 0x80000000u, true, 0)) throw new Win32Exception(Marshal.GetLastWin32Error());
             using (inheritedInput)
-            using (var imageLock = LockedInput.Open(image, 167772160))
+            using (var runtimeSeal = SealedRuntime.Open(Path.GetDirectoryName(image)))
             using (var token = PreparedComponents.CreatePrivilegeRemovedToken())
             using (var job = PreparedComponents.CreateBoundedJob(limits.MemoryBytes, limits.CpuRate, limits.CpuTime100ns))
             using (var environment = new SandboxEnvironment(profile.Folder)) {
@@ -118,6 +119,27 @@ namespace StratTester.Native {
                     }
                 }
             }
+        }
+        private sealed class SealedRuntime : IDisposable {
+            private readonly List<LockedInput> files = new List<LockedInput>();
+            internal static SealedRuntime Open(string root) {
+                var result = new SealedRuntime();
+                try { ulong total = 0; result.Walk(root, ref total); if (result.files.Count == 0) throw new IOException("Empty runtime"); return result; }
+                catch { result.Dispose(); throw; }
+            }
+            private void Walk(string directory, ref ulong total) {
+                if ((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0) throw new IOException("Runtime reparse refused");
+                string[] entries = Directory.GetFileSystemEntries(directory); Array.Sort(entries, StringComparer.Ordinal);
+                foreach (string entry in entries) {
+                    FileAttributes attributes = File.GetAttributes(entry);
+                    if ((attributes & FileAttributes.ReparsePoint) != 0) throw new IOException("Runtime reparse refused");
+                    if ((attributes & FileAttributes.Directory) != 0) { Walk(entry, ref total); continue; }
+                    if (files.Count >= 128) throw new IOException("Runtime count exceeded");
+                    var file = LockedInput.Open(entry, 167772160); files.Add(file); total = checked(total + file.Length);
+                    if (total > 268435456) throw new IOException("Runtime size exceeded");
+                }
+            }
+            public void Dispose() { for (int i = files.Count - 1; i >= 0; i--) files[i].Dispose(); files.Clear(); }
         }
         private sealed class BoundedCapture {
             private readonly KernelHandle pipe, job;

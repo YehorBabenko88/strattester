@@ -1,8 +1,9 @@
 # Windows native broker: component implementation, research execution blocked
 
 This is compiled Windows x64 managed-native interop source targeting .NET Framework
-4.7.2, not a Python launcher or a full sandbox. The executable has **no research
-process creation path**. `--launch` always returns JSON BLOCKED and exit 78 before
+4.7.2. The executable has **no authorized research process creation path**.
+It includes a separately guarded hosted-only LPAC experiment with an owned,
+synthetic embedded Python payload. `--launch` always returns JSON BLOCKED and exit 78 before
 opening arguments or running commands. No G1 authorization is possible.
 
 Implemented Win32 components, reachable only through the disposable VM component
@@ -28,7 +29,56 @@ test mode:
   restricted token, no inherited handles and CREATE_SUSPENDED. Assign and query
   the job before resume, require the benign probe to remain alive, close the job
   and verify termination. Direct process handles provide cleanup on errors.
-  No caller-provided executable, script or research workload can be launched.
+  These older component modes cannot launch a caller-provided executable, script
+  or research workload. The separate LPAC fixture path is described below.
+
+## Hosted LPAC experiment (research execution remains blocked)
+
+`--selftest-sandbox COMPONENT_TESTS_ONLY` requires the same disposable-host
+accident guard. It is **not an authorization API** and must never run on LS5,
+another physical host, or a production service. The workflow
+`windows-lpac-experiment.yml` prepares a SHA256-pinned Python 3.12.10 embedded
+archive and an independently implemented Python malicious probe. The code stages
+these into a fresh owned runtime and grants its unique package SID read/execute
+only. It replaces the complete new AppContainer profile tree's DACL with
+read/execute access; the profile does not provide a writable output directory.
+
+The experiment requests LPAC through
+`PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY` and a
+`SECURITY_CAPABILITIES` structure containing no capabilities. It uses a
+privilege-removed token, the child-process restriction, an atomic job-list
+attribute, and a handle list containing only retained read-only stdin and one
+combined stdout/stderr pipe. It creates the child suspended and independently
+checks its token identity, zero privileges, zero capabilities, LPAC state and
+job limits before resume. Every runtime leaf is held with denied write/delete
+sharing during execution. A bounded capture reader kills the job on output
+overflow; wall time, cancellation and error paths terminate and reap the child.
+Job configuration includes kill-on-close, one active process, CPU time, CPU rate
+and total committed job memory. Configuration alone is not enforcement proof.
+
+The owned malicious payload attempts input/canary/profile reads and writes,
+IPv4/IPv6 TCP/UDP/loopback, DNS through `DnsQueryEx`, parent-process access,
+ordinary named-object and registry namespace access, child creation, memory
+exhaustion, CPU exhaustion, endless output and sleep. A loopback UDP53 observer
+must first observe a real unrestricted DNS query and return NXDOMAIN. The same
+API from LPAC must return access denied and produce no observer traffic. Network
+timeouts and unsupported address families do not count as denial. Separate
+resource probes must actually trigger the bounded behavior, followed by a
+synthetic Python mean/variance result over the inherited input transport.
+
+No successful component receipt means full sandbox or G1 acceptance. The
+filesystem system-runtime allowlist, registry/profile writable-state audit,
+all network proxy mechanisms, authenticated launch/replay lifecycle and
+end-to-end owner-authorized admission remain qualification requirements. The
+experiment's result always reports `native_enforcement=false`,
+`owner_authorized_research=BLOCKED` and
+`full_filesystem_qualification=INCOMPLETE`. Hosted failures retain the failing
+phase; do not turn a failed probe into PASS by accepting an unrelated OS error.
+
+API references: [Microsoft LPAC launch example](https://learn.microsoft.com/en-us/windows/win32/secauthz/implementing-an-appcontainer),
+[process attributes](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-updateprocthreadattribute),
+[DNS query request](https://learn.microsoft.com/en-us/windows/win32/api/windns/ns-windns-dns_query_request),
+[Microsoft DNS server-list sample](https://github.com/microsoft/Windows-classic-samples/blob/main/Samples/DNSAsyncQuery/cpp/DnsQueryEx.cpp).
 
 `--diagnose` reads only the executable hash and existing current-process job
 membership. It does not create tokens/jobs/processes, set policy, touch services,

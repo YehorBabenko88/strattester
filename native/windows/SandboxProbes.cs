@@ -153,7 +153,7 @@ namespace StratTester.Native {
                             profileFolder = profile.Folder; image = PreparePython(profile, runtime); profile.GrantReadTree(runtime);
                             Phase = "ADVERSARIAL_LPAC";
                             var result = ResearchSandbox.RunOwned(profile, image, PythonCommand(image, "adversarial", new string[] { inputPath, canary, profile.Folder,
-                                ((IPEndPoint)tcp4.LocalEndpoint).Port.ToString(), ((IPEndPoint)tcp6.LocalEndpoint).Port.ToString(), "sandbox-" + Guid.NewGuid().ToString("N") + ".strattester.invalid", Process.GetCurrentProcess().Id.ToString(), eventName, registryPath }), input, Normal, CancellationToken.None, null);
+                                ((IPEndPoint)tcp4.LocalEndpoint).Port.ToString(), ((IPEndPoint)tcp6.LocalEndpoint).Port.ToString(), "sandbox-" + Guid.NewGuid().ToString("N") + ".strattester.invalid", Process.GetCurrentProcess().Id.ToString(), eventName, registryPath }), input, Normal, CancellationToken.None, delegate { AssertRuntimeSealed(image); });
                             LastDetail = "exit=" + result.ExitCode + ",reason=" + result.StopReason + ",bytes=" + result.OutputBytes + ",output=" + SafeDetail(result.Output);
                             if (result.ExitCode != 200 || !result.TokenVerified || !result.JobVerified || result.StopReason != "EXIT") throw new InvalidOperationException("Adversarial probe failed");
                             if (dns.Count != 0 || tcp4.Pending() || tcp6.Pending()) throw new InvalidOperationException("Observed sandbox network escape");
@@ -199,6 +199,16 @@ namespace StratTester.Native {
         private static string[] PythonCommand(string image, string mode, string[] extra) {
             var command = new List<string> { "-I", "-S", "-B", Path.Combine(Path.GetDirectoryName(image), "owned_adversary.py"), "COMPONENT_TESTS_ONLY", mode };
             command.AddRange(extra); return command.ToArray();
+        }
+        private static void AssertRuntimeSealed(string image) {
+            int count = 0;
+            foreach (string path in Directory.GetFiles(Path.GetDirectoryName(image))) {
+                bool denied = false;
+                try { using (File.Open(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete)) { } }
+                catch (IOException) { denied = true; }
+                if (!denied) throw new InvalidOperationException("Staged runtime mutable during suspended admission"); count++;
+            }
+            if (count < 4) throw new InvalidOperationException("Incomplete runtime seal fixture");
         }
         private static string PreparePython(AppContainerProfile profile, string runtime) {
             // The workflow prepares an isolated embedded Python runtime, copied into
