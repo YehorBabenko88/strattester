@@ -96,3 +96,32 @@ def test_funding_cancelling_settlements_match_decimal_under_permutation():
     for ordered in permutations(events):
         report=evaluate_ledger([trade],funding_windows=(window(ordered),))
         assert report['returns'][0]==pytest.approx(float(expected),rel=1e-14,abs=1e-30)
+
+
+def test_decimal_funding_preserves_residual_below_binary_rate_precision():
+    events = tuple(replace(window().events[0], event_id=str(i), settlement_ns=i,
+                           available_ns=i, rate=rate)
+                   for i, rate in enumerate(('9999.999999999999999999999999999999', '-9999'), 1))
+    report = evaluate_ledger([Trade(window().instrument, 0, 20, 0., 1)],
+                             funding_windows=(window(events),))
+    assert report['returns'] == [-float(Decimal('0.999999999999999999999999999999') / 10000)]
+
+
+def test_funding_decimal_result_is_independent_of_ambient_context():
+    from decimal import localcontext
+    events = tuple(replace(window().events[0], event_id=str(i), settlement_ns=i,
+                           available_ns=i, rate=rate)
+                   for i, rate in enumerate(('10000', '0.000000000000000000000000000001', '-10000'), 1))
+    with localcontext() as ctx:
+        ctx.prec = 6
+        ctx.Emax = 2
+        ctx.Emin = -2
+        report = evaluate_ledger([Trade(window().instrument, 0, 20, 0., 1)],
+                                 funding_windows=(window(events),))
+    assert report['returns'] == [-1e-34]
+
+
+@pytest.mark.parametrize('rate', ['1e-65', '0e999999999', '-0e-999999999'])
+def test_funding_rejects_unbounded_decimal_scale(rate):
+    with pytest.raises(ValueError, match='scale'):
+        replace(window().events[0], rate=rate).rate_bps()

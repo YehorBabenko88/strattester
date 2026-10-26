@@ -4,8 +4,7 @@ Rates are signed bps on fixed entry notional: positive means longs pay shorts.
 Coverage is a caller assertion. It cannot unblock signed research sessions.
 """
 from dataclasses import dataclass
-from decimal import Decimal, InvalidOperation
-from math import fsum
+from decimal import Decimal, InvalidOperation, localcontext, Context
 from .financial_contract import integer, digest
 
 
@@ -23,7 +22,7 @@ class FundingEvent:
     rate: str
     rate_unit: str
 
-    def rate_bps(self):
+    def decimal_rate_bps(self):
         if type(self.rate) is not str or not 1 <= len(self.rate) <= 64 or self.rate_unit != 'bps':
             raise ValueError('funding requires bounded decimal string in bps')
         try:
@@ -33,7 +32,12 @@ class FundingEvent:
         # Research contract bound, not an exchange limit.
         if not value.is_finite() or value.copy_abs() > 10000:
             raise ValueError('funding rate outside research contract bound')
-        return float(value)
+        if not -64 <= value.as_tuple().exponent <= 64:
+            raise ValueError('funding decimal scale outside contract bound')
+        return value
+
+    def rate_bps(self):
+        return float(self.decimal_rate_bps())
 
 
 @dataclass(frozen=True)
@@ -87,6 +91,11 @@ def funding_adjustments(trades, windows):
         if trade.start_ns < window.start_ns or trade.end_ns > window.end_ns:
             raise ValueError('BLOCKED: incomplete funding interval coverage')
         # Fixed unit entry notional, no mark-price/notional revaluation simulator.
-        output.append(-trade.position*fsum(e.rate_bps()/10000 for e in window.events
-                      if trade.start_ns < e.settlement_ns <= trade.end_ns))
+        # At most 10000 bounded rates with scale >= -64: 80 digits
+        # suffice for exact sums, division by 10000 and the unit position.
+        # Isolate arithmetic from the caller's ambient Decimal context.
+        with localcontext(Context(prec=80)):
+            total = sum((e.decimal_rate_bps() for e in window.events
+                         if trade.start_ns < e.settlement_ns <= trade.end_ns), Decimal(0))
+            output.append(float(-trade.position * total / Decimal(10000)))
     return output
