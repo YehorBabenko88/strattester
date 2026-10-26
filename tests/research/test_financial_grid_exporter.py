@@ -28,6 +28,96 @@ def run(profile,path,**kwargs):
     return export_history(profile,path,producer_id='producer',producer_build_sha='a'*40,key_id='key',export_id='export',issued_at_ns=31,**kwargs)
 
 
+def isolate_postgres_fixture_environment(monkeypatch):
+    """Keep the explicit test binary pin; isolate this owned fixture's libpq."""
+    import os
+    explicit=os.environ.get('PG_BINDIR') or os.environ.get('STRATTESTER_TEST_PG_BIN')
+    for name in tuple(os.environ):
+        if name.upper().startswith('PG') and name.upper()!='PG_BINDIR':
+            monkeypatch.delenv(name)
+    return explicit
+
+
+@pytest.mark.parametrize('binary_variable',['PG_BINDIR','STRATTESTER_TEST_PG_BIN'])
+def test_owned_postgres_fixture_clears_ambient_libpq_but_preserves_binary_pin(monkeypatch,binary_variable):
+    import os
+    monkeypatch.delenv('PG_BINDIR',raising=False)
+    monkeypatch.delenv('STRATTESTER_TEST_PG_BIN',raising=False)
+    monkeypatch.setenv(binary_variable,'owned-fixture-bin')
+    for name in ('PGHOST','PGPORT','PGDATABASE','PGUSER','PGPASSWORD','PGSERVICE','PGROOT','PGDATA'):
+        monkeypatch.setenv(name,'ambient-test-value')
+    monkeypatch.setenv('UNRELATED_FIXTURE_SETTING','preserved')
+    assert isolate_postgres_fixture_environment(monkeypatch)=='owned-fixture-bin'
+    assert not [name for name in os.environ if name.upper().startswith('PG') and name.upper()!='PG_BINDIR']
+    assert os.environ[binary_variable]=='owned-fixture-bin'
+    assert os.environ['UNRELATED_FIXTURE_SETTING']=='preserved'
+
+
+def stop_owned_postgres(binary,data,suffix,process=None,*,primary_error=None):
+    """Stop only the fixture's explicit data directory; never manage a service."""
+    import subprocess
+    failures=[]
+    try:
+        stopped=subprocess.run([str(binary/('pg_ctl'+suffix)),'-D',str(data),'-m','immediate','-w','stop'],capture_output=True,timeout=15)
+        stopped.check_returncode()
+    except (OSError,subprocess.SubprocessError) as error:
+        failures.append(error)
+    if process is not None:
+        try:process.wait(timeout=15)
+        except (OSError,subprocess.SubprocessError) as error:failures.append(error)
+    if failures:
+        # A failed setup/test already fails the gate; preserve that exception
+        # while making unsuccessful cleanup visible, including shutdown timeout.
+        failure=primary_error if primary_error is not None else failures[0]
+        for error in failures:
+            failure.add_note('owned PostgreSQL shutdown failed: '+str(error))
+        if primary_error is None:raise failure
+
+
+@pytest.mark.parametrize('failure',['exit','timeout'])
+def test_owned_postgres_shutdown_failure_cannot_pass(tmp_path,monkeypatch,failure):
+    import subprocess
+    def failed_stop(command,**kwargs):
+        if failure=='timeout':raise subprocess.TimeoutExpired(command,kwargs['timeout'])
+        return subprocess.CompletedProcess(command,1,b'',b'could not stop server')
+    monkeypatch.setattr(subprocess,'run',failed_stop)
+    with pytest.raises(subprocess.SubprocessError):
+        stop_owned_postgres(tmp_path/'bin',tmp_path/'pg-owned','.exe')
+
+
+@pytest.mark.parametrize('failure',['exit','timeout'])
+def test_owned_postgres_shutdown_preserves_original_startup_failure(tmp_path,monkeypatch,failure):
+    import subprocess
+    import sys
+    def failed_stop(command,**kwargs):
+        if failure=='timeout':raise subprocess.TimeoutExpired(command,kwargs['timeout'])
+        return subprocess.CompletedProcess(command,1,b'',b'shutdown failed')
+    monkeypatch.setattr(subprocess,'run',failed_stop)
+    primary=RuntimeError('original startup failure')
+    with pytest.raises(RuntimeError,match='original startup failure') as observed:
+        try:raise primary
+        finally:stop_owned_postgres(tmp_path/'bin',tmp_path/'pg-owned','.exe',primary_error=sys.exception())
+    assert observed.value is primary
+    assert any('owned PostgreSQL shutdown failed' in note for note in getattr(primary,'__notes__',()))
+
+
+def test_owned_postgres_shutdown_is_scoped_and_waits_for_direct_child(tmp_path,monkeypatch):
+    import subprocess
+    calls=[]
+    def stopped(command,**kwargs):
+        calls.append(command)
+        return subprocess.CompletedProcess(command,0,b'',b'')
+    class Child:
+        waited=False
+        def wait(self,timeout):
+            assert timeout==15
+            self.waited=True
+    child=Child();monkeypatch.setattr(subprocess,'run',stopped)
+    stop_owned_postgres(tmp_path/'bin',tmp_path/'pg-owned','.exe',child)
+    assert calls==[[str(tmp_path/'bin'/'pg_ctl.exe'),'-D',str(tmp_path/'pg-owned'),'-m','immediate','-w','stop']]
+    assert child.waited
+
+
 def test_complete_sealed_history_replays_and_emits_consumer_schema(tmp_path):
     source,_,_=fixture(tmp_path)
     result=run(HistoryProfile(PROFILE,'epoch',30,(source,)),tmp_path/'output')
@@ -93,7 +183,7 @@ def test_disposable_postgres_mvcc_and_seals(tmp_path, monkeypatch):
     import time
     from contextlib import contextmanager
     import strattester.research.financial_grid_exporter as module
-    explicit=os.environ.get('PG_BINDIR') or os.environ.get('STRATTESTER_TEST_PG_BIN')
+    explicit=isolate_postgres_fixture_environment(monkeypatch)
     if explicit or os.environ.get('CI'):
         import psycopg
     else:
@@ -173,8 +263,8 @@ def test_disposable_postgres_mvcc_and_seals(tmp_path, monkeypatch):
                 run(HistoryProfile(PROFILE,'epoch',30,(source,)),tmp_path/'changed')
         finally:
             # Stop precisely this owned cluster using its explicit data directory.
-            subprocess.run([str(binary/('pg_ctl'+suffix)),'-D',str(data),'-m','immediate','-w','stop'],capture_output=True,timeout=15)
-            if process is not None:process.wait(timeout=15)
+            import sys
+            stop_owned_postgres(binary,data,suffix,process,primary_error=sys.exception())
 
 
 def test_public_rfc_signer_replays_through_pinned_consumer(tmp_path):

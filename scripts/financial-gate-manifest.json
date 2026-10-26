@@ -573,7 +573,7 @@
     ]
   },
   "data": {
-    "minimum": 116,
+    "minimum": 123,
     "nodeids": [
       "research/test_independent_snapshot_integrity.py::test_exact_snapshot_digest",
       "research/test_independent_snapshot_integrity.py::test_snapshot_budget_and_malformed_digest",
@@ -590,6 +590,13 @@
       "tests/research/test_financial_grid_exporter.py::test_fail_closed_no_partial_artifacts[schema]",
       "tests/research/test_financial_grid_exporter.py::test_failed_atomic_publication_preserves_stage_and_cleanup_inventory",
       "tests/research/test_financial_grid_exporter.py::test_native_blocks_before_path_access",
+      "tests/research/test_financial_grid_exporter.py::test_owned_postgres_fixture_clears_ambient_libpq_but_preserves_binary_pin[PG_BINDIR]",
+      "tests/research/test_financial_grid_exporter.py::test_owned_postgres_fixture_clears_ambient_libpq_but_preserves_binary_pin[STRATTESTER_TEST_PG_BIN]",
+      "tests/research/test_financial_grid_exporter.py::test_owned_postgres_shutdown_failure_cannot_pass[exit]",
+      "tests/research/test_financial_grid_exporter.py::test_owned_postgres_shutdown_failure_cannot_pass[timeout]",
+      "tests/research/test_financial_grid_exporter.py::test_owned_postgres_shutdown_is_scoped_and_waits_for_direct_child",
+      "tests/research/test_financial_grid_exporter.py::test_owned_postgres_shutdown_preserves_original_startup_failure[exit]",
+      "tests/research/test_financial_grid_exporter.py::test_owned_postgres_shutdown_preserves_original_startup_failure[timeout]",
       "tests/research/test_financial_grid_exporter.py::test_postgres_config_rejects_hidden_defaults_before_connect[dbname=postgres-None]",
       "tests/research/test_financial_grid_exporter.py::test_postgres_config_rejects_hidden_defaults_before_connect[host=127.0.0.1 port=45678 dbname=postgres user=fixture options=hidden-None]",
       "tests/research/test_financial_grid_exporter.py::test_postgres_config_rejects_hidden_defaults_before_connect[host=127.0.0.1 port=45678 dbname=postgres user=fixture service=hidden-None]",

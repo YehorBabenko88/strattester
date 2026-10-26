@@ -16,6 +16,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Record exact source identity
+        run: git show --no-patch --format=fuller HEAD
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
