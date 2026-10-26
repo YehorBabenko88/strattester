@@ -27,6 +27,31 @@ def sha256(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+def source_snapshot(root):
+    """Compile immutable Git objects, never a mutable working-tree glob."""
+    def git(*args, binary=False):
+        result = subprocess.run(['git', '-C', str(root), *args], check=True, capture_output=True)
+        return result.stdout if binary else result.stdout.decode().strip()
+    head = git('rev-parse', 'HEAD')
+    tree = git('rev-parse', head + '^{tree}')
+    if any(len(s) != 40 or any(c not in '0123456789abcdef' for c in s) for s in (head, tree)):
+        raise ValueError('invalid Git source identity')
+    names = git('ls-tree', '-r', '--name-only', head, 'native/windows', 'scripts/build_windows_native.py').splitlines()
+    names = [n for n in names if n.endswith('.cs') or n == 'scripts/build_windows_native.py']
+    if 'native/windows/Broker.cs' not in names or 'scripts/build_windows_native.py' not in names:
+        raise ValueError('versioned native source required')
+    files = {n: git('show', head + ':' + n, binary=True) for n in names}
+    dirty = bool(git('status', '--porcelain'))
+    actual = {p.relative_to(root).as_posix() for p in (root/'native/windows').glob('*.cs')}
+    if actual != {n for n in names if n.endswith('.cs')}:
+        dirty = True
+    for name, expected in files.items():
+        path = root/name
+        if not path.is_file() or path.read_bytes().replace(b'\r\n', b'\n') != expected.replace(b'\r\n', b'\n'):
+            dirty = True
+    return dict(source_sha=head, tree_sha=tree, dirty=dirty), files
+
+
 def extract_verified(archive, expected, destination):
     if sha256(archive) != expected:
         raise ValueError("compiler/reference package SHA256 mismatch")
@@ -75,18 +100,16 @@ def build(root, output, cache):
     compiler = unpacked[0] / "tools/csc.exe"
     references = unpacked[1] / "build/.NETFramework/v4.7.2"
     crypto = unpacked[2] / "lib/net461/BouncyCastle.Cryptography.dll"
-    identity = {"source_sha": "0" * 40, "tree_sha": "0" * 40, "dirty": True}
-    try:
-        def git(*args):
-            return subprocess.run(['git', '-C', str(root), *args], check=True, capture_output=True, text=True).stdout.strip()
-        identity = dict(source_sha=git('rev-parse', 'HEAD'), tree_sha=git('rev-parse', 'HEAD^{tree}'), dirty=bool(git('status', '--porcelain')))
-    except subprocess.CalledProcessError:
-        pass  # Unversioned source may build components, never owner admission.
+    identity, objects = source_snapshot(root)
     output.mkdir(parents=True, exist_ok=True)
-    source = root / "native/windows/Broker.cs"
-    sources = sorted((root / "native/windows").glob("*.cs"))
+    sources = sorted(name for name in objects if name.endswith('.cs'))
     binaries = []
     with tempfile.TemporaryDirectory(prefix="native-rebuild-", dir=output) as scratch:
+        snapshot = Path(scratch)/'source'
+        for name, data in objects.items():
+            path = snapshot/name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
         context = Path(scratch) / 'BuildIdentity.cs'
         context.write_text('namespace StratTester.Native { internal static class BuildIdentity {'
             + 'internal const string SourceSha="' + identity['source_sha'] + '";'
@@ -102,15 +125,15 @@ def build(root, output, cache):
                        "/warnaserror+", "/langversion:7.3", "/out:" + str(binary),
                        "/reference:" + str(references / "mscorlib.dll"),
                        "/reference:" + str(references / "System.dll"),
-                       "/resource:" + str(crypto) + ",StratTester.BouncyCastle.dll", str(context)] + [str(path) for path in sources]
+                       "/resource:" + str(crypto) + ",StratTester.BouncyCastle.dll", str(context)] + [str(snapshot/name) for name in sources]
             subprocess.run(command, check=True, cwd=root)
             binaries.append(binary.read_bytes())
         if binaries[0] != binaries[1]:
             raise RuntimeError("deterministic rebuild mismatch")
     target = output / "StratTester.Native.exe"
     target.write_bytes(binaries[0])
-    manifest = {"schema": 1, "binary_sha256": sha256(target), "source_sha256": sha256(source),
-                "sources": {path.relative_to(root).as_posix(): sha256(path) for path in sources},
+    manifest = {"schema": 1, "binary_sha256": sha256(target), "source_sha256": hashlib.sha256(objects['native/windows/Broker.cs']).hexdigest(),
+                "sources": {name: hashlib.sha256(objects[name]).hexdigest() for name in sources},
                 "deterministic_rebuild_equal": True, "target": "net472-windows-x64",
                 "packages": [{"id": n, "version": v, "sha256": h} for n, v, h in PACKAGES],
                 "native_enforcement": False, "component_tests": "NOTRUN", "research_execution": "BLOCKED"}

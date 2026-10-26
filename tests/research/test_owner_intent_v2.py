@@ -6,7 +6,7 @@ import pytest
 def payload():
     return dict(version=2,purpose='PHYSICAL_G1_AUTHORIZATION',owner_id='test-owner',key_id='key',
         target_sha='a'*40,tree_sha='b'*40,binary_sha256='c'*64,package_sha256='d'*64,
-        vm_identity_sha256='e'*64,input_hashes={'snapshot':'f'*64},issued_at_ns=100,expires_at_ns=200,
+        vm_identity_sha256='e'*64,input_hashes={'snapshot':'f'*64,'package':'d'*64},issued_at_ns=100,expires_at_ns=200,
         nonce='1'*64,operations=['synthetic_cpu_inference'],limits=dict(cpu_percent=10,memory_bytes=2147483648,wall_seconds=60,output_bytes=67108864,max_processes=1))
 
 def test_v2_binds_every_input_and_vm_without_authorizing_g1():

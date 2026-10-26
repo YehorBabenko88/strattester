@@ -15,7 +15,7 @@ def canonical_owner_intent(value,*,now_ns):
     for name,size in (('target_sha',40),('tree_sha',40),('binary_sha256',64),('package_sha256',64),('vm_identity_sha256',64),('nonce',64)):
         digest(value[name],size)
     inputs=value['input_hashes']
-    if type(inputs) is not dict or not 1<=len(inputs)<=64:raise ValueError('owner input budget')
+    if type(inputs) is not dict or not 1<=len(inputs)<=64 or inputs.get('package')!=value['package_sha256']:raise ValueError('owner measured package/input budget')
     for name,sha in inputs.items():
         if type(name) is not str or not re.fullmatch(r'[A-Za-z0-9_-]{1,64}',name):raise ValueError('logical input name')
         digest(sha)
