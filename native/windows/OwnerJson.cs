@@ -23,6 +23,7 @@ namespace StratTester.Native {
   }
   internal static byte[] Canonical(object value) { var b=new StringBuilder();Emit(value,b);return Encoding.ASCII.GetBytes(b.ToString()); }
   static void Emit(object o,StringBuilder b) {
+   if(o is bool){b.Append((bool)o?"true":"false");return;} // metadata only; owner parser still rejects booleans.
    var s=o as string;if(s!=null){b.Append('"');foreach(char c in s){if(c<32||c>126)throw new FormatException("ASCII string");if(c=='"'||c=='\\')b.Append('\\');b.Append(c);}b.Append('"');return;}
    if(o is long){b.Append(((long)o).ToString(CultureInfo.InvariantCulture));return;}
    var d=o as SortedDictionary<string,object>;if(d!=null){b.Append('{');bool first=true;foreach(var kv in d){if(!first)b.Append(',');first=false;Emit(kv.Key,b);b.Append(':');Emit(kv.Value,b);}b.Append('}');return;}

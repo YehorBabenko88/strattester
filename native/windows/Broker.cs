@@ -14,6 +14,17 @@ namespace StratTester.Native {
     internal static class Broker {
         internal const string Missing = "owner_signature_verifier,filesystem_confinement,network_egress,output_bounds,disposable_vm_verification";
         public static int Main(string[] args) {
+            if (args.Length > 0 && args[0] == "--selftest-owner-nonce") {
+                if (args.Length != 2 || args[1] != "COMPONENT_TESTS_ONLY" || !HostedVm()) {
+                    Console.WriteLine("{\"status\":\"REFUSED\",\"reason\":\"DISPOSABLE_HOSTED_VM_REQUIRED\",\"research_process_created\":false}"); return 78;
+                }
+                try {
+                    OwnerNonce.SelfTest();
+                    Console.WriteLine("{\"status\":\"OWNER_NONCE_COMPONENT_PASS\",\"cleanup_manifest_sha256\":\"" + OwnerNonce.CleanupManifestSHA + "\",\"fixture\":\"" + OwnerNonce.LastFixture.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\",\"native_enforcement\":false,\"research_process_created\":false}"); return 0;
+                } catch (Exception e) {
+                    Console.WriteLine("{\"status\":\"OWNER_NONCE_COMPONENT_FAIL\",\"error_type\":\"" + e.GetType().Name + "\",\"native_enforcement\":false,\"research_process_created\":false}"); return 1;
+                }
+            }
             if (args.Length > 0 && (args[0] == "--verify-owner" || args[0] == "--owner-vm-identity" || args[0] == "--selftest-owner-clock")) return OwnerIntent.Dispatch(args);
             if (args.Length > 0 && args[0] == "--owned-handle-probe" && HostedVm()) return ProbeEnvironment.IsMinimal() ? HandleComponent.Probe(args) : 103;
             if (args.Length > 0 && args[0] == "--selftest-handles") {
