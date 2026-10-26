@@ -30,7 +30,11 @@ namespace StratTester.Native {
                 if (String.IsNullOrEmpty(Folder) || !Directory.Exists(Folder)) throw new IOException("Missing profile folder");
                 // The default profile is writable. This experiment has stdout-only
                 // output, so replace every existing profile DACL before admission.
-                ProtectTree(Folder, true);
+                string packageRoot = Folder;
+                if (String.Equals(Path.GetFileName(Folder.TrimEnd('\\')), "AC", StringComparison.OrdinalIgnoreCase)) packageRoot = Path.GetDirectoryName(Folder);
+                if (!String.Equals(Path.GetFileName(packageRoot), Name, StringComparison.OrdinalIgnoreCase) && !String.Equals(Path.GetFileName(packageRoot), SidText, StringComparison.OrdinalIgnoreCase))
+                    throw new IOException("Unexpected package root");
+                ProtectTree(packageRoot, true);
             } catch { Dispose(); throw; }
         }
         internal void GrantReadTree(string root) {

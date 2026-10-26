@@ -109,11 +109,19 @@ namespace StratTester.Native {
             if (!denied) throw new InvalidOperationException("Socket access not explicitly denied");
         }
         private static uint QueryOwnedDns(string name) {
-            IntPtr servers = Marshal.AllocHGlobal(8), records;
+            // Documented DNS_QUERY_REQUEST server array; no reserved DnsQuery_W
+            // arguments, host DNS reconfiguration, or external DNS observer.
+            IntPtr servers = Marshal.AllocHGlobal(96);
             try {
-                Marshal.WriteInt32(servers, 0, 1); Marshal.WriteInt32(servers, 4, 0x0100007f);
-                uint status = SandboxProbeNative.DnsQuery(name, 1, 8 | 16 | 32 | 64 | 256, servers, out records, IntPtr.Zero);
-                if (records != IntPtr.Zero) SandboxProbeNative.DnsRecordListFree(records, 1);
+                Marshal.Copy(new byte[96], 0, servers, 96);
+                // MaxCount follows Microsoft's DNSAsyncQuery native sample (one
+                // DNS_ADDR), matching AddrCount; backing allocation is 96 bytes.
+                Marshal.WriteInt32(servers, 0, 1); Marshal.WriteInt32(servers, 4, 1); Marshal.WriteInt16(servers, 12, 2);
+                Marshal.WriteInt16(servers, 32, 2); Marshal.WriteInt16(servers, 34, 0x3500); Marshal.WriteInt32(servers, 36, 0x0100007f);
+                var request = new SandboxProbeNative.DnsRequest { Version = 1, Name = name, Type = 1, Options = 8 | 32 | 64 | 128 | 256 | 2048, Servers = servers };
+                var result = new SandboxProbeNative.DnsResult { Version = 1 };
+                uint status = SandboxProbeNative.DnsQueryEx(ref request, ref result, IntPtr.Zero);
+                if (result.Records != IntPtr.Zero) SandboxProbeNative.DnsRecordListFree(result.Records, 1);
                 return status;
             } finally { Marshal.FreeHGlobal(servers); }
         }
@@ -134,6 +142,7 @@ namespace StratTester.Native {
                     Phase = "DNS_OBSERVER_POSITIVE_CONTROL";
                     string baselineName = "baseline-" + Guid.NewGuid().ToString("N") + ".strattester.invalid";
                     uint baseline = QueryOwnedDns(baselineName);
+                    LastDetail = "baseline_dns=" + baseline + ",packets=" + dns.Count;
                     if (baseline != 9003 || !dns.WaitForCount(1, 3000)) throw new InvalidOperationException("DNS positive control unavailable");
                     dns.Reset();
                     var tcp4 = new TcpListener(IPAddress.Loopback, 0); var tcp6 = new TcpListener(IPAddress.IPv6Loopback, 0); tcp6.Server.DualMode = false;
@@ -245,10 +254,15 @@ namespace StratTester.Native {
         }
     }
     internal static class SandboxProbeNative {
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)] internal struct DnsRequest {
+            internal uint Version; [MarshalAs(UnmanagedType.LPWStr)] internal string Name; internal ushort Type;
+            internal ulong Options; internal IntPtr Servers; internal uint InterfaceIndex; internal IntPtr Completion, Context;
+        }
+        [StructLayout(LayoutKind.Sequential)] internal struct DnsResult { internal uint Version, Status; internal ulong Options; internal IntPtr Records, Reserved; }
         [DllImport("kernel32.dll")] internal static extern IntPtr GetStdHandle(int kind);
         [DllImport("kernel32.dll", SetLastError = true)] internal static extern IntPtr OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, uint pid);
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)] internal static extern IntPtr OpenEvent(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, string name);
-        [DllImport("dnsapi.dll", EntryPoint = "DnsQuery_W", CharSet = CharSet.Unicode)] internal static extern uint DnsQuery(string name, ushort type, uint options, IntPtr servers, out IntPtr records, IntPtr reserved);
+        [DllImport("dnsapi.dll")] internal static extern uint DnsQueryEx(ref DnsRequest request, ref DnsResult result, IntPtr cancel);
         [DllImport("dnsapi.dll")] internal static extern void DnsRecordListFree(IntPtr records, int freeType);
     }
 }
