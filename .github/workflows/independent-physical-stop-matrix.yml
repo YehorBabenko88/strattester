@@ -28,7 +28,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Compile
         run: python -m py_compile research/physical_g1_stop_matrix.py research/test_physical_g1_stop_matrix.py research/physical_ci_artifact_metadata.py research/test_physical_ci_artifact_metadata.py
-      - name: Execute non-authorizing regressions
-        run: |
-          python -m unittest discover -s research -p test_physical_g1_stop_matrix.py -v
-          python -m unittest discover -s research -p test_physical_ci_artifact_metadata.py -v
+      - name: Execute physical STOP regressions
+        run: python -m unittest discover -s research -p test_physical_g1_stop_matrix.py -v
+      - name: Execute artifact provenance regressions
+        run: python -m unittest discover -s research -p test_physical_ci_artifact_metadata.py -v
