@@ -48,3 +48,16 @@ def test_last_valid_origin_is_included():
 def test_excessive_tokens_rejected():
     with pytest.raises(ValueError, match='max_tokens'):
         make_samples('BTCUSDT', '1m', list(range(12)), [100.0] * 12, window=4, horizon=3, max_tokens=1025)
+
+
+@pytest.mark.parametrize('window,horizon', [(2, 2), (4, 3), (5, 7)])
+def test_minimum_valid_history_emits_exactly_one_sample(window, horizon):
+    # Independent index boundary: the last legal target index is n - 1.
+    n = window + horizon + 1
+    timestamps = [i * 60_000 for i in range(n)]
+    samples = make_samples('BTCUSDT', '1m', timestamps,
+                           [100.0 + i for i in range(n)],
+                           window=window, horizon=horizon)
+    assert len(samples) == 1
+    assert samples[0].origin_timestamp == timestamps[window]
+    assert samples[0].target_timestamp == timestamps[n - 1]
