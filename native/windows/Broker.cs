@@ -333,14 +333,14 @@ namespace StratTester.Native {
                     if (Native.WaitForSingleObject(child.Process, 1000) != 258) throw new InvalidOperationException("Probe did not remain alive");
                     // Kill-on-close is tested on the owned benign sleeping child.
                     job.Dispose();
-                    if (Native.WaitForSingleObject(child.Process, 10000) != 0) throw new InvalidOperationException("Kill-on-close failed");
+                    if (Native.WaitForSingleObject(child.Process, 5000) != 0) throw new InvalidOperationException("Kill-on-close failed");
                     uint exitCode;
                     if (!Native.GetExitCodeProcess(child.Process, out exitCode) || exitCode == 42 || exitCode == 259) throw new InvalidOperationException("Probe was not terminated");
                 } finally {
                     // Dedicated direct process handle: cleanup does not depend on
                     // successful job assignment, resume, or job disposal.
                     Native.TerminateProcess(child.Process, 125);
-                    Native.WaitForSingleObject(child.Process, 10000);
+                    Native.WaitForSingleObject(child.Process, 5000);
                     Native.CloseHandle(child.Thread); Native.CloseHandle(child.Process);
                     job.Dispose();
                 }
