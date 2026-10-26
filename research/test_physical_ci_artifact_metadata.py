@@ -40,6 +40,18 @@ class ArtifactMetadataTests(unittest.TestCase):
         data[-1] = data[0].copy()
         self.assertFalse(verify_artifact_metadata(data, head=HEAD, run_id=RUN)["metadata_valid"])
 
+    def test_artifact_name_alias_denied(self):
+        data = fixtures()
+        data[0]["name"] = data[0]["name"].replace("financial-", "", 1)
+        self.assertFalse(verify_artifact_metadata(data, head=HEAD, run_id=RUN)["metadata_valid"])
+
+    def test_wrong_native_prefix_denied(self):
+        data = fixtures()
+        for item in data:
+            if item["name"].startswith("native-component-proof-"):
+                item["name"] = "financial-" + item["name"]
+        self.assertFalse(verify_artifact_metadata(data, head=HEAD, run_id=RUN)["metadata_valid"])
+
     def test_boolean_run_id(self):
         self.assertFalse(verify_artifact_metadata(fixtures(), head=HEAD, run_id=True)["metadata_valid"])
 
