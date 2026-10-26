@@ -22,7 +22,13 @@ longs pay shorts; negative rates reverse the transfer. Cash return adjustment is
 `-position * sum(rate_bps / 10000)` on fixed entry notional. Flat positions pay
 zero. Rates are bounded to absolute 10000 bps as a research input limit, not an
 exchange claim. Windows are bounded to 256 and events to 10000 in total;
-identity strings and decimal inputs have length limits. Duplicate event IDs or
+identity strings and decimal inputs have length limits. Decimal scale (the stored
+base-ten exponent) must be in `[-64,64]`, including zero. Funding rates are
+summed and divided by 10000 exactly in an isolated 80-digit Decimal context;
+only the final funding cash adjustment is converted to the legacy float return.
+The legacy price-return and transaction-cost ledger remains float arithmetic.
+This prevents binary conversion of each rate from erasing cancellation residuals
+and bounds extreme exponent inputs before arithmetic. Duplicate event IDs or
 settlement timestamps within an instrument are rejected. Settlements must lie
 within coverage, availability must be at or after settlement, and both coverage
 end and availability must be at or before the retrospective `as_of_ns` cutoff.
