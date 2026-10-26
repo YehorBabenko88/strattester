@@ -52,7 +52,11 @@ ConvertTo-Json -InputObject $values -Compress
 
 
 def test_owner_nonce_selftest_refuses_physical_host_before_native_filesystem_access():
-    assert invoke("ConvertTo-Json -InputObject (Call 'SelfTest' @()) -Compress")=='InvalidOperationException'
+    result=invoke(r'''
+$result=Call 'SelfTest' @()
+ConvertTo-Json -InputObject @{result=$result;fixture=$type.GetField('LastFixture',$flags).GetValue($null);manifest=$type.GetField('CleanupManifestSHA',$flags).GetValue($null)} -Compress
+''')
+    assert result=={'result':'InvalidOperationException','fixture':'NOT_CREATED','manifest':'UNAVAILABLE'}
 
 
 def test_owner_nonce_device_stems_with_spaces_are_rejected_by_pure_path_validation():
@@ -64,3 +68,11 @@ foreach($bad in @('C:\CON .txt','C:\COM1 .log','C:\LPT1 .log')){$values+=Call 'V
 ConvertTo-Json -InputObject $values -Compress
 ''')
     assert result==['FormatException']*3
+
+
+def test_hosted_nonce_fixture_cleanup_contract_never_recursively_deletes_claim_evidence():
+    # Deliberate source contract: the hosted probe must preserve its own crash,
+    # reparse and nonce evidence, including when it exits through an exception.
+    source=(Path(__file__).resolve().parents[2]/'native/windows/OwnerNonce.cs').read_text(encoding='utf-8')
+    assert 'Directory.Delete(' not in source
+    assert 'File.Delete(' not in source

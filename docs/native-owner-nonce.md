@@ -54,6 +54,13 @@ hardlink/reparse aliases, unsafe ACLs and malformed identifiers/paths. Two fixtu
 helper processes use the same NT create/flush functions and are forcibly terminated
 after reporting a persisted empty or partial receipt; their nonces remain consumed.
 Those helper processes are component fixtures, never research or trading workers.
+All fixtures, claims, hardlinks and junctions remain preserved after the test,
+including failure paths. No automatic cleanup or recursive deletion runs. A bounded,
+flushed `cleanup-manifest.json` records the fixture path, test result and manual
+review requirement. Internal `LastFixture` and `CleanupManifestSHA` fields let the
+guarded broker report the exact artifact path/hash for collection. Collect the
+manifest and explicit regular receipt files without traversing the preserved
+junction; fixture cleanup requires separate resolved-path/reparse review.
 
 On the physical development host, tests only compile twice, invoke malformed values
 that fail before native filesystem access, check the hosted guard, and run existing

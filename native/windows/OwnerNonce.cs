@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -20,6 +21,8 @@ namespace StratTester.Native {
   const uint DontReparse=0x1000, CaseInsensitive=0x40;
   static readonly SecurityIdentifier SystemSid=new SecurityIdentifier("S-1-5-18");
   static readonly SecurityIdentifier AdminSid=new SecurityIdentifier("S-1-5-32-544");
+  internal static string LastFixture="NOT_CREATED";
+  internal static string CleanupManifestSHA="UNAVAILABLE";
 
   internal static void Claim(string ledgerRoot,string nonceHex64,string authorizationSha256) {
    ValidateHex(nonceHex64);ValidateHex(authorizationSha256);ValidatePath(ledgerRoot);
@@ -174,10 +177,12 @@ namespace StratTester.Native {
   internal static void SelfTest() {
    if(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")!="true"||Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT")!="github-hosted"||Environment.GetEnvironmentVariable("RUNNER_OS")!="Windows")
     throw new InvalidOperationException("Disposable hosted Windows required");
+   LastFixture="NOT_CREATED";CleanupManifestSHA="UNAVAILABLE";
    string fixture=System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"StratTester-nonce-"+Guid.NewGuid().ToString("N"));
    SecurityIdentifier user;using(var id=WindowsIdentity.GetCurrent())user=id.User;
    var acl=new DirectorySecurity();acl.SetSecurityDescriptorBinaryForm(ProtectedDescriptor(user));
    Directory.CreateDirectory(fixture,acl);
+   LastFixture=fixture;bool passed=false;
    try {
     string ledger=System.IO.Path.Combine(fixture,"ledger");Directory.CreateDirectory(ledger,acl);
     string nonce=new string('1',64),authorization=new string('a',64);Claim(ledger,nonce,authorization);
@@ -209,10 +214,26 @@ namespace StratTester.Native {
     unsafeAcl.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier("S-1-1-0"),FileSystemRights.FullControl,AccessControlType.Allow));Directory.CreateDirectory(unsafeRoot,unsafeAcl);
     MustFail(delegate{Claim(unsafeRoot,new string('7',64),authorization);});
     string junction=System.IO.Path.Combine(fixture,"junction");Directory.CreateDirectory(junction,acl);MakeJunction(junction,ledger);
-    try{MustFail(delegate{Claim(junction,new string('8',64),authorization);});}finally{Directory.Delete(junction);}
+    MustFail(delegate{Claim(junction,new string('8',64),authorization);});
     foreach(string bad in new string[]{"relative","\\\\?\\C:\\ledger","C:\\NUL","C:\\x:stream","C:\\x\\..\\y"})MustFail(delegate{Claim(bad,new string('9',64),authorization);});
     MustFail(delegate{Claim(ledger,new string('A',64),authorization);});MustFail(delegate{Claim(ledger,new string('9',64),"bad");});
-   }finally{Directory.Delete(fixture,true);}
+    passed=true;
+   }finally{PreserveFixtureManifest(fixture,passed);}
+  }
+  static void PreserveFixtureManifest(string fixture,bool passed) {
+   // The fixture may still contain a junction, hardlinks and interrupted claims.
+   // Preserve it; never recursively walk/delete a computed Windows directory.
+   var manifest=new SortedDictionary<string,object>(StringComparer.Ordinal) {
+    {"claims_preserved",true},{"cleanup","MANUAL_REVIEW_REQUIRED"},{"contains_reparse_fixture",true},
+    {"fixture_path",fixture},{"recursive_delete_performed",false},{"scope","HOSTED_COMPONENT_FIXTURES_ONLY"},
+    {"selftest_passed",passed},{"version",1L}
+   };
+   byte[] bytes=OwnerJson.Canonical(manifest);
+   if(bytes.Length>4096)throw new IOException("Cleanup manifest byte budget");
+   using(var stream=new FileStream(System.IO.Path.Combine(fixture,"cleanup-manifest.json"),FileMode.CreateNew,FileAccess.Write,FileShare.Read,4096,FileOptions.WriteThrough)) {
+    stream.Write(bytes,0,bytes.Length);stream.Flush(true);
+   }
+   using(var hash=SHA256.Create())CleanupManifestSHA=BitConverter.ToString(hash.ComputeHash(bytes)).Replace("-","").ToLowerInvariant();
   }
   static void MustFail(Action action){try{action();}catch(IOException){return;}catch(UnauthorizedAccessException){return;}catch(FormatException){return;}throw new InvalidOperationException("Nonce negative control unexpectedly succeeded");}
   static void InterruptedClaim(string ledger,string nonce,bool partial) {
