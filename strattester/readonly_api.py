@@ -69,7 +69,7 @@ class ReadOnlyResultsApp:
                     records.append(record)
                 return (records,None) if records else (None,'RUN_UNAVAILABLE')
             finally: con.close()
-        except (sqlite3.Error,OSError,ValueError,TypeError,KeyError): return None,'SOURCE_PROVENANCE_UNQUALIFIED'
+        except (sqlite3.Error,OSError,ValueError,TypeError,KeyError,AttributeError,RecursionError): return None,'SOURCE_PROVENANCE_UNQUALIFIED'
 
     def __call__(self, environ, start_response):
         path = environ.get('PATH_INFO', '')

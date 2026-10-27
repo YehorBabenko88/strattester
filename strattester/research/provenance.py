@@ -28,6 +28,7 @@ def row_quality(dataset,row):
 
 def validate(record):
     try:
+        if not isinstance(record,dict) or not isinstance(record.get('producer_epoch'),str): return 'RECORD_INVALID'
         if type(record['api_version']['major']) is not int or type(record['api_version']['minor']) is not int or record['api_version'] != {'major':1,'minor':1}: return 'VERSION_UNSUPPORTED'
         if record['mode'] != 'HISTORICAL' or record['execution_authority'] is not False: return 'MODE_INVALID'
         if record['completion_receipt'] != digest({k:v for k,v in record.items() if k != 'completion_receipt'}): return 'RECEIPT_INVALID'
@@ -76,7 +77,7 @@ def validate(record):
             if type(assumptions.get(key)) not in (int,float) or assumptions[key]<0: return 'ASSUMPTIONS_INVALID' 
         uuid.UUID(record['run_id']); canonical(record['metrics'])
         return None
-    except (KeyError,TypeError,ValueError,AttributeError,OverflowError): return 'RECORD_INVALID'
+    except (KeyError,TypeError,ValueError,AttributeError,OverflowError,RecursionError): return 'RECORD_INVALID'
 
 
 class FrozenDatasets:

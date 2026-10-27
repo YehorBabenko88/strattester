@@ -123,3 +123,12 @@ def test_bounded_artifact_query(tmp_path):
     app=ReadOnlyResultsApp(results.path,trusted_sources=[('x','y','z')])
     assert request(app,'/internal/v1/runs')['reason']=='ARTIFACT_SIZE_UNAVAILABLE'
     results.close()
+
+@pytest.mark.parametrize('raw',['[]','{"producer_epoch":[]}', '['*1500+'0'+']'*1500])
+def test_malformed_raw_records_are_safe_unavailable(tmp_path,raw):
+    rows,store,results=setup(tmp_path)
+    results.con.execute("INSERT INTO owned_runs VALUES('bad','COMPLETE',?)",(raw,))
+    results.con.commit()
+    app=ReadOnlyResultsApp(results.path,trusted_sources=[('x','y','z')])
+    assert request(app,'/internal/v1/runs')['status']=='UNAVAILABLE'
+    results.close()
