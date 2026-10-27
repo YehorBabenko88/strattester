@@ -54,7 +54,9 @@ def build_msa_row_attention(msa_channels: int, pair_channels: int,
                 allowed = allowed & torch.ones((n, n), device=msa.device, dtype=torch.bool).tril()
             scores = scores.masked_fill(~allowed, torch.finfo(scores.dtype).min)
             weights = torch.softmax(scores, dim=-1) * allowed
-            weights = weights / weights.sum(dim=-1, keepdim=True).clamp_min(1e-9)
+            # 1e-9 rounds to zero in float16: an empty key set then divides
+            # zero by zero. Keep the denominator representable in every dtype.
+            weights = weights / weights.sum(dim=-1, keepdim=True).clamp_min(torch.finfo(weights.dtype).tiny)
             attended = torch.einsum("bshij,bsjhd->bsihd", weights, v).reshape(b, s, n, c)
             result = self.output(attended * torch.sigmoid(self.gate(z)))
             return result * mask.unsqueeze(-1)
