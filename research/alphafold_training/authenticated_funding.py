@@ -59,4 +59,4 @@ def verify_funding(records, *, producer, epoch, dataset_version, trusted_key, ex
     if not hmac.compare_digest(computed, expected_mac):
         raise ValueError("funding authentication failed")
     return {"status": "AUTHENTICATED_OFFLINE_INPUT", "sha256": sha256(data).hexdigest(),
-            "count": len(list(records)), "producer": producer, "epoch": epoch}
+            "count": len(json.loads(data)["records"]), "producer": producer, "epoch": epoch}
