@@ -1,0 +1,331 @@
+{
+  "version": 1,
+  "baseline": "593cf92b1cfbfb6a04961dd7f260349c01459cc0",
+  "sources": [
+    {
+      "pr": 50,
+      "head": "8b151a871cf83ac0db438fbc4c982b4b36137d7e",
+      "tree": "4275121153f23497e638bf91e761c6a625dc96f5",
+      "files": [
+        {
+          "path": "docs/readiness/ci-qa-package/OWNER_REVIEW.template.json",
+          "source_blob": "268c2a69b717422e061b8fbd8db8e3de9365eeaa",
+          "integration_blob": null,
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "docs/readiness/ci-qa-package/READINESS_REPORT.md",
+          "source_blob": "2ab6a6dd9816fcc569530a67baa5aea7524ef4a3",
+          "integration_blob": null,
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "docs/readiness/ci-qa-package/SHA256SUMS-evidence.txt",
+          "source_blob": "5b748f2e62568a407e1fba2b4e367ff0ee3152d5",
+          "integration_blob": null,
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "docs/readiness/ci-qa-package/Strattester-ci-qa-f60869686a51.zip",
+          "source_blob": "b27f8e280afd6a016f39f049424d0793de2bfb86",
+          "integration_blob": null,
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "docs/readiness/ci-qa-package/audit-summary.json",
+          "source_blob": "88a2764007b9fdceed741a77c4142b2ab1753305",
+          "integration_blob": null,
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "docs/readiness/ci-qa-package/delivery.json",
+          "source_blob": "f4d6520e1cae383632ee3846d6d8beb63ad3b061",
+          "integration_blob": null,
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "docs/readiness/ci-qa-package/local-acceptance-initial-errors.json",
+          "source_blob": "9f9b7843c529839646bfce0db5bfa8080a09a093",
+          "integration_blob": null,
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "docs/readiness/ci-qa-package/local-acceptance.json",
+          "source_blob": "12e92d9e71401f66eda50ee870a896bc6876ed6b",
+          "integration_blob": null,
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "docs/readiness/ci-qa-package/local-acceptance.xml",
+          "source_blob": "be6c06e1cfe6de5209720e1c22236a39386b9c99",
+          "integration_blob": null,
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "docs/readiness/ci-qa-package/native-build-verified.json",
+          "source_blob": "056935863a452c50788a69634b7a3909740e52fd",
+          "integration_blob": null,
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "docs/readiness/ci-qa-package/package-reproducibility.json",
+          "source_blob": "c0080ef82fbe5c98bcfa596370feca12435af09a",
+          "integration_blob": null,
+          "exact_bytes_selected": false
+        }
+      ]
+    },
+    {
+      "pr": 55,
+      "head": "5f8ed1bdc2cf67fca80c703aa5dc9e61ed2516a8",
+      "tree": "a070af193c1e271a244ece62d2a9bd10b0dcb6af",
+      "files": [
+        {
+          "path": "docs/audits/2026-10-27-alphafold-math-parity.md",
+          "source_blob": "a76d50fdd998c7c959ef464625adc7039033420c",
+          "integration_blob": "a76d50fdd998c7c959ef464625adc7039033420c",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "docs/superpowers/plans/2026-10-27-alphafold-math-parity.md",
+          "source_blob": "f977675b5f6d68606dc2de3fd89dd3e70891de23",
+          "integration_blob": "f977675b5f6d68606dc2de3fd89dd3e70891de23",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "scripts/financial-gate-manifest.json",
+          "source_blob": "440324c2967e1a113b191eb2159ac89b2b8e12b3",
+          "integration_blob": "6db92fab04356898f21fbb820438b391c63f0eb1",
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "strattester/research/alphafold_msa_attention.py",
+          "source_blob": "834a606a2d52fc72b5a97f880fabd5cbe100f1b9",
+          "integration_blob": "834a606a2d52fc72b5a97f880fabd5cbe100f1b9",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "tests/research/test_financial_math_parity.py",
+          "source_blob": "b296a7f1b6503ead7f1c9ccd33cf1a03c8e9a817",
+          "integration_blob": "b296a7f1b6503ead7f1c9ccd33cf1a03c8e9a817",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "tests/research/test_structural_upstream_differential.py",
+          "source_blob": "5071f4c9cd7d38e46fa751050f29f83b80b72a3a",
+          "integration_blob": "5071f4c9cd7d38e46fa751050f29f83b80b72a3a",
+          "exact_bytes_selected": true
+        }
+      ]
+    },
+    {
+      "pr": 56,
+      "head": "4108b9f24c309f09c2beef4c14ab26121a2934ec",
+      "tree": "c704e6c0f0e9e0a1429fa31425a4ff9fd67ee992",
+      "files": [
+        {
+          "path": "docs/readiness/G0_TRUST_REPLAY_REVIEW.md",
+          "source_blob": "aca5393b93743b607d26f32565328c083a11f5b4",
+          "integration_blob": "7620547c4bbbf3c8519a13d1dfb69d4f9f996ec3",
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "scripts/financial-gate-manifest.json",
+          "source_blob": "5026c48ea1fdc02cc2ed948d1a810de72e3ba2bb",
+          "integration_blob": "6db92fab04356898f21fbb820438b391c63f0eb1",
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "tests/research/test_g0_trust_replay.py",
+          "source_blob": "036ef3a680959968cc2a39a8dbecef28418f9433",
+          "integration_blob": "21ba4b713014694278f393797b9bb0ae18b0b962",
+          "exact_bytes_selected": false
+        }
+      ]
+    },
+    {
+      "pr": 57,
+      "head": "5ba22eba4541f0a3e3386a7342c438adddcfa60b",
+      "tree": "06880e2478e61435bd70d7046ec46f861b96d9b2",
+      "files": [
+        {
+          "path": ".github/workflows/ml-oos-synthetic.yml",
+          "source_blob": "e101eb2a31671f3fc5bc3d4492574c3404b5edf2",
+          "integration_blob": "e101eb2a31671f3fc5bc3d4492574c3404b5edf2",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "docs/financial-ml-oos-funding.md",
+          "source_blob": "f4e0db88566ddd167d15fada833dd5620116003c",
+          "integration_blob": "f4e0db88566ddd167d15fada833dd5620116003c",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "docs/financial-real-oos-protocol.md",
+          "source_blob": "ed3c0066413a8b2b469e36c04466a6c678522368",
+          "integration_blob": "ed3c0066413a8b2b469e36c04466a6c678522368",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "docs/superpowers/plans/2026-10-27-ml-oos-funding.md",
+          "source_blob": "65fab1445efdb2d4f6256694327237f3a814695d",
+          "integration_blob": "65fab1445efdb2d4f6256694327237f3a814695d",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "scripts/financial-gate-manifest.json",
+          "source_blob": "f9f5f813cd42888ae74b8e02a4c2d4ccfe8440c9",
+          "integration_blob": "6db92fab04356898f21fbb820438b391c63f0eb1",
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "scripts/ml_oos_synthetic_e2e.py",
+          "source_blob": "965e8c9b025dfa9882bb12e69076e9d10d9725be",
+          "integration_blob": "965e8c9b025dfa9882bb12e69076e9d10d9725be",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "strattester/research/financial_calibration.py",
+          "source_blob": "1ad7e1a3edd87b6e872644f40e2b81db7ef2f359",
+          "integration_blob": "1ad7e1a3edd87b6e872644f40e2b81db7ef2f359",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "strattester/research/financial_checkpoint.py",
+          "source_blob": "03c4ddfc19fa69d26c2483f53cbaf1f8f1eed4ce",
+          "integration_blob": "03c4ddfc19fa69d26c2483f53cbaf1f8f1eed4ce",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "strattester/research/financial_checkpoint_replay.py",
+          "source_blob": "41b65eb1249dec722d42f2bdde67701fc99033cd",
+          "integration_blob": "41b65eb1249dec722d42f2bdde67701fc99033cd",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "strattester/research/financial_evaluation.py",
+          "source_blob": "e19248b65cb66903c29db75ff055eb92d47ed3fa",
+          "integration_blob": "e19248b65cb66903c29db75ff055eb92d47ed3fa",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "strattester/research/financial_experiment.py",
+          "source_blob": "a6767c4d69c54bfa28af204c71cd36606bf7c947",
+          "integration_blob": "a6767c4d69c54bfa28af204c71cd36606bf7c947",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "strattester/research/financial_experiment_session.py",
+          "source_blob": "eafa1ec9e0350fde9c33a87213b3dadeeb5e884b",
+          "integration_blob": "eafa1ec9e0350fde9c33a87213b3dadeeb5e884b",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "strattester/research/financial_test_package.py",
+          "source_blob": "585df5156f3bc855ce7821d72deae6346d500269",
+          "integration_blob": "585df5156f3bc855ce7821d72deae6346d500269",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "strattester/research/financial_walkforward_funding.py",
+          "source_blob": "a4a113f27dbea49927261ebc08e453636c0388c4",
+          "integration_blob": "4e2e4678842e094449480041f523e2158f85a57b",
+          "exact_bytes_selected": false
+        },
+        {
+          "path": "strattester/research/financial_walkforward_session.py",
+          "source_blob": "3e7eae1cf9d7bee392c9fd669fb50549b89ea559",
+          "integration_blob": "3e7eae1cf9d7bee392c9fd669fb50549b89ea559",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "strattester/research_cli.py",
+          "source_blob": "4b5c09431fcd7f5195575d1b17d8e304c971007d",
+          "integration_blob": "4b5c09431fcd7f5195575d1b17d8e304c971007d",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "tests/research/test_financial_test_package.py",
+          "source_blob": "1070607343dc983c91b86d4aacca74121f12fb77",
+          "integration_blob": "1070607343dc983c91b86d4aacca74121f12fb77",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "tests/research/test_ml_oos_completion.py",
+          "source_blob": "aa1d6cb7a48dd43892a9ceb412d0f6889e01cf34",
+          "integration_blob": "aa1d6cb7a48dd43892a9ceb412d0f6889e01cf34",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "tests/research/test_ml_oos_funding_session.py",
+          "source_blob": "d8b95a9e3fce0b5ed4f8a82b78e765be59b50ad2",
+          "integration_blob": "d8b95a9e3fce0b5ed4f8a82b78e765be59b50ad2",
+          "exact_bytes_selected": true
+        }
+      ]
+    },
+    {
+      "pr": 61,
+      "head": "dd2c11b647f0de3351524dffdd9169adeb3c7579",
+      "tree": "2b8f151cef56839cd23bc80b71cc44f87dc9c645",
+      "files": [
+        {
+          "path": "docs/readiness/ED25519_PUBLIC_KEY_ADMISSION.md",
+          "source_blob": "4353b0b09cf426aa50f44f392f68f3c389736807",
+          "integration_blob": "4353b0b09cf426aa50f44f392f68f3c389736807",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "pyproject.toml",
+          "source_blob": "63230cb49a01c825c112507de247e71757e32c35",
+          "integration_blob": "63230cb49a01c825c112507de247e71757e32c35",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "strattester/research/financial_signatures.py",
+          "source_blob": "6d7913d7d039d249cd69d480a90003d807460ab0",
+          "integration_blob": "6d7913d7d039d249cd69d480a90003d807460ab0",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "tests/research/ed25519_independent_vectors.json",
+          "source_blob": "b1cd639e99928f0875f91992f481d2bbb87e73e0",
+          "integration_blob": "b1cd639e99928f0875f91992f481d2bbb87e73e0",
+          "exact_bytes_selected": true
+        },
+        {
+          "path": "tests/research/test_ed25519_public_key_admission.py",
+          "source_blob": "2b424b5c3b40b0ec2ac68e09412e079866c73798",
+          "integration_blob": "2b424b5c3b40b0ec2ac68e09412e079866c73798",
+          "exact_bytes_selected": true
+        }
+      ]
+    }
+  ],
+  "evidence_sha256": {
+    "pr56-hardened-rejection.log": "766acc5111796ea80a3120f8fd61f0df8f9297b28b7778ec464bafa588184cd1",
+    "math-import-red.log": "a6455b9b8fd1ab184bef91092326a359d04c8e8e7eae42b9230f9823c5b58d76",
+    "math-import-green.log": "c87d6ad023c75ce64b91a649097ee0f3bdd4f27d073f6237d8c7d64bfb1542de",
+    "ml-import-green.log": "a00c22683cd190ad40157b4c647562bc33d9d0788ee5f044194383e6301b26c8",
+    "funding-alias-red.log": "14f28d7b09b5796b9d30ab3966ea7ceb29114f115c3fb0004c4d3b96facf5662",
+    "funding-alias-green.log": "c278611897fc2cabf01fd16772cef196244212fe9359a35dca24409e905ed511",
+    "independent-ed25519-confirmation-20261027/confirmation.json": "43ad1a8c4f6b7ccc244149e745e2dd1d78b67695ae2b95ed39f7065303df74a6",
+    "independent-ed25519-confirmation-20261027/candidate_review.json": "330f0c9ec5f8c76d3f2939ba796b43b6760b193ccb30072ad59a7c14596868dc"
+  },
+  "selection_notes": {
+    "50": "Historical packaging evidence only; no files imported. Native rebuild digest differs; no current-head equivalence claimed.",
+    "55": "Two independent test modules, row mask dtype denominator fix, audit/plan only; preserve newer integration modules.",
+    "56": "92 audit cases imported; two weak-key characterization expectations adapted to rejection, source report annotated. No source manifest overwrite.",
+    "57": "18 files selected; source manifest unioned separately; helper identity collision hardened independently. Signed funding remains synthetic posthoc only.",
+    "61": "Independent 306-point mathematical confirmation completed before crypto cherry-picks; lazy PyNaCl 1.6.2 validity admission, no fallback."
+  },
+  "limitations": [
+    "PHYSICAL_G1=NOT_AUTHORIZED",
+    "TRADING=NO-GO",
+    "DEPLOYMENT=NO-GO",
+    "G0 target facts NOT_COLLECTED; no VM selected",
+    "Native blocked stage not resumed",
+    "Signatures do not prove historical availability or physical authority",
+    "PR59 blocked qualification implementation not imported"
+  ]
+}

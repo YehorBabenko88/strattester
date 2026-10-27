@@ -67,6 +67,8 @@ def score_funding(forecasts, windows, bounds):
 def score_control_funding(ledger, windows, bounds):
     """Identical signed settlements/costs for each frozen control strategy."""
     by_identity={window.instrument:window for window in windows.values()}
+    if len(by_identity) != len(windows):
+        raise ValueError('funding identity collision')
     used={row['instrument'] for row in ledger['rows']}
     trades=[Trade(row['instrument'],row['start_ns'],row['end_ns'],
                   row['gross_return']/row['position'] if row['position'] else 0.,row['position'])
