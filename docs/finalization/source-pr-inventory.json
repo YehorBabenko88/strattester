@@ -1,0 +1,5488 @@
+[
+  {
+    "pr": 15,
+    "head": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+    "tree": "cb5a83b7561e296953c54bb334eec0893dd0d34d",
+    "base_sha": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+    "base_ref": "main",
+    "draft": true,
+    "commits": [
+      "90f6acfe0b4fb13a6e27d89a830abae959b5004f",
+      "d24192f902208fe35412964cd126548c1bb55c98",
+      "2b84c57ac73ff8aeb9bb5986e49542244d692fb6",
+      "7b9f33128fb2603ace9b96e21b5981b97131ca17",
+      "b1fcbcf6ca476e6832f0918f47f09cef847102e1",
+      "53e678548ad55bc34c3d2d452c9d4daef77dc74d",
+      "dc2a5ec3347de083d4ffdc5176505e1b7bc145e2",
+      "a1ce1c8986d0fcb98529cab12297ff7ad5df2da8",
+      "66ca40bca7b5dffc6caff9b90a8e62da74bf5dc2",
+      "008430823b769d73a07f3cbafaa615dc9370754c",
+      "956b02f64df11cd79b28e43426c9adeb0eb098c1",
+      "f1d0b0c6f1f34f3b78554635b533cccc84ee0153",
+      "9506f843fb4ced684e5c4277361d241f359bd499",
+      "4075656445e19147b8806762e0a1551a38bd4e3d",
+      "c7d358dee72c61ee6f8ad9798e9311221fa14b4f",
+      "70fc4d7e208760ed1e5497b1bf8687a847ba0dd9",
+      "43f0d4629f49ffb211e27e7f85e73cba4d1873e3",
+      "635de5585780dce082ec8f233b6b414c3af651bf",
+      "03c73e1cc7581e9053ae1dd200566e8de0df6769",
+      "c5c364ea517ed141c28bf451baf585dc6c6fbb0e",
+      "13e9d3660fff9c3870e4a9ba718ae97c0a3df0fc",
+      "fd300346ca23f73e4eb20400811f08601d4da672",
+      "02bb79796b9627345b8f7c98a50349d044e5b7be"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      "docs/alphafold-grid-research-audit.md",
+      "docs/alphafold-integration-contract.md",
+      "docs/alphafold-market-experiment.md",
+      "docs/protein-geometry-grid-sync.md",
+      "docs/protein-geometry-strategy-modes.md",
+      "pyproject.toml",
+      "strattester/research/alphafold_adapter.py",
+      "strattester/research/financial_evoformer.py",
+      "strattester/research/financial_structure_dataset.py",
+      "strattester/research/protein_geometry.py",
+      "strattester/research/protein_geometry_export.py",
+      "strattester/research/protein_geometry_offline.py",
+      "strattester/research/protein_geometry_snapshot.py",
+      "strattester/strategies/builtin/protein_geometry.py",
+      "tests/research/test_alphafold_adapter.py",
+      "tests/research/test_financial_evoformer.py",
+      "tests/research/test_financial_structure_dataset.py",
+      "tests/research/test_protein_geometry.py",
+      "tests/research/test_protein_geometry_export.py",
+      "tests/research/test_protein_geometry_snapshot.py",
+      "tests/strategies/test_protein_geometry.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": "docs/alphafold-grid-research-audit.md",
+        "sha": "968fd3fed3d3dd8ae84d93b18ee8cac1f8b91d6d",
+        "status": "added",
+        "additions": 37,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-integration-contract.md",
+        "sha": "c2ac0bb2cadf9bb1eb2a794c281a14d9b2d55593",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-market-experiment.md",
+        "sha": "0bb4c3320c268e8b917ec0a97985f41eef7a5512",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-grid-sync.md",
+        "sha": "f36230a30b6a901829a596df1e935a7b752dc623",
+        "status": "added",
+        "additions": 18,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-strategy-modes.md",
+        "sha": "3cf9adeb0febd2e4d5a464da9b66daf3a0cedba6",
+        "status": "added",
+        "additions": 27,
+        "deletions": 0
+      },
+      {
+        "filename": "pyproject.toml",
+        "sha": "a19ecf740fa622556c492681be18b08de57ef784",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_adapter.py",
+        "sha": "d030a9bd91668bba28c5c7f0ba60c14323b0bd19",
+        "status": "added",
+        "additions": 62,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_evoformer.py",
+        "sha": "6c9d87d9cffc3723e5bd243dde10e01f018578de",
+        "status": "added",
+        "additions": 53,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_structure_dataset.py",
+        "sha": "a2448e877439848c18224ad7550ec291b6da32de",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry.py",
+        "sha": "d3eb8f6ac578b98533dcbb2ab2a9cade47a493e2",
+        "status": "added",
+        "additions": 49,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_export.py",
+        "sha": "bfb89269518708a876749088877b21ffdbef3963",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_offline.py",
+        "sha": "caf53950ef2e672fbe912fb2ce8373f61dee1bd1",
+        "status": "added",
+        "additions": 20,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_snapshot.py",
+        "sha": "f6385dccbb91501bb3a53a180b1a714d08b7d74c",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/strategies/builtin/protein_geometry.py",
+        "sha": "e8384dcad7c03b87001c9f982d472151c567421b",
+        "status": "added",
+        "additions": 34,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_adapter.py",
+        "sha": "f2c8021c12511ce274de5994f8da757c24180a7e",
+        "status": "added",
+        "additions": 35,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_evoformer.py",
+        "sha": "0d3a9abadd95c4f931a276ef9f992ca7839db8aa",
+        "status": "added",
+        "additions": 21,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_structure_dataset.py",
+        "sha": "386f7ddfd5ab5b6330882002ef9ffcc3d7cebc86",
+        "status": "added",
+        "additions": 20,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_protein_geometry.py",
+        "sha": "4ee1bd8aea31f3d2861fd19549a7b145b83ef6ca",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_protein_geometry_export.py",
+        "sha": "4ae5dd761b0e5dc26859ce0011015ca8b7d110ab",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_protein_geometry_snapshot.py",
+        "sha": "daa0e3722f4bdd14692b4deca3aad06950619cd5",
+        "status": "added",
+        "additions": 25,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/strategies/test_protein_geometry.py",
+        "sha": "73b64470b1c7572d0244ebf4b13aad0efc0d74c2",
+        "status": "added",
+        "additions": 26,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40097864981,
+        "name": "tests",
+        "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      },
+      {
+        "id": 40097816291,
+        "name": "tests",
+        "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      },
+      {
+        "id": 40097666757,
+        "name": "tests",
+        "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40097663352,
+        "name": "tests",
+        "head_sha": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 16,
+    "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+    "tree": "916ec530ac3cdc0bd58b8f8a82a1eba23e4e4435",
+    "base_sha": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+    "base_ref": "main",
+    "draft": true,
+    "commits": [
+      "90f6acfe0b4fb13a6e27d89a830abae959b5004f",
+      "d24192f902208fe35412964cd126548c1bb55c98",
+      "2b84c57ac73ff8aeb9bb5986e49542244d692fb6",
+      "7b9f33128fb2603ace9b96e21b5981b97131ca17",
+      "b1fcbcf6ca476e6832f0918f47f09cef847102e1",
+      "53e678548ad55bc34c3d2d452c9d4daef77dc74d",
+      "dc2a5ec3347de083d4ffdc5176505e1b7bc145e2",
+      "a1ce1c8986d0fcb98529cab12297ff7ad5df2da8",
+      "66ca40bca7b5dffc6caff9b90a8e62da74bf5dc2",
+      "008430823b769d73a07f3cbafaa615dc9370754c",
+      "956b02f64df11cd79b28e43426c9adeb0eb098c1",
+      "f1d0b0c6f1f34f3b78554635b533cccc84ee0153",
+      "9506f843fb4ced684e5c4277361d241f359bd499",
+      "4075656445e19147b8806762e0a1551a38bd4e3d",
+      "c7d358dee72c61ee6f8ad9798e9311221fa14b4f",
+      "70fc4d7e208760ed1e5497b1bf8687a847ba0dd9",
+      "43f0d4629f49ffb211e27e7f85e73cba4d1873e3",
+      "635de5585780dce082ec8f233b6b414c3af651bf",
+      "03c73e1cc7581e9053ae1dd200566e8de0df6769",
+      "c5c364ea517ed141c28bf451baf585dc6c6fbb0e",
+      "13e9d3660fff9c3870e4a9ba718ae97c0a3df0fc",
+      "fd300346ca23f73e4eb20400811f08601d4da672",
+      "02bb79796b9627345b8f7c98a50349d044e5b7be",
+      "1e0cc4224eb538e627b789386b83326daee90fed",
+      "9e929a0b39e5e6463d06bba68086a9f78b409993",
+      "8c10edf1ccea0e47df37f5950300c5d5851605ba",
+      "3d54c87f551173c6990a173b9e55bba926141852",
+      "f597b158a55f122197a42a9e0b3d2102fa9e9466",
+      "7f680b8b01ee79ac1e71efd901d61d302454903b",
+      "85edfca54da6aac38c7d25f2dc2fc83b6f179c06",
+      "74681401efc2dac2fbdf6772119424a9b53262e8",
+      "f4bfcc3de5032a4824abbcb240edb43370b39142",
+      "9605a9d24b5750d03614c4e6cd8db5616a10a407",
+      "5493a2606562bcd2af7f30b6a65b44b0162fd6ac",
+      "bb8728361bf7892212973357aa5602428c3c2ad4",
+      "c90da5a37c2d5df2f39c64b005deb0b31f1648fd",
+      "133c4c151bfe36d79ed0abd16f1384dd2a2ea84f",
+      "d874bcac388202229946250273a7f683f2773e83",
+      "196272e228b0760320613e2f74b292991fdad1e1",
+      "e6346a33c6ebab30bcc9ef21db685eac1e0ab40a",
+      "679661668edec3a3d672064d31cd2dbf0cc811b2",
+      "549b8d3fd506dfda474e368ac96092b87f12bdb3",
+      "6bab093d2538966e1bdb72b0cc5aae00ee1e3cef",
+      "d15d008922c6bc0dcec3428311ad3a9ecdb72300",
+      "c57d9bbf68d57c3610a8c8ae07336c1b2134a9bc",
+      "92c6b79c3d0a0f3e324c64ac7f126df127dffdf6",
+      "01c7d95815b4ea78168b8ce42909dbb606ea8b00",
+      "5aadb120ac37f4832ea74c055051878c6a3171c6"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      ".github/workflows/alphafold-research-cpu.yml",
+      "docs/alphafold-grid-research-audit.md",
+      "docs/alphafold-integration-contract.md",
+      "docs/alphafold-market-experiment.md",
+      "docs/protein-geometry-grid-sync.md",
+      "docs/protein-geometry-strategy-modes.md",
+      "pyproject.toml",
+      "scripts/alphafold_cpu_gate.py",
+      "strattester/research/alphafold_adapter.py",
+      "strattester/research/alphafold_msa_attention.py",
+      "strattester/research/alphafold_msa_pair_bridge.py",
+      "strattester/research/alphafold_outer_product.py",
+      "strattester/research/alphafold_pair_stack.py",
+      "strattester/research/alphafold_triangle.py",
+      "strattester/research/alphafold_triangle_attention.py",
+      "strattester/research/financial_evoformer.py",
+      "strattester/research/financial_structure_dataset.py",
+      "strattester/research/protein_geometry.py",
+      "strattester/research/protein_geometry_export.py",
+      "strattester/research/protein_geometry_offline.py",
+      "strattester/research/protein_geometry_snapshot.py",
+      "strattester/strategies/builtin/protein_geometry.py",
+      "tests/research/test_alphafold_adapter.py",
+      "tests/research/test_alphafold_msa_attention.py",
+      "tests/research/test_alphafold_msa_pair_bridge.py",
+      "tests/research/test_alphafold_outer_product.py",
+      "tests/research/test_alphafold_pair_stack.py",
+      "tests/research/test_alphafold_pair_stack_budget.py",
+      "tests/research/test_alphafold_triangle.py",
+      "tests/research/test_alphafold_triangle_attention.py",
+      "tests/research/test_alphafold_triangle_attention_oracle.py",
+      "tests/research/test_alphafold_triangle_reference.py",
+      "tests/research/test_financial_evoformer.py",
+      "tests/research/test_financial_structure_dataset.py",
+      "tests/research/test_protein_geometry.py",
+      "tests/research/test_protein_geometry_export.py",
+      "tests/research/test_protein_geometry_snapshot.py",
+      "tests/strategies/test_protein_geometry.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": ".github/workflows/alphafold-research-cpu.yml",
+        "sha": "1ba6abc496fbd5e4cc79e5e2765838938b53f44b",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-grid-research-audit.md",
+        "sha": "968fd3fed3d3dd8ae84d93b18ee8cac1f8b91d6d",
+        "status": "added",
+        "additions": 37,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-integration-contract.md",
+        "sha": "c2ac0bb2cadf9bb1eb2a794c281a14d9b2d55593",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-market-experiment.md",
+        "sha": "0bb4c3320c268e8b917ec0a97985f41eef7a5512",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-grid-sync.md",
+        "sha": "f36230a30b6a901829a596df1e935a7b752dc623",
+        "status": "added",
+        "additions": 18,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-strategy-modes.md",
+        "sha": "3cf9adeb0febd2e4d5a464da9b66daf3a0cedba6",
+        "status": "added",
+        "additions": 27,
+        "deletions": 0
+      },
+      {
+        "filename": "pyproject.toml",
+        "sha": "a19ecf740fa622556c492681be18b08de57ef784",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/alphafold_cpu_gate.py",
+        "sha": "8560fea883d324a1b0402ee991edd92d79e4d40b",
+        "status": "added",
+        "additions": 77,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_adapter.py",
+        "sha": "d030a9bd91668bba28c5c7f0ba60c14323b0bd19",
+        "status": "added",
+        "additions": 62,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_msa_attention.py",
+        "sha": "91d45b28b912f3fb6c563cf5916350c4f716f450",
+        "status": "added",
+        "additions": 62,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_msa_pair_bridge.py",
+        "sha": "393bd8a74195ef18650c8c014bce3958a68ed87a",
+        "status": "added",
+        "additions": 66,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_outer_product.py",
+        "sha": "53f41e490cef76512b4b50bc68888580534c06f2",
+        "status": "added",
+        "additions": 53,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_pair_stack.py",
+        "sha": "aed3517679f59de50f98f3b4f6e93be23c129a65",
+        "status": "added",
+        "additions": 70,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_triangle.py",
+        "sha": "9d60d1e0c577fc25303889fb7be5c7d0811398a2",
+        "status": "added",
+        "additions": 58,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_triangle_attention.py",
+        "sha": "e444c76ec07085ba86794287547995da007aac58",
+        "status": "added",
+        "additions": 68,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_evoformer.py",
+        "sha": "6c9d87d9cffc3723e5bd243dde10e01f018578de",
+        "status": "added",
+        "additions": 53,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_structure_dataset.py",
+        "sha": "a2448e877439848c18224ad7550ec291b6da32de",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry.py",
+        "sha": "d3eb8f6ac578b98533dcbb2ab2a9cade47a493e2",
+        "status": "added",
+        "additions": 49,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_export.py",
+        "sha": "bfb89269518708a876749088877b21ffdbef3963",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_offline.py",
+        "sha": "caf53950ef2e672fbe912fb2ce8373f61dee1bd1",
+        "status": "added",
+        "additions": 20,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_snapshot.py",
+        "sha": "f6385dccbb91501bb3a53a180b1a714d08b7d74c",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/strategies/builtin/protein_geometry.py",
+        "sha": "e8384dcad7c03b87001c9f982d472151c567421b",
+        "status": "added",
+        "additions": 34,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_adapter.py",
+        "sha": "f2c8021c12511ce274de5994f8da757c24180a7e",
+        "status": "added",
+        "additions": 35,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_msa_attention.py",
+        "sha": "a5cb11e808a1472898c44339b24740895275a774",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_msa_pair_bridge.py",
+        "sha": "2be2faf391a3894148514a95765151f62bd969f5",
+        "status": "added",
+        "additions": 33,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_outer_product.py",
+        "sha": "c640aa00d15eca4e9c42db1f9d73a55542709647",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_pair_stack.py",
+        "sha": "06e4269b769a5f420c5e5409214fa4faf8ec4554",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_pair_stack_budget.py",
+        "sha": "656ceb21e9160c92d1b5aad8326f5bb279179b84",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle.py",
+        "sha": "c8f604fdf94ec16b05fa023a1d7f955efd20763f",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle_attention.py",
+        "sha": "06110dbc448b9c711ee32c0c4f3368c5092b7ce8",
+        "status": "added",
+        "additions": 52,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle_attention_oracle.py",
+        "sha": "175280eb0416f0b4becf612bd90bb2f66003152d",
+        "status": "added",
+        "additions": 33,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle_reference.py",
+        "sha": "bb08f9692c42695daa993e4739daefcc0654d981",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_evoformer.py",
+        "sha": "0d3a9abadd95c4f931a276ef9f992ca7839db8aa",
+        "status": "added",
+        "additions": 21,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_structure_dataset.py",
+        "sha": "386f7ddfd5ab5b6330882002ef9ffcc3d7cebc86",
+        "status": "added",
+        "additions": 20,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_protein_geometry.py",
+        "sha": "4ee1bd8aea31f3d2861fd19549a7b145b83ef6ca",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_protein_geometry_export.py",
+        "sha": "4ae5dd761b0e5dc26859ce0011015ca8b7d110ab",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_protein_geometry_snapshot.py",
+        "sha": "daa0e3722f4bdd14692b4deca3aad06950619cd5",
+        "status": "added",
+        "additions": 25,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/strategies/test_protein_geometry.py",
+        "sha": "73b64470b1c7572d0244ebf4b13aad0efc0d74c2",
+        "status": "added",
+        "additions": 26,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40101274631,
+        "name": "alphafold-research-cpu",
+        "head_sha": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40101274637,
+        "name": "tests",
+        "head_sha": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40101270809,
+        "name": "tests",
+        "head_sha": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 17,
+    "head": "eab45b5d9ce04f8282755684a1c1e93b03e38c77",
+    "tree": "f6e1a7566c95b548f0e4a7a26615cb3bfb348514",
+    "base_sha": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+    "base_ref": "main",
+    "draft": true,
+    "commits": [
+      "816b67f89fe0df1392533f37eefc718f1f75c4e8",
+      "5bbcfb2117996a23c0c16fd5fc55bf2fae709395",
+      "0c79e76418e81edb3a214498df4b372538f58f62",
+      "8553bd322014cfe67ef38260ca0b97fcb7153ed1",
+      "4d7e49e34261b9590166ff641fbe3876dcf11f08",
+      "3d1f6e941619587bac9086ba928efb7720c7b0f1",
+      "aaf07484a5db1f4fada64403237667b3e2006f59",
+      "c87f2337f2b47309e1595797ff3414b5df4ca45a",
+      "e95d5f961039f3a7d807001f0bae8e500fcb780c",
+      "820142c7b938743d786c8b1f3bf16cb954c1d26f",
+      "9cb7be63470397c0714d046d1e51f6de27b708b5",
+      "581dd3781abbb0a05b54faeaa597d7af0037349f",
+      "796337999c213a0579d1bac43fae95348292b22f",
+      "8ad52bb78b7d3172f7624e1e3d9779ca71b08173",
+      "1637a00ea6e8e5d20f7fd12cc2fe8c01ae36440c",
+      "5ef1dda5c41a79b73921071add71754db129c457",
+      "c52b15f45a131310de108733bd87689de6e40335",
+      "e3d17b76d528bcae94c49ae2b4a10cb470e2f99b",
+      "198dcf7f9d9cf15eb8ebdc316a973fd0d5b72034",
+      "ffb14579a5ff78326e7a0368456fcc1ed71794a8",
+      "3e343f55cea036e768b71adef8fa0d48d4ba7c81",
+      "608394bf4b208ab425b497dfb693f403b4b2c820",
+      "d282a869f54a75e55bac5b519dd63ca845376a2a",
+      "255e6e7bc379908e0dcff143d6c42050e02b0fa9",
+      "2720404c68ccbb564fe45eff9c1e24084b254071",
+      "eab45b5d9ce04f8282755684a1c1e93b03e38c77"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      "docs/GRID_DATA_PHYSICAL_READINESS.md",
+      "strattester/alphafold_artifact_verify.py",
+      "strattester/alphafold_data_sync.py",
+      "strattester/alphafold_export_receipt.py",
+      "strattester/alphafold_revisions.py",
+      "strattester/alphafold_series_integrity.py",
+      "strattester/alphafold_snapshot_contract.py",
+      "strattester/alphafold_verified_bars.py",
+      "tests/test_alphafold_artifact_verify.py",
+      "tests/test_alphafold_data_sync.py",
+      "tests/test_alphafold_export_receipt.py",
+      "tests/test_alphafold_series_integrity.py",
+      "tests/test_alphafold_snapshot_contract.py",
+      "tests/test_alphafold_verified_bars.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": "docs/GRID_DATA_PHYSICAL_READINESS.md",
+        "sha": "50067d12f0708b9fabaab4574a0776cfd78bca0f",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_artifact_verify.py",
+        "sha": "af8031724b7d58c28a05b0723641989c22b4dda5",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_data_sync.py",
+        "sha": "b92119fae374b93eff0077b2f6dca64def7b87ba",
+        "status": "added",
+        "additions": 121,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_export_receipt.py",
+        "sha": "0b5884eab651a8f2be0b30b20c0940bf143bd7ee",
+        "status": "added",
+        "additions": 87,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_revisions.py",
+        "sha": "aa55356fd9d9677d1070acc6ae6552d0b4b3b1f6",
+        "status": "added",
+        "additions": 32,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_series_integrity.py",
+        "sha": "9e25d2d188cc7b2eea6e0b80bd312fe9dede3936",
+        "status": "added",
+        "additions": 58,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_snapshot_contract.py",
+        "sha": "9e6f63b52047fa6940aa77e7e8a89e640d819e7c",
+        "status": "added",
+        "additions": 47,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_verified_bars.py",
+        "sha": "a50e10b60d6a577fe9772cf9b13482455eeb3606",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_artifact_verify.py",
+        "sha": "a084e9209bfd5fa2dd92aeb979e941b92a0acec4",
+        "status": "added",
+        "additions": 39,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_data_sync.py",
+        "sha": "dd6be7a6e537b09dda52f260eeffceb145850e45",
+        "status": "added",
+        "additions": 126,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_export_receipt.py",
+        "sha": "09e99e197f03064d66a3069a8cac3217d1307fc9",
+        "status": "added",
+        "additions": 72,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_series_integrity.py",
+        "sha": "c0ba0658f2c08ba19d36980109721dc739c36712",
+        "status": "added",
+        "additions": 61,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_snapshot_contract.py",
+        "sha": "b09bc318028c255e0d2ed66d0051060aca11d0e6",
+        "status": "added",
+        "additions": 34,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_verified_bars.py",
+        "sha": "29e1bc169a4615c1fb38ce4b8aa0e19653fe2d9b",
+        "status": "added",
+        "additions": 59,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40112076428,
+        "name": "tests",
+        "head_sha": "eab45b5d9ce04f8282755684a1c1e93b03e38c77",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40112073417,
+        "name": "tests",
+        "head_sha": "eab45b5d9ce04f8282755684a1c1e93b03e38c77",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 18,
+    "head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+    "tree": "b4a5c195da46729e4030c0d03211859e192d2617",
+    "base_sha": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+    "base_ref": "main",
+    "draft": true,
+    "commits": [
+      "111c9e6e77d9fb743f6e74d571c3e02060c78308",
+      "3c2699f9013f52789f227b6ea7710a076d0372a2",
+      "5f29c5184ddcea1731b1ff026f963c8e290e700f",
+      "656180ff8fa90b5ebd6be31d18ebadf36d96006f",
+      "b921fc2e655e4fe49f03eaec55c6a1ae7326bd06",
+      "a017f8a44bf58b4f75c047fe93c209f10e697e84",
+      "4237a33926c0afa88d8fd38e3d8bddd78d75eaaf",
+      "70d184cbbe78b3fb6d2c896ae417324c52444ec3",
+      "d2d936117ee773a5009c8633df0ef1840c4da2ae",
+      "cb8fe38ea364c0224f1aa0af72ff5295fb693088",
+      "c9399fd65f4eec28bd561894f1734ef66cddd5eb",
+      "dffcd51116242b83436403b060d733e45e4404a5",
+      "f036289f0598238652c7dfa8a01c303b69ce0a45",
+      "8168c127927c23063c04cd715b555a9ed2d643ac",
+      "6097e4790719776583b6b147c3e6789772cbaafb",
+      "532ff9d9e6f558894b80e7eb386b385b91de6349",
+      "522cf0de5cfbda5d94b2f7a50621bf1457769646",
+      "70a569ea42e5974f333f253cbc54d785c3f4c672",
+      "7783cc0b5846f319e6d56ad2e461ddcc1084660c",
+      "9b7465c7336ffa9d14eaa01162043b5cab297c9b",
+      "fe89bc75b0ae27227552c3f0572bcc26d4da18cc",
+      "8b8848fc9aa6afb245abca57d0b36b100b600793",
+      "a1b1c2772410c4da544a868bf43bffeafe70de4c",
+      "dcfd00cfadbeaf93de6b43b8dde4e970003a9213",
+      "8cdec9f2a74169084c25036649fcbbc9c7064bc3",
+      "afeab9e8e71d5ebc0114cd0ed693db613a86fbcd",
+      "56eeb530bd290e1fe010eb933140aa6206f9a3d7",
+      "d86ab855e040cff61257554684a535872ab271b0",
+      "a7460ab6cb0f71b3222675a466a8ad6f64fe8379",
+      "1bdb424456553635c9a82a859046b683a0806a41",
+      "cfa6818525104251c5dcba87c718feb84cf7a122",
+      "a7d6ca77a84892b5987ded8f31629ca498fb74b1",
+      "8a16859e505bfa209aa77939ccd157cdf587701d",
+      "fe38a65bdf3dcdf21a5c517d66946f1bc5e1e985",
+      "227695e6905209bebe0652d7264c08233dc4db06",
+      "6cecc53976abe972aa3a9cb074f8666a257e4de4",
+      "ceca076ac37b34eeb04e6b6e199de6206c709d27",
+      "362452a2020c694565eb72872cce7489dd6fdada",
+      "774790f2c0c194f6c10f16438add7a7e774e22ec",
+      "3c6ccc1baefe4211e884ab3a3186d48d95884354",
+      "0bf400fcd6637e88c78cb432e6b468f3e2120756",
+      "4b994dd8bb79e714d8c4d1fa8e6538332062ebe4",
+      "85abe9adacc52e59aa74f7ee01e38d5c7c323941",
+      "8ba7eecb4740390bf2a5031d011eb668f575486d",
+      "a3e91880475e07dbe5ce17eb240461cbfd6fb4be",
+      "e57259644c2038a2119ffa24eac32984c180d7ca",
+      "146558abe0f0dfd8b3bb9f3937ec38f91a503713",
+      "96e477235c8d503f1014589ef427ebfd3ac08586",
+      "5a60754788ba0fc566c794b53cf01a517b16ef64",
+      "7833db9d71ce81689a19a21a62d57c0befaadf74",
+      "4d93bd31138cdac6d19e0a963eeec678860c8f32",
+      "456ccb032e6566ecd8c62835d9efc8439d006b1e",
+      "06ec5bceb3e69f1ba9fb7dcd41d825771f311520",
+      "eab1a4ba5bda6b72f280266417bfd10b79245306",
+      "2d05e0a07bf1b12aa349692a6816a947834ecf91",
+      "dbdd5d7a42c3439a046192fbf92b623224b94398",
+      "7ef802d034ebf2fcb9b217feb2f2fbd38acf252b",
+      "8a47947ce23ee86c7e28c8e6dab38f077fb517b2",
+      "5313c2d5a7b7ae0ba52cf9d8a90f6438e7da8f6c",
+      "d996f36bc778ecaf9df631bc8970f44539e703bb",
+      "f4c39ed9098088beb0fe29c66bdc3cfc3a06586b",
+      "0f0fc66813e9e761886734c4d949a23bb6a9f10f",
+      "b54871080f8427f86dab0628e60a1c57699bd03b",
+      "42712c46cdf496c00c45e309afec7110707a3111",
+      "05fe3c01a3b0fdfdea69457e1939fb7db3dddcd0",
+      "cd829ef6b014048101da1481c4f3b520096233c0",
+      "820c1497ef129257e8ab7942b29202b1437570a7",
+      "a36bee55954d3702de457d7eebbc3d36feaa9130",
+      "4a147acaa8dfa22c5681253ed9cdc5ffffe5b147",
+      "41638244cbc4d3c3f3c9263d68b6ea541c2e6524",
+      "0f2f42553c3d8cc28571d1f5d37f1007a39a77b5",
+      "0f84f3c6f830919bc9fa3f0bf67760899663839b",
+      "662ded7ae320642389aacf6092570bd48475f6e0",
+      "ae33ad365c1f042515cfd392305a8a64ad51258b",
+      "392f642b62ab5473ba12776b9c7972ffd9c1388c",
+      "ed7b9b3ae2c0fe1185b6d2c616c091cd5c3c9fc9",
+      "a042d177049cbcf2affe2eeb547a088f073cf5f9",
+      "0de9319de8659e85d1a0a909ca95ecf218e2368a",
+      "c2c1167d209592d80a4ec228bbea78907ab9957d",
+      "24aa7029fd2d2621175781382bdb1a9acbdd9350",
+      "580c3e9245a9bc7381774a06ba1b7c1141a0407f",
+      "48e7909e6ca37a39843558f429915e201efef578",
+      "7cf25e22df364da15f2bb0cbf767a2003390b350",
+      "6b69edb57c66be9d173033197f7fdca71f31a004",
+      "2b55b6a1037a0b35f36307ec833895e73217f413",
+      "a17c1e113587a1ef204102305fa2f732aadf952e",
+      "0ce06f5a021e9261ba9a2f060906133bbe11690d"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      ".github/workflows/mathematical-contract-reference.yml",
+      "docs/MATHEMATICAL_SYSTEM_READINESS.md",
+      "docs/contracts/grid_strattester_ml_math_v0.1.md",
+      "research/independent_asof_revisions.py",
+      "research/independent_candle_boundaries.py",
+      "research/independent_decimal_oracles.py",
+      "research/independent_dependency_oracle.py",
+      "research/independent_event_clock.py",
+      "research/independent_gaussian_stability.py",
+      "research/independent_gradient_oracles.py",
+      "research/independent_horizon_oracle.py",
+      "research/independent_ledger_oracle.py",
+      "research/independent_normalization_oracle.py",
+      "research/independent_numpy_oracles.py",
+      "research/independent_precision_oracle.py",
+      "research/independent_provenance_oracle.py",
+      "research/independent_purge_oracle.py",
+      "research/independent_series_identity.py",
+      "research/independent_snapshot_integrity.py",
+      "research/independent_time_oracles.py",
+      "research/independent_timestamp_units.py",
+      "research/independent_watermark_oracle.py",
+      "research/math_contract_reference.py",
+      "research/test_independent_asof_revisions.py",
+      "research/test_independent_candle_boundaries.py",
+      "research/test_independent_decimal_oracles.py",
+      "research/test_independent_dependency_oracle.py",
+      "research/test_independent_event_clock.py",
+      "research/test_independent_gaussian_stability.py",
+      "research/test_independent_gradient_oracles.py",
+      "research/test_independent_horizon_oracle.py",
+      "research/test_independent_ledger_oracle.py",
+      "research/test_independent_metamorphic_contracts.py",
+      "research/test_independent_normalization_oracle.py",
+      "research/test_independent_numpy_oracles.py",
+      "research/test_independent_precision_oracle.py",
+      "research/test_independent_provenance_oracle.py",
+      "research/test_independent_purge_oracle.py",
+      "research/test_independent_series_identity.py",
+      "research/test_independent_snapshot_integrity.py",
+      "research/test_independent_time_oracles.py",
+      "research/test_independent_timestamp_units.py",
+      "research/test_independent_watermark_oracle.py",
+      "research/test_math_contract_reference.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": ".github/workflows/mathematical-contract-reference.yml",
+        "sha": "b89436eac07bf885aa3142a7a38af5ec42c4e974",
+        "status": "added",
+        "additions": 73,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/MATHEMATICAL_SYSTEM_READINESS.md",
+        "sha": "1fc345ea583911ce30914c55eff4d049ab0eb059",
+        "status": "added",
+        "additions": 28,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/contracts/grid_strattester_ml_math_v0.1.md",
+        "sha": "73a51aeff8510edd7c82f41239699d6785f89742",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_asof_revisions.py",
+        "sha": "838c9e68ac7139d24611eb351c71112da769b2ee",
+        "status": "added",
+        "additions": 25,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_candle_boundaries.py",
+        "sha": "a2404c8378800d0f752455b51b9ef30273b348d9",
+        "status": "added",
+        "additions": 14,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_decimal_oracles.py",
+        "sha": "8c17fc574ea885bcd4b8b858e51b95f9f0a3444b",
+        "status": "added",
+        "additions": 31,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_dependency_oracle.py",
+        "sha": "868091ee183de638486128bc98e0974f9abb1521",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_event_clock.py",
+        "sha": "a7d6104074978728649477d066af1fa2a12d6d5e",
+        "status": "added",
+        "additions": 19,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_gaussian_stability.py",
+        "sha": "cfd2d545a5a3d61be06c8ffba9d5915e4acfa6f5",
+        "status": "added",
+        "additions": 16,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_gradient_oracles.py",
+        "sha": "1c79c2a1ca2dfc068f0457310cd9f7e6d8b348d8",
+        "status": "added",
+        "additions": 21,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_horizon_oracle.py",
+        "sha": "9595f7f2f7f6c04b531e42662983f3026af2cfe5",
+        "status": "added",
+        "additions": 25,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_ledger_oracle.py",
+        "sha": "156e353cfe4ea8caebe343b374a87b2384f40d39",
+        "status": "added",
+        "additions": 23,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_normalization_oracle.py",
+        "sha": "c4e14279ebed031419187b685b6f5a36480a35ac",
+        "status": "added",
+        "additions": 14,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_numpy_oracles.py",
+        "sha": "23e7b6fa741b2b2d350dfba776ee9ccebd35e11e",
+        "status": "added",
+        "additions": 43,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_precision_oracle.py",
+        "sha": "2c183c2b0f676019bf47854eb2d06da4fea1739e",
+        "status": "added",
+        "additions": 23,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_provenance_oracle.py",
+        "sha": "ada872e791b9f605808ef21bb03889f2fd56a35c",
+        "status": "added",
+        "additions": 19,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_purge_oracle.py",
+        "sha": "b9c5b187130e5d20a6abfdf965623fb8e030329d",
+        "status": "added",
+        "additions": 19,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_series_identity.py",
+        "sha": "fdf00d20e7735fd4d4eaafcde09c75ed65c79e81",
+        "status": "added",
+        "additions": 23,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_snapshot_integrity.py",
+        "sha": "99922e248564f8086c6577bcd10f561c216be9bd",
+        "status": "added",
+        "additions": 20,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_time_oracles.py",
+        "sha": "398730a3415036819295b8601f0d0efa853b2242",
+        "status": "added",
+        "additions": 46,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_timestamp_units.py",
+        "sha": "7190338e2ae9682c8337d65d142c456b45126735",
+        "status": "added",
+        "additions": 11,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_watermark_oracle.py",
+        "sha": "f67ef6454cfaae047e4d3c3e062c49b17f204251",
+        "status": "added",
+        "additions": 17,
+        "deletions": 0
+      },
+      {
+        "filename": "research/math_contract_reference.py",
+        "sha": "ce14ddff7bbce725bc61c4e962babfcb681569d0",
+        "status": "added",
+        "additions": 95,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_asof_revisions.py",
+        "sha": "92e3890c01903faa4baa61bc48b1913917ee68cc",
+        "status": "added",
+        "additions": 16,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_candle_boundaries.py",
+        "sha": "6f4706d624a31a0081f8bde89537c79b2e72f61d",
+        "status": "added",
+        "additions": 16,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_decimal_oracles.py",
+        "sha": "f6dd72e67eb31ab853dea4407247d57ac8279dff",
+        "status": "added",
+        "additions": 35,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_dependency_oracle.py",
+        "sha": "f9e8af11776503f92563450130843b86779df9c8",
+        "status": "added",
+        "additions": 20,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_event_clock.py",
+        "sha": "ed0216edc6c23d1905974c857fde4c89d8585ca4",
+        "status": "added",
+        "additions": 20,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_gaussian_stability.py",
+        "sha": "ac9561a5e5037617a59fd05912467933c5c32631",
+        "status": "added",
+        "additions": 17,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_gradient_oracles.py",
+        "sha": "e474afc790c9bb80072a9d75198e89fed2f63892",
+        "status": "added",
+        "additions": 20,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_horizon_oracle.py",
+        "sha": "d6913b58ea85a3a81ab75d1d24c8ba7cb4060912",
+        "status": "added",
+        "additions": 24,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_ledger_oracle.py",
+        "sha": "579c03a244e482309d62ff912d83f6cf2fdb236e",
+        "status": "added",
+        "additions": 26,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_metamorphic_contracts.py",
+        "sha": "0ea43e4425661958cd79da90ad15dbe81aac62e3",
+        "status": "added",
+        "additions": 34,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_normalization_oracle.py",
+        "sha": "6c9f5c9899362eae0bdc0e76ce58acc6286de1e6",
+        "status": "added",
+        "additions": 24,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_numpy_oracles.py",
+        "sha": "4bcb28fb51a304ad857189a74dc700560f18bdcc",
+        "status": "added",
+        "additions": 42,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_precision_oracle.py",
+        "sha": "ba02d4ab57aaa53a58f822d294e28b39d92131b2",
+        "status": "added",
+        "additions": 17,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_provenance_oracle.py",
+        "sha": "7be818839bc9a1a06dae55837ffd14f50508a699",
+        "status": "added",
+        "additions": 24,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_purge_oracle.py",
+        "sha": "172c4f0b682322bf1172b83e3591292f0376b0be",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_series_identity.py",
+        "sha": "028c29ad1d928ed556f3e9b4946e7729b367b1e5",
+        "status": "added",
+        "additions": 19,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_snapshot_integrity.py",
+        "sha": "296e58788f89734638a633713c5aaa7c82cb4717",
+        "status": "added",
+        "additions": 20,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_time_oracles.py",
+        "sha": "78381817017d007595f2b2c216eb1dfb2c0d5cef",
+        "status": "added",
+        "additions": 24,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_timestamp_units.py",
+        "sha": "dbadc09ac5f692773a1f5cd565a70c72c59c25c8",
+        "status": "added",
+        "additions": 19,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_watermark_oracle.py",
+        "sha": "1f8046e5aac4d3e16ce98f39f5c343acfaa724c0",
+        "status": "added",
+        "additions": 17,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_math_contract_reference.py",
+        "sha": "14675ad7e163cc13631f47c77ba6e313365d95a6",
+        "status": "added",
+        "additions": 94,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40123276839,
+        "name": "mathematical-contract-reference",
+        "head_sha": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40123276868,
+        "name": "tests",
+        "head_sha": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40123272490,
+        "name": "tests",
+        "head_sha": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 19,
+    "head": "24045ec1035c34f13e3b70c1c13dff2cb789ef34",
+    "tree": "9c438597026a81263f39113487f4c734a71626b9",
+    "base_sha": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+    "base_ref": "main",
+    "draft": true,
+    "commits": [
+      "a33ecc780978a8bc6627be8349e064cc22821dd3",
+      "745a39037581fbd11ab12d7686e1e92aa9a5d1f4",
+      "76692a1421737e995323cc3cf5efbec04d6e0a40",
+      "53b71e9770ba43dbd92e9ea1d97c5e1eafb6c508",
+      "cd130334c0d7437b0edb366b02e8a3ca2cc00098",
+      "6d5c4fcfd5c10a1070ed39663c52edb65ba717c5",
+      "62d176054b9916007e10657ef116467c8d84a2d4",
+      "b3526353e88bdb5faae79c939ad7b84571c4e985",
+      "5cc0a5e3defd02eb90dd41218f1b383186403cbe",
+      "43ab10687a622bfe29175a3d066b03d3d639ad19",
+      "0208848c4f5a2bfdb69083281d4ca08964f83f18",
+      "328c71d6cd8d8b34f16d96e0360e8ab54c6c4b78",
+      "180eb003550d5487b1d8dc186a3e9bac0bb64614",
+      "d4c358ab351854fbed2ddad22cadeca77260ce94",
+      "f892b158d79f8fa7e09d05ea2f28098831d6b9ed",
+      "2ac4ea3dfded5c0c563278ea23f94a0d8f77df39",
+      "da433e30192c39f5f71884fe188decf1f6cc4a24",
+      "e49f0a100225998ca6e74c5797dd572c07df0a5b",
+      "0d61d4577c972196f418d9963ef32cd6b173f2cd",
+      "a0e1441e84ca142ab28bd62f548ba83f3dbb2dd4",
+      "61b497004814b1c06c96f7d085aa9538891b9c21",
+      "8c00b78afaf0a2223111a2152c6538e7208def7d",
+      "ed7fc8b70c1942606e3a7fd9152d1572c8f0b0ac",
+      "98cb7acc54074045205b13e25e2a016e1318da09",
+      "82c95a45b97d9c2dc17ee6fe33cd613ad18111b1",
+      "619b9539000a1423319671429f3083bd155ea5aa",
+      "0df7233c0f14f5a481889d914b5b96b70692bf12",
+      "29ae5ea7d3493fa2e6cd2cd1ce0cfe609ed8c19d",
+      "f0b8fceb13ee14c380afcc5ee55a30219bd00915",
+      "24045ec1035c34f13e3b70c1c13dff2cb789ef34"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      "research/alphafold_training/ACCEPTANCE.md",
+      "research/alphafold_training/ML_AND_STRATEGY_ENGINE_READINESS.md",
+      "research/alphafold_training/baselines.py",
+      "research/alphafold_training/comparison.py",
+      "research/alphafold_training/cost_sensitivity.py",
+      "research/alphafold_training/evaluation.py",
+      "research/alphafold_training/gates.py",
+      "research/alphafold_training/independent_oracles.py",
+      "research/alphafold_training/runner.py",
+      "research/alphafold_training/walkforward.py",
+      "tests/test_alphafold_training_baselines.py",
+      "tests/test_alphafold_training_comparison.py",
+      "tests/test_alphafold_training_cost_sensitivity.py",
+      "tests/test_alphafold_training_evaluation.py",
+      "tests/test_alphafold_training_gates.py",
+      "tests/test_alphafold_training_independent_oracles.py",
+      "tests/test_alphafold_training_runner.py",
+      "tests/test_alphafold_training_strict_inputs.py",
+      "tests/test_alphafold_training_walkforward.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": "research/alphafold_training/ACCEPTANCE.md",
+        "sha": "f33769a589e4315cb0124b2cc607da8eb7285a72",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/ML_AND_STRATEGY_ENGINE_READINESS.md",
+        "sha": "e993abd5ea6f231a64dcc4a4dc8d0f70c104c848",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/baselines.py",
+        "sha": "ad65b249555d26128addbdeb2fdb1dab2c28afb2",
+        "status": "added",
+        "additions": 72,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/comparison.py",
+        "sha": "0e13641dd147767f78a1472dbbd6b286b1b8b5e6",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/cost_sensitivity.py",
+        "sha": "f2ed54424e4bbd54df85d4ad501a41b504971535",
+        "status": "added",
+        "additions": 43,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/evaluation.py",
+        "sha": "99daba35514f30f1c9a750726dafbf1a11cdbcda",
+        "status": "added",
+        "additions": 110,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/gates.py",
+        "sha": "be69607128f8ce345c5c9195759e97664dd06b34",
+        "status": "added",
+        "additions": 55,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/independent_oracles.py",
+        "sha": "1d5f7e85a9f084ebab98244861f2da546294cc45",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/runner.py",
+        "sha": "563ff39d9f46bf0bfa435bd67818827acb816c35",
+        "status": "added",
+        "additions": 98,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/walkforward.py",
+        "sha": "603a88250efcee80eb0afecdd6c653badce8734a",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_training_baselines.py",
+        "sha": "f00e9203b0c50c70fc6f8ff38b5fd6dfbfd178b8",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_training_comparison.py",
+        "sha": "9ff27645e904309d0efa923529a2d668917d8671",
+        "status": "added",
+        "additions": 32,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_training_cost_sensitivity.py",
+        "sha": "59d665acc8c909a0b8ff06e83d502c9919ae3272",
+        "status": "added",
+        "additions": 26,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_training_evaluation.py",
+        "sha": "5122ed47d197a4157fe52e658507c66a6e6653aa",
+        "status": "added",
+        "additions": 39,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_training_gates.py",
+        "sha": "2fb07de4bd0c7556ee277702873e0815be4487ba",
+        "status": "added",
+        "additions": 33,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_training_independent_oracles.py",
+        "sha": "39844acfa41bc5b3064256c9e59beea557e8b2a9",
+        "status": "added",
+        "additions": 32,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_training_runner.py",
+        "sha": "436da7d9bd45814787250b9b05a3bd8cc1c10bb2",
+        "status": "added",
+        "additions": 55,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_training_strict_inputs.py",
+        "sha": "7cc838f09faa15f878a7980529396c658f4b402e",
+        "status": "added",
+        "additions": 43,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/test_alphafold_training_walkforward.py",
+        "sha": "2a30641757e4173b0f2632acca371aa785a2de88",
+        "status": "added",
+        "additions": 44,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40112005378,
+        "name": "tests",
+        "head_sha": "24045ec1035c34f13e3b70c1c13dff2cb789ef34",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40111998458,
+        "name": "tests",
+        "head_sha": "24045ec1035c34f13e3b70c1c13dff2cb789ef34",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 20,
+    "head": "2c5e378777112b9152e42cf2261f29ef8d29bf13",
+    "tree": "4c9dcd9cab6662e413c15b11b3a707a8bf619ee5",
+    "base_sha": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+    "base_ref": "main",
+    "draft": true,
+    "commits": [
+      "90f6acfe0b4fb13a6e27d89a830abae959b5004f",
+      "d24192f902208fe35412964cd126548c1bb55c98",
+      "2b84c57ac73ff8aeb9bb5986e49542244d692fb6",
+      "7b9f33128fb2603ace9b96e21b5981b97131ca17",
+      "b1fcbcf6ca476e6832f0918f47f09cef847102e1",
+      "53e678548ad55bc34c3d2d452c9d4daef77dc74d",
+      "dc2a5ec3347de083d4ffdc5176505e1b7bc145e2",
+      "a1ce1c8986d0fcb98529cab12297ff7ad5df2da8",
+      "66ca40bca7b5dffc6caff9b90a8e62da74bf5dc2",
+      "008430823b769d73a07f3cbafaa615dc9370754c",
+      "956b02f64df11cd79b28e43426c9adeb0eb098c1",
+      "f1d0b0c6f1f34f3b78554635b533cccc84ee0153",
+      "9506f843fb4ced684e5c4277361d241f359bd499",
+      "4075656445e19147b8806762e0a1551a38bd4e3d",
+      "c7d358dee72c61ee6f8ad9798e9311221fa14b4f",
+      "70fc4d7e208760ed1e5497b1bf8687a847ba0dd9",
+      "43f0d4629f49ffb211e27e7f85e73cba4d1873e3",
+      "635de5585780dce082ec8f233b6b414c3af651bf",
+      "03c73e1cc7581e9053ae1dd200566e8de0df6769",
+      "c5c364ea517ed141c28bf451baf585dc6c6fbb0e",
+      "13e9d3660fff9c3870e4a9ba718ae97c0a3df0fc",
+      "fd300346ca23f73e4eb20400811f08601d4da672",
+      "02bb79796b9627345b8f7c98a50349d044e5b7be",
+      "703987e49811b88909ce9f46dfedbec7a0103bc9",
+      "897ecf2298e05f7e51cb2928010664eaf5855ca4",
+      "7a4cd4632483fc586add6a1d448288203733c3b2",
+      "5002a336ff03925ed915faec6355943750a1bc13",
+      "0ba2a6d7837f5412e64710931db7e820f611913d",
+      "ecd0e1a3d45fa4d31388b1f6e586f4523ade7ccc",
+      "ac666039e04283715c5c3f6feb47f35cdeb1310a",
+      "9caaf7f3c8e329ed16a1b252f7c5e4c72f40c220",
+      "8e4bc2839e3c32c4d72ba8a6819a0d408703bf99",
+      "cb7cb495de9e8fcd0434dbb06dc26c5c9469ec5c",
+      "2f3c7bcc7afd71f38be3470146766b9e1368e730",
+      "0b432fd62bee59beb6b5406bae5eba9dca35e9ed",
+      "2bd6d46b6259714dbab1dd62e95f8aa74799ba26",
+      "39de29bdacd5c0c2ca987f8c51c7c0a000688161",
+      "af9a0ae2760ca4c82e6deadec8204efb6d61d28f",
+      "cc6e0483426a263f13cba18d11e398aa3440cab7",
+      "9dfc44a8dd0bf0b043ce8598fff74f67e9a26932",
+      "5dc0dcfa0f263da8e93d1cb0e7a1e4ed3eaa8f5a",
+      "16574a3ddf6689ace0051fee32b9ba0a63672f8b",
+      "fc976a6979347a7a44200b4fe9eeb96a24ae55f5",
+      "334b22062583e958917beec06acd03235a3d8a47",
+      "300f2fb6726499092d36d096bec9be33e58f4ee0",
+      "591d00153657199db3581f94c726d1b1f01551fd",
+      "0c1d3349967eff3cace2dc7cc91e351360cc09c1",
+      "8c71ee6bb238665a282982b4f2b6f83d92e98c03",
+      "ca5e06215bd973fbc6cfc9deb9ffb1e26f770023",
+      "c1273f074c925a023394f9d6095e078698645a36",
+      "bcf47a2cb8a6200790f77aadf52292311eec3c09",
+      "15fefb301206b1b0e720839926d8ab358000e06e",
+      "2c5e378777112b9152e42cf2261f29ef8d29bf13"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      "docs/alphafold-grid-research-audit.md",
+      "docs/alphafold-integration-contract.md",
+      "docs/alphafold-market-experiment.md",
+      "docs/alphafold-qa-security-acceptance.md",
+      "docs/protein-geometry-grid-sync.md",
+      "docs/protein-geometry-strategy-modes.md",
+      "docs/security/pr21-independent-physical-g1-assessment-20261024.md",
+      "pyproject.toml",
+      "strattester/research/alphafold_adapter.py",
+      "strattester/research/alphafold_security.py",
+      "strattester/research/financial_evoformer.py",
+      "strattester/research/financial_structure_dataset.py",
+      "strattester/research/protein_geometry.py",
+      "strattester/research/protein_geometry_export.py",
+      "strattester/research/protein_geometry_offline.py",
+      "strattester/research/protein_geometry_snapshot.py",
+      "strattester/strategies/builtin/protein_geometry.py",
+      "tests/research/test_alphafold_adapter.py",
+      "tests/research/test_alphafold_security.py",
+      "tests/research/test_financial_evoformer.py",
+      "tests/research/test_financial_structure_dataset.py",
+      "tests/research/test_pr21_acceptance_bypass_characterization.py",
+      "tests/research/test_protein_geometry.py",
+      "tests/research/test_protein_geometry_export.py",
+      "tests/research/test_protein_geometry_snapshot.py",
+      "tests/strategies/test_protein_geometry.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": "docs/alphafold-grid-research-audit.md",
+        "sha": "968fd3fed3d3dd8ae84d93b18ee8cac1f8b91d6d",
+        "status": "added",
+        "additions": 37,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-integration-contract.md",
+        "sha": "c2ac0bb2cadf9bb1eb2a794c281a14d9b2d55593",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-market-experiment.md",
+        "sha": "0bb4c3320c268e8b917ec0a97985f41eef7a5512",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-qa-security-acceptance.md",
+        "sha": "fd66bd00197a0487ee81faea25b88fdeb533da79",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-grid-sync.md",
+        "sha": "f36230a30b6a901829a596df1e935a7b752dc623",
+        "status": "added",
+        "additions": 18,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-strategy-modes.md",
+        "sha": "3cf9adeb0febd2e4d5a464da9b66daf3a0cedba6",
+        "status": "added",
+        "additions": 27,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/security/pr21-independent-physical-g1-assessment-20261024.md",
+        "sha": "f1c0d0bdd841aebe44363a092f67f798c224640d",
+        "status": "added",
+        "additions": 23,
+        "deletions": 0
+      },
+      {
+        "filename": "pyproject.toml",
+        "sha": "a19ecf740fa622556c492681be18b08de57ef784",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_adapter.py",
+        "sha": "d030a9bd91668bba28c5c7f0ba60c14323b0bd19",
+        "status": "added",
+        "additions": 62,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_security.py",
+        "sha": "5ee00c65b04f758f4ee7a5a727add0580bedc479",
+        "status": "added",
+        "additions": 21,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_evoformer.py",
+        "sha": "caa8480191b9f2c72612baf80252635e45aec316",
+        "status": "added",
+        "additions": 57,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_structure_dataset.py",
+        "sha": "f233d9811349a4df4f7827ca5f08d32986b871c2",
+        "status": "added",
+        "additions": 50,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry.py",
+        "sha": "7cf2b4064c487f98343308d47bb7f797ea2fe29c",
+        "status": "added",
+        "additions": 50,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_export.py",
+        "sha": "bfb89269518708a876749088877b21ffdbef3963",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_offline.py",
+        "sha": "83fc1f471683e7c52c48e33a238eb463bec80ac0",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_snapshot.py",
+        "sha": "98ee7a32454161107f9585de6f748d4ebd37d617",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/strategies/builtin/protein_geometry.py",
+        "sha": "e8384dcad7c03b87001c9f982d472151c567421b",
+        "status": "added",
+        "additions": 34,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_adapter.py",
+        "sha": "f2c8021c12511ce274de5994f8da757c24180a7e",
+        "status": "added",
+        "additions": 35,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_security.py",
+        "sha": "f6ed5dbeda1595ca0a4fb5fe9b5caaeee9e9dd3d",
+        "status": "added",
+        "additions": 42,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_evoformer.py",
+        "sha": "5c4ee67a6663e84197d872d323da8b4a86c1cb8e",
+        "status": "added",
+        "additions": 43,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_structure_dataset.py",
+        "sha": "d3a79556c3672ab2e6802a8267697815614bcaa4",
+        "status": "added",
+        "additions": 50,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_pr21_acceptance_bypass_characterization.py",
+        "sha": "acc367c7a37fa43bc6b804280b187b01e2bcf4a0",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_protein_geometry.py",
+        "sha": "0fd7d32b90cf48ac5fa495ba7f642903f93fb0db",
+        "status": "added",
+        "additions": 45,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_protein_geometry_export.py",
+        "sha": "4ae5dd761b0e5dc26859ce0011015ca8b7d110ab",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_protein_geometry_snapshot.py",
+        "sha": "daa0e3722f4bdd14692b4deca3aad06950619cd5",
+        "status": "added",
+        "additions": 25,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/strategies/test_protein_geometry.py",
+        "sha": "52b745de6ff37f1d3c4138ea3ef102acb2cdc19a",
+        "status": "added",
+        "additions": 55,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40112015533,
+        "name": "tests",
+        "head_sha": "2c5e378777112b9152e42cf2261f29ef8d29bf13",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40112011434,
+        "name": "tests",
+        "head_sha": "2c5e378777112b9152e42cf2261f29ef8d29bf13",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 21,
+    "head": "5d715987d03d4a26d31a48e9767697bbd171cd33",
+    "tree": "ab01fadda379c6ae238fbe85ee5c3bfefb7f0af2",
+    "base_sha": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+    "base_ref": "main",
+    "draft": true,
+    "commits": [
+      "9778e79cb3dbe49b9e88dccb05acf2286374a87a",
+      "572d17d7df6799f9d2fc1145d21e23c998924d4e",
+      "101b1334c996be390c9ff53a53442a15fbd73f70",
+      "cf081b9f2ac6fd584f4f726654451801cd1eff86",
+      "6468a7b95cdd5f31cbff17a0afea5ae2041dc102",
+      "8c8615d7c8ac34fc85e91f357c5984b737dd7142",
+      "3ef70237b524db00d9273410be41b862ba7876cf",
+      "d6a1bcb92bf8cd9918314ae23b2921e4ce31ebd9",
+      "250863762844a6758047ea678baed5ba854d41c0",
+      "67301726d250973602b964adabdb9eb8d50d0f13",
+      "e0d09edb8be934463d4cbd884bdddac76ca50f1e",
+      "393f37d6af57a015e6d33f9ad1ba4af08a58e381",
+      "52caf9409dbcfa5c7cc8964c497bdd76d037eb0b",
+      "8d20f416e6429ddd7666f7e38d42b739783dfb02",
+      "550e6ba0f78b99b1443fdfc5e2472c47c8c07c80",
+      "58f797f52af929caf05cab84c17446dce4ddb4a3",
+      "ac9c9ddd6109463c5c785be0206ca64091fa037c",
+      "d60dec64a02478dfc24f4c8155ae016e66b42295",
+      "ee5acb0670fe0466e22482732337fb776cdd5077",
+      "b6bf1bbd12c71033d157b131b10468781e71a43a",
+      "5283f770a4ed72394d9f948445797510ff4c726e",
+      "8c67fadf75cbc58dde680fbb17d0939cbd096179",
+      "d949d129589734248b9cd44e05d13992f37dd60b",
+      "c6f70920fe209bf61aa39d87fc978f45f7a2efba",
+      "d7d2737d8857c6e5d79001d2d0a7d75e8033a4b0",
+      "f35be5fbc915b528319610105acbcc9982ba55bb",
+      "65944f58da468625e3fe6038f91386f164bf9485",
+      "66949229a76522df66bd69ed253c27c9b300674f",
+      "37eeef3b4b05bf22a9a39843075a2a3b249453da",
+      "4d4225edbaa2ade024ed55f279047b363a8d7678",
+      "e93a2ec88a966a28cbfc2b74b9921e8274eefd67",
+      "9c09e45a3db342d2d5acdb656ee4e4a0d132dcfe",
+      "ca567ff037bb1061ed0dc4a3859f0a6dcc001734",
+      "ce7a3eb75d1b8e5e1cee141e1eb802e414c44eea",
+      "fc0f3ee428318b49a0ea0ee5a88ca899e4f3af3c",
+      "5c537c8861a14963281b2dafce97ea16d72a5826",
+      "262a1b2a6dabe722e581fe93e2a17c28b3b00ae9",
+      "5d715987d03d4a26d31a48e9767697bbd171cd33"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      ".github/workflows/alphafold-research-cpu.yml",
+      ".github/workflows/financial-integration.yml",
+      ".github/workflows/mathematical-contract-reference.yml",
+      ".github/workflows/tests.yml",
+      ".gitignore",
+      "docs/GRID_DATA_PHYSICAL_READINESS.md",
+      "docs/alphafold-grid-research-audit.md",
+      "docs/alphafold-integration-contract.md",
+      "docs/alphafold-market-experiment.md",
+      "docs/alphafold-qa-security-acceptance.md",
+      "docs/contracts/grid_strattester_ml_math_v0.1.md",
+      "docs/integration/alphafold-audit-2026-10-24.md",
+      "docs/integration/component-origins.json",
+      "docs/integration/cpu-manifest-exclusions.json",
+      "docs/integration/evidence/ci-audit.json",
+      "docs/integration/evidence/inventory.json",
+      "docs/integration/evidence/pr17-tests-retry.xml",
+      "docs/integration/evidence/pr18-tests.xml",
+      "docs/integration/evidence/pr19-tests.xml",
+      "docs/integration/evidence/pr20-tests.xml",
+      "docs/integration/implementation-notes.md",
+      "docs/integration/mechanism-matrix.md",
+      "docs/integration/review-2026-10-24.md",
+      "docs/protein-geometry-grid-sync.md",
+      "docs/protein-geometry-strategy-modes.md",
+      "docs/readiness/CYCLE2_INDEPENDENT_FINAL_REVIEW.md",
+      "docs/readiness/CYCLE2_SIGNED_OFFLINE_INTEGRATION.md",
+      "docs/readiness/FINANCIAL_OFFLINE_BRIDGE.md",
+      "docs/readiness/GRID_EXPORT_SPEC.md",
+      "docs/readiness/INDEPENDENT_FINAL_REVIEW.md",
+      "docs/readiness/INDEPENDENT_MODEL_AUDIT.md",
+      "docs/readiness/INDEPENDENT_SECURITY_AUDIT.md",
+      "docs/readiness/INDEPENDENT_SYSTEM_AUDIT.md",
+      "docs/readiness/PARALLEL_AGENTS_CONSOLIDATION_2026-10-24.md",
+      "docs/readiness/PHYSICAL_G0.md",
+      "docs/readiness/PLAN.md",
+      "docs/readiness/READINESS.md",
+      "docs/readiness/UPSTREAM_MECHANISM_READINESS.md",
+      "docs/readiness/WINDOWS_OFFLINE_RUNNER_PLAN.md",
+      "docs/readiness/evidence/structural-cycle2/full.log",
+      "docs/readiness/evidence/structural-cycle2/full.xml",
+      "docs/readiness/evidence/structural-cycle2/green.log",
+      "docs/readiness/evidence/structural-cycle2/green.xml",
+      "docs/readiness/evidence/structural-cycle2/red.log",
+      "docs/readiness/evidence/structural-cycle2/red.xml",
+      "docs/readiness/grid-pinned-source-assessment.json",
+      "docs/security/pr21-independent-physical-g1-assessment-20261024.md",
+      "docs/superpowers/plans/2026-10-24-alphafold-integration.md",
+      "docs/superpowers/plans/2026-10-24-signed-offline-cycle2.md",
+      "docs/superpowers/specs/2026-10-24-alphafold-integration-design.md",
+      "pyproject.toml",
+      "research/MATHEMATICAL_SYSTEM_READINESS.md",
+      "research/alphafold_training/ACCEPTANCE.md",
+      "research/alphafold_training/ML_AND_STRATEGY_ENGINE_READINESS.md",
+      "research/alphafold_training/MULTI_INSTRUMENT_OOS_PROTOCOL.md",
+      "research/alphafold_training/baselines.py",
+      "research/alphafold_training/comparison.py",
+      "research/alphafold_training/cost_sensitivity.py",
+      "research/alphafold_training/evaluation.py",
+      "research/alphafold_training/gates.py",
+      "research/alphafold_training/independent_oracles.py",
+      "research/alphafold_training/runner.py",
+      "research/alphafold_training/walkforward.py",
+      "research/independent_decimal_oracles.py",
+      "research/independent_time_oracles.py",
+      "research/math_contract_reference.py",
+      "research/test_independent_decimal_oracles.py",
+      "research/test_independent_time_oracles.py",
+      "research/test_math_contract_reference.py",
+      "scripts/alphafold_cpu_gate.py",
+      "scripts/financial-gate-manifest.json",
+      "scripts/financial_gate.py",
+      "scripts/physical_g0_inventory.ps1",
+      "scripts/prepare_windows_offline_package.py",
+      "strattester/alphafold_artifact_verify.py",
+      "strattester/alphafold_data_sync.py",
+      "strattester/alphafold_export_receipt.py",
+      "strattester/alphafold_revisions.py",
+      "strattester/alphafold_series_integrity.py",
+      "strattester/alphafold_snapshot_contract.py",
+      "strattester/alphafold_verified_bars.py",
+      "strattester/research/alphafold_adapter.py",
+      "strattester/research/alphafold_msa_attention.py",
+      "strattester/research/alphafold_msa_pair_bridge.py",
+      "strattester/research/alphafold_outer_product.py",
+      "strattester/research/alphafold_pair_stack.py",
+      "strattester/research/alphafold_security.py",
+      "strattester/research/alphafold_triangle.py",
+      "strattester/research/alphafold_triangle_attention.py",
+      "strattester/research/financial_acceptance.py",
+      "strattester/research/financial_attested_inference.py",
+      "strattester/research/financial_checkpoint.py",
+      "strattester/research/financial_contract.py",
+      "strattester/research/financial_evaluation.py",
+      "strattester/research/financial_evoformer.py",
+      "strattester/research/financial_experiment.py",
+      "strattester/research/financial_offline_bridge.py",
+      "strattester/research/financial_offline_jobs.py",
+      "strattester/research/financial_pipeline.py",
+      "strattester/research/financial_signatures.py",
+      "strattester/research/financial_signed_export.py",
+      "strattester/research/financial_snapshot.py",
+      "strattester/research/financial_structural_model.py",
+      "strattester/research/financial_structure_dataset.py",
+      "strattester/research/financial_training.py",
+      "strattester/research/grid_producer_readiness.py",
+      "strattester/research/protein_geometry.py",
+      "strattester/research/protein_geometry_export.py",
+      "strattester/research/protein_geometry_offline.py",
+      "strattester/research/protein_geometry_snapshot.py",
+      "strattester/strategies/builtin/financial_structural.py",
+      "strattester/strategies/builtin/protein_geometry.py",
+      "tests/research/signed_export_fixture.py",
+      "tests/research/test_alphafold_adapter.py",
+      "tests/research/test_alphafold_integration_regressions.py",
+      "tests/research/test_alphafold_msa_attention.py",
+      "tests/research/test_alphafold_msa_pair_bridge.py",
+      "tests/research/test_alphafold_outer_product.py",
+      "tests/research/test_alphafold_pair_stack.py",
+      "tests/research/test_alphafold_pair_stack_budget.py",
+      "tests/research/test_alphafold_security.py",
+      "tests/research/test_alphafold_triangle.py",
+      "tests/research/test_alphafold_triangle_attention.py",
+      "tests/research/test_alphafold_triangle_attention_oracle.py",
+      "tests/research/test_alphafold_triangle_reference.py",
+      "tests/research/test_financial_acceptance.py",
+      "tests/research/test_financial_attested_inference.py",
+      "tests/research/test_financial_checkpoint.py",
+      "tests/research/test_financial_contract.py",
+      "tests/research/test_financial_evaluation.py",
+      "tests/research/test_financial_evoformer.py",
+      "tests/research/test_financial_experiment.py",
+      "tests/research/test_financial_filesystem_security.py",
+      "tests/research/test_financial_mathematical_verification.py",
+      "tests/research/test_financial_offline_bridge.py",
+      "tests/research/test_financial_offline_e2e.py",
+      "tests/research/test_financial_offline_jobs.py",
+      "tests/research/test_financial_research_registry.py",
+      "tests/research/test_financial_signatures.py",
+      "tests/research/test_financial_signed_export.py",
+      "tests/research/test_financial_snapshot.py",
+      "tests/research/test_financial_structural_model.py",
+      "tests/research/test_financial_structure_dataset.py",
+      "tests/research/test_financial_training.py",
+      "tests/research/test_grid_export_spec_reference.py",
+      "tests/research/test_grid_producer_readiness.py",
+      "tests/research/test_physical_acceptance_attacks.py",
+      "tests/research/test_physical_artifact_attacks.py",
+      "tests/research/test_protein_geometry.py",
+      "tests/research/test_protein_geometry_export.py",
+      "tests/research/test_protein_geometry_snapshot.py",
+      "tests/research/test_structural_upstream_differential.py",
+      "tests/strategies/test_protein_geometry.py",
+      "tests/test_alphafold_artifact_verify.py",
+      "tests/test_alphafold_data_sync.py",
+      "tests/test_alphafold_export_receipt.py",
+      "tests/test_alphafold_series_integrity.py",
+      "tests/test_alphafold_snapshot_contract.py",
+      "tests/test_alphafold_training_baselines.py",
+      "tests/test_alphafold_training_comparison.py",
+      "tests/test_alphafold_training_cost_sensitivity.py",
+      "tests/test_alphafold_training_evaluation.py",
+      "tests/test_alphafold_training_gates.py",
+      "tests/test_alphafold_training_independent_oracles.py",
+      "tests/test_alphafold_training_runner.py",
+      "tests/test_alphafold_training_strict_inputs.py",
+      "tests/test_alphafold_training_walkforward.py",
+      "tests/test_alphafold_verified_bars.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": ".github/workflows/alphafold-research-cpu.yml",
+        "sha": "cab4c6f428a7ab45947df46895edeeae2b6254e3",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": ".github/workflows/financial-integration.yml",
+        "sha": "2f2431d096dd799ae0bcf3822d967722bfaba7c7",
+        "status": "added",
+        "additions": 70,
+        "deletions": 0
+      },
+      {
+        "filename": ".github/workflows/mathematical-contract-reference.yml",
+        "sha": "3ca0f78347a129f5684a61887868852e7f17d273",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": ".github/workflows/tests.yml",
+        "sha": "57f5a17040135f5913a15a1c7038b284c0ab9e13",
+        "status": "modified",
+        "additions": 7,
+        "deletions": 0
+      },
+      {
+        "filename": ".gitignore",
+        "sha": "b77f22fe4c88f30536b3848cd91506c445e635e7",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/GRID_DATA_PHYSICAL_READINESS.md",
+        "sha": "ad257a0ef5be3a13cef48deff52a04b27772eb88",
+        "status": "added",
+        "additions": 69,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-grid-research-audit.md",
+        "sha": "968fd3fed3d3dd8ae84d93b18ee8cac1f8b91d6d",
+        "status": "added",
+        "additions": 37,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-integration-contract.md",
+        "sha": "c2ac0bb2cadf9bb1eb2a794c281a14d9b2d55593",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-market-experiment.md",
+        "sha": "0bb4c3320c268e8b917ec0a97985f41eef7a5512",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-qa-security-acceptance.md",
+        "sha": "fd66bd00197a0487ee81faea25b88fdeb533da79",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/contracts/grid_strattester_ml_math_v0.1.md",
+        "sha": "73a51aeff8510edd7c82f41239699d6785f89742",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/alphafold-audit-2026-10-24.md",
+        "sha": "0efe44ad8dba682eaf312ce8bab70e7cbead9f6a",
+        "status": "added",
+        "additions": 170,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/component-origins.json",
+        "sha": "cde145f2262109a79618645dcb4df6a1fed940b6",
+        "status": "added",
+        "additions": 372,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/cpu-manifest-exclusions.json",
+        "sha": "5cb741dfa081354290483c0d8a82f67d5a6ca578",
+        "status": "added",
+        "additions": 35,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/ci-audit.json",
+        "sha": "fb7bd1a8d654204914f1ed6a1954a9e8c6767238",
+        "status": "added",
+        "additions": 2645,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/inventory.json",
+        "sha": "c04e08b2f103da6748f2d87dd3821b928a71199e",
+        "status": "added",
+        "additions": 265,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr17-tests-retry.xml",
+        "sha": "e701d7cefb51a643eb16b936a194fe68d0f47212",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr18-tests.xml",
+        "sha": "04c9222d78bc4583641e9def90f25d3251a54ccd",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr19-tests.xml",
+        "sha": "2dc0a298c98d63e81218d98ec8a4c40cf576150e",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr20-tests.xml",
+        "sha": "cb49c51ba37bdaa8ff794ec45c919164392593f4",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/implementation-notes.md",
+        "sha": "7573749c635397aba5ed806dd389ef39688fd7b5",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/mechanism-matrix.md",
+        "sha": "41843d72facdcea18a443571076767813644bc9b",
+        "status": "added",
+        "additions": 23,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/review-2026-10-24.md",
+        "sha": "fb37c1d2000aaba6770afef88305925fd78692e5",
+        "status": "added",
+        "additions": 32,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-grid-sync.md",
+        "sha": "f36230a30b6a901829a596df1e935a7b752dc623",
+        "status": "added",
+        "additions": 18,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-strategy-modes.md",
+        "sha": "3cf9adeb0febd2e4d5a464da9b66daf3a0cedba6",
+        "status": "added",
+        "additions": 27,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/CYCLE2_INDEPENDENT_FINAL_REVIEW.md",
+        "sha": "d16000b7f207f4cd186c0254c66da11fdc67f5ce",
+        "status": "added",
+        "additions": 78,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/CYCLE2_SIGNED_OFFLINE_INTEGRATION.md",
+        "sha": "150027315fb0e5578de07f9e745daaf309307d0b",
+        "status": "added",
+        "additions": 74,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/FINANCIAL_OFFLINE_BRIDGE.md",
+        "sha": "a4de5fcb5648eac9bcec25d889a824cbc9b87e46",
+        "status": "added",
+        "additions": 28,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/GRID_EXPORT_SPEC.md",
+        "sha": "3e12a4229b23c747265a9005c7d002b6cd488da3",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/INDEPENDENT_FINAL_REVIEW.md",
+        "sha": "5f37017fd5c2fb582a3e75f3d12e9c4f82d50b45",
+        "status": "added",
+        "additions": 42,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/INDEPENDENT_MODEL_AUDIT.md",
+        "sha": "6196644e518fe41e9f3e4780d7f5c908602a2867",
+        "status": "added",
+        "additions": 42,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/INDEPENDENT_SECURITY_AUDIT.md",
+        "sha": "d50212898cde8e505d1a63e59d83ba5300cd11c1",
+        "status": "added",
+        "additions": 45,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/INDEPENDENT_SYSTEM_AUDIT.md",
+        "sha": "672c80c81020ae4c479589f7be234471de235bf1",
+        "status": "added",
+        "additions": 45,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/PARALLEL_AGENTS_CONSOLIDATION_2026-10-24.md",
+        "sha": "1ed542c28274d81ed41f23a350ddbd7cf71e8d66",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/PHYSICAL_G0.md",
+        "sha": "7f5c50e9b96e9e42bc3a51e3d78281fc8895a7cd",
+        "status": "added",
+        "additions": 53,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/PLAN.md",
+        "sha": "bb9fa795d1925315748e7978f96319d18b66370d",
+        "status": "added",
+        "additions": 27,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/READINESS.md",
+        "sha": "eb8709dd05fe50b7dd5964a34e5734b25d9f4f99",
+        "status": "added",
+        "additions": 106,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/UPSTREAM_MECHANISM_READINESS.md",
+        "sha": "88eb74282f0bdc906d4bf0ed01b5008e915bd48f",
+        "status": "added",
+        "additions": 45,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/WINDOWS_OFFLINE_RUNNER_PLAN.md",
+        "sha": "ef8a0571aeb2b34af5dae8fd5843212a7576feae",
+        "status": "added",
+        "additions": 63,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/full.log",
+        "sha": "b6629e192b28b31554e60323994006e640f442b8",
+        "status": "added",
+        "additions": 14,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/full.xml",
+        "sha": "94564c494d1c2722debe9c77187a2535fed0736b",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/green.log",
+        "sha": "7d327fdb5e5916ec3cefdba51ebf40c18be9670a",
+        "status": "added",
+        "additions": 2,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/green.xml",
+        "sha": "fb0d60c3c94cf6076eac3253119737ebef33835e",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/red.log",
+        "sha": "57ccf25345bfde075351b7b9a18fb36e5bd94a74",
+        "status": "added",
+        "additions": 133,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/red.xml",
+        "sha": "a41301130331df7b99b11648acb4da26f36393da",
+        "status": "added",
+        "additions": 110,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/grid-pinned-source-assessment.json",
+        "sha": "3d20f06f154aa4fc85322202ca95f79a6aebd86c",
+        "status": "added",
+        "additions": 57,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/security/pr21-independent-physical-g1-assessment-20261024.md",
+        "sha": "f1c0d0bdd841aebe44363a092f67f798c224640d",
+        "status": "added",
+        "additions": 23,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/superpowers/plans/2026-10-24-alphafold-integration.md",
+        "sha": "5c25f1cf1117865c81c78ef080ab845d19003fd4",
+        "status": "added",
+        "additions": 68,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/superpowers/plans/2026-10-24-signed-offline-cycle2.md",
+        "sha": "1334d74b0fc2a984e172ceb7dc4940253ea02b84",
+        "status": "added",
+        "additions": 22,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/superpowers/specs/2026-10-24-alphafold-integration-design.md",
+        "sha": "e02cee9f11c1ebbc6b09aa765358770a5fa35439",
+        "status": "added",
+        "additions": 62,
+        "deletions": 0
+      },
+      {
+        "filename": "pyproject.toml",
+        "sha": "371ada726cb3037df448db1634a62e4e6d2c1f28",
+        "status": "modified",
+        "additions": 4,
+        "deletions": 2
+      },
+      {
+        "filename": "research/MATHEMATICAL_SYSTEM_READINESS.md",
+        "sha": "fe10848bb95c0677c8789ab098cc6a818fad0c12",
+        "status": "added",
+        "additions": 68,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/ACCEPTANCE.md",
+        "sha": "f33769a589e4315cb0124b2cc607da8eb7285a72",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/ML_AND_STRATEGY_ENGINE_READINESS.md",
+        "sha": "cadba87d8b3552dd0bc42eacd639ac47be9fd147",
+        "status": "added",
+        "additions": 72,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/MULTI_INSTRUMENT_OOS_PROTOCOL.md",
+        "sha": "bec287e768e13a27bc02948fdd58f55ad1fd0f72",
+        "status": "added",
+        "additions": 42,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/baselines.py",
+        "sha": "ad65b249555d26128addbdeb2fdb1dab2c28afb2",
+        "status": "added",
+        "additions": 72,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/comparison.py",
+        "sha": "0e13641dd147767f78a1472dbbd6b286b1b8b5e6",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/cost_sensitivity.py",
+        "sha": "f2ed54424e4bbd54df85d4ad501a41b504971535",
+        "status": "added",
+        "additions": 43,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/evaluation.py",
+        "sha": "99daba35514f30f1c9a750726dafbf1a11cdbcda",
+        "status": "added",
+        "additions": 110,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/gates.py",
+        "sha": "be69607128f8ce345c5c9195759e97664dd06b34",
+        "status": "added",
+        "additions": 55,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/independent_oracles.py",
+        "sha": "1d5f7e85a9f084ebab98244861f2da546294cc45",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/runner.py",
+        "sha": "563ff39d9f46bf0bfa435bd67818827acb816c35",
+        "status": "added",
+        "additions": 98,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/walkforward.py",
+        "sha": "603a88250efcee80eb0afecdd6c653badce8734a",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_decimal_oracles.py",
+        "sha": "8c17fc574ea885bcd4b8b858e51b95f9f0a3444b",
+        "status": "added",
+        "additions": 31,
+        "deletions": 0
+      },
+      {
+        "filename": "research/independent_time_oracles.py",
+        "sha": "398730a3415036819295b8601f0d0efa853b2242",
+        "status": "added",
+        "additions": 46,
+        "deletions": 0
+      },
+      {
+        "filename": "research/math_contract_reference.py",
+        "sha": "ce14ddff7bbce725bc61c4e962babfcb681569d0",
+        "status": "added",
+        "additions": 95,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_decimal_oracles.py",
+        "sha": "128ab015db3b5d24801a834b1bb4f45f0452a1ef",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_independent_time_oracles.py",
+        "sha": "78381817017d007595f2b2c216eb1dfb2c0d5cef",
+        "status": "added",
+        "additions": 24,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_math_contract_reference.py",
+        "sha": "2239508f04180f4b59b818be5a09d66b2719ccd4",
+        "status": "added",
+        "additions": 94,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/alphafold_cpu_gate.py",
+        "sha": "fab75abb971337de60cd7c22a5ac18fae684c342",
+        "status": "added",
+        "additions": 82,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/financial-gate-manifest.json",
+        "sha": "d2a0444c27d510bd4deef1cc5ec1e0a106d64b47",
+        "status": "added",
+        "additions": 1031,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/financial_gate.py",
+        "sha": "0a3a3f485129abb0fe22eb77264507b4ca160825",
+        "status": "added",
+        "additions": 73,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/physical_g0_inventory.ps1",
+        "sha": "c30e069c8c8bd718eee52ac24f098c8d345a628a",
+        "status": "added",
+        "additions": 26,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/prepare_windows_offline_package.py",
+        "sha": "93b35b88e3a1df814c638e167af4de4ba0fdb3a9",
+        "status": "added",
+        "additions": 31,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_artifact_verify.py",
+        "sha": "af8031724b7d58c28a05b0723641989c22b4dda5",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_data_sync.py",
+        "sha": "b92119fae374b93eff0077b2f6dca64def7b87ba",
+        "status": "added",
+        "additions": 121,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_export_receipt.py",
+        "sha": "0b5884eab651a8f2be0b30b20c0940bf143bd7ee",
+        "status": "added",
+        "additions": 87,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_revisions.py",
+        "sha": "aa55356fd9d9677d1070acc6ae6552d0b4b3b1f6",
+        "status": "added",
+        "additions": 32,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_series_integrity.py",
+        "sha": "9e25d2d188cc7b2eea6e0b80bd312fe9dede3936",
+        "status": "added",
+        "additions": 58,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_snapshot_contract.py",
+        "sha": "9e6f63b52047fa6940aa77e7e8a89e640d819e7c",
+        "status": "added",
+        "additions": 47,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_verified_bars.py",
+        "sha": "a50e10b60d6a577fe9772cf9b13482455eeb3606",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_adapter.py",
+        "sha": "94d0d463ce9a9e239126ed162be39ac1f6e8cea9",
+        "status": "added",
+        "additions": 64,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_msa_attention.py",
+        "sha": "91d45b28b912f3fb6c563cf5916350c4f716f450",
+        "status": "added",
+        "additions": 62,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_msa_pair_bridge.py",
+        "sha": "393bd8a74195ef18650c8c014bce3958a68ed87a",
+        "status": "added",
+        "additions": 66,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_outer_product.py",
+        "sha": "a122a526d9551c216c5e6f85702092a9ff9d5c24",
+        "status": "added",
+        "additions": 64,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_pair_stack.py",
+        "sha": "aed3517679f59de50f98f3b4f6e93be23c129a65",
+        "status": "added",
+        "additions": 70,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_security.py",
+        "sha": "5ee00c65b04f758f4ee7a5a727add0580bedc479",
+        "status": "added",
+        "additions": 21,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_triangle.py",
+        "sha": "aeb18158a3d9f89be34f5fa540b89dfee6f9d8d7",
+        "status": "added",
+        "additions": 60,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_triangle_attention.py",
+        "sha": "e444c76ec07085ba86794287547995da007aac58",
+        "status": "added",
+        "additions": 68,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_acceptance.py",
+        "sha": "c3e89c1b5c975b0d3dc72f95dac2671c47c777e8",
+        "status": "added",
+        "additions": 71,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_attested_inference.py",
+        "sha": "fcd6d52de77033d317416a95672ffd8d8ed8f342",
+        "status": "added",
+        "additions": 69,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_checkpoint.py",
+        "sha": "7608c606378890a822005efaa2f7899da0d1415f",
+        "status": "added",
+        "additions": 91,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_contract.py",
+        "sha": "8b874756425826fb0d03a27762a6d7d927cfda8e",
+        "status": "added",
+        "additions": 126,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_evaluation.py",
+        "sha": "4370ec18d36be2d6dc70460d5dd743a9d1859691",
+        "status": "added",
+        "additions": 94,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_evoformer.py",
+        "sha": "caa8480191b9f2c72612baf80252635e45aec316",
+        "status": "added",
+        "additions": 57,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_experiment.py",
+        "sha": "19a628ff0c6b7f70b48768eb81987587b6d9ad04",
+        "status": "added",
+        "additions": 226,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_offline_bridge.py",
+        "sha": "c723d3d78499324dae5651274e0d775ac085193c",
+        "status": "added",
+        "additions": 67,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_offline_jobs.py",
+        "sha": "35723006d12a942334b778b86aa7060671cb8e82",
+        "status": "added",
+        "additions": 126,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_pipeline.py",
+        "sha": "1596afed0be05ec61af3e19f41167a4bda55bc7c",
+        "status": "added",
+        "additions": 59,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_signatures.py",
+        "sha": "f6cc19b1669a8cfa14f51c425291421e90ff5e9f",
+        "status": "added",
+        "additions": 102,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": true,
+    "runs": [
+      {
+        "id": 40120813097,
+        "name": "tests",
+        "head_sha": "5d715987d03d4a26d31a48e9767697bbd171cd33",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "run_attempt": 1,
+        "event": "push"
+      },
+      {
+        "id": 40118594284,
+        "name": "financial-integration",
+        "head_sha": "5d715987d03d4a26d31a48e9767697bbd171cd33",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40118594268,
+        "name": "tests",
+        "head_sha": "5d715987d03d4a26d31a48e9767697bbd171cd33",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40118594346,
+        "name": "alphafold-research-cpu",
+        "head_sha": "5d715987d03d4a26d31a48e9767697bbd171cd33",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40118594283,
+        "name": "mathematical-contract-reference",
+        "head_sha": "5d715987d03d4a26d31a48e9767697bbd171cd33",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      }
+    ]
+  },
+  {
+    "pr": 22,
+    "head": "bea8f3009a21b4db1b222b03e7769a185ae11e86",
+    "tree": "f5faadc3819e38fd6d1b837131a9e11780324ac2",
+    "base_sha": "67301726d250973602b964adabdb9eb8d50d0f13",
+    "base_ref": "integration/alphafold-financial-system",
+    "draft": true,
+    "commits": [
+      "e2f20d0b419bb2250022af61fb62043efa0b6ed9",
+      "c9c268b3e5d42baf907daca6e6b981629ef8de20",
+      "d0c18a81398df2e3f6b8138553f35161c9d50ad4",
+      "97081740f6b72217dc1d1afcd191adc8d0a95514",
+      "bea8f3009a21b4db1b222b03e7769a185ae11e86"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      ".github/workflows/upstream-mechanism-independent.yml",
+      "docs/audits/UPSTREAM_MECHANISM_READINESS.md",
+      "research/upstream_mechanism_reference.py",
+      "tests/research/test_upstream_mechanism_differential.py",
+      "tests/research/test_upstream_structural_adversarial.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": ".github/workflows/upstream-mechanism-independent.yml",
+        "sha": "14f8f23934d1a81295f2dde1b9a13b5744aa3cd2",
+        "status": "added",
+        "additions": 44,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/audits/UPSTREAM_MECHANISM_READINESS.md",
+        "sha": "0f0cd94da670da0ff00e0b588d877fd085d68e36",
+        "status": "added",
+        "additions": 47,
+        "deletions": 0
+      },
+      {
+        "filename": "research/upstream_mechanism_reference.py",
+        "sha": "62ba98dff671be26b3723d69e39239b3bb246a8c",
+        "status": "added",
+        "additions": 67,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_upstream_mechanism_differential.py",
+        "sha": "0494bcc8e64af169b5a1fff375ea901063c33b4c",
+        "status": "added",
+        "additions": 57,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_upstream_structural_adversarial.py",
+        "sha": "8e5c69c7ae616af0aaf6db85bc4f44f7c3e6c0d6",
+        "status": "added",
+        "additions": 69,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40112056190,
+        "name": "upstream-mechanism-independent",
+        "head_sha": "bea8f3009a21b4db1b222b03e7769a185ae11e86",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40112056135,
+        "name": "financial-integration",
+        "head_sha": "bea8f3009a21b4db1b222b03e7769a185ae11e86",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40112056154,
+        "name": "tests",
+        "head_sha": "bea8f3009a21b4db1b222b03e7769a185ae11e86",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40112053593,
+        "name": "tests",
+        "head_sha": "bea8f3009a21b4db1b222b03e7769a185ae11e86",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 23,
+    "head": "1dcd46a500e74bedd730cdc77c9b761511b0a082",
+    "tree": "23f9d5c283b98719d0586249b38b095de21f1d7b",
+    "base_sha": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+    "base_ref": "main",
+    "draft": true,
+    "commits": [
+      "9778e79cb3dbe49b9e88dccb05acf2286374a87a",
+      "572d17d7df6799f9d2fc1145d21e23c998924d4e",
+      "101b1334c996be390c9ff53a53442a15fbd73f70",
+      "cf081b9f2ac6fd584f4f726654451801cd1eff86",
+      "6468a7b95cdd5f31cbff17a0afea5ae2041dc102",
+      "8c8615d7c8ac34fc85e91f357c5984b737dd7142",
+      "3ef70237b524db00d9273410be41b862ba7876cf",
+      "d6a1bcb92bf8cd9918314ae23b2921e4ce31ebd9",
+      "250863762844a6758047ea678baed5ba854d41c0",
+      "67301726d250973602b964adabdb9eb8d50d0f13",
+      "c4713cdba857bddb79e671fd437514ac16241799",
+      "a10cb75eb7592af460049ba953b764e24428b2d6",
+      "5dcdb55039bbe0611f9d08066da2e95c846d9203",
+      "e73623b78ba0cb6e6a2d1e274ac55939cb2e66d5",
+      "bf03efd63ef6a29f3988d9404432663d42647910",
+      "ecfa52525f42e6832082dbb3910d42ff5ca11ba0",
+      "71f5a8c35c990e76d565da291094c06e61344baa",
+      "d421558964286f12116fa51acba73a644b037463",
+      "2a6d27aac4dc8334bbb61305cd0569cad1337c75",
+      "e208be608325d7ea8720dfe5c0ade95f31d737be",
+      "5f821d9a2372ca1882cb6970460f6dab3a90cacc",
+      "cc558297f3da69ce30df2ce9dde7a8fa11b48c1f",
+      "53634ec91abb3cec00db1b684b2560c206e0a620",
+      "178a875f2ddbb916ef5536eed7ceb8e8af89e923",
+      "00348fcc2666d580b2139e3a002e1c2b7b6fc45e",
+      "4ab16aef68cd838c81e58c664f3613941a6f9627",
+      "c3024b4cbdefb3fb5cd404041766b83babdcf47d",
+      "9ba14a9090a2a261292da55bff1ddd10edea4429",
+      "80bb765271ff17607b365481e918b7b9b0f5650b",
+      "81931d28e55731b61732571031812daae5045d32",
+      "4fcf441b5705d6f64eb00f66ad9f5a25c304eafd",
+      "8690f6916044b90c554233dc2425db79492f89cd",
+      "1b05d834a18ed87b7d4f35072fab150fe5332ffa",
+      "58c886242cd8da116dc32ead8b677eb226e781b3",
+      "337ffe8ac216862039db097e263be5686fd75ff3",
+      "e7aaeaadcb4672f0ae768ace2c9aaf1c5e427ace",
+      "1b837136253d657408e303ad4c7e60fdc049d542",
+      "620ba26b6a8977edf1713bafd8c1869a74ca70a8",
+      "0e59b53f807bed6eb27f54928eda89f50f2ab289",
+      "03b1d097a6bc463d3384feacf74d5e965e32ee72",
+      "e229a2f849e2e62ede47c540749a78ba4c515455",
+      "204afcff4ad672aaa42e43f495f8acc45b3bd9c1",
+      "3688b12b55ada6cf39c9ddc8e5cdc51ad3556956",
+      "d7ebe6782c527a2db4349aef804138e921c9daac",
+      "4e9fda722a4a65f3fc30085e7c0e79f8a3442e81",
+      "0ea38139a45b92ff6dd69209c15360ab8c5f9b7a",
+      "e8cec92d80b3b64b75157e16a37240ae0526b6dc",
+      "51d029646924a5d8839374d4bd236c6ee9951a8d",
+      "6afe7769e1db9c2bd2c802e38cd63c52d3215df7",
+      "0012c63495df2665ce762a2387e280ccb147044c",
+      "698e56c9b33d3ed1c8a2dc568404719743f11961",
+      "d836c5e6d5b9221c8ca9ef3c7c9afc613ad4fc7d",
+      "c023ec1c588dd196d978b16593e549f57182cb55",
+      "7e53665a911877fca988f811433ae6fa665396ef",
+      "e8fab36f20d1b3de300954261cd690eaa5479152",
+      "af3122b42d0a767c3a4d88609d6bab3561a9a7ab",
+      "d585ab1a04dadb80c12d5beabce518fabaa82393",
+      "b2cab4c8454c2d1c57b7da6f0ddf3450ba917ff9",
+      "1800f919c26b183d8b00286dd74099994eb9f73b",
+      "1dcd46a500e74bedd730cdc77c9b761511b0a082"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      ".github/workflows/alphafold-research-cpu.yml",
+      ".github/workflows/financial-integration.yml",
+      ".github/workflows/mathematical-contract-reference.yml",
+      ".github/workflows/tests.yml",
+      ".gitignore",
+      "docs/alphafold-grid-research-audit.md",
+      "docs/alphafold-integration-contract.md",
+      "docs/alphafold-market-experiment.md",
+      "docs/alphafold-qa-security-acceptance.md",
+      "docs/contracts/grid_strattester_ml_math_v0.1.md",
+      "docs/integration/ML_AND_STRATEGY_ENGINE_READINESS.md",
+      "docs/integration/alphafold-audit-2026-10-24.md",
+      "docs/integration/component-origins.json",
+      "docs/integration/cpu-manifest-exclusions.json",
+      "docs/integration/evidence/ci-audit.json",
+      "docs/integration/evidence/inventory.json",
+      "docs/integration/evidence/pr17-tests-retry.xml",
+      "docs/integration/evidence/pr18-tests.xml",
+      "docs/integration/evidence/pr19-tests.xml",
+      "docs/integration/evidence/pr20-tests.xml",
+      "docs/integration/implementation-notes.md",
+      "docs/integration/mechanism-matrix.md",
+      "docs/integration/review-2026-10-24.md",
+      "docs/protein-geometry-grid-sync.md",
+      "docs/protein-geometry-strategy-modes.md",
+      "docs/superpowers/plans/2026-10-24-alphafold-integration.md",
+      "docs/superpowers/specs/2026-10-24-alphafold-integration-design.md",
+      "pyproject.toml",
+      "research/alphafold_training/ACCEPTANCE.md",
+      "research/alphafold_training/baselines.py",
+      "research/alphafold_training/comparison.py",
+      "research/alphafold_training/cost_sensitivity.py",
+      "research/alphafold_training/evaluation.py",
+      "research/alphafold_training/gates.py",
+      "research/alphafold_training/independent_oracles.py",
+      "research/alphafold_training/runner.py",
+      "research/alphafold_training/walkforward.py",
+      "research/math_contract_reference.py",
+      "research/test_math_contract_reference.py",
+      "scripts/alphafold_cpu_gate.py",
+      "scripts/financial-gate-manifest.json",
+      "scripts/financial_gate.py",
+      "strattester/alphafold_artifact_verify.py",
+      "strattester/alphafold_data_sync.py",
+      "strattester/alphafold_revisions.py",
+      "strattester/alphafold_series_integrity.py",
+      "strattester/alphafold_snapshot_contract.py",
+      "strattester/alphafold_verified_bars.py",
+      "strattester/research/alphafold_adapter.py",
+      "strattester/research/alphafold_msa_attention.py",
+      "strattester/research/alphafold_msa_pair_bridge.py",
+      "strattester/research/alphafold_outer_product.py",
+      "strattester/research/alphafold_pair_stack.py",
+      "strattester/research/alphafold_security.py",
+      "strattester/research/alphafold_triangle.py",
+      "strattester/research/alphafold_triangle_attention.py",
+      "strattester/research/financial_acceptance.py",
+      "strattester/research/financial_checkpoint.py",
+      "strattester/research/financial_contract.py",
+      "strattester/research/financial_evaluation.py",
+      "strattester/research/financial_evoformer.py",
+      "strattester/research/financial_experiment.py",
+      "strattester/research/financial_pipeline.py",
+      "strattester/research/financial_research_dispatch.py",
+      "strattester/research/financial_research_spec.py",
+      "strattester/research/financial_snapshot.py",
+      "strattester/research/financial_structural_model.py",
+      "strattester/research/financial_structure_dataset.py",
+      "strattester/research/financial_training.py",
+      "strattester/research/protein_geometry.py",
+      "strattester/research/protein_geometry_export.py",
+      "strattester/research/protein_geometry_offline.py",
+      "strattester/research/protein_geometry_snapshot.py",
+      "strattester/strategies/builtin/alphafold_financial.py",
+      "strattester/strategies/builtin/protein_geometry.py",
+      "tests/research/test_alphafold_adapter.py",
+      "tests/research/test_alphafold_integration_regressions.py",
+      "tests/research/test_alphafold_msa_attention.py",
+      "tests/research/test_alphafold_msa_pair_bridge.py",
+      "tests/research/test_alphafold_outer_product.py",
+      "tests/research/test_alphafold_pair_stack.py",
+      "tests/research/test_alphafold_pair_stack_budget.py",
+      "tests/research/test_alphafold_security.py",
+      "tests/research/test_alphafold_triangle.py",
+      "tests/research/test_alphafold_triangle_attention.py",
+      "tests/research/test_alphafold_triangle_attention_oracle.py",
+      "tests/research/test_alphafold_triangle_reference.py",
+      "tests/research/test_financial_acceptance.py",
+      "tests/research/test_financial_checkpoint.py",
+      "tests/research/test_financial_contract.py",
+      "tests/research/test_financial_evaluation.py",
+      "tests/research/test_financial_evoformer.py",
+      "tests/research/test_financial_experiment.py",
+      "tests/research/test_financial_independent_oracles.py",
+      "tests/research/test_financial_offline_e2e.py",
+      "tests/research/test_financial_research_dispatch.py",
+      "tests/research/test_financial_research_spec.py",
+      "tests/research/test_financial_snapshot.py",
+      "tests/research/test_financial_structural_model.py",
+      "tests/research/test_financial_structure_dataset.py",
+      "tests/research/test_financial_training.py",
+      "tests/research/test_protein_geometry.py",
+      "tests/research/test_protein_geometry_export.py",
+      "tests/research/test_protein_geometry_snapshot.py",
+      "tests/strategies/test_alphafold_financial.py",
+      "tests/strategies/test_protein_geometry.py",
+      "tests/test_alphafold_artifact_verify.py",
+      "tests/test_alphafold_data_sync.py",
+      "tests/test_alphafold_series_integrity.py",
+      "tests/test_alphafold_snapshot_contract.py",
+      "tests/test_alphafold_training_baselines.py",
+      "tests/test_alphafold_training_comparison.py",
+      "tests/test_alphafold_training_cost_sensitivity.py",
+      "tests/test_alphafold_training_evaluation.py",
+      "tests/test_alphafold_training_gates.py",
+      "tests/test_alphafold_training_runner.py",
+      "tests/test_alphafold_training_strict_inputs.py",
+      "tests/test_alphafold_training_walkforward.py",
+      "tests/test_alphafold_verified_bars.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": ".github/workflows/alphafold-research-cpu.yml",
+        "sha": "cab4c6f428a7ab45947df46895edeeae2b6254e3",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": ".github/workflows/financial-integration.yml",
+        "sha": "2f2431d096dd799ae0bcf3822d967722bfaba7c7",
+        "status": "added",
+        "additions": 70,
+        "deletions": 0
+      },
+      {
+        "filename": ".github/workflows/mathematical-contract-reference.yml",
+        "sha": "3ca0f78347a129f5684a61887868852e7f17d273",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": ".github/workflows/tests.yml",
+        "sha": "57f5a17040135f5913a15a1c7038b284c0ab9e13",
+        "status": "modified",
+        "additions": 7,
+        "deletions": 0
+      },
+      {
+        "filename": ".gitignore",
+        "sha": "b77f22fe4c88f30536b3848cd91506c445e635e7",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-grid-research-audit.md",
+        "sha": "968fd3fed3d3dd8ae84d93b18ee8cac1f8b91d6d",
+        "status": "added",
+        "additions": 37,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-integration-contract.md",
+        "sha": "c2ac0bb2cadf9bb1eb2a794c281a14d9b2d55593",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-market-experiment.md",
+        "sha": "0bb4c3320c268e8b917ec0a97985f41eef7a5512",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-qa-security-acceptance.md",
+        "sha": "fd66bd00197a0487ee81faea25b88fdeb533da79",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/contracts/grid_strattester_ml_math_v0.1.md",
+        "sha": "73a51aeff8510edd7c82f41239699d6785f89742",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/ML_AND_STRATEGY_ENGINE_READINESS.md",
+        "sha": "87a66edbd96b9bc5ca26bfebbdf8ae4f40883f34",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/alphafold-audit-2026-10-24.md",
+        "sha": "0efe44ad8dba682eaf312ce8bab70e7cbead9f6a",
+        "status": "added",
+        "additions": 170,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/component-origins.json",
+        "sha": "cde145f2262109a79618645dcb4df6a1fed940b6",
+        "status": "added",
+        "additions": 372,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/cpu-manifest-exclusions.json",
+        "sha": "52f403098213e1abb809d7ace124bbc761d03d73",
+        "status": "added",
+        "additions": 8,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/ci-audit.json",
+        "sha": "fb7bd1a8d654204914f1ed6a1954a9e8c6767238",
+        "status": "added",
+        "additions": 2645,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/inventory.json",
+        "sha": "c04e08b2f103da6748f2d87dd3821b928a71199e",
+        "status": "added",
+        "additions": 265,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr17-tests-retry.xml",
+        "sha": "e701d7cefb51a643eb16b936a194fe68d0f47212",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr18-tests.xml",
+        "sha": "04c9222d78bc4583641e9def90f25d3251a54ccd",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr19-tests.xml",
+        "sha": "2dc0a298c98d63e81218d98ec8a4c40cf576150e",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr20-tests.xml",
+        "sha": "cb49c51ba37bdaa8ff794ec45c919164392593f4",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/implementation-notes.md",
+        "sha": "7573749c635397aba5ed806dd389ef39688fd7b5",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/mechanism-matrix.md",
+        "sha": "41843d72facdcea18a443571076767813644bc9b",
+        "status": "added",
+        "additions": 23,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/review-2026-10-24.md",
+        "sha": "fb37c1d2000aaba6770afef88305925fd78692e5",
+        "status": "added",
+        "additions": 32,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-grid-sync.md",
+        "sha": "f36230a30b6a901829a596df1e935a7b752dc623",
+        "status": "added",
+        "additions": 18,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-strategy-modes.md",
+        "sha": "3cf9adeb0febd2e4d5a464da9b66daf3a0cedba6",
+        "status": "added",
+        "additions": 27,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/superpowers/plans/2026-10-24-alphafold-integration.md",
+        "sha": "5c25f1cf1117865c81c78ef080ab845d19003fd4",
+        "status": "added",
+        "additions": 68,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/superpowers/specs/2026-10-24-alphafold-integration-design.md",
+        "sha": "e02cee9f11c1ebbc6b09aa765358770a5fa35439",
+        "status": "added",
+        "additions": 62,
+        "deletions": 0
+      },
+      {
+        "filename": "pyproject.toml",
+        "sha": "8bb73fd37188f57b05d42c55f6af1ba82ce55ff2",
+        "status": "modified",
+        "additions": 4,
+        "deletions": 2
+      },
+      {
+        "filename": "research/alphafold_training/ACCEPTANCE.md",
+        "sha": "f33769a589e4315cb0124b2cc607da8eb7285a72",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/baselines.py",
+        "sha": "ad65b249555d26128addbdeb2fdb1dab2c28afb2",
+        "status": "added",
+        "additions": 72,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/comparison.py",
+        "sha": "0e13641dd147767f78a1472dbbd6b286b1b8b5e6",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/cost_sensitivity.py",
+        "sha": "f2ed54424e4bbd54df85d4ad501a41b504971535",
+        "status": "added",
+        "additions": 43,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/evaluation.py",
+        "sha": "99daba35514f30f1c9a750726dafbf1a11cdbcda",
+        "status": "added",
+        "additions": 110,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/gates.py",
+        "sha": "be69607128f8ce345c5c9195759e97664dd06b34",
+        "status": "added",
+        "additions": 55,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/independent_oracles.py",
+        "sha": "1d5f7e85a9f084ebab98244861f2da546294cc45",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/runner.py",
+        "sha": "563ff39d9f46bf0bfa435bd67818827acb816c35",
+        "status": "added",
+        "additions": 98,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/walkforward.py",
+        "sha": "603a88250efcee80eb0afecdd6c653badce8734a",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "research/math_contract_reference.py",
+        "sha": "ce14ddff7bbce725bc61c4e962babfcb681569d0",
+        "status": "added",
+        "additions": 95,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_math_contract_reference.py",
+        "sha": "2239508f04180f4b59b818be5a09d66b2719ccd4",
+        "status": "added",
+        "additions": 94,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/alphafold_cpu_gate.py",
+        "sha": "fab75abb971337de60cd7c22a5ac18fae684c342",
+        "status": "added",
+        "additions": 82,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/financial-gate-manifest.json",
+        "sha": "22cc5b670bfe8282ca00cfaff4cd7bd9297bf32e",
+        "status": "added",
+        "additions": 826,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/financial_gate.py",
+        "sha": "0a3a3f485129abb0fe22eb77264507b4ca160825",
+        "status": "added",
+        "additions": 73,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_artifact_verify.py",
+        "sha": "af8031724b7d58c28a05b0723641989c22b4dda5",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_data_sync.py",
+        "sha": "b92119fae374b93eff0077b2f6dca64def7b87ba",
+        "status": "added",
+        "additions": 121,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_revisions.py",
+        "sha": "aa55356fd9d9677d1070acc6ae6552d0b4b3b1f6",
+        "status": "added",
+        "additions": 32,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_series_integrity.py",
+        "sha": "9e25d2d188cc7b2eea6e0b80bd312fe9dede3936",
+        "status": "added",
+        "additions": 58,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_snapshot_contract.py",
+        "sha": "9e6f63b52047fa6940aa77e7e8a89e640d819e7c",
+        "status": "added",
+        "additions": 47,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_verified_bars.py",
+        "sha": "a50e10b60d6a577fe9772cf9b13482455eeb3606",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_adapter.py",
+        "sha": "94d0d463ce9a9e239126ed162be39ac1f6e8cea9",
+        "status": "added",
+        "additions": 64,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_msa_attention.py",
+        "sha": "91d45b28b912f3fb6c563cf5916350c4f716f450",
+        "status": "added",
+        "additions": 62,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_msa_pair_bridge.py",
+        "sha": "393bd8a74195ef18650c8c014bce3958a68ed87a",
+        "status": "added",
+        "additions": 66,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_outer_product.py",
+        "sha": "a122a526d9551c216c5e6f85702092a9ff9d5c24",
+        "status": "added",
+        "additions": 64,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_pair_stack.py",
+        "sha": "aed3517679f59de50f98f3b4f6e93be23c129a65",
+        "status": "added",
+        "additions": 70,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_security.py",
+        "sha": "5ee00c65b04f758f4ee7a5a727add0580bedc479",
+        "status": "added",
+        "additions": 21,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_triangle.py",
+        "sha": "9d60d1e0c577fc25303889fb7be5c7d0811398a2",
+        "status": "added",
+        "additions": 58,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_triangle_attention.py",
+        "sha": "e444c76ec07085ba86794287547995da007aac58",
+        "status": "added",
+        "additions": 68,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_acceptance.py",
+        "sha": "def5d59a0cab8bc85a64e92b0d1aaba721d4b981",
+        "status": "added",
+        "additions": 58,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_checkpoint.py",
+        "sha": "c467c1d6d4ca7634741c8b33f8ab14aa870180f8",
+        "status": "added",
+        "additions": 81,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_contract.py",
+        "sha": "8b874756425826fb0d03a27762a6d7d927cfda8e",
+        "status": "added",
+        "additions": 126,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_evaluation.py",
+        "sha": "34620f2079121becb863103b454eef5cf4e4d992",
+        "status": "added",
+        "additions": 89,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_evoformer.py",
+        "sha": "caa8480191b9f2c72612baf80252635e45aec316",
+        "status": "added",
+        "additions": 57,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_experiment.py",
+        "sha": "1e4dad893a08098ffe76ffa7632ab1e7c45a46b9",
+        "status": "added",
+        "additions": 167,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_pipeline.py",
+        "sha": "1596afed0be05ec61af3e19f41167a4bda55bc7c",
+        "status": "added",
+        "additions": 59,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_research_dispatch.py",
+        "sha": "575f8e7054f437e191d09b40b17fb6f323fb1508",
+        "status": "added",
+        "additions": 65,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_research_spec.py",
+        "sha": "48b5963eacea32020ec38976fb2a407b9edefa73",
+        "status": "added",
+        "additions": 49,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_snapshot.py",
+        "sha": "20b7ec8cd312a7afabb26af9408b2104d6a4092c",
+        "status": "added",
+        "additions": 93,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_structural_model.py",
+        "sha": "8b433e6398b7b345f6628cd3f894a4f5d815b3bb",
+        "status": "added",
+        "additions": 151,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_structure_dataset.py",
+        "sha": "f233d9811349a4df4f7827ca5f08d32986b871c2",
+        "status": "added",
+        "additions": 50,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_training.py",
+        "sha": "8765b6e9c0bb37c80aabf091a8e24f6a20ff0ea2",
+        "status": "added",
+        "additions": 51,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry.py",
+        "sha": "7cf2b4064c487f98343308d47bb7f797ea2fe29c",
+        "status": "added",
+        "additions": 50,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_export.py",
+        "sha": "bfb89269518708a876749088877b21ffdbef3963",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_offline.py",
+        "sha": "83fc1f471683e7c52c48e33a238eb463bec80ac0",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_snapshot.py",
+        "sha": "98ee7a32454161107f9585de6f748d4ebd37d617",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/strategies/builtin/alphafold_financial.py",
+        "sha": "b23a502707da82e9c4e939365e0c37399fe157e3",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/strategies/builtin/protein_geometry.py",
+        "sha": "e8384dcad7c03b87001c9f982d472151c567421b",
+        "status": "added",
+        "additions": 34,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_adapter.py",
+        "sha": "f2c8021c12511ce274de5994f8da757c24180a7e",
+        "status": "added",
+        "additions": 35,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_integration_regressions.py",
+        "sha": "371aae5a8bfeae09b0e5329e06a5b64033505de3",
+        "status": "added",
+        "additions": 35,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_msa_attention.py",
+        "sha": "a5cb11e808a1472898c44339b24740895275a774",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_msa_pair_bridge.py",
+        "sha": "2be2faf391a3894148514a95765151f62bd969f5",
+        "status": "added",
+        "additions": 33,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_outer_product.py",
+        "sha": "c640aa00d15eca4e9c42db1f9d73a55542709647",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_pair_stack.py",
+        "sha": "06e4269b769a5f420c5e5409214fa4faf8ec4554",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_pair_stack_budget.py",
+        "sha": "656ceb21e9160c92d1b5aad8326f5bb279179b84",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_security.py",
+        "sha": "f6ed5dbeda1595ca0a4fb5fe9b5caaeee9e9dd3d",
+        "status": "added",
+        "additions": 42,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle.py",
+        "sha": "c8f604fdf94ec16b05fa023a1d7f955efd20763f",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle_attention.py",
+        "sha": "06110dbc448b9c711ee32c0c4f3368c5092b7ce8",
+        "status": "added",
+        "additions": 52,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle_attention_oracle.py",
+        "sha": "175280eb0416f0b4becf612bd90bb2f66003152d",
+        "status": "added",
+        "additions": 33,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle_reference.py",
+        "sha": "bb08f9692c42695daa993e4739daefcc0654d981",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_acceptance.py",
+        "sha": "45e1ccfc2aad55c2d0ca53e05600d8eef84664ea",
+        "status": "added",
+        "additions": 55,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_checkpoint.py",
+        "sha": "9cdd4a1159b32bccfff0b008e34067eb5feda3ca",
+        "status": "added",
+        "additions": 44,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_contract.py",
+        "sha": "c20b59d200ade5168499b9574a7ea538c2027846",
+        "status": "added",
+        "additions": 54,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_evaluation.py",
+        "sha": "807989a67e26ccf061f4049ebadd48b9583dd23b",
+        "status": "added",
+        "additions": 44,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_evoformer.py",
+        "sha": "5c4ee67a6663e84197d872d323da8b4a86c1cb8e",
+        "status": "added",
+        "additions": 43,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_experiment.py",
+        "sha": "4e4eee3785b88f20f0f4486ed2b98e8274baaa24",
+        "status": "added",
+        "additions": 109,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_independent_oracles.py",
+        "sha": "fb9ba63e409b5b555afbec67b82724fadc4643e7",
+        "status": "added",
+        "additions": 37,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_offline_e2e.py",
+        "sha": "312eb5128f218bd25df6410726424c508c56bf8b",
+        "status": "added",
+        "additions": 78,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_research_dispatch.py",
+        "sha": "7a90067fcd53016f4fb41bc4f4e5d93687f840b6",
+        "status": "added",
+        "additions": 289,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_research_spec.py",
+        "sha": "995d9570d21fbfa2b1d8b84c1f37f433168c015f",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_snapshot.py",
+        "sha": "66c91ddbb645cc40aad5fa1fe67afa4990912b48",
+        "status": "added",
+        "additions": 57,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_structural_model.py",
+        "sha": "b1529e6373d7754f9ba72dc3a8622c3ee7805009",
+        "status": "added",
+        "additions": 108,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_structure_dataset.py",
+        "sha": "d3a79556c3672ab2e6802a8267697815614bcaa4",
+        "status": "added",
+        "additions": 50,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": true,
+    "runs": [
+      {
+        "id": 40123208738,
+        "name": "financial-integration",
+        "head_sha": "1dcd46a500e74bedd730cdc77c9b761511b0a082",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40123208696,
+        "name": "alphafold-research-cpu",
+        "head_sha": "1dcd46a500e74bedd730cdc77c9b761511b0a082",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40123208707,
+        "name": "mathematical-contract-reference",
+        "head_sha": "1dcd46a500e74bedd730cdc77c9b761511b0a082",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40123208705,
+        "name": "tests",
+        "head_sha": "1dcd46a500e74bedd730cdc77c9b761511b0a082",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40123203656,
+        "name": "tests",
+        "head_sha": "1dcd46a500e74bedd730cdc77c9b761511b0a082",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 24,
+    "head": "d1b1b1424d771a58d436df086bd5b7075d7561c7",
+    "tree": "cd84868f056edf4cb960d71d7f58d43992457dea",
+    "base_sha": "f35be5fbc915b528319610105acbcc9982ba55bb",
+    "base_ref": "integration/alphafold-financial-system",
+    "draft": true,
+    "commits": [
+      "d1b1b1424d771a58d436df086bd5b7075d7561c7"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      "docs/GRID_DATA_PHYSICAL_READINESS.md",
+      "docs/readiness/GRID_EXPORT_SPEC.md",
+      "docs/readiness/grid-pinned-source-assessment.json",
+      "strattester/research/grid_producer_readiness.py",
+      "tests/research/test_grid_producer_readiness.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": "docs/GRID_DATA_PHYSICAL_READINESS.md",
+        "sha": "ad257a0ef5be3a13cef48deff52a04b27772eb88",
+        "status": "modified",
+        "additions": 21,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/GRID_EXPORT_SPEC.md",
+        "sha": "3e12a4229b23c747265a9005c7d002b6cd488da3",
+        "status": "modified",
+        "additions": 4,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/grid-pinned-source-assessment.json",
+        "sha": "3d20f06f154aa4fc85322202ca95f79a6aebd86c",
+        "status": "added",
+        "additions": 57,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/grid_producer_readiness.py",
+        "sha": "ddcb5192e4c33579f78f5cab521277b786411cad",
+        "status": "added",
+        "additions": 80,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_grid_producer_readiness.py",
+        "sha": "c229f2b22dca70577f1344bb6bd9ad3a4ad65617",
+        "status": "added",
+        "additions": 53,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40116265221,
+        "name": "tests",
+        "head_sha": "d1b1b1424d771a58d436df086bd5b7075d7561c7",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40116265215,
+        "name": "financial-integration",
+        "head_sha": "d1b1b1424d771a58d436df086bd5b7075d7561c7",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40116246983,
+        "name": "tests",
+        "head_sha": "d1b1b1424d771a58d436df086bd5b7075d7561c7",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 25,
+    "head": "d4e1132f0ab47f87bd6eaf80f728f3f4d5a4770c",
+    "tree": "ec8d08118e1455f56105604a589a7cc9ded723aa",
+    "base_sha": "f35be5fbc915b528319610105acbcc9982ba55bb",
+    "base_ref": "integration/alphafold-financial-system",
+    "draft": true,
+    "commits": [
+      "514cb2aa3254bac08364bee0f79b15c8800cb3b2",
+      "d4e1132f0ab47f87bd6eaf80f728f3f4d5a4770c"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      "docs/readiness/WINDOWS_OFFLINE_RUNNER_PLAN.md",
+      "scripts/prepare_windows_offline_package.py",
+      "strattester/research/financial_checkpoint.py",
+      "strattester/research/financial_snapshot.py",
+      "tests/research/test_financial_filesystem_security.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": "docs/readiness/WINDOWS_OFFLINE_RUNNER_PLAN.md",
+        "sha": "ef8a0571aeb2b34af5dae8fd5843212a7576feae",
+        "status": "added",
+        "additions": 63,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/prepare_windows_offline_package.py",
+        "sha": "93b35b88e3a1df814c638e167af4de4ba0fdb3a9",
+        "status": "added",
+        "additions": 31,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_checkpoint.py",
+        "sha": "c8fc98152d535d3d5b76c62371b966abcb08e9b0",
+        "status": "modified",
+        "additions": 2,
+        "deletions": 1
+      },
+      {
+        "filename": "strattester/research/financial_snapshot.py",
+        "sha": "f51298cab162a8870da5e4355c0f83f5ef75f1d1",
+        "status": "modified",
+        "additions": 22,
+        "deletions": 2
+      },
+      {
+        "filename": "tests/research/test_financial_filesystem_security.py",
+        "sha": "876b746f304a68fe8d040113fd438d96701c0c6b",
+        "status": "added",
+        "additions": 64,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40116637814,
+        "name": "tests",
+        "head_sha": "d4e1132f0ab47f87bd6eaf80f728f3f4d5a4770c",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40116637714,
+        "name": "financial-integration",
+        "head_sha": "d4e1132f0ab47f87bd6eaf80f728f3f4d5a4770c",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40116637740,
+        "name": "alphafold-research-cpu",
+        "head_sha": "d4e1132f0ab47f87bd6eaf80f728f3f4d5a4770c",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40116634444,
+        "name": "tests",
+        "head_sha": "d4e1132f0ab47f87bd6eaf80f728f3f4d5a4770c",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 26,
+    "head": "5dd37a03ec710aed1b7418edf2881f9a641d0c56",
+    "tree": "d972d5c0af8de601e336683bc2328da2c048b171",
+    "base_sha": "f35be5fbc915b528319610105acbcc9982ba55bb",
+    "base_ref": "integration/alphafold-financial-system",
+    "draft": true,
+    "commits": [
+      "704afb090a60bb44fab1e6e4c8a08cee08d13ace",
+      "e92b386e850c019734eb288ceea251bc5cc74376",
+      "5dd37a03ec710aed1b7418edf2881f9a641d0c56"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      "docs/readiness/UPSTREAM_MECHANISM_READINESS.md",
+      "docs/readiness/evidence/structural-cycle2/full.log",
+      "docs/readiness/evidence/structural-cycle2/full.xml",
+      "docs/readiness/evidence/structural-cycle2/green.log",
+      "docs/readiness/evidence/structural-cycle2/green.xml",
+      "docs/readiness/evidence/structural-cycle2/red.log",
+      "docs/readiness/evidence/structural-cycle2/red.xml",
+      "pyproject.toml",
+      "strattester/research/alphafold_triangle.py",
+      "strattester/research/financial_checkpoint.py",
+      "strattester/research/financial_structural_model.py",
+      "tests/research/test_alphafold_triangle_reference.py",
+      "tests/research/test_structural_upstream_differential.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": "docs/readiness/UPSTREAM_MECHANISM_READINESS.md",
+        "sha": "88eb74282f0bdc906d4bf0ed01b5008e915bd48f",
+        "status": "added",
+        "additions": 45,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/full.log",
+        "sha": "b6629e192b28b31554e60323994006e640f442b8",
+        "status": "added",
+        "additions": 14,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/full.xml",
+        "sha": "94564c494d1c2722debe9c77187a2535fed0736b",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/green.log",
+        "sha": "7d327fdb5e5916ec3cefdba51ebf40c18be9670a",
+        "status": "added",
+        "additions": 2,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/green.xml",
+        "sha": "fb0d60c3c94cf6076eac3253119737ebef33835e",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/red.log",
+        "sha": "57ccf25345bfde075351b7b9a18fb36e5bd94a74",
+        "status": "added",
+        "additions": 133,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/evidence/structural-cycle2/red.xml",
+        "sha": "a41301130331df7b99b11648acb4da26f36393da",
+        "status": "added",
+        "additions": 110,
+        "deletions": 0
+      },
+      {
+        "filename": "pyproject.toml",
+        "sha": "371ada726cb3037df448db1634a62e4e6d2c1f28",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1
+      },
+      {
+        "filename": "strattester/research/alphafold_triangle.py",
+        "sha": "aeb18158a3d9f89be34f5fa540b89dfee6f9d8d7",
+        "status": "modified",
+        "additions": 3,
+        "deletions": 1
+      },
+      {
+        "filename": "strattester/research/financial_checkpoint.py",
+        "sha": "dcc8c78d04a43de52861cf644ab6f6d43a9b314e",
+        "status": "modified",
+        "additions": 4,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_structural_model.py",
+        "sha": "b3c33ae66be4154658130a8cb69fcc0a63a04957",
+        "status": "modified",
+        "additions": 6,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle_reference.py",
+        "sha": "4120fb19bac1c7a8b7af5f3b3e8e2ad0a0195466",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1
+      },
+      {
+        "filename": "tests/research/test_structural_upstream_differential.py",
+        "sha": "df3ba587e39cc9a1e6a38b7d46c5067a4a98011e",
+        "status": "added",
+        "additions": 247,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40116768388,
+        "name": "financial-integration",
+        "head_sha": "5dd37a03ec710aed1b7418edf2881f9a641d0c56",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40116768353,
+        "name": "tests",
+        "head_sha": "5dd37a03ec710aed1b7418edf2881f9a641d0c56",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40116768358,
+        "name": "alphafold-research-cpu",
+        "head_sha": "5dd37a03ec710aed1b7418edf2881f9a641d0c56",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40116764030,
+        "name": "tests",
+        "head_sha": "5dd37a03ec710aed1b7418edf2881f9a641d0c56",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 27,
+    "head": "5a24698256058d28a36166cbd28f73a32d350904",
+    "tree": "27b97035514a2319cf137af2f89f2cfe95a0b5cc",
+    "base_sha": "f35be5fbc915b528319610105acbcc9982ba55bb",
+    "base_ref": "integration/alphafold-financial-system",
+    "draft": true,
+    "commits": [
+      "45f9fca96871b8a70af2bbcffe9a022b3695aaf4",
+      "899aa8b7940815f5b9ced170d5b623798f6795e7",
+      "5a24698256058d28a36166cbd28f73a32d350904"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      "pyproject.toml",
+      "research/MATHEMATICAL_SYSTEM_READINESS.md",
+      "tests/research/test_financial_mathematical_verification.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": "pyproject.toml",
+        "sha": "371ada726cb3037df448db1634a62e4e6d2c1f28",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1
+      },
+      {
+        "filename": "research/MATHEMATICAL_SYSTEM_READINESS.md",
+        "sha": "fe10848bb95c0677c8789ab098cc6a818fad0c12",
+        "status": "added",
+        "additions": 68,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_mathematical_verification.py",
+        "sha": "04eaa6518738b4315d57f35a6f80004e531c91a5",
+        "status": "added",
+        "additions": 151,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40117167905,
+        "name": "tests",
+        "head_sha": "5a24698256058d28a36166cbd28f73a32d350904",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40117167793,
+        "name": "alphafold-research-cpu",
+        "head_sha": "5a24698256058d28a36166cbd28f73a32d350904",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40117167791,
+        "name": "financial-integration",
+        "head_sha": "5a24698256058d28a36166cbd28f73a32d350904",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40117163968,
+        "name": "tests",
+        "head_sha": "5a24698256058d28a36166cbd28f73a32d350904",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 28,
+    "head": "9f82afd1c4f048dfdaeb3eabfec90f36897735d9",
+    "tree": "bd7356bf82fae24df010ffe191a692f2dff5be76",
+    "base_sha": "f35be5fbc915b528319610105acbcc9982ba55bb",
+    "base_ref": "integration/alphafold-financial-system",
+    "draft": true,
+    "commits": [
+      "cb5c0f92807c96df951fb5e6204caa00e32d4049",
+      "1c158591892859475b2acaca71a8e4427e202f25",
+      "9f82afd1c4f048dfdaeb3eabfec90f36897735d9"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      "research/alphafold_training/ML_AND_STRATEGY_ENGINE_READINESS.md",
+      "research/alphafold_training/MULTI_INSTRUMENT_OOS_PROTOCOL.md",
+      "strattester/research/financial_evaluation.py",
+      "strattester/research/financial_experiment.py",
+      "strattester/research/financial_training.py",
+      "tests/research/test_financial_evaluation.py",
+      "tests/research/test_financial_experiment.py",
+      "tests/research/test_financial_training.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": "research/alphafold_training/ML_AND_STRATEGY_ENGINE_READINESS.md",
+        "sha": "cadba87d8b3552dd0bc42eacd639ac47be9fd147",
+        "status": "modified",
+        "additions": 31,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/MULTI_INSTRUMENT_OOS_PROTOCOL.md",
+        "sha": "bec287e768e13a27bc02948fdd58f55ad1fd0f72",
+        "status": "added",
+        "additions": 42,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_evaluation.py",
+        "sha": "4370ec18d36be2d6dc70460d5dd743a9d1859691",
+        "status": "modified",
+        "additions": 8,
+        "deletions": 3
+      },
+      {
+        "filename": "strattester/research/financial_experiment.py",
+        "sha": "19a628ff0c6b7f70b48768eb81987587b6d9ad04",
+        "status": "modified",
+        "additions": 67,
+        "deletions": 8
+      },
+      {
+        "filename": "strattester/research/financial_training.py",
+        "sha": "8c2fd716749914306f76bf1ab07d4279ca9a0e35",
+        "status": "modified",
+        "additions": 4,
+        "deletions": 1
+      },
+      {
+        "filename": "tests/research/test_financial_evaluation.py",
+        "sha": "b80d14bcee940916f259b861feee4b83f5587a3e",
+        "status": "modified",
+        "additions": 15,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_experiment.py",
+        "sha": "2eba3713fa541f7a0559d812a6bce75e0cc9eeee",
+        "status": "modified",
+        "additions": 67,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_training.py",
+        "sha": "639878e282193458ce785b4c40d677cfc49d5854",
+        "status": "modified",
+        "additions": 14,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40117216454,
+        "name": "tests",
+        "head_sha": "9f82afd1c4f048dfdaeb3eabfec90f36897735d9",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40117216470,
+        "name": "financial-integration",
+        "head_sha": "9f82afd1c4f048dfdaeb3eabfec90f36897735d9",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40117216453,
+        "name": "alphafold-research-cpu",
+        "head_sha": "9f82afd1c4f048dfdaeb3eabfec90f36897735d9",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40117212621,
+        "name": "tests",
+        "head_sha": "9f82afd1c4f048dfdaeb3eabfec90f36897735d9",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 29,
+    "head": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+    "tree": "a647fa80da849ea2d75f42bfe1cca44604f8aca8",
+    "base_sha": "5d715987d03d4a26d31a48e9767697bbd171cd33",
+    "base_ref": "integration/alphafold-financial-system",
+    "draft": true,
+    "commits": [
+      "3832cd22c604ca5ea8d771e86e9876b8825f04f2",
+      "d4def332fb6117024982090d4ca5658e47ec6fc4",
+      "3843cd24643d7fae05edbbe48c39980fde0f8db4",
+      "5158f501e7337731bc22bcc29fbaf6d1d593a829",
+      "4dedf456c7ebb6eeba9fdf68dee8f75f44d1cee6",
+      "77879b37247504580b952f47c621bbdfd6491519",
+      "63a4701142d6d243ddc238d5dd9ae6673a93251c",
+      "73a31e961771218509d77d19cd7e7e6ffabee96e",
+      "2176333c9b69f9dd12790c30f48fbf70a4ec76c7",
+      "29d4c8e8602dd764d91f0fc7ed2c59055b0c2de2",
+      "9d58d977e1eb18d1e207209a860921b7c454b6cd",
+      "e8a377968a1df2e8efc3b3a2e08e2f0bd017c452",
+      "3951ba063e2d36d392087c6f58895e95fe8944d5",
+      "6fd3dbd49131fdf1fbd3ea6e585eb40e4b164782",
+      "51180d6b0e7014602e70aeb94b98133ecf7996b6",
+      "6aad3e74b18394684a40dec4b2713c0f454b5558",
+      "0a561e7ec51314e75d059ccf45b38467b8c6bf9f",
+      "11ca4d92ad5ad5ee37b7ae4570ae0cadd3519282",
+      "f5932211b84e08a74e7b90671526fc26df0e8e00",
+      "33e10f19154ab3c2d72e21d7c12e1a20a8482e22",
+      "321bb4b97a87f04dc01be650df9674392a87e26c",
+      "610280c84db9e8886463ea2e8dfff59a9ff220d4",
+      "0b4f552521b9f2b4ca01dbbbdd50ca513d9ad03d",
+      "36dbe30a032245a491244eb3a0390dae2edcafd1"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      ".github/workflows/cycle3-structural-invariants.yml",
+      "docs/readiness/UPSTREAM_MECHANISM_READINESS_GPT1_CYCLE3.md",
+      "scripts/cycle3_structural_report_gate.py",
+      "tests/research/test_cycle3_checkpoint_readiness.py",
+      "tests/research/test_cycle3_cpu_contract.py",
+      "tests/research/test_cycle3_forecast_contract.py",
+      "tests/research/test_cycle3_gradient_oracle.py",
+      "tests/research/test_cycle3_operator_connectivity.py",
+      "tests/research/test_cycle3_report_gate.py",
+      "tests/research/test_cycle3_resource_admission.py",
+      "tests/research/test_cycle3_structural_invariants.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": ".github/workflows/cycle3-structural-invariants.yml",
+        "sha": "3fb312da8dad5a9799e80045c9acbe9f84f96b15",
+        "status": "added",
+        "additions": 43,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/readiness/UPSTREAM_MECHANISM_READINESS_GPT1_CYCLE3.md",
+        "sha": "4973c03b34ee6e63132c0f192e3548b1cc04dcf3",
+        "status": "added",
+        "additions": 43,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/cycle3_structural_report_gate.py",
+        "sha": "7a0407aec2b9f91ef97b5d1bc3d46d64a2532347",
+        "status": "added",
+        "additions": 55,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_cycle3_checkpoint_readiness.py",
+        "sha": "018065be56a6be226ab60e947a9aae857d02a226",
+        "status": "added",
+        "additions": 42,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_cycle3_cpu_contract.py",
+        "sha": "c9abac5ebc37edb020585c6930f6c3f511f7d77c",
+        "status": "added",
+        "additions": 39,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_cycle3_forecast_contract.py",
+        "sha": "f24a0de442d9c283b416e38d28f0d1a05030bb4f",
+        "status": "added",
+        "additions": 42,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_cycle3_gradient_oracle.py",
+        "sha": "ab6e9b890293f3d912f6d5750e3e39bafcf2e3c9",
+        "status": "added",
+        "additions": 34,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_cycle3_operator_connectivity.py",
+        "sha": "46036414b8c7bcd1ea0dc1709e7337e2ad3b6bd8",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_cycle3_report_gate.py",
+        "sha": "61f9d970be2a0f1369d63576ad595495b26fbfcb",
+        "status": "added",
+        "additions": 61,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_cycle3_resource_admission.py",
+        "sha": "960ea928a5a7e896b9c3af7b004008f628753651",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_cycle3_structural_invariants.py",
+        "sha": "f51c47695083787757a6e36fb05e46fd47317482",
+        "status": "added",
+        "additions": 60,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": false,
+    "runs": [
+      {
+        "id": 40122097176,
+        "name": "financial-integration",
+        "head_sha": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40122097076,
+        "name": "cycle3-structural-invariants",
+        "head_sha": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40122097167,
+        "name": "tests",
+        "head_sha": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40122093597,
+        "name": "tests",
+        "head_sha": "36dbe30a032245a491244eb3a0390dae2edcafd1",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  },
+  {
+    "pr": 30,
+    "head": "7b424b8161e430351ba265d8ccf9fe1227791bb5",
+    "tree": "277f5ac7e1447556a6514c0f73450118f54e37d0",
+    "base_sha": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+    "base_ref": "main",
+    "draft": true,
+    "commits": [
+      "9778e79cb3dbe49b9e88dccb05acf2286374a87a",
+      "572d17d7df6799f9d2fc1145d21e23c998924d4e",
+      "101b1334c996be390c9ff53a53442a15fbd73f70",
+      "cf081b9f2ac6fd584f4f726654451801cd1eff86",
+      "6468a7b95cdd5f31cbff17a0afea5ae2041dc102",
+      "8c8615d7c8ac34fc85e91f357c5984b737dd7142",
+      "3ef70237b524db00d9273410be41b862ba7876cf",
+      "d6a1bcb92bf8cd9918314ae23b2921e4ce31ebd9",
+      "250863762844a6758047ea678baed5ba854d41c0",
+      "67301726d250973602b964adabdb9eb8d50d0f13",
+      "6da3c79fec3aa17ab9705dca81ab3a2d9b03d851",
+      "6fe385c78adbb02d39e3df9a0b8952e5e3934f96",
+      "5ea556ef362371fa5fc9012231497c59f07f61c5",
+      "75505eabea358af6c885b4e4d8e9eb75b3cdf923",
+      "e78b04960fbf1b16a6c8aa0bbac4c83a2dfbf06a",
+      "dbcb7dea0db1dca3502cd5943aa8b187a40ac94d",
+      "fd069d73e162bd4b2ac9701a2bad0ea53364fb70",
+      "1812990a3adacece9a94f8e535a84f43ffa58ad5",
+      "fd2c9c8991844d1f4e1d27481c33635c2aae6b65",
+      "685576da61af7492f4e561bd74f57c46edaaf521",
+      "780fab3cc5de24c4b2403b92e05bb0a961da80be",
+      "8f83147a2ebcbc77bad63aedf2ec93e123a628d8",
+      "8902264b7c82fa399ed50044fd255fd44e51337b",
+      "d90f7509dc273727d3110ea5da3e5a1425c84257",
+      "2846a0f4584cef70b85b0c82d54e43ebff77e1c0",
+      "0925d3ef3028efe9254bdd75edf1c0e0caa7294c",
+      "ba8a2fd633328767b3648723ac20b69d98c667b5",
+      "4720cddb68c51468a9f168931759b2671053bad8",
+      "5ad8c1c4990bfa54562858e4bda3070f889331b0",
+      "9561fd1eb2ebba174b837c047b642b4abb7c32ab",
+      "fc1a98325892bab4ef19225c3774402918699f9f",
+      "869b81b47b85a82e6279ff5908fb56308fa879da",
+      "e4dd0d2dd143cc8db720285e867bde56f659240f",
+      "cdae29be02ebaec7e0f011875b312dc0847dc4c5",
+      "537e958721d1d618989d2eceea6d016ef84d2728",
+      "3b7d79cc2a5dfa9bce00b08f85256de39be7d7b0",
+      "a613e9b809dc5331ecc2b504404fe5c92d4f1e93",
+      "ead67bf6dca1279a2f128c72084f1705408081af",
+      "7371f1f685f65cf969b03dab23d8f3d067937572",
+      "08ae257d422bce729791ad75aebde0919bb2bc97",
+      "3a87e93d7a49afc3f77e8e8fa4fbc368dbc26cab",
+      "8e2d3bf706cc5d62210b4f9200637ffcadbb30f5",
+      "6dd85c98a7154b8de9904da10784bd4c2a4c3b45",
+      "1a203a622a81e68247b0486bc753b5b190e4e6d1",
+      "41393d0483e14631c72d2776ec8fcd16e142621a",
+      "d88caae57f12ba4580e457f8f2fefcdce95495c9",
+      "f60ef0ac6f8fd420c7a2c7bc96ae91ee8f8339a4",
+      "6bcef443b59b7aa85762a8e568acfa799761751c",
+      "f1e7cd887b68c1b22c49dd6204d7c26d79f34f34",
+      "1e484a3e07afdae66d1f7f5d88f704ea7b221f33",
+      "e1be05e6157591dacd909022de43b7a18c8f3005",
+      "c4a3a58d402be6150412f7134c75b49d158fd533",
+      "324aace39387511bdd6608320abc0f03542cab34",
+      "e92d46a8fcc8a6e6951e450df0c0868f29c9893f",
+      "46fe9101144a24c312ee2f423a95581c53c60242",
+      "360c63704b934a7b92fde508157d6fd7461d9638",
+      "8a11b38713b8e5ea017dda31d5bee23233202140",
+      "89596dd3e5b9e26a3a711b9cd24193ce302a0483",
+      "f67ebe6bd8320d0a4becd59570dfd9dd49c9b7cd",
+      "7b424b8161e430351ba265d8ccf9fe1227791bb5"
+    ],
+    "commits_api_truncated": false,
+    "local_changed_paths": [
+      ".github/workflows/alphafold-research-cpu.yml",
+      ".github/workflows/financial-integration.yml",
+      ".github/workflows/mathematical-contract-reference.yml",
+      ".github/workflows/tests.yml",
+      ".github/workflows/windows-sandbox-admission.yml",
+      ".gitignore",
+      "docs/alphafold-grid-research-audit.md",
+      "docs/alphafold-integration-contract.md",
+      "docs/alphafold-market-experiment.md",
+      "docs/alphafold-qa-security-acceptance.md",
+      "docs/contracts/grid_strattester_ml_math_v0.1.md",
+      "docs/integration/alphafold-audit-2026-10-24.md",
+      "docs/integration/component-origins.json",
+      "docs/integration/cpu-manifest-exclusions.json",
+      "docs/integration/evidence/ci-audit.json",
+      "docs/integration/evidence/inventory.json",
+      "docs/integration/evidence/pr17-tests-retry.xml",
+      "docs/integration/evidence/pr18-tests.xml",
+      "docs/integration/evidence/pr19-tests.xml",
+      "docs/integration/evidence/pr20-tests.xml",
+      "docs/integration/implementation-notes.md",
+      "docs/integration/mechanism-matrix.md",
+      "docs/integration/review-2026-10-24.md",
+      "docs/protein-geometry-grid-sync.md",
+      "docs/protein-geometry-strategy-modes.md",
+      "docs/security/windows-native-physical-g1-plan.md",
+      "docs/superpowers/plans/2026-10-24-alphafold-integration.md",
+      "docs/superpowers/specs/2026-10-24-alphafold-integration-design.md",
+      "pyproject.toml",
+      "research/alphafold_training/ACCEPTANCE.md",
+      "research/alphafold_training/baselines.py",
+      "research/alphafold_training/comparison.py",
+      "research/alphafold_training/cost_sensitivity.py",
+      "research/alphafold_training/evaluation.py",
+      "research/alphafold_training/gates.py",
+      "research/alphafold_training/runner.py",
+      "research/alphafold_training/walkforward.py",
+      "research/math_contract_reference.py",
+      "research/test_math_contract_reference.py",
+      "scripts/alphafold_cpu_gate.py",
+      "scripts/financial-gate-manifest.json",
+      "scripts/financial_gate.py",
+      "strattester/alphafold_artifact_verify.py",
+      "strattester/alphafold_data_sync.py",
+      "strattester/alphafold_revisions.py",
+      "strattester/alphafold_series_integrity.py",
+      "strattester/alphafold_snapshot_contract.py",
+      "strattester/alphafold_verified_bars.py",
+      "strattester/research/alphafold_adapter.py",
+      "strattester/research/alphafold_msa_attention.py",
+      "strattester/research/alphafold_msa_pair_bridge.py",
+      "strattester/research/alphafold_outer_product.py",
+      "strattester/research/alphafold_pair_stack.py",
+      "strattester/research/alphafold_security.py",
+      "strattester/research/alphafold_triangle.py",
+      "strattester/research/alphafold_triangle_attention.py",
+      "strattester/research/financial_acceptance.py",
+      "strattester/research/financial_checkpoint.py",
+      "strattester/research/financial_contract.py",
+      "strattester/research/financial_evaluation.py",
+      "strattester/research/financial_evoformer.py",
+      "strattester/research/financial_experiment.py",
+      "strattester/research/financial_pipeline.py",
+      "strattester/research/financial_snapshot.py",
+      "strattester/research/financial_structural_model.py",
+      "strattester/research/financial_structure_dataset.py",
+      "strattester/research/financial_training.py",
+      "strattester/research/protein_geometry.py",
+      "strattester/research/protein_geometry_export.py",
+      "strattester/research/protein_geometry_offline.py",
+      "strattester/research/protein_geometry_snapshot.py",
+      "strattester/research/windows_native_evidence.py",
+      "strattester/research/windows_native_launcher.py",
+      "strattester/research/windows_native_sandbox_admission.py",
+      "strattester/strategies/builtin/protein_geometry.py",
+      "tests/research/test_alphafold_adapter.py",
+      "tests/research/test_alphafold_integration_regressions.py",
+      "tests/research/test_alphafold_msa_attention.py",
+      "tests/research/test_alphafold_msa_pair_bridge.py",
+      "tests/research/test_alphafold_outer_product.py",
+      "tests/research/test_alphafold_pair_stack.py",
+      "tests/research/test_alphafold_pair_stack_budget.py",
+      "tests/research/test_alphafold_security.py",
+      "tests/research/test_alphafold_triangle.py",
+      "tests/research/test_alphafold_triangle_attention.py",
+      "tests/research/test_alphafold_triangle_attention_oracle.py",
+      "tests/research/test_alphafold_triangle_reference.py",
+      "tests/research/test_financial_acceptance.py",
+      "tests/research/test_financial_checkpoint.py",
+      "tests/research/test_financial_contract.py",
+      "tests/research/test_financial_evaluation.py",
+      "tests/research/test_financial_evoformer.py",
+      "tests/research/test_financial_experiment.py",
+      "tests/research/test_financial_offline_e2e.py",
+      "tests/research/test_financial_snapshot.py",
+      "tests/research/test_financial_structural_model.py",
+      "tests/research/test_financial_structure_dataset.py",
+      "tests/research/test_financial_training.py",
+      "tests/research/test_protein_geometry.py",
+      "tests/research/test_protein_geometry_export.py",
+      "tests/research/test_protein_geometry_snapshot.py",
+      "tests/research/test_windows_native_evidence.py",
+      "tests/research/test_windows_native_launcher.py",
+      "tests/research/test_windows_native_sandbox_admission.py",
+      "tests/strategies/test_protein_geometry.py",
+      "tests/test_alphafold_artifact_verify.py",
+      "tests/test_alphafold_data_sync.py",
+      "tests/test_alphafold_series_integrity.py",
+      "tests/test_alphafold_snapshot_contract.py",
+      "tests/test_alphafold_training_baselines.py",
+      "tests/test_alphafold_training_comparison.py",
+      "tests/test_alphafold_training_cost_sensitivity.py",
+      "tests/test_alphafold_training_evaluation.py",
+      "tests/test_alphafold_training_gates.py",
+      "tests/test_alphafold_training_runner.py",
+      "tests/test_alphafold_training_strict_inputs.py",
+      "tests/test_alphafold_training_walkforward.py",
+      "tests/test_alphafold_verified_bars.py"
+    ],
+    "api_changed_files": [
+      {
+        "filename": ".github/workflows/alphafold-research-cpu.yml",
+        "sha": "cab4c6f428a7ab45947df46895edeeae2b6254e3",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": ".github/workflows/financial-integration.yml",
+        "sha": "2f2431d096dd799ae0bcf3822d967722bfaba7c7",
+        "status": "added",
+        "additions": 70,
+        "deletions": 0
+      },
+      {
+        "filename": ".github/workflows/mathematical-contract-reference.yml",
+        "sha": "3ca0f78347a129f5684a61887868852e7f17d273",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": ".github/workflows/tests.yml",
+        "sha": "57f5a17040135f5913a15a1c7038b284c0ab9e13",
+        "status": "modified",
+        "additions": 7,
+        "deletions": 0
+      },
+      {
+        "filename": ".github/workflows/windows-sandbox-admission.yml",
+        "sha": "83ff37aea21e77bf52b397508ec14b1b3018bc67",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      },
+      {
+        "filename": ".gitignore",
+        "sha": "b77f22fe4c88f30536b3848cd91506c445e635e7",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-grid-research-audit.md",
+        "sha": "968fd3fed3d3dd8ae84d93b18ee8cac1f8b91d6d",
+        "status": "added",
+        "additions": 37,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-integration-contract.md",
+        "sha": "c2ac0bb2cadf9bb1eb2a794c281a14d9b2d55593",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-market-experiment.md",
+        "sha": "0bb4c3320c268e8b917ec0a97985f41eef7a5512",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/alphafold-qa-security-acceptance.md",
+        "sha": "fd66bd00197a0487ee81faea25b88fdeb533da79",
+        "status": "added",
+        "additions": 30,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/contracts/grid_strattester_ml_math_v0.1.md",
+        "sha": "73a51aeff8510edd7c82f41239699d6785f89742",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/alphafold-audit-2026-10-24.md",
+        "sha": "0efe44ad8dba682eaf312ce8bab70e7cbead9f6a",
+        "status": "added",
+        "additions": 170,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/component-origins.json",
+        "sha": "cde145f2262109a79618645dcb4df6a1fed940b6",
+        "status": "added",
+        "additions": 372,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/cpu-manifest-exclusions.json",
+        "sha": "52f403098213e1abb809d7ace124bbc761d03d73",
+        "status": "added",
+        "additions": 8,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/ci-audit.json",
+        "sha": "fb7bd1a8d654204914f1ed6a1954a9e8c6767238",
+        "status": "added",
+        "additions": 2645,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/inventory.json",
+        "sha": "c04e08b2f103da6748f2d87dd3821b928a71199e",
+        "status": "added",
+        "additions": 265,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr17-tests-retry.xml",
+        "sha": "e701d7cefb51a643eb16b936a194fe68d0f47212",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr18-tests.xml",
+        "sha": "04c9222d78bc4583641e9def90f25d3251a54ccd",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr19-tests.xml",
+        "sha": "2dc0a298c98d63e81218d98ec8a4c40cf576150e",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/evidence/pr20-tests.xml",
+        "sha": "cb49c51ba37bdaa8ff794ec45c919164392593f4",
+        "status": "added",
+        "additions": 1,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/implementation-notes.md",
+        "sha": "7573749c635397aba5ed806dd389ef39688fd7b5",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/mechanism-matrix.md",
+        "sha": "41843d72facdcea18a443571076767813644bc9b",
+        "status": "added",
+        "additions": 23,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/integration/review-2026-10-24.md",
+        "sha": "fb37c1d2000aaba6770afef88305925fd78692e5",
+        "status": "added",
+        "additions": 32,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-grid-sync.md",
+        "sha": "f36230a30b6a901829a596df1e935a7b752dc623",
+        "status": "added",
+        "additions": 18,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/protein-geometry-strategy-modes.md",
+        "sha": "3cf9adeb0febd2e4d5a464da9b66daf3a0cedba6",
+        "status": "added",
+        "additions": 27,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/security/windows-native-physical-g1-plan.md",
+        "sha": "6e3fd4a51d7240f5f03d39f4ed18c781e406f31e",
+        "status": "added",
+        "additions": 29,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/superpowers/plans/2026-10-24-alphafold-integration.md",
+        "sha": "5c25f1cf1117865c81c78ef080ab845d19003fd4",
+        "status": "added",
+        "additions": 68,
+        "deletions": 0
+      },
+      {
+        "filename": "docs/superpowers/specs/2026-10-24-alphafold-integration-design.md",
+        "sha": "e02cee9f11c1ebbc6b09aa765358770a5fa35439",
+        "status": "added",
+        "additions": 62,
+        "deletions": 0
+      },
+      {
+        "filename": "pyproject.toml",
+        "sha": "8bb73fd37188f57b05d42c55f6af1ba82ce55ff2",
+        "status": "modified",
+        "additions": 4,
+        "deletions": 2
+      },
+      {
+        "filename": "research/alphafold_training/ACCEPTANCE.md",
+        "sha": "f33769a589e4315cb0124b2cc607da8eb7285a72",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/baselines.py",
+        "sha": "ad65b249555d26128addbdeb2fdb1dab2c28afb2",
+        "status": "added",
+        "additions": 72,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/comparison.py",
+        "sha": "0e13641dd147767f78a1472dbbd6b286b1b8b5e6",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/cost_sensitivity.py",
+        "sha": "f2ed54424e4bbd54df85d4ad501a41b504971535",
+        "status": "added",
+        "additions": 43,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/evaluation.py",
+        "sha": "99daba35514f30f1c9a750726dafbf1a11cdbcda",
+        "status": "added",
+        "additions": 110,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/gates.py",
+        "sha": "be69607128f8ce345c5c9195759e97664dd06b34",
+        "status": "added",
+        "additions": 55,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/runner.py",
+        "sha": "563ff39d9f46bf0bfa435bd67818827acb816c35",
+        "status": "added",
+        "additions": 98,
+        "deletions": 0
+      },
+      {
+        "filename": "research/alphafold_training/walkforward.py",
+        "sha": "603a88250efcee80eb0afecdd6c653badce8734a",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "research/math_contract_reference.py",
+        "sha": "ce14ddff7bbce725bc61c4e962babfcb681569d0",
+        "status": "added",
+        "additions": 95,
+        "deletions": 0
+      },
+      {
+        "filename": "research/test_math_contract_reference.py",
+        "sha": "2239508f04180f4b59b818be5a09d66b2719ccd4",
+        "status": "added",
+        "additions": 94,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/alphafold_cpu_gate.py",
+        "sha": "fab75abb971337de60cd7c22a5ac18fae684c342",
+        "status": "added",
+        "additions": 82,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/financial-gate-manifest.json",
+        "sha": "22cc5b670bfe8282ca00cfaff4cd7bd9297bf32e",
+        "status": "added",
+        "additions": 826,
+        "deletions": 0
+      },
+      {
+        "filename": "scripts/financial_gate.py",
+        "sha": "0a3a3f485129abb0fe22eb77264507b4ca160825",
+        "status": "added",
+        "additions": 73,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_artifact_verify.py",
+        "sha": "af8031724b7d58c28a05b0723641989c22b4dda5",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_data_sync.py",
+        "sha": "b92119fae374b93eff0077b2f6dca64def7b87ba",
+        "status": "added",
+        "additions": 121,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_revisions.py",
+        "sha": "aa55356fd9d9677d1070acc6ae6552d0b4b3b1f6",
+        "status": "added",
+        "additions": 32,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_series_integrity.py",
+        "sha": "9e25d2d188cc7b2eea6e0b80bd312fe9dede3936",
+        "status": "added",
+        "additions": 58,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_snapshot_contract.py",
+        "sha": "9e6f63b52047fa6940aa77e7e8a89e640d819e7c",
+        "status": "added",
+        "additions": 47,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/alphafold_verified_bars.py",
+        "sha": "a50e10b60d6a577fe9772cf9b13482455eeb3606",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_adapter.py",
+        "sha": "94d0d463ce9a9e239126ed162be39ac1f6e8cea9",
+        "status": "added",
+        "additions": 64,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_msa_attention.py",
+        "sha": "91d45b28b912f3fb6c563cf5916350c4f716f450",
+        "status": "added",
+        "additions": 62,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_msa_pair_bridge.py",
+        "sha": "393bd8a74195ef18650c8c014bce3958a68ed87a",
+        "status": "added",
+        "additions": 66,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_outer_product.py",
+        "sha": "a122a526d9551c216c5e6f85702092a9ff9d5c24",
+        "status": "added",
+        "additions": 64,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_pair_stack.py",
+        "sha": "aed3517679f59de50f98f3b4f6e93be23c129a65",
+        "status": "added",
+        "additions": 70,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_security.py",
+        "sha": "5ee00c65b04f758f4ee7a5a727add0580bedc479",
+        "status": "added",
+        "additions": 21,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_triangle.py",
+        "sha": "9d60d1e0c577fc25303889fb7be5c7d0811398a2",
+        "status": "added",
+        "additions": 58,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/alphafold_triangle_attention.py",
+        "sha": "e444c76ec07085ba86794287547995da007aac58",
+        "status": "added",
+        "additions": 68,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_acceptance.py",
+        "sha": "def5d59a0cab8bc85a64e92b0d1aaba721d4b981",
+        "status": "added",
+        "additions": 58,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_checkpoint.py",
+        "sha": "c467c1d6d4ca7634741c8b33f8ab14aa870180f8",
+        "status": "added",
+        "additions": 81,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_contract.py",
+        "sha": "8b874756425826fb0d03a27762a6d7d927cfda8e",
+        "status": "added",
+        "additions": 126,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_evaluation.py",
+        "sha": "34620f2079121becb863103b454eef5cf4e4d992",
+        "status": "added",
+        "additions": 89,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_evoformer.py",
+        "sha": "caa8480191b9f2c72612baf80252635e45aec316",
+        "status": "added",
+        "additions": 57,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_experiment.py",
+        "sha": "1e4dad893a08098ffe76ffa7632ab1e7c45a46b9",
+        "status": "added",
+        "additions": 167,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_pipeline.py",
+        "sha": "1596afed0be05ec61af3e19f41167a4bda55bc7c",
+        "status": "added",
+        "additions": 59,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_snapshot.py",
+        "sha": "20b7ec8cd312a7afabb26af9408b2104d6a4092c",
+        "status": "added",
+        "additions": 93,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_structural_model.py",
+        "sha": "8b433e6398b7b345f6628cd3f894a4f5d815b3bb",
+        "status": "added",
+        "additions": 151,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_structure_dataset.py",
+        "sha": "f233d9811349a4df4f7827ca5f08d32986b871c2",
+        "status": "added",
+        "additions": 50,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/financial_training.py",
+        "sha": "8765b6e9c0bb37c80aabf091a8e24f6a20ff0ea2",
+        "status": "added",
+        "additions": 51,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry.py",
+        "sha": "7cf2b4064c487f98343308d47bb7f797ea2fe29c",
+        "status": "added",
+        "additions": 50,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_export.py",
+        "sha": "bfb89269518708a876749088877b21ffdbef3963",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_offline.py",
+        "sha": "83fc1f471683e7c52c48e33a238eb463bec80ac0",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/protein_geometry_snapshot.py",
+        "sha": "98ee7a32454161107f9585de6f748d4ebd37d617",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/windows_native_evidence.py",
+        "sha": "76b3f936be5b9b952c6ef6c645c25d4dfaa1af55",
+        "status": "added",
+        "additions": 62,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/windows_native_launcher.py",
+        "sha": "d9de3ccc5e2e75b96bbdf6503609e6bb54872be6",
+        "status": "added",
+        "additions": 16,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/research/windows_native_sandbox_admission.py",
+        "sha": "ebeec0deeab3ceb0a4f80f188cd2381b9c09a6a3",
+        "status": "added",
+        "additions": 91,
+        "deletions": 0
+      },
+      {
+        "filename": "strattester/strategies/builtin/protein_geometry.py",
+        "sha": "e8384dcad7c03b87001c9f982d472151c567421b",
+        "status": "added",
+        "additions": 34,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_adapter.py",
+        "sha": "f2c8021c12511ce274de5994f8da757c24180a7e",
+        "status": "added",
+        "additions": 35,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_integration_regressions.py",
+        "sha": "371aae5a8bfeae09b0e5329e06a5b64033505de3",
+        "status": "added",
+        "additions": 35,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_msa_attention.py",
+        "sha": "a5cb11e808a1472898c44339b24740895275a774",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_msa_pair_bridge.py",
+        "sha": "2be2faf391a3894148514a95765151f62bd969f5",
+        "status": "added",
+        "additions": 33,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_outer_product.py",
+        "sha": "c640aa00d15eca4e9c42db1f9d73a55542709647",
+        "status": "added",
+        "additions": 41,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_pair_stack.py",
+        "sha": "06e4269b769a5f420c5e5409214fa4faf8ec4554",
+        "status": "added",
+        "additions": 38,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_pair_stack_budget.py",
+        "sha": "656ceb21e9160c92d1b5aad8326f5bb279179b84",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_security.py",
+        "sha": "f6ed5dbeda1595ca0a4fb5fe9b5caaeee9e9dd3d",
+        "status": "added",
+        "additions": 42,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle.py",
+        "sha": "c8f604fdf94ec16b05fa023a1d7f955efd20763f",
+        "status": "added",
+        "additions": 48,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle_attention.py",
+        "sha": "06110dbc448b9c711ee32c0c4f3368c5092b7ce8",
+        "status": "added",
+        "additions": 52,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle_attention_oracle.py",
+        "sha": "175280eb0416f0b4becf612bd90bb2f66003152d",
+        "status": "added",
+        "additions": 33,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_alphafold_triangle_reference.py",
+        "sha": "bb08f9692c42695daa993e4739daefcc0654d981",
+        "status": "added",
+        "additions": 40,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_acceptance.py",
+        "sha": "45e1ccfc2aad55c2d0ca53e05600d8eef84664ea",
+        "status": "added",
+        "additions": 55,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_checkpoint.py",
+        "sha": "9cdd4a1159b32bccfff0b008e34067eb5feda3ca",
+        "status": "added",
+        "additions": 44,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_contract.py",
+        "sha": "c20b59d200ade5168499b9574a7ea538c2027846",
+        "status": "added",
+        "additions": 54,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_evaluation.py",
+        "sha": "807989a67e26ccf061f4049ebadd48b9583dd23b",
+        "status": "added",
+        "additions": 44,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_evoformer.py",
+        "sha": "5c4ee67a6663e84197d872d323da8b4a86c1cb8e",
+        "status": "added",
+        "additions": 43,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_experiment.py",
+        "sha": "4e4eee3785b88f20f0f4486ed2b98e8274baaa24",
+        "status": "added",
+        "additions": 109,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_offline_e2e.py",
+        "sha": "312eb5128f218bd25df6410726424c508c56bf8b",
+        "status": "added",
+        "additions": 78,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_snapshot.py",
+        "sha": "66c91ddbb645cc40aad5fa1fe67afa4990912b48",
+        "status": "added",
+        "additions": 57,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_structural_model.py",
+        "sha": "b1529e6373d7754f9ba72dc3a8622c3ee7805009",
+        "status": "added",
+        "additions": 108,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_structure_dataset.py",
+        "sha": "d3a79556c3672ab2e6802a8267697815614bcaa4",
+        "status": "added",
+        "additions": 50,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_financial_training.py",
+        "sha": "61c1f61e2dc7333897f7aedc0c6889f55d3710ab",
+        "status": "added",
+        "additions": 35,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_protein_geometry.py",
+        "sha": "0fd7d32b90cf48ac5fa495ba7f642903f93fb0db",
+        "status": "added",
+        "additions": 45,
+        "deletions": 0
+      },
+      {
+        "filename": "tests/research/test_protein_geometry_export.py",
+        "sha": "4ae5dd761b0e5dc26859ce0011015ca8b7d110ab",
+        "status": "added",
+        "additions": 36,
+        "deletions": 0
+      }
+    ],
+    "api_files_truncated": true,
+    "runs": [
+      {
+        "id": 40122965242,
+        "name": "financial-integration",
+        "head_sha": "7b424b8161e430351ba265d8ccf9fe1227791bb5",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40122965181,
+        "name": "alphafold-research-cpu",
+        "head_sha": "7b424b8161e430351ba265d8ccf9fe1227791bb5",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40122965179,
+        "name": "windows-sandbox-admission",
+        "head_sha": "7b424b8161e430351ba265d8ccf9fe1227791bb5",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40122965274,
+        "name": "tests",
+        "head_sha": "7b424b8161e430351ba265d8ccf9fe1227791bb5",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40122965210,
+        "name": "mathematical-contract-reference",
+        "head_sha": "7b424b8161e430351ba265d8ccf9fe1227791bb5",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "event": "pull_request"
+      },
+      {
+        "id": 40122962016,
+        "name": "tests",
+        "head_sha": "7b424b8161e430351ba265d8ccf9fe1227791bb5",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "event": "push"
+      }
+    ]
+  }
+]

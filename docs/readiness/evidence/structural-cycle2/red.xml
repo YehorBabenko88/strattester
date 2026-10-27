@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="28" time="2.492" timestamp="2026-10-24T19:27:28.093022+02:00" hostname="LS5"><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[dense-row]" time="0.031" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[dense-column]" time="0.004" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[dense-triangle_start]" time="0.005" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[dense-triangle_end]" time="0.005" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[asymmetric_empty-row]" time="0.004" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[asymmetric_empty-column]" time="0.003" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[asymmetric_empty-triangle_start]" time="0.003" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[asymmetric_empty-triangle_end]" time="0.003" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[extreme_finite-row]" time="0.004" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[extreme_finite-column]" time="0.003" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[extreme_finite-triangle_start]" time="0.003" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_matches_independent_upstream_equations[extreme_finite-triangle_end]" time="0.003" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_input_and_weight_gradients_match_numpy_finite_differences[row]" time="0.006" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_input_and_weight_gradients_match_numpy_finite_differences[column]" time="0.004" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_input_and_weight_gradients_match_numpy_finite_differences[triangle_start]" time="0.006" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_attention_input_and_weight_gradients_match_numpy_finite_differences[triangle_end]" time="0.006" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_triangle_multiplication_uses_pinned_upstream_projection_orientation[False]" time="0.004" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_triangle_multiplication_uses_pinned_upstream_projection_orientation[True]" time="0.004"><failure message="AssertionError: &#10;Not equal to tolerance rtol=1e-10, atol=1e-10&#10;&#10;Mismatched elements: 12 / 36 (33.3%)&#10;First 5 mismatches are at indices:&#10; [0, 0, 2, 0]: 0.11674047331838851 (ACTUAL), -0.01709565620535622 (DESIRED)&#10; [0, 0, 2, 1]: -0.09392659813622145 (ACTUAL), 0.04649420256245083 (DESIRED)&#10; [0, 0, 2, 2]: -0.3791053203074727 (ACTUAL), 0.6975400485742617 (DESIRED)&#10; [0, 0, 2, 3]: -0.12036213926845298 (ACTUAL), 0.2908659348914128 (DESIRED)&#10; [0, 1, 0, 0]: 0.15120680358653624 (ACTUAL), 0.2098059954289473 (DESIRED)&#10;Max absolute difference among violations: 1.07664537&#10;Max relative difference among violations: 7.8286629&#10; ACTUAL: array([[[[ 0.28955 , -0.066768, -0.326927, -0.153816],&#10;         [ 0.      ,  0.      , -0.      , -0.      ],&#10;         [ 0.11674 , -0.093927, -0.379105, -0.120362]],...&#10; DESIRED: array([[[[ 0.28955 , -0.066768, -0.326927, -0.153816],&#10;         [ 0.      , -0.      ,  0.      , -0.      ],&#10;         [-0.017096,  0.046494,  0.69754 ,  0.290866]],...">incoming = True
+
+    @pytest.mark.parametrize('incoming', [False, True])
+    def test_triangle_multiplication_uses_pinned_upstream_projection_orientation(incoming):
+        torch.manual_seed(27)
+        module = build_triangle_updates(4, 3)[incoming].double()
+        rng = np.random.default_rng(3)
+        x = rng.normal(size=(1, 3, 3, 4))
+        mask = np.array([[[1, 0, 1], [1, 1, 0], [0, 1, 1]]], dtype=bool)
+        expected = multiplication_reference(x, mask, arrays(module), incoming)
+&gt;       np.testing.assert_allclose(module(torch.tensor(x), torch.tensor(mask)).detach().numpy(), expected, rtol=1e-10, atol=1e-10)
+E       AssertionError: 
+E       Not equal to tolerance rtol=1e-10, atol=1e-10
+E       
+E       Mismatched elements: 12 / 36 (33.3%)
+E       First 5 mismatches are at indices:
+E        [0, 0, 2, 0]: 0.11674047331838851 (ACTUAL), -0.01709565620535622 (DESIRED)
+E        [0, 0, 2, 1]: -0.09392659813622145 (ACTUAL), 0.04649420256245083 (DESIRED)
+E        [0, 0, 2, 2]: -0.3791053203074727 (ACTUAL), 0.6975400485742617 (DESIRED)
+E        [0, 0, 2, 3]: -0.12036213926845298 (ACTUAL), 0.2908659348914128 (DESIRED)
+E        [0, 1, 0, 0]: 0.15120680358653624 (ACTUAL), 0.2098059954289473 (DESIRED)
+E       Max absolute difference among violations: 1.07664537
+E       Max relative difference among violations: 7.8286629
+E        ACTUAL: array([[[[ 0.28955 , -0.066768, -0.326927, -0.153816],
+E                [ 0.      ,  0.      , -0.      , -0.      ],
+E                [ 0.11674 , -0.093927, -0.379105, -0.120362]],...
+E        DESIRED: array([[[[ 0.28955 , -0.066768, -0.326927, -0.153816],
+E                [ 0.      , -0.      ,  0.      , -0.      ],
+E                [-0.017096,  0.046494,  0.69754 ,  0.290866]],...
+
+tests\research\test_structural_upstream_differential.py:173: AssertionError</failure></testcase><testcase classname="tests.research.test_structural_upstream_differential" name="test_column_rejects_nonfinite_input_before_normalization[nan]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">bad = nan
+
+    @pytest.mark.parametrize('bad', [float('nan'), float('inf'), -float('inf')])
+    def test_column_rejects_nonfinite_input_before_normalization(bad):
+        module = build_column_attention(4, 2)
+        x = torch.zeros(1, 2, 2, 4)
+        x[0, 0, 0, 0] = bad
+        entered = []
+        handle = module.norm.register_forward_pre_hook(lambda *args: entered.append(True))
+        try:
+&gt;           with pytest.raises(ValueError, match='nonfinite'):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests\research\test_structural_upstream_differential.py:184: Failed</failure></testcase><testcase classname="tests.research.test_structural_upstream_differential" name="test_column_rejects_nonfinite_input_before_normalization[inf]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">bad = inf
+
+    @pytest.mark.parametrize('bad', [float('nan'), float('inf'), -float('inf')])
+    def test_column_rejects_nonfinite_input_before_normalization(bad):
+        module = build_column_attention(4, 2)
+        x = torch.zeros(1, 2, 2, 4)
+        x[0, 0, 0, 0] = bad
+        entered = []
+        handle = module.norm.register_forward_pre_hook(lambda *args: entered.append(True))
+        try:
+&gt;           with pytest.raises(ValueError, match='nonfinite'):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests\research\test_structural_upstream_differential.py:184: Failed</failure></testcase><testcase classname="tests.research.test_structural_upstream_differential" name="test_column_rejects_nonfinite_input_before_normalization[-inf]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">bad = -inf
+
+    @pytest.mark.parametrize('bad', [float('nan'), float('inf'), -float('inf')])
+    def test_column_rejects_nonfinite_input_before_normalization(bad):
+        module = build_column_attention(4, 2)
+        x = torch.zeros(1, 2, 2, 4)
+        x[0, 0, 0, 0] = bad
+        entered = []
+        handle = module.norm.register_forward_pre_hook(lambda *args: entered.append(True))
+        try:
+&gt;           with pytest.raises(ValueError, match='nonfinite'):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests\research\test_structural_upstream_differential.py:184: Failed</failure></testcase><testcase classname="tests.research.test_structural_upstream_differential" name="test_checkpoint_rejects_legacy_equations_before_model_allocation[None]" time="0.012"><failure message="Failed: legacy checkpoint allocated a model">tmp_path = WindowsPath('C:/Users/LS-5/Documents/Codex/2026-10-24/files-pasted-by-the-user-codex/work/cycle2-model/work/cycle2-model-red-temp/test_checkpoint_rejects_legacy0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000029D8BD17620&gt;
+version = None
+
+    @pytest.mark.parametrize('version', [None, 1, True])
+    def test_checkpoint_rejects_legacy_equations_before_model_allocation(tmp_path, monkeypatch, version):
+        config = asdict(StructuralConfig())
+        config.pop('model_equations_version', None)
+        if version is not None:
+            config['model_equations_version'] = version
+        payload = dict(version=1, config=config, dataset_sha256='a' * 64, seed=0, tensors={})
+        data = json.dumps(payload).encode()
+        path = tmp_path / 'legacy.json'
+        path.write_bytes(data)
+        monkeypatch.setattr(torch.nn, 'Linear', lambda *a, **kw: pytest.fail('legacy checkpoint allocated a model'))
+        with pytest.raises(ValueError):
+&gt;           load_checkpoint(path, sha256(data).hexdigest())
+
+tests\research\test_structural_upstream_differential.py:203: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+strattester\research\financial_checkpoint.py:71: in load_checkpoint
+    model=build_structural_model(config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+strattester\research\financial_structural_model.py:151: in build_structural_model
+    return FinancialStructuralModel()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+strattester\research\financial_structural_model.py:102: in __init__
+    self.input=nn.Linear(config.input_channels,h)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+a = (3, 8), kw = {}
+
+&gt;   monkeypatch.setattr(torch.nn, 'Linear', lambda *a, **kw: pytest.fail('legacy checkpoint allocated a model'))
+                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: legacy checkpoint allocated a model
+
+tests\research\test_structural_upstream_differential.py:201: Failed</failure></testcase><testcase classname="tests.research.test_structural_upstream_differential" name="test_checkpoint_rejects_legacy_equations_before_model_allocation[1]" time="0.007" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_checkpoint_rejects_legacy_equations_before_model_allocation[True]" time="0.006" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_recycling_state_and_distribution_head_have_independent_numpy_reference[0]" time="0.013" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_recycling_state_and_distribution_head_have_independent_numpy_reference[1]" time="0.015" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_recycling_state_and_distribution_head_have_independent_numpy_reference[2]" time="0.028" /><testcase classname="tests.research.test_structural_upstream_differential" name="test_recycled_prediction_has_zero_masked_input_gradient" time="0.033" /></testsuite></testsuites>
