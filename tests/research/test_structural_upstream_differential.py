@@ -245,3 +245,139 @@ def test_recycled_prediction_has_zero_masked_input_gradient():
     model(x, mask).sum().backward()
     assert torch.count_nonzero(x.grad[~mask]) == 0
     assert torch.isfinite(x.grad).all() and torch.count_nonzero(x.grad[mask]) > 0
+
+
+def subtree(p, prefix):
+    return {key[len(prefix) + 1:]: value for key, value in p.items()
+            if key.startswith(prefix + '.')}
+
+
+def outer_reference(x, mask, p):
+    """Financial count mean, including its post-mean bias/empty-edge policy.
+
+    Deliberately differs from upstream (project(sum)+bias)/(count+1e-3).
+    Scalar track/vertex loops avoid production einsum and reshape ordering.
+    """
+    z = norm(x, p, 'norm')
+    left, right = affine(z, p, 'left'), affine(z, p, 'right')
+    b, _, n, c = left.shape
+    result = np.zeros((b, n, n, len(p['output.bias'])))
+    for batch in range(b):
+        for i in range(n):
+            for j in range(n):
+                tracks = np.flatnonzero(mask[batch, :, i] & mask[batch, :, j])
+                if len(tracks):
+                    terms = np.zeros((c, c))
+                    for s in tracks:
+                        for u in range(c):
+                            for v in range(c):
+                                terms[u, v] += left[batch, s, i, u] * right[batch, s, j, v]
+                    result[batch, i, j] = affine((terms / len(tracks)).ravel(), p, 'output')
+    return result
+
+
+def structural_reference(x, mask, p, depth, recycles):
+    """Entire small financial trunk: no observed production intermediate state.
+
+    All arithmetic, normalization, activations, attention and pooling use NumPy.
+    Parameter names define the mapping only; all heads here have size two.
+    """
+    valid = mask.any(axis=1)
+    pm = valid[:, :, None] & valid[:, None, :]
+    base = affine(x * mask[..., None], p, 'input') * mask[..., None]
+    msa = base.copy()
+    b, _, n, h = msa.shape
+    pair = np.zeros((b, n, n, h))
+    for recycle in range(recycles + 1):
+        if recycle:
+            msa = base + norm(msa, p, 'recycle_msa') * mask[..., None]
+            pair = norm(pair, p, 'recycle_pair') * pm[..., None]
+        for layer in range(depth):
+            lp = subtree(p, f'layers.{layer}')
+            msa = (msa + attention_reference('row', msa, mask, subtree(lp, 'row'), pair)) * mask[..., None]
+            msa = (msa + attention_reference('column', msa, mask, subtree(lp, 'column'))) * mask[..., None]
+            transition = affine(np.maximum(affine(norm(msa, lp, 'msa_norm'), lp, 'msa_transition.0'), 0), lp, 'msa_transition.2')
+            msa = (msa + transition) * mask[..., None]
+            pair = (pair + outer_reference(msa, mask, subtree(lp, 'outer'))) * pm[..., None]
+            sp = subtree(lp, 'pair_stack.layers.0')
+            for name, incoming in [('mul_out', False), ('mul_in', True)]:
+                pair = (pair + multiplication_reference(pair, pm, subtree(sp, name), incoming)) * pm[..., None]
+            for name, kind in [('att_start', 'triangle_start'), ('att_end', 'triangle_end')]:
+                pair = (pair + attention_reference(kind, pair, pm, subtree(sp, name))) * pm[..., None]
+            transition = affine(np.maximum(affine(norm(pair, sp, 'transition_norm'), sp, 'transition.0'), 0), sp, 'transition.2')
+            pair = (pair + transition) * pm[..., None]
+    result = []
+    for batch in range(b):
+        last = np.flatnonzero(mask[batch, 0])[-1]
+        single = affine(msa[batch, 0, last], p, 'single')
+        pooled = pair[batch, last, valid[batch]].mean(axis=0)
+        raw = affine(np.concatenate((single, pooled)), p, 'head')
+        result.append([raw[0], np.clip(np.logaddexp(0, raw[1]), 1e-5, 10)])
+    return np.array(result)
+
+
+def full_fixture(depth, recycles, dtype=torch.float64):
+    model = build_structural_model(StructuralConfig(hidden=4, heads=2,
+                                   intermediate=3, depth=depth, recycles=recycles), seed=91).to(dtype)
+    x = np.random.default_rng(81).normal(size=(2, 3, 3, 3))
+    mask = np.array([[[1, 0, 1], [1, 1, 0], [0, 0, 0]],
+                     [[1, 1, 0], [0, 1, 0], [1, 0, 0]]], dtype=bool)
+    return model, x, mask
+
+
+@pytest.mark.parametrize('depth,recycles', [(1, 0), (1, 1), (1, 2), (2, 1)])
+@pytest.mark.parametrize('dtype', [torch.float32, torch.float64])
+def test_complete_trunk_matches_numpy_without_observing_layer_outputs(depth, recycles, dtype):
+    model, x, mask = full_fixture(depth, recycles, dtype)
+    # Reference arithmetic is float64 with exactly the mapped production weights.
+    p = {k: v.astype(np.float64) for k, v in arrays(model).items()}
+    expected = structural_reference(x.astype(np.float32).astype(np.float64) if dtype == torch.float32 else x,
+                                    mask, p, depth, recycles)
+    actual = model(torch.tensor(x, dtype=dtype), torch.tensor(mask))
+    tolerance = 3e-5 if dtype == torch.float32 else 2e-9
+    np.testing.assert_allclose(actual.detach().numpy(), expected, rtol=tolerance, atol=tolerance)
+
+
+@pytest.mark.parametrize('recycles', [0, 2])
+def test_complete_trunk_selected_parameter_gradients_match_numpy(recycles):
+    model, x, mask = full_fixture(1, recycles)
+    p = arrays(model)
+    tx = torch.tensor(x, requires_grad=True)
+    coefficients = np.array([[.7, -.4], [-.2, .9]])
+    (model(tx, torch.tensor(mask)) * torch.tensor(coefficients)).sum().backward()
+    # Every distinct operator family must contribute, not just fire a hook.
+    names = ['row.qkv.weight', 'column.qkv.weight', 'outer.left.weight',
+             'pair_stack.layers.0.mul_out.left.weight', 'pair_stack.layers.0.mul_in.right.weight',
+             'pair_stack.layers.0.att_start.q.weight', 'pair_stack.layers.0.att_end.q.weight',
+             'msa_transition.2.weight', 'pair_stack.layers.0.transition.2.weight']
+    keys = ['layers.0.' + name for name in names]
+    if recycles:
+        keys += ['recycle_msa.weight', 'recycle_pair.weight']
+    targets = [(x, tx.grad.numpy())]
+    for key in keys:
+        gradient = dict(model.named_parameters())[key].grad
+        assert gradient is not None and torch.isfinite(gradient).all()
+        targets.append((p[key], gradient.numpy()))
+    for target, gradient in targets:
+        index = np.unravel_index(np.argmax(np.abs(gradient)), gradient.shape)
+        assert abs(gradient[index]) > 1e-9
+        original, step = target[index], 1e-6
+        target[index] = original + step
+        plus = np.sum(structural_reference(x, mask, p, 1, recycles) * coefficients)
+        target[index] = original - step
+        minus = np.sum(structural_reference(x, mask, p, 1, recycles) * coefficients)
+        target[index] = original
+        assert gradient[index] == pytest.approx((plus-minus)/(2*step), rel=2e-4, abs=2e-7)
+    assert np.count_nonzero(tx.grad.numpy()[~mask]) == 0
+
+
+def test_row_half_precision_empty_mask_has_finite_zero_forward_and_backward():
+    module = build_msa_row_attention(4, 4, 2).half()
+    x = torch.randn(1, 2, 3, 4, dtype=torch.float16, requires_grad=True)
+    pair = torch.randn(1, 3, 3, 4, dtype=torch.float16, requires_grad=True)
+    result = module(x, pair, torch.zeros(1, 2, 3, dtype=torch.bool))
+    assert torch.isfinite(result).all()
+    assert torch.count_nonzero(result) == 0
+    result.float().sum().backward()
+    assert torch.isfinite(x.grad).all() and torch.count_nonzero(x.grad) == 0
+    assert torch.isfinite(pair.grad).all() and torch.count_nonzero(pair.grad) == 0
