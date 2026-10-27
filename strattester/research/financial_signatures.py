@@ -18,6 +18,32 @@ from .financial_snapshot import verified_bytes, bounded_json
 # Renaming its producer/key IDs cannot turn it into real producer authority.
 PUBLIC_SOFTWARE_FIXTURE_KEYS=frozenset((bytes.fromhex('3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c'),))
 
+# A valid RFC8032 point and an independently derived canonical point of order8L.
+# Capability controls detect absent/broken/unpatched backends, not key authority.
+_VALID_POINT=bytes.fromhex('3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c')
+_IDENTITY_POINT=b'\x01'+bytes(31)
+_MIXED_ORDER_POINT=bytes.fromhex('98519eadf35b995233b51b5cd23e9cc5a28b639b5a4af0ec903cb960d81b7819')
+
+
+def validate_ed25519_public_key(public_key):
+    """Vetted independent point validation; no handwritten curve implementation.
+
+    Key validity is necessary for signature assurance, never proof of ownership,
+    independent authority, historical truth, replay protection or G0/G1 admission.
+    """
+    if type(public_key) is not bytes or len(public_key)!=32:
+        raise ValueError('invalid Ed25519 public key type/size')
+    try:
+        from nacl.bindings import crypto_core_ed25519_is_valid_point as valid
+        controls=(valid(_VALID_POINT),valid(_IDENTITY_POINT),valid(_MIXED_ORDER_POINT))
+        accepted=valid(public_key)
+    except Exception as exc:
+        raise ValueError('independent Ed25519 public key validator unavailable') from exc
+    if controls[0] is not True or controls[1] is not False or controls[2] is not False:
+        raise ValueError('independent Ed25519 public key validator self-test failed')
+    if accepted is not True:raise ValueError('invalid Ed25519 public key point')
+    return public_key
+
 
 def decode64(value,size):
     if type(value) is not str or len(value)>4*((size+2)//3):raise ValueError('invalid base64 size')
@@ -37,6 +63,7 @@ class OpenSSLVerifier:
         if (type(public_key) is not bytes or len(public_key)!=32 or type(signature) is not bytes or len(signature)!=64
             or type(message) is not bytes or not 1<=len(message)<=1024*1024):
             raise ValueError('signature input budget/type')
+        validate_ed25519_public_key(public_key)
         executable=Path(self.executable)
         if not executable.is_absolute():raise ValueError('absolute pinned verifier required')
         verified_bytes(executable,self.executable_sha256,64*1024*1024)
@@ -101,6 +128,7 @@ def load_trust_store(path,expected_sha256):
         identity=(row['producer_id'],row['key_id'])
         if identity in seen:raise ValueError('duplicate trust key')
         seen.add(identity)
-        keys.append(TrustKey(row['key_id'],row['producer_id'],decode64(row['public_key_b64'],32),
+        public=validate_ed25519_public_key(decode64(row['public_key_b64'],32))
+        keys.append(TrustKey(row['key_id'],row['producer_id'],public,
                              row['valid_from_ns'],row['valid_until_ns'],row['revoked']))
     return ProducerTrustStore(expected_sha256,tuple(keys))
