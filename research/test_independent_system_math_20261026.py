@@ -188,3 +188,17 @@ def test_exact_sample_count_and_final_origin_boundary():
         assert samples[-1].origin_timestamp==times[n-horizon-1]
         assert samples[-1].target_timestamp==times[-2]
         assert all(s.target_timestamp>s.origin_timestamp for s in samples)
+
+
+def test_future_volatility_target_uses_population_definition():
+    times=[i*60_000 for i in range(15)]
+    prices=[100.,102.,101.,105.,104.,107.,106.,110.,108.,111.,109.,112.,113.,114.,115.]
+    horizon=3
+    sample=make_samples('BTCUSDT','1m',times,prices,window=4,horizon=horizon)[0]
+    origin=4
+    log_prices=[math.log(p) for p in prices]
+    future=[log_prices[j]-log_prices[j-1] for j in range(origin+1,origin+horizon+1)]
+    avg=math.fsum(future)/horizon
+    population=math.sqrt(math.fsum((r-avg)**2 for r in future)/horizon)
+    assert sample.future_log_volatility == pytest.approx(math.log(max(population,1e-12)),abs=1e-12)
+    assert sample.future_log_volatility != pytest.approx(math.log(sample_volatility(future)),abs=1e-8)
