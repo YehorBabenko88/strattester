@@ -88,6 +88,15 @@ def evaluate_controls(train_x,train_y,test_x,test_y,*,train_events,test_events,s
     integer(seed,'seed')
     if (not test_y or len(test_x)!=len(test_y) or len(train_x)!=len(train_events)
         or len(test_x)!=len(test_events)):raise ValueError('control shapes')
+    if not train_events:raise ValueError('nonempty control training events required')
+    # One global cutoff applies even across instruments: otherwise a baseline
+    # can learn labels from a different market after the OOS period has begun.
+    for identity,timestamp in (*train_events,*test_events):
+        integer(timestamp,'control event time')
+        if not isinstance(identity,str) or not identity:
+            raise ValueError('invalid control event identity')
+    if max(timestamp for _,timestamp in train_events)>=min(timestamp for _,timestamp in test_events):
+        raise ValueError('control training events must be strictly before all test events')
     if history_x is None:
         history_x=[*train_x,*test_x];history_events=[*train_events,*test_events]
     delayed=delayed_features(history_x,history_events,test_events)
