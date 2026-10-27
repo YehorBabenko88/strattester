@@ -175,3 +175,16 @@ def test_randomized_horizon_prefix_invariance():
         assert [s.future_log_return for s in original[:-1]] == pytest.approx(
             [s.future_log_return for s in revised[:-1]],abs=1e-12)
         assert original[-1].future_log_return == pytest.approx(revised[-1].future_log_return)
+
+
+def test_exact_sample_count_and_final_origin_boundary():
+    n=30
+    times=[i*60_000 for i in range(n)]
+    prices=[100.+i for i in range(n)]
+    for window,horizon in ((2,2),(4,3),(6,5)):
+        samples=make_samples('BTCUSDT','1m',times,prices,window=window,horizon=horizon)
+        assert len(samples)==n-window-horizon
+        assert samples[0].origin_timestamp==times[window]
+        assert samples[-1].origin_timestamp==times[n-horizon-1]
+        assert samples[-1].target_timestamp==times[-2]
+        assert all(s.target_timestamp>s.origin_timestamp for s in samples)
