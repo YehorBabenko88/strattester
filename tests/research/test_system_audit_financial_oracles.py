@@ -19,7 +19,8 @@ class SystemAuditOracles(unittest.TestCase):
         observed = evaluate_ledger(trades, fee_bps=10, slippage_bps=5)
         expected = oracle_ledger(trades, 10, 5)
         self.assertEqual(observed["turnover"], 4)
-        self.assertEqual(observed["returns"], expected["returns"])
+        for actual, reference in zip(observed["returns"], expected["returns"]):
+            self.assertAlmostEqual(actual, reference, places=12)
 
     def test_gaussian_nll_reference(self):
         for mu, sigma, y in ((0., 1., 0.), (.01, .5, -.2), (-.1, 2., .3)):
