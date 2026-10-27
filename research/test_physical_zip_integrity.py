@@ -42,7 +42,7 @@ class ZipIntegrityTests(unittest.TestCase):
         self.assertIn("unsafe_windows_entry", inspect(archive([("folder/CON.txt", b"x")]))["issues"])
 
     def test_windows_trailing_dot(self):
-        self.assertIn("unsafe_windows_entry", inspect(archive([("folder. /item", b"x")]))["issues"])
+        self.assertIn("unsafe_windows_entry", inspect(archive([("folder./item", b"x")]))["issues"])
 
     def test_double_directory_separator(self):
         self.assertIn("unsafe_windows_entry", inspect(archive([("folder//", b"")]))["issues"])
