@@ -202,3 +202,15 @@ def test_future_volatility_target_uses_population_definition():
     population=math.sqrt(math.fsum((r-avg)**2 for r in future)/horizon)
     assert sample.future_log_volatility == pytest.approx(math.log(max(population,1e-12)),abs=1e-12)
     assert sample.future_log_volatility != pytest.approx(math.log(sample_volatility(future)),abs=1e-8)
+
+
+def test_metamorphic_instrument_renaming_preserves_math():
+    times=[i*60_000 for i in range(22)]
+    prices=[100.+i*.7 for i in range(22)]
+    btc=make_samples('BTCUSDT','1m',times,prices,window=4,horizon=3)
+    eth=make_samples('ETHUSDT','1m',times,prices,window=4,horizon=3)
+    assert [x.future_log_return for x in btc] == pytest.approx(
+        [x.future_log_return for x in eth])
+    assert [x.future_log_volatility for x in btc] == pytest.approx(
+        [x.future_log_volatility for x in eth])
+    assert btc[0].representation.symbol != eth[0].representation.symbol
