@@ -34,6 +34,9 @@ def parser():
     inventory=sub.add_parser('verify-executables')
     inventory.add_argument('--manifest',required=True)
     inventory.add_argument('--manifest-sha256',required=True)
+    funding=sub.add_parser('verify-funding')
+    for flag in ('funding','funding-sha256','policy','policy-sha256','trust-store','trust-store-sha256','openssl-exe','openssl-sha256','scratch-root'):
+        funding.add_argument('--'+flag,required=True)
     return p
 
 def _required(a,names):
@@ -69,6 +72,12 @@ def main(argv=None):
         if a.command=='verify-executables':
             from .research.financial_executable_inventory import verify_executable_inventory
             result=verify_executable_inventory(a.manifest,a.manifest_sha256)
+        elif a.command=='verify-funding':
+            from .research.financial_authenticated_funding import load_authenticated_funding,load_funding_policy
+            verified=load_authenticated_funding(path=a.funding,expected_sha256=a.funding_sha256,
+                trust_store_path=a.trust_store,trust_store_sha256=a.trust_store_sha256,
+                policy=load_funding_policy(a.policy,a.policy_sha256),verifier=_verifier(a))
+            result={'status':'SIGNATURE_VERIFIED_ONLY','provenance':{**verified.provenance,'policy_bytes_sha256':a.policy_sha256},'physical_g1':'NOT_AUTHORIZED','trading':'NO-GO'}
         elif a.command=='prepare-walk-forward':
             from .research.financial_walkforward_fixture import prepare_walkforward_fixture
             v=_verifier(a)
