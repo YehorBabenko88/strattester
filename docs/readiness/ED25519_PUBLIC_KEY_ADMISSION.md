@@ -56,3 +56,9 @@ P0:newconfirmednone. P2:Python key-assurance flaw corrected. P1physical/trust/ti
 replay/namespace/executable identity/native isolation/source/OOS prerequisites
 remainBLOCKED. No physical collection,production operation,VM provisioning,G1
 Execute/Cleanup,deployment or trading. No real trusted secrets created.
+
+The306independent public vectors are also committed as test data and exercised
+through predicate and trust-store intake in one batched regression on each CI
+platform. They count as one pytest node,not306separate passing nodes. Final
+focused suite15passed; the production predicate is unchanged from the independently
+accepted source above. Normal valid points convey no owner/producer authority.
