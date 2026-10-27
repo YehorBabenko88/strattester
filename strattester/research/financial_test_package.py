@@ -22,6 +22,7 @@ RUNTIME_FILES=('scripts/audit_qualification_artifact.py','scripts/financial-gate
  'strattester/strategies/builtin/__init__.py','strattester/strategies/builtin/financial_structural.py',
  'strattester/engine/__init__.py','strattester/engine/executor.py','strattester/marketdata/__init__.py','strattester/marketdata/datasets.py')
 RESEARCH_MODULES=('financial_g0_preflight','financial_ci_artifacts','financial_acceptance',
+ 'financial_calibration','financial_checkpoint_replay','financial_walkforward_funding',
  'financial_g0_receipt','financial_g0_evidence','financial_contract','financial_snapshot','financial_signed_export','financial_signatures','financial_checkpoint',
  'financial_structural_model','financial_pipeline','financial_training','financial_torch_runtime','financial_executable_inventory','financial_evaluation','financial_funding','financial_authenticated_funding','financial_experiment','financial_offline_jobs',
  'financial_attested_inference','financial_owner_authorization','financial_owner_intent_v2','financial_test_package','financial_session','financial_report_export','financial_experiment_session',
