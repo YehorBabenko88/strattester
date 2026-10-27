@@ -1157,7 +1157,7 @@
     ]
   },
   "security": {
-    "minimum": 426,
+    "minimum": 428,
     "nodeids": [
       "tests/native/test_native_build.py::CacheDeletionTests::test_refuses_cache_root_and_outside_paths_without_deleting",
       "tests/native/test_native_build.py::CacheDeletionTests::test_refuses_symlink_into_outside_cache",
@@ -1476,6 +1476,8 @@
       "tests/research/test_g0_trust_replay.py::test_nonce_is_signed_but_not_a_durable_challenge_claim",
       "tests/research/test_g0_trust_replay.py::test_one_valid_authority_never_masks_other_signature_failure[owner]",
       "tests/research/test_g0_trust_replay.py::test_one_valid_authority_never_masks_other_signature_failure[provider]",
+      "tests/research/test_g0_trust_replay.py::test_pinned_degenerate_key_forgery_is_only_a_blocked_assertion[owner]",
+      "tests/research/test_g0_trust_replay.py::test_pinned_degenerate_key_forgery_is_only_a_blocked_assertion[provider]",
       "tests/research/test_g0_trust_replay.py::test_repinned_malformed_inputs_still_fail_closed[deep-manifest]",
       "tests/research/test_g0_trust_replay.py::test_repinned_malformed_inputs_still_fail_closed[deep-policy]",
       "tests/research/test_g0_trust_replay.py::test_repinned_malformed_inputs_still_fail_closed[deep-trust_store]",

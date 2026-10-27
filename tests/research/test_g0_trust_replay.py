@@ -308,6 +308,20 @@ def test_aliasing_cannot_create_two_independent_authorities(receipt, attack):
         receipt.verify()
 
 
+@pytest.mark.parametrize('role', ROLES)
+def test_pinned_degenerate_key_forgery_is_only_a_blocked_assertion(receipt, role):
+    # Unresolved P2 characterization, NOT weak-key rejection coverage. Identity
+    # public key and R=identity/S=0 need no private key. External provisioning of
+    # this weak key is required; the candidate cannot bypass an unchanged pin.
+    # signatures_verified must never be consumed as proof of key possession.
+    key = receipt.trust['keys'][ROLES.index(role)]
+    key['public_key_b64'] = base64.b64encode(b'\x01'+bytes(31)).decode()
+    receipt.receipt['signatures'][role] = base64.b64encode(b'\x01'+bytes(63)).decode()
+    receipt.write('trust_store', receipt.trust)
+    receipt.write('manifest', receipt.receipt)
+    assert_blocked(receipt.verify())
+
+
 @pytest.mark.parametrize('attack', ['invalid_signature', 'missing_input', 'verifier_unavailable', 'valid'])
 def test_cli_emits_blocked_exit_for_success_and_failure(receipt, capsys, attack):
     from strattester.research_cli import main
