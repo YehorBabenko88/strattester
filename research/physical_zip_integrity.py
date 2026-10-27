@@ -3,6 +3,7 @@ import hashlib
 import io
 import re
 import zipfile
+import unicodedata
 
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -42,7 +43,7 @@ def inspect_zip_bytes(payload, *, expected_sha256, max_archive=32_000_000,
                     for part in components
                 )):
                     issues.append("unsafe_windows_entry")
-                canonical = name.rstrip("/").casefold()
+                canonical = unicodedata.normalize("NFC", name.rstrip("/")).casefold()
                 if canonical in names:
                     issues.append("duplicate_entry_name")
                 names.add(canonical)
