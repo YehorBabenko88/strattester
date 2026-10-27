@@ -43,6 +43,54 @@ receipt, signed owner authority or authorization. Owner-v2 G1 remains separately
 unsigned with missing owner/VM/nonce/expiry; all native and external prerequisites
 still block admission. GPU driver observation is not real CUDA/PyTorch execution.
 
+## Declarative reporting schemas and compatibility
+
+[Collector schema](schemas/g0-observation-v2.schema.json) describes existing JSON
+`schema=1` with `observation_contract_version=2`.
+[Evidence-manifest schema](schemas/g0-evidence-manifest-v1.schema.json) describes
+the diagnostic manifest `version=1`, also referencing collector1/observation2.
+Both use JSON Schema 2020-12. Version fields are integers; booleans, unknown
+versions, missing required fields and unknown top-level fields are rejected.
+These schemas document diagnostic formats; they do not extend the collector,
+validate physical truth, verify signatures or grant admission.
+
+Schema validation operates on parsed JSON values, not raw bytes. Under standard
+JSON Schema semantics, a mathematical integer such as `1.0` satisfies type
+integer; the existing inspector additionally rejects it through strict parsed
+types. External byte pins, duplicate-key rejection, input budgets and strict
+runtime types remain separate checks. A schema result cannot replace them.
+
+Provider output permits OBSERVED, EMPTY, MISSING and UNAVAILABLE only.
+NOT_COLLECTED belongs to the manifest template. Manifest NOT_COLLECTED requires
+null observed values and receipt hashes. EMPTY requires an actual empty list,
+never null. Required hardware EMPTY remains a blocker even though its reporting
+shape is valid. OBSERVED/MISSING require nonempty observed structures;
+UNAVAILABLE cannot carry partial observed rows. A valid claim of any state
+still produces BLOCKED in the existing diagnostic inspector.
+
+Collector provider names and physical manifest groups are different namespaces.
+For example, `cpu`/`disk` metadata do not establish resource enforcement, and
+`gpu` adapter metadata do not establish real CUDA execution. The collector does
+not supply a Python/Torch inventory, independent VM identity, process creation
+binding, source ownership or complete ancestor ACL/mount evidence.
+
+Mocked PowerShell5.1/7 tests replace every inventory command. They check array
+cardinality, nulls, required fields, error redaction and state reporting against
+the declarative schema. They run no real CIM/NetTCPIP/ACL/process inventory.
+Compatibility is limited to those mocked outputs; actual Windows provider
+behavior, physical controls and target acceptance remain unqualified.
+
+The schema is deliberately stricter than the existing bounded diagnostic
+inspector for descriptive fields: descriptions/lists are typed and all exact
+reporting fields are required. `command_captures` remains untrusted descriptive
+JSON, not validated command policy. No executable qualification, capture or
+admission implementation is added by this reporting-only update.
+
+Use [the read-only checklist](G0_READ_ONLY_VM_CHECKLIST.md) and
+[ten-group final-report template](G0_FINAL_REPORT.template.md). Every unobserved
+physical fact remains NOT_COLLECTED/null. Older physical notes elsewhere in the
+repository are historical records, never permission to probe a current host.
+
 ## Evidence handling
 
 An independent API test created task-owned .pytest-api-final-cycle-20261027 under
