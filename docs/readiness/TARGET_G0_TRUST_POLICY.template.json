@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "purpose": "G0_EXTERNAL_PROVISIONING_REVIEW_POLICY",
+  "status": "DRAFT_NOT_PROVISIONED_NOT_EXECUTABLE",
+  "execution_authorized": false,
+  "policy_sha256_external_pin": null,
+  "release": {"source_sha": null, "tree_sha": null, "package_sha256": null, "command_manifest_sha256": null},
+  "roles": {
+    "target_owner": {"identity": null, "key_id": null, "public_key_sha256": null, "provisioning_receipt_sha256": null},
+    "hypervisor_or_provider": {"identity": null, "key_id": null, "public_key_sha256": null, "provisioning_receipt_sha256": null},
+    "independent_reviewer": {"identity": null, "key_id": null, "public_key_sha256": null, "provisioning_receipt_sha256": null}
+  },
+  "authority_rules": [
+    "Keys and policy pins delivered independently of candidate package, manifests and candidate VM",
+    "Provider identity and local guest observations require an independently reviewed binding",
+    "Owner cannot self-provision provider authority; candidate self-report is never target attestation",
+    "Known public software fixture keys are never accepted as physical authority",
+    "Unknown, revoked, expired, ambiguous or substituted keys block review",
+    "Signature verification alone does not establish historical truth, observation completeness or admission"
+  ],
+  "signature_requirements": {"algorithm": "Ed25519", "domain": "STRATTESTER_G0_TARGET_BINDING_V1 followed by NUL", "canonicalization": "canonical_bytes of UTF-8 JSON without signatures field; duplicate keys and nonfinite numbers rejected", "verifier_executable_sha256": null, "independent_verification_receipt_sha256": null, "implementation_status": "SIGNATURE_BINDING_VERIFIER_IMPLEMENTED_NO_G0_ADMISSION"},
+  "freshness": {"verification_time_ns": null, "issued_at_ns": null, "expires_at_ns": null, "challenge_nonce_sha256": null, "private_replay_registry_receipt_sha256": null},
+  "protected_targets": ["LS5", "PC4"],
+  "automatic_admission": false,
+  "physical_g0": "PLAN_READY_TARGET_EVIDENCE_BLOCKED",
+  "physical_g1": "NOT_AUTHORIZED",
+  "trading": "NO-GO"
+}

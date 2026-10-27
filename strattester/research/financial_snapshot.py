@@ -5,6 +5,7 @@ No production schemas, epochs, knowledge timestamps or quality are synthesized.
 from dataclasses import asdict, fields
 from hashlib import sha256
 import json
+import math
 import os
 from pathlib import Path
 import sqlite3
@@ -78,7 +79,11 @@ def bounded_json(data):
             if depth>64: raise ValueError('JSON nesting budget')
         elif byte in (93,125): depth-=1
     def invalid_constant(value): raise ValueError('nonfinite JSON constant')
-    try: payload=json.loads(data,object_pairs_hook=unique_object,parse_constant=invalid_constant)
+    def finite_float(value):
+        number=float(value)
+        if not math.isfinite(number): raise ValueError('nonfinite JSON number')
+        return number
+    try: payload=json.loads(data,object_pairs_hook=unique_object,parse_constant=invalid_constant,parse_float=finite_float)
     except (RecursionError,UnicodeError) as exc: raise ValueError('invalid bounded JSON') from exc
     if type(payload) is not dict: raise ValueError('JSON object required')
     return payload

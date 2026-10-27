@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "evidence_kind": "OWNER_DECLARATION_NOT_TARGET_ATTESTATION",
+  "vm_selection": "NOT_SELECTED",
+  "hypervisor_provider_id": "NOT_COLLECTED",
+  "vm_identity_uuid": "NOT_COLLECTED",
+  "vm_owner": "NOT_COLLECTED",
+  "authorized_sandbox_paths": "NOT_AUTHORIZED",
+  "authorized_evidence_paths": "NOT_AUTHORIZED",
+  "private_identity_receipt_delivery": "NOT_DEFINED",
+  "snapshot_rollback_guarantees": "NOT_VERIFIED",
+  "g0_qualification": "BLOCKED",
+  "g1_execute": "NOT_AUTHORIZED",
+  "g1_cleanup": "NOT_AUTHORIZED",
+  "deployment": "NO-GO",
+  "protected_nodes": ["LS5", "PC4"],
+  "physical_collection_executed": false
+}

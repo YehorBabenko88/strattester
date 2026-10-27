@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "purpose": "PRIVATE_READ_ONLY_G0_CAPTURE_REVIEW_PLAN",
+  "state": "NOT_COLLECTED",
+  "execution_authorized": false,
+  "target_identity_receipt_sha256": null,
+  "command_manifest_sha256": null,
+  "capture_boundary": {"tool_absolute_path": null, "tool_sha256": null, "independent_enforcement_receipt_sha256": null, "wall_seconds_per_command": 30, "stdout_stderr_bytes_per_command_combined": 8388608, "minimum_free_disk_bytes": 2147483648, "operator_abort_identity": null},
+  "private_storage": {"root": null, "backing_volume_identity_sha256": null, "owner_sid": null, "reviewer_sid": null, "ancestor_acl_receipt_sha256": null, "encryption_and_key_custody_receipt_sha256": null, "retention_policy_receipt_sha256": null, "quota_receipt_sha256": null},
+  "capture_record_fields": ["command_id", "exact_argv_manifest_sha256", "tool_sha256", "target_identity_receipt_sha256", "start_time_ns", "end_time_ns", "exit_code", "timed_out", "output_truncated", "stdout_sha256", "stderr_sha256", "capture_bytes", "observation_state", "private_owner_receipt_sha256"],
+  "rules": ["No target execution until all pins and independent controls are admitted", "Private raw streams retained separately from reviewed publishable summaries", "Failed, timed-out, truncated or partial captures never become EMPTY or OBSERVED", "No raw identities, paths, process arguments, environment, credentials or provider error text in public reports", "No credentials or private signing keys in package or target evidence", "No remote providers, DB connections, service changes, ACL/firewall changes, installations or native worker execution", "STOP on unknown owner, protected target, unexpected IO/network/process/write, secret exposure or bound failure", "No automatic deletion; preserve failed captures and nonce/replay history"],
+  "cleanup_review": {"exact_owned_objects": null, "owner_receipt_sha256": null, "cleanup_authorized": false},
+  "physical_g0": "PLAN_READY_TARGET_EVIDENCE_BLOCKED",
+  "physical_g1": "NOT_AUTHORIZED"
+}

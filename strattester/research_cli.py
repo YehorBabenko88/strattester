@@ -37,6 +37,10 @@ def parser():
     g0=sub.add_parser('inspect-g0-evidence')
     g0.add_argument('--manifest',required=True)
     g0.add_argument('--manifest-sha256',required=True)
+    receipt=sub.add_parser('verify-g0-receipt')
+    for flag in ('manifest','manifest-sha256','policy','policy-sha256','trust-store','trust-store-sha256','openssl-exe','openssl-sha256','scratch-root'):
+        receipt.add_argument('--'+flag,required=True)
+    receipt.add_argument('--verification-time-ns',required=True,type=int)
     funding=sub.add_parser('verify-funding')
     for flag in ('funding','funding-sha256','policy','policy-sha256','trust-store','trust-store-sha256','openssl-exe','openssl-sha256','scratch-root'):
         funding.add_argument('--'+flag,required=True)
@@ -72,7 +76,12 @@ def _profile(path,expected_sha256):
 def main(argv=None):
     a=parser().parse_args(argv)
     try:
-        if a.command=='inspect-g0-evidence':
+        if a.command=='verify-g0-receipt':
+            from .research.financial_g0_receipt import verify_g0_receipt
+            result=verify_g0_receipt(manifest_path=a.manifest,manifest_sha256=a.manifest_sha256,
+                policy_path=a.policy,policy_sha256=a.policy_sha256,trust_store_path=a.trust_store,
+                trust_store_sha256=a.trust_store_sha256,verifier=_verifier(a),now_ns=a.verification_time_ns)
+        elif a.command=='inspect-g0-evidence':
             from .research.financial_g0_evidence import inspect_g0_evidence
             result=inspect_g0_evidence(a.manifest,a.manifest_sha256)
         elif a.command=='verify-executables':

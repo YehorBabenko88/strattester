@@ -103,3 +103,34 @@ def test_no_referenced_artifact_execution_or_external_io(tmp_path, monkeypatch):
     assert inspect(tmp_path, payload)['status'] == 'BLOCKED'
     assert calls == [str(tmp_path / 'manifest.json')]
     assert list(tmp_path.iterdir()) == [tmp_path / 'manifest.json']
+
+
+@pytest.mark.parametrize('token', ['1e309', '-1e999', '9.99e9999'])
+@pytest.mark.parametrize('location', ['observed', 'command_captures', 'description'])
+def test_overflow_json_numbers_rejected_before_claim_inspection(tmp_path, token, location):
+    from strattester.research.financial_g0_evidence import inspect_g0_evidence
+    payload = json.loads(TEMPLATE.read_text())
+    if location == 'observed':
+        payload['facts']['host_identity'].update(capture_state='OBSERVED', observed={'number': 'EXPONENT'})
+    elif location == 'command_captures':
+        payload['command_captures'] = {'untrusted': 'EXPONENT'}
+    else:
+        payload['stop_conditions'] = ['EXPONENT']
+    data = json.dumps(payload).encode().replace(b'"EXPONENT"', token.encode())
+    path = tmp_path / 'overflow.json'
+    path.write_bytes(data)
+    with pytest.raises(ValueError, match='nonfinite'):
+        inspect_g0_evidence(str(path), hashlib.sha256(data).hexdigest())
+
+
+@pytest.mark.parametrize('token', ['1e308', '-1e308', '1e-9999'])
+def test_finite_extremes_do_not_create_admission(tmp_path, token):
+    from strattester.research.financial_g0_evidence import inspect_g0_evidence
+    payload = json.loads(TEMPLATE.read_text())
+    payload['facts']['host_identity'].update(capture_state='OBSERVED', observed={'number': 'EXPONENT'})
+    data = json.dumps(payload).encode().replace(b'"EXPONENT"', token.encode())
+    path = tmp_path / 'finite.json'
+    path.write_bytes(data)
+    result = inspect_g0_evidence(str(path), hashlib.sha256(data).hexdigest())
+    assert result['status'] == 'BLOCKED'
+    assert all(g['admission'] == 'BLOCKED' for g in result['groups'].values())

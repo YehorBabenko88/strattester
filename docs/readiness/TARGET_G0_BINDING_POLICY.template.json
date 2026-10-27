@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "purpose": "G0_BINDING_VERIFICATION_POLICY",
+  "expected": {
+    "source_sha": null, "tree_sha": null, "package_sha256": null,
+    "command_manifest_sha256": null, "vm_identity_sha256": null,
+    "provider_identity_sha256": null, "sandbox_root_sha256": null,
+    "evidence_root_sha256": null, "snapshot_generation_sha256": null,
+    "rollback_receipt_sha256": null, "private_delivery_receipt_sha256": null,
+    "capture_controls_receipt_sha256": null, "acl_scope_receipt_sha256": null,
+    "tool_roster_sha256": null, "evidence_manifest_sha256": null
+  },
+  "owner_id": null, "provider_id": null, "owner_key_id": null, "provider_key_id": null,
+  "valid_from_ns": null, "valid_until_ns": null
+}
