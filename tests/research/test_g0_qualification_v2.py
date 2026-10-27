@@ -57,7 +57,7 @@ def fixture(root):
             stdout_stderr_bytes_per_command_combined=8388608, minimum_free_disk_bytes=2147483648,
             independent_enforcement_receipt_sha256='b'*64),
         private_evidence=dict(delivery_receipt_sha256='b'*64, acl_scope_receipt_sha256='b'*64,
-            evidence_root_sha256='b'*64, backing_volume_identity_sha256='6'*64,
+            evidence_root_sha256='b'*64, backing_volume_identity_sha256='2'*64,
             encryption_and_key_custody_receipt_sha256='7'*64, retention_policy_receipt_sha256='8'*64,
             quota_receipt_sha256='9'*64, owner_identity_sha256='a'*64, reviewer_identity_sha256='c'*64),
         captures=captures)
@@ -255,6 +255,7 @@ def test_cli_private_error_is_sanitized(tmp_path, capsys):
     output = capsys.readouterr().out
     assert 'PRIVATE_CANARY' not in output
     assert json.loads(output)['status'] == 'BLOCKED'
+    assert json.loads(output).get('trading') == 'NO-GO'
 
 
 @pytest.mark.parametrize('field,value', [
@@ -302,6 +303,8 @@ def test_capture_wall_boundary_within_otherwise_valid_signed_window(tmp_path, de
     bp.update(valid_from_ns=100000000000, valid_until_ns=200000000000)
     r.update(valid_from_ns=100000000000, valid_until_ns=200000000000, maximum_replay_age_ns=30000000000)
     replay['observed_at_ns'] = 140000000000
+    for key in trust['keys']:
+        key.update(valid_from_ns=100000000000, valid_until_ns=200000000000)
     for capture in q['captures']:
         capture.update(start_time_ns=120000000000, end_time_ns=120000000000+delta)
     e['command_captures'] = copy.deepcopy(q['captures'])
@@ -309,3 +312,10 @@ def test_capture_wall_boundary_within_otherwise_valid_signed_window(tmp_path, de
     if valid: assert verify(now_ns=160000000000)['contract_verified'] is True
     else:
         with pytest.raises(ValueError): verify(now_ns=160000000000)
+
+
+def test_redundant_evidence_capture_boolean_is_not_equal_to_integer(tmp_path):
+    q, e, r, replay, m, bp, trust, publish, verify, _ = fixture(tmp_path)
+    e['command_captures'][0]['stderr_bytes'] = False
+    publish()
+    with pytest.raises(ValueError): verify()

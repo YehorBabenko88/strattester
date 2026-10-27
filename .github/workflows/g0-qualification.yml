@@ -1,0 +1,73 @@
+name: g0-qualification-v2
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: g0-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  contract:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[dev]'
+      - name: Verify exact HEAD and synthetic G0 contracts
+        shell: python
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          import hashlib, json, os, pathlib, platform, subprocess, sys
+          head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          assert head == os.environ['EXPECTED_HEAD'], 'stale checkout'
+          tree = subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip()
+          out = pathlib.Path('results/g0-v2'); out.mkdir(parents=True)
+          files = ['tests/research/test_g0_qualification_v2.py',
+                   'tests/research/test_g0_qualification_independent.py',
+                   'tests/research/test_g0_evidence_inspection.py',
+                   'tests/research/test_g0_signed_receipt.py',
+                   'tests/research/test_parallel_g0_preflight.py',
+                   'tests/research/test_parallel_trust_verifier.py']
+          if sys.platform == 'win32':
+              files += ['tests/test_physical_g0_inventory_contract.py']
+          command = [sys.executable, '-m', 'pytest', *files, '-v', '--strict-markers',
+                     '--basetemp=results/g0-disposable-fixtures', '--json-report',
+                     '--json-report-file=results/g0-v2/pytest.json', '--junitxml=results/g0-v2/junit.xml']
+          run = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=600)
+          (out/'pytest.log').write_bytes(run.stdout)
+          print(run.stdout.decode(errors='replace'))
+          report = json.loads((out/'pytest.json').read_text()) if (out/'pytest.json').exists() else {}
+          nodes = report.get('tests', [])
+          complete = bool(nodes) and all(n['outcome'] == 'passed' for n in nodes)
+          (out/'provenance.json').write_text(json.dumps(dict(head=head, tree=tree,
+              python=sys.version, platform=platform.platform(), command=command,
+              exit_code=run.returncode, collected=report.get('summary', {}),
+              nodeids=[n['nodeid'] for n in nodes], no_skips=complete,
+              physical_collection='NOT_EXECUTED', physical_g0='PLAN_READY_TARGET_EVIDENCE_BLOCKED',
+              physical_g1='NOT_AUTHORIZED', trading='NO-GO'), indent=2)+'\n')
+          hashes = {p.name: dict(bytes=p.stat().st_size, sha256=hashlib.sha256(p.read_bytes()).hexdigest())
+                    for p in sorted(out.iterdir()) if p.is_file()}
+          (out/'SHA256.json').write_text(json.dumps(hashes, indent=2)+'\n')
+          assert run.returncode == 0 and complete, 'G0 software contract checks failed/incomplete'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g0-v2-${{ matrix.os }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: results/g0-v2/
+          if-no-files-found: error
