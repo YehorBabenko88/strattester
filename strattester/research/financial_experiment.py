@@ -14,6 +14,7 @@ from .financial_structural_model import StructuralConfig, build_structural_model
 from .financial_training import fit_structural, TrainingCancelled
 from .financial_checkpoint import save_checkpoint
 from .financial_evaluation import Trade,evaluate_ledger,gaussian_scores,evaluate_controls
+from .financial_calibration import fit_scale_calibration, calibrated_scores
 
 
 @dataclass(frozen=True)
@@ -105,6 +106,8 @@ def run_experiment(examples,checkpoint_path,*,train_end,validation_end,test_end,
         a,b,c,tf=s.instrument.split('|')
         return a,b,c,int(tf),s.decision_time
     train=[s for s in train if key_for(s)[2] not in holdout_symbols]
+    # Instrument holdout includes selection/calibration, not only weight fit.
+    val=[s for s in val if key_for(s)[2] not in holdout_symbols]
     if not train or not val or not test:raise ValueError('nonempty chronological partitions required')
     assert_no_cross_partition_label_overlap(train,val,test)
     # Check every evaluation interval before training or publishing artifacts.
@@ -127,14 +130,19 @@ def run_experiment(examples,checkpoint_path,*,train_end,validation_end,test_end,
     if not changed:raise ValueError('optimizer did not update parameters')
     train_digest=_example_fingerprint((records[key_for(s)] for s in train),cancel)
     model.eval()
-    def predictions(partition):
+    def predictions(partition,exclude_holdout=False):
         result=[]
         with torch.no_grad():
             for s in partition:
                 if cancel():raise TrainingCancelled('cancelled during experiment evaluation')
-                result.append(model(tensors[key_for(s)],masks[key_for(s)])[0].tolist())
+                key=key_for(s)
+                keep=[i for i,identity in enumerate(track_ids[key])
+                      if not exclude_holdout or identity.symbol not in holdout_symbols]
+                result.append(model(tensors[key][:,keep],masks[key][:,keep])[0].tolist())
         return result
-    validation=predictions(val)
+    validation=predictions(val,exclude_holdout=True)
+    calibration=fit_scale_calibration([p[0] for p in validation],[p[1] for p in validation],
+                                      [s.forward_return for s in val])
     def ledger(partition,preds,threshold):
         return evaluate_ledger([Trade(s.instrument,s.decision_time,s.label_end_time,math.expm1(s.forward_return),
                                      int(p[0]>threshold)-int(p[0]<-threshold)) for s,p in zip(partition,preds)],
@@ -142,13 +150,26 @@ def run_experiment(examples,checkpoint_path,*,train_end,validation_end,test_end,
     threshold=max((0.,.0005,.001,.002),key=lambda t:ledger(val,validation,t)['mean'])
     # The test predictions are requested only after freezing validation choice.
     predictions_test=predictions(test);net=ledger(test,predictions_test,threshold)
-    controls=evaluate_controls([s.features for s in train],[s.forward_return for s in train],
-                               [s.features for s in test],[s.forward_return for s in test],seed=seed,
+    def control_predictions(partition):
+        return evaluate_controls([s.features for s in train],[s.forward_return for s in train],
+                               [s.features for s in partition],[s.forward_return for s in partition],seed=seed,
                                train_events=[(s.instrument,s.decision_time) for s in train],
-                               test_events=[(s.instrument,s.decision_time) for s in test],
+                               test_events=[(s.instrument,s.decision_time) for s in partition],
                                history_x=[s.features for s in ordered],
-                               history_events=[(s.instrument,s.decision_time) for s in ordered])
+                               history_events=[(s.instrument,s.decision_time) for s in ordered],include_predictions=True)
+    validation_controls=control_predictions(val)
+    control_thresholds={name:max((0.,.0005,.001,.002),
+        key=lambda t:ledger(val,[[v] for v in values],t)['mean'])
+        for name,values in validation_controls['predictions'].items()}
+    test_controls=control_predictions(test)
+    controls=test_controls['mae']
+    scorecards={name:{'mae':controls[name],'threshold':control_thresholds[name],
+                     'selection_partition':'VALIDATION_ONLY',
+                     'ledger':ledger(test,[[v] for v in values],control_thresholds[name])}
+                for name,values in test_controls['predictions'].items()}
     metrics=gaussian_scores([p[0] for p in predictions_test],[p[1] for p in predictions_test],[s.forward_return for s in test])
+    calibrated=calibrated_scores([p[0] for p in predictions_test],[p[1] for p in predictions_test],
+                                 [s.forward_return for s in test],calibration)
     interval=bootstrap_mean_ci(net['returns'],seed=seed,block_size=min(3,len(test)))
     if cancel():
         raise TrainingCancelled('cancelled before experiment publication')
@@ -163,6 +184,9 @@ def run_experiment(examples,checkpoint_path,*,train_end,validation_end,test_end,
             'model_sha256':model_digest,'train_count':len(train),'validation_count':len(val),'test_count':len(test),
             'holdout_count':sum(key_for(s)[2] in holdout_symbols for s in test),'parameters_updated':changed,
             'losses':losses,'threshold':threshold,'controls':controls,'ledger':net,
+            'training_instruments':sorted({s.instrument for s in train}),
+            'calibration':calibration,'calibrated_test_metrics':calibrated,
+            'control_scorecards':scorecards,
             'exploratory_ci':interval,'test_metrics':metrics}
 
 
@@ -212,14 +236,32 @@ def run_walk_forward(examples,checkpoint_dir,folds,*,config=StructuralConfig(),s
                 if any(row.decision_time<p.label_end_time and p.decision_time<row.label_end_time for p in prior_test):
                     raise ValueError('prior OOS cannot enter later train/validation without explicit sequential retraining')
         previous_end=end;prior_test.extend(test);windows.append(bounds)
+    import os
+    import tempfile
+    from .financial_snapshot import reject_linked_path,verified_bytes
     root=Path(checkpoint_dir)
+    reject_linked_path(root.parent)
     if root.is_symlink() or root.exists() and not root.is_dir():raise ValueError('ordinary checkpoint directory required')
     paths=[root/f'fold-{i:03d}.json' for i in range(len(windows))]
     if any(p.exists() or p.is_symlink() for p in paths):raise ValueError('fold checkpoint exists; refusing replay')
     root.mkdir(parents=True,exist_ok=True)
-    reports=[run_experiment(examples,path,train_end=a,validation_end=b,test_end=c,
+    reject_linked_path(root)
+    # Train ALL folds privately. Late training/evaluation/cancellation failure
+    # leaves no registered fold path, so deterministic restart is possible.
+    with tempfile.TemporaryDirectory(prefix='.fold-stage-',dir=root) as temporary:
+        stage=Path(temporary)
+        reports=[run_experiment(examples,stage/path.name,train_end=a,validation_end=b,test_end=c,
                             config=config,steps=steps,seed=seed+i,**experiment_options)
              for i,(path,(a,b,c)) in enumerate(zip(paths,windows))]
+        if cancel():raise TrainingCancelled('cancelled before fold publication')
+        # Exclusive publication preserves accepted artifacts. If the OS fails
+        # during publication, remaining final files are UNREGISTERED and must
+        # be inspected against external pins; never unlink paths on rollback.
+        for path,report in zip(paths,reports):
+            try:os.link(stage/path.name,path)
+            except FileExistsError as exc:raise ValueError('fold checkpoint exists; refusing replay') from exc
+            (stage/path.name).unlink()
+            verified_bytes(path,report['model_sha256'],8*1024*1024)
     return {'status':'SYNTHETIC_ENGINEERING_ONLY','real_oos':'BLOCKED','fold_count':len(reports),'folds':reports,
             'fold_independence':'SEQUENTIAL_RETRAINING' if allow_retraining_on_prior_oos else 'NO_PRIOR_OOS_REUSE',
             'aggregation':'NO_POOLED_PORTFOLIO_CLAIM'}

@@ -58,6 +58,8 @@ inventory=root.parent/'executables.json'
 assert main(['verify-executables','--manifest',str(inventory),'--manifest-sha256',sha256(inventory.read_bytes()).hexdigest()])==0
 from strattester.research.financial_funding import FundingWindow,FundingEvent
 from strattester.research.financial_authenticated_funding import FundingPolicy,load_authenticated_funding
+from strattester.research.financial_checkpoint_replay import verify_walkforward_replay
+from strattester.research.financial_walkforward_funding import load_walkforward_funding
 from strattester.readonly_api import ReadOnlyResultsApp
 captured=[]
 import json
