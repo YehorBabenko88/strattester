@@ -21,7 +21,7 @@ RUNTIME_FILES=('strattester/__init__.py','strattester/research_cli.py','strattes
  'strattester/strategies/builtin/__init__.py','strattester/strategies/builtin/financial_structural.py',
  'strattester/engine/__init__.py','strattester/engine/executor.py','strattester/marketdata/__init__.py','strattester/marketdata/datasets.py')
 RESEARCH_MODULES=('financial_contract','financial_snapshot','financial_signed_export','financial_signatures','financial_checkpoint',
- 'financial_structural_model','financial_pipeline','financial_training','financial_torch_runtime','financial_executable_inventory','financial_evaluation','financial_funding','financial_experiment','financial_offline_jobs',
+ 'financial_structural_model','financial_pipeline','financial_training','financial_torch_runtime','financial_executable_inventory','financial_evaluation','financial_funding','financial_authenticated_funding','financial_experiment','financial_offline_jobs',
  'financial_attested_inference','financial_owner_authorization','financial_owner_intent_v2','financial_test_package','financial_session','financial_report_export','financial_experiment_session',
  'financial_walkforward_session','financial_walkforward_fixture','financial_grid_exporter','grid_producer_readiness','alphafold_msa_attention','alphafold_outer_product','alphafold_pair_stack',
  'alphafold_triangle','alphafold_triangle_attention','alphafold_security')
