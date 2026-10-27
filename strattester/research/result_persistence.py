@@ -12,7 +12,7 @@ def _metrics(m):
 def persist_report(store,run_id,symbol,strategy_result,report):
     metrics=_metrics(report.primary)
     metrics['fingerprint']=strategy_result.fingerprint
-    metrics['coverage']='COMPLETE_HISTORY'
+    metrics['coverage']='UNVERIFIED'
     store.put(run_id,symbol,strategy_result.strategy_id,strategy_result.strategy_version,metrics)
     return metrics
 
@@ -21,7 +21,7 @@ def persist_report_fenced(store,stage_id,run_id,symbol,strategy_result,report,le
     """Persist scientific output without allowing a stale worker to publish it."""
     metrics=_metrics(report.primary)
     metrics['fingerprint']=strategy_result.fingerprint
-    metrics['coverage']='COMPLETE_HISTORY'
+    metrics['coverage']='UNVERIFIED'
     store.stage(stage_id,run_id,symbol,strategy_result.strategy_id,strategy_result.strategy_version,metrics,job_id=job_id,lease_token=lease_token,node_generation=node_generation)
     if not store.promote(stage_id,lease_validator):
         raise RuntimeError('result publication fenced: execution authority is no longer valid')

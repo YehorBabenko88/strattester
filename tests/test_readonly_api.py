@@ -15,7 +15,7 @@ def test_capabilities_never_advertise_unqualified_results():
     status, data = request('/internal/v1/capabilities')
     assert status == 200
     assert data['api_version'] == {'major': 1, 'minor': 0}
-    assert data['capabilities'] == {'historical_research': False, 'runs': False, 'run_metrics': False}
+    assert data['capabilities'] == {'historical_research': False, 'runs': False, 'run_metrics': False, 'immutable_research_v1_1': True}
     assert data['read_only'] is True
 
 
@@ -31,7 +31,7 @@ def test_source_results_are_mutable_and_lack_dataset_identity(tmp_path):
     for route in ('/health', '/runs', '/runs/run/metrics'):
         status, data = request('/internal/v1' + route, source=path)
         assert status == 503
-        assert data['reason'] == 'SOURCE_PROVENANCE_UNQUALIFIED'
+        assert data['reason'] == ('SOURCE_PROVENANCE_UNQUALIFIED' if route == '/health' else 'SOURCE_TRUST_UNCONFIGURED')
         assert 'metrics' not in data and 'run_id' not in data
     assert path.read_bytes() == before
 

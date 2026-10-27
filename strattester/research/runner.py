@@ -20,7 +20,7 @@ class ResearchRunner:
                     raise RuntimeError(f'required history not ready: {dataset}/{tf}: {r.state.value} {r.message}'.strip())
         return tuple(results)
 
-    def run(self,definition,instrument,*,start_ms:int|None=None,end_ms:int,checkpoint=None):
+    def run(self,definition,instrument,*,start_ms:int|None=None,end_ms:int,checkpoint=None,result_store=None,provenance=None):
         symbol=instrument['symbol']
         launch=int(instrument.get('launchTime') or 0)
         launch=(launch//60_000)*60_000
@@ -28,4 +28,7 @@ class ResearchRunner:
         if end_ms<start:
             raise ValueError('end_ms precedes instrument availability')
         self._sync_definition(definition,symbol,start,end_ms)
+        if result_store is not None:
+            from strattester.research.provenance import execute_owned
+            return execute_owned(definition,self.store,symbol,start,end_ms,result_store,checkpoint=checkpoint,**(provenance or {}))
         return execute_strategy(definition,self.store,symbol,checkpoint=checkpoint,start_ms=start,end_ms=end_ms)
