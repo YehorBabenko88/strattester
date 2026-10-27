@@ -42,10 +42,12 @@ def inspect_zip_bytes(payload, *, expected_sha256, max_archive=32_000_000,
                     for part in components
                 )):
                     issues.append("unsafe_windows_entry")
-                canonical = name.casefold()
+                canonical = name.rstrip("/").casefold()
                 if canonical in names:
                     issues.append("duplicate_entry_name")
                 names.add(canonical)
+                if entry.compress_type not in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED):
+                    issues.append("unsupported_compression")
                 if entry.flag_bits & 0x1:
                     issues.append("encrypted_entry")
                 if (entry.external_attr >> 16) & 0o170000 == 0o120000:
