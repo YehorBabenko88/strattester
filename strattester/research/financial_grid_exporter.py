@@ -111,8 +111,14 @@ def _reader(source, check, *, max_bytes=8*1024*1024):
                 except Exception: return 1
             con.set_progress_handler(progress, 1000)
             con.execute('BEGIN')
-            schema = tuple(r[0] for r in con.execute("SELECT sql FROM sqlite_master WHERE type='table' ORDER BY name LIMIT 3"))
-            if schema != DDL: raise ValueError('BLOCKED: physical schema identity')
+            # DDL pins the complete schema, not merely its table subset. An
+            # auxiliary view/index/trigger is outside the reviewed profile even
+            # when its current logical rows match the externally pinned seal.
+            schema = tuple(con.execute(
+                "SELECT type,name,tbl_name,sql FROM sqlite_master ORDER BY name LIMIT 3"))
+            expected_schema = tuple(('table', name, name, ddl) for name, ddl in
+                                    zip(('history_meta', 'history_rows'), DDL))
+            if schema != expected_schema: raise ValueError('BLOCKED: physical schema identity')
             yield con.execute
         except sqlite3.OperationalError:
             check()
