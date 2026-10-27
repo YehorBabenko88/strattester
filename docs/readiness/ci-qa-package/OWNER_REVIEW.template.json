@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "purpose": "QUALIFICATION_REVIEW_ONLY_NOT_EXECUTION_AUTHORIZATION",
+  "source_sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+  "source_tree": "0f7626787ec835a9a945a8e576d19181044f23ec",
+  "qualification_zip_sha256": null,
+  "native_binary_sha256": "a8420da78900865c7fb061e9bfaf5104d15f72d3fbd62c21ce534f5db8c7a6f5",
+  "owner_id": null,
+  "provider_id": null,
+  "vm_identity": null,
+  "authorized_paths": null,
+  "snapshot_rollback_receipt": null,
+  "private_delivery_receipt": null,
+  "nonce": null,
+  "issued_at": null,
+  "expires_at": null,
+  "owner_signature": null,
+  "provider_signature": null,
+  "physical_g0": "NOT_COLLECTED",
+  "g1_execute": "NOT_AUTHORIZED",
+  "g1_cleanup": "NOT_AUTHORIZED",
+  "trading": "NO-GO"
+}

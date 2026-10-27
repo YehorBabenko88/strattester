@@ -1,0 +1,463 @@
+{
+  "source_sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+  "runs": [
+    {
+      "id": 40548912498,
+      "name": "alphafold-research-cpu",
+      "head_sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+      "conclusion": "success",
+      "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40548912498",
+      "run_attempt": 1
+    },
+    {
+      "id": 40548912536,
+      "name": "financial-integration",
+      "head_sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+      "conclusion": "failure",
+      "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40548912536",
+      "run_attempt": 1
+    },
+    {
+      "id": 40548912336,
+      "name": "tests",
+      "head_sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+      "conclusion": "success",
+      "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40548912336",
+      "run_attempt": 1
+    },
+    {
+      "id": 40548912423,
+      "name": "mathematical-contract-reference",
+      "head_sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+      "conclusion": "success",
+      "html_url": "https://github.com/YehorBabenko88/strattester/actions/runs/40548912423",
+      "run_attempt": 1
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 12754905423,
+      "name": "financial-security-f60869686a51693799b4844a1af49c9b39ba45d5",
+      "sha256": "941088f65a09c8261037a3b1e72064d19d9268eb5070ea0918926203bbda93b2",
+      "bytes": 37330,
+      "api_size": 37330,
+      "digest_matches": true
+    },
+    {
+      "id": 12754900580,
+      "name": "financial-math-f60869686a51693799b4844a1af49c9b39ba45d5",
+      "sha256": "119f61290a6445b10e00daa4c0c22db285d2b0ef13364cdc588447302b1d7b83",
+      "bytes": 17199,
+      "api_size": 17199,
+      "digest_matches": true
+    },
+    {
+      "id": 12754776146,
+      "name": "financial-training-f60869686a51693799b4844a1af49c9b39ba45d5",
+      "sha256": "57b11d92b005338891cbcb506c8ef6d59236d9e31cf1fee44b5e4b25083eb03c",
+      "bytes": 9489,
+      "api_size": 9489,
+      "digest_matches": true
+    },
+    {
+      "id": 12754232111,
+      "name": "financial-acceptance-f60869686a51693799b4844a1af49c9b39ba45d5",
+      "sha256": "2227763f84ab02b2f7b951670a3f3ece7c24c220e04d23aac9562b5bfb7cc943",
+      "bytes": 507,
+      "api_size": 507,
+      "digest_matches": true
+    },
+    {
+      "id": 12754132150,
+      "name": "native-component-proof-f60869686a51693799b4844a1af49c9b39ba45d5",
+      "sha256": "b0310ec3b33eb1569c1c26e9357cef571653128c74e2642be2c08ffd245fcbd0",
+      "bytes": 2599642,
+      "api_size": 2599642,
+      "digest_matches": true
+    },
+    {
+      "id": 12754087064,
+      "name": "financial-cpu-f60869686a51693799b4844a1af49c9b39ba45d5",
+      "sha256": "026dc234bcbccf9d22ccfbd2154bb1f26a702082ed99276fa8bb2793a5d34ccd",
+      "bytes": 16880,
+      "api_size": 16880,
+      "digest_matches": true
+    },
+    {
+      "id": 12753328770,
+      "name": "financial-core-f60869686a51693799b4844a1af49c9b39ba45d5",
+      "sha256": "933faf75955df4831e9451e278a47af04fc13041c4f279a796f9cd22eb2daa20",
+      "bytes": 81535,
+      "api_size": 81535,
+      "digest_matches": true
+    },
+    {
+      "id": 12753289470,
+      "name": "financial-integration-f60869686a51693799b4844a1af49c9b39ba45d5",
+      "sha256": "e6d40f252cffc26493e5202d0042819de0af8016d8ba3e71a925675fa60f7c5c",
+      "bytes": 13131,
+      "api_size": 13131,
+      "digest_matches": true
+    },
+    {
+      "id": 12752919990,
+      "name": "financial-data-f60869686a51693799b4844a1af49c9b39ba45d5",
+      "sha256": "bfd259ba05a9aefcac44bcb00411f25e05aa96474e1b82e95b12cd80b428e8e1",
+      "bytes": 24133,
+      "api_size": 24133,
+      "digest_matches": true
+    }
+  ],
+  "gates": {
+    "security": {
+      "nodes": 336,
+      "raw_summary": {
+        "passed": 336,
+        "total": 336,
+        "collected": 336
+      },
+      "normalized": {
+        "schema": 1,
+        "sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+        "gate": "security",
+        "status": "PASS",
+        "exit_code": 0,
+        "passed": 336,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "deselected": 0,
+        "collected": 336,
+        "raw_summary": {
+          "passed": 336,
+          "total": 336,
+          "collected": 336
+        },
+        "python": "3.12.15 (main, Oct  1 2026, 02:35:59) [GCC 13.3.0]",
+        "torch": "2.14.1+cpu",
+        "platform": "linux"
+      },
+      "junit_multiset_matches": true
+    },
+    "math": {
+      "nodes": 146,
+      "raw_summary": {
+        "passed": 144,
+        "subtests passed": 2,
+        "total": 146,
+        "collected": 146
+      },
+      "normalized": {
+        "schema": 1,
+        "sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+        "gate": "math",
+        "status": "PASS",
+        "exit_code": 0,
+        "passed": 146,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "deselected": 0,
+        "collected": 146,
+        "raw_summary": {
+          "passed": 144,
+          "subtests passed": 2,
+          "total": 146,
+          "collected": 146
+        },
+        "python": "3.12.15 (main, Oct  1 2026, 02:35:59) [GCC 13.3.0]",
+        "torch": "2.14.1+cpu",
+        "platform": "linux"
+      },
+      "junit_multiset_matches": true
+    },
+    "training": {
+      "nodes": 66,
+      "raw_summary": {
+        "passed": 61,
+        "subtests passed": 5,
+        "total": 66,
+        "collected": 66
+      },
+      "normalized": {
+        "schema": 1,
+        "sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+        "gate": "training",
+        "status": "PASS",
+        "exit_code": 0,
+        "passed": 66,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "deselected": 0,
+        "collected": 66,
+        "raw_summary": {
+          "passed": 61,
+          "subtests passed": 5,
+          "total": 66,
+          "collected": 66
+        },
+        "python": "3.12.15 (main, Oct  1 2026, 02:35:59) [GCC 13.3.0]",
+        "torch": "2.14.1+cpu",
+        "platform": "linux"
+      },
+      "junit_multiset_matches": true
+    },
+    "cpu": {
+      "nodes": 141,
+      "raw_summary": {
+        "passed": 141,
+        "total": 141,
+        "collected": 141
+      },
+      "normalized": {
+        "schema": 1,
+        "sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+        "gate": "cpu",
+        "status": "PASS",
+        "exit_code": 0,
+        "passed": 141,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "deselected": 0,
+        "collected": 141,
+        "raw_summary": {
+          "passed": 141,
+          "total": 141,
+          "collected": 141
+        },
+        "python": "3.12.15 (main, Oct  1 2026, 02:35:59) [GCC 13.3.0]",
+        "torch": "2.14.1+cpu",
+        "platform": "linux"
+      },
+      "junit_multiset_matches": true
+    },
+    "core": {
+      "nodes": 594,
+      "raw_summary": {
+        "passed": 594,
+        "total": 594,
+        "collected": 594
+      },
+      "normalized": {
+        "schema": 1,
+        "sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+        "gate": "core",
+        "status": "PASS",
+        "exit_code": 0,
+        "passed": 594,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "deselected": 0,
+        "collected": 594,
+        "raw_summary": {
+          "passed": 594,
+          "total": 594,
+          "collected": 594
+        },
+        "python": "3.12.15 (main, Oct  1 2026, 02:35:59) [GCC 13.3.0]",
+        "torch": "2.14.1+cpu",
+        "platform": "linux"
+      },
+      "junit_multiset_matches": true
+    },
+    "integration": {
+      "nodes": 88,
+      "raw_summary": {
+        "passed": 88,
+        "total": 88,
+        "collected": 88
+      },
+      "normalized": {
+        "schema": 1,
+        "sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+        "gate": "integration",
+        "status": "PASS",
+        "exit_code": 0,
+        "passed": 88,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "deselected": 0,
+        "collected": 88,
+        "raw_summary": {
+          "passed": 88,
+          "total": 88,
+          "collected": 88
+        },
+        "python": "3.12.15 (main, Oct  1 2026, 02:35:59) [GCC 13.3.0]",
+        "torch": "2.14.1+cpu",
+        "platform": "linux"
+      },
+      "junit_multiset_matches": true
+    },
+    "data": {
+      "nodes": 185,
+      "raw_summary": {
+        "passed": 185,
+        "total": 185,
+        "collected": 185
+      },
+      "normalized": {
+        "schema": 1,
+        "sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+        "gate": "data",
+        "status": "PASS",
+        "exit_code": 0,
+        "passed": 185,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "deselected": 0,
+        "collected": 185,
+        "raw_summary": {
+          "passed": 185,
+          "total": 185,
+          "collected": 185
+        },
+        "python": "3.12.15 (main, Oct  1 2026, 02:35:59) [GCC 13.3.0]",
+        "torch": "2.14.1+cpu",
+        "platform": "linux"
+      },
+      "junit_multiset_matches": true
+    }
+  },
+  "full_test_summaries": {
+    "pytest (windows-latest, 3.11)": [
+      "2026-10-27T17:19:24.9461998Z ====== 1502 passed, 21 skipped, 21 subtests passed in 138.97s (0:02:18) =======\r"
+    ],
+    "pytest (ubuntu-latest, 3.11)": [
+      "2026-10-27T17:18:32.3156246Z ======= 1476 passed, 47 skipped, 21 subtests passed in 75.89s (0:01:15) ========"
+    ],
+    "pytest (ubuntu-latest, 3.13)": [
+      "2026-10-27T17:18:54.9459694Z = 1476 passed, 47 skipped, 3 warnings, 21 subtests passed in 88.18s (0:01:28) =="
+    ],
+    "pytest (windows-latest, 3.13)": [
+      "2026-10-27T17:21:52.5944421Z ====== 1502 passed, 21 skipped, 21 subtests passed in 200.37s (0:03:20) =======\r"
+    ]
+  },
+  "acceptance": {
+    "schema": 1,
+    "sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+    "status": "BLOCKED",
+    "trading": "NO-GO",
+    "physical_g1": "NOT_AUTHORIZED",
+    "failed": [],
+    "external": {
+      "real_oos": "BLOCKED",
+      "full_upstream_equivalence": "BLOCKED",
+      "grid_coherent_snapshot": "BLOCKED",
+      "physical_g0": "BLOCKED",
+      "gpu": "BLOCKED",
+      "owner_g1_authorization": "BLOCKED",
+      "windows_native_isolation": "BLOCKED"
+    },
+    "claimed_external": {
+      "grid_coherent_snapshot": "BLOCKED",
+      "real_oos": "BLOCKED",
+      "gpu": "BLOCKED",
+      "full_upstream_equivalence": "BLOCKED"
+    },
+    "evidence_authenticity": "UNVERIFIED_SELF_REPORT",
+    "gates": {
+      "core": "PASS",
+      "data": "PASS",
+      "math": "PASS",
+      "cpu": "PASS",
+      "training": "PASS",
+      "security": "PASS",
+      "integration": "PASS"
+    }
+  },
+  "native": {
+    "component-handles.json": {
+      "status": "READONLY_HANDLE_COMPONENT_PASS",
+      "native_enforcement": false,
+      "research_process_created": false
+    },
+    "component-native.json": {
+      "status": "COMPONENT_API_TESTS_PASS",
+      "token_privileges_remaining": 0,
+      "job_limits_queried": true,
+      "locked_input_fixtures": true,
+      "owned_probe_kill_on_close": true,
+      "native_enforcement": false,
+      "research_process_created": false
+    },
+    "component-wfp.json": {
+      "status": "WFP_OWNED_SOCKET_COMPONENT_PASS",
+      "native_enforcement": false,
+      "research_process_created": false,
+      "dns_service_proxy": "NOTIMPLEMENTED",
+      "arbitrary_child_identity": "NOTIMPLEMENTED"
+    },
+    "diagnose.json": {
+      "schema": 1,
+      "status": "BLOCKED",
+      "native_enforcement": false,
+      "research_process_created": false,
+      "binary_sha256": "a8420da78900865c7fb061e9bfaf5104d15f72d3fbd62c21ce534f5db8c7a6f5",
+      "current_process_in_job": true,
+      "component_validation": "NOTRUN",
+      "missing_controls": "owner_admission_execution_bridge,filesystem_confinement,network_egress,output_bounds,disposable_vm_verification"
+    },
+    "owner-nonce.json": {
+      "status": "OWNER_NONCE_COMPONENT_PASS",
+      "cleanup_manifest_sha256": "2653d519767b45017cb9fdeb80ed16de8bce94ef96b86cc97ce690bf1fa43f23",
+      "fixture": "C:\\Users\\runneradmin\\AppData\\Local\\StratTester-nonce-36ea4d46d8034bc2b56214c4e26adfa3",
+      "native_enforcement": false,
+      "research_process_created": false
+    },
+    "scope.json": {
+      "source_sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+      "G1": "NOTRUN",
+      "schema": 1,
+      "research_execution": "BLOCKED",
+      "runner": "github-hosted-disposable-windows",
+      "scope": "COMPONENT_API_DIRECT_TCP_OWNER_SIGNATURE_AND_NONCE",
+      "missing_controls": [
+        "dns_service_proxy",
+        "full_filesystem_namespace",
+        "owner_admission_execution_bridge",
+        "qualified_research_transport",
+        "output_bounds",
+        "complete_network_qualification"
+      ],
+      "native_enforcement": false,
+      "qualification": "NOT_FULL_SANDBOX"
+    }
+  },
+  "native_files": [
+    "build/build-manifest.json",
+    "build/StratTester.Native.exe",
+    "build.log",
+    "component-handles.json",
+    "component-native.json",
+    "component-wfp.json",
+    "contracts.log",
+    "diagnose.json",
+    "native-tests.json",
+    "native-tests.xml",
+    "owner-nonce-cleanup.json",
+    "owner-nonce.json",
+    "scope.json",
+    "source-blobs.txt"
+  ],
+  "native_binary_sha256": "a8420da78900865c7fb061e9bfaf5104d15f72d3fbd62c21ce534f5db8c7a6f5"
+}
