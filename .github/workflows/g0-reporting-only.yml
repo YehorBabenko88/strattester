@@ -1,0 +1,78 @@
+name: g0-reporting-only
+on:
+  push:
+    branches: [parallel/g0-vm-qualification]
+  pull_request:
+    paths:
+      - '.github/workflows/g0-reporting-only.yml'
+      - 'docs/readiness/G0_OBSERVATION_CONTRACT_V2.md'
+      - 'docs/readiness/G0_READ_ONLY_VM_CHECKLIST.md'
+      - 'docs/readiness/G0_FINAL_REPORT.template.md'
+      - 'docs/readiness/schemas/**'
+      - 'tests/test_g0_reporting_schemas.py'
+      - 'tests/test_physical_g0_inventory_contract.py'
+      - 'tests/research/test_g0_evidence_inspection.py'
+      - 'tests/research/test_parallel_g0_preflight.py'
+      - 'pyproject.toml'
+permissions:
+  contents: read
+concurrency:
+  group: g0-reporting-${{ github.head_ref || github.ref_name }}-${{ github.event_name }}
+  cancel-in-progress: true
+jobs:
+  reporting:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    env:
+      EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install development test dependencies only
+        run: python -m pip install -e '.[dev]'
+      - name: Require both mocked shell test prerequisites
+        shell: pwsh
+        run: |
+          Get-Command powershell.exe -ErrorAction Stop | Out-Null
+          Get-Command pwsh -ErrorAction Stop | Out-Null
+          New-Item -ItemType Directory -Path results/g0-reporting -Force | Out-Null
+      - name: Run reporting and fully mocked compatibility unit tests
+        shell: pwsh
+        run: |
+          python -m pytest tests/test_g0_reporting_schemas.py tests/test_physical_g0_inventory_contract.py tests/research/test_g0_evidence_inspection.py tests/research/test_parallel_g0_preflight.py -q --basetemp="$env:RUNNER_TEMP/g0-reporting-cases" --junitxml=results/g0-reporting/junit.xml --json-report --json-report-file=results/g0-reporting/pytest.json *> results/g0-reporting/pytest.log
+          $testExit = $LASTEXITCODE
+          Get-Content results/g0-reporting/pytest.log
+          exit $testExit
+      - name: Bind successful unit evidence to exact source and hashes
+        shell: python
+        run: |
+          import hashlib, json, os, pathlib, subprocess, sys
+          head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          assert head == os.environ['EXPECTED_HEAD']
+          root = pathlib.Path('results/g0-reporting')
+          report = json.loads((root/'pytest.json').read_bytes())
+          summary = report['summary']
+          assert report['exitcode'] == 0 and summary.get('passed', 0) == 267
+          assert all(summary.get(key, 0) == 0 for key in ('failed', 'error', 'skipped', 'deselected', 'xfailed', 'xpassed'))
+          files = [root/'pytest.json', root/'pytest.log', root/'junit.xml',
+              *sorted(pathlib.Path('docs/readiness/schemas').glob('*.json')),
+              pathlib.Path('scripts/physical_g0_inventory.ps1')]
+          payload = {'version': 1, 'head': head, 'python': sys.version,
+              'scope': 'REPORTING_UNIT_TESTS_AND_FULLY_MOCKED_PROVIDERS_ONLY',
+              'physical_collection_executed': False, 'physical_g0': 'BLOCKED',
+              'g1': 'NOT_AUTHORIZED', 'summary': summary,
+              'sha256': {p.as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
+          data = (json.dumps(payload, indent=2)+'\n').encode()
+          (root/'evidence.json').write_bytes(data)
+          (root/'evidence.sha256').write_text(hashlib.sha256(data).hexdigest()+'\n')
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g0-reporting-${{ github.event.pull_request.head.sha || github.sha }}
+          path: results/g0-reporting/
+          if-no-files-found: error

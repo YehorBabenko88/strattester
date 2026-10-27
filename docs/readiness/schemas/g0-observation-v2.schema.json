@@ -1,0 +1,1438 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "G0 collector schema 1 / observation contract 2",
+  "description": "Diagnostic format only. Validation never establishes physical truth, permission, G0/G1 acceptance or PASS.",
+  "$defs": {
+    "nullableSha256": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      ]
+    },
+    "nullableGitSha": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      ]
+    },
+    "requiredValue": {
+      "allOf": [
+        {
+          "not": {
+            "type": "null"
+          }
+        },
+        {
+          "if": {
+            "type": "string"
+          },
+          "then": {
+            "pattern": "\\S"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "schema": {
+      "type": "integer",
+      "const": 1
+    },
+    "observation_contract_version": {
+      "type": "integer",
+      "const": 2
+    },
+    "phase": {
+      "const": "G0_READ_ONLY"
+    },
+    "captured_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "node_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "node_identity_sha256": {
+      "$ref": "#/$defs/nullableSha256"
+    },
+    "os": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "Caption": {},
+            "Version": {},
+            "BuildNumber": {},
+            "OSArchitecture": {},
+            "TotalVisibleMemorySize": {},
+            "FreePhysicalMemory": {}
+          },
+          "required": [
+            "Caption",
+            "Version",
+            "BuildNumber",
+            "OSArchitecture",
+            "TotalVisibleMemorySize",
+            "FreePhysicalMemory"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "cpu": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Name": {},
+          "NumberOfCores": {},
+          "NumberOfLogicalProcessors": {}
+        },
+        "required": [
+          "Name",
+          "NumberOfCores",
+          "NumberOfLogicalProcessors"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "disk": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "DeviceID": {},
+          "Size": {},
+          "FreeSpace": {}
+        },
+        "required": [
+          "DeviceID",
+          "Size",
+          "FreeSpace"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {},
+          "status": {},
+          "start_type": {}
+        },
+        "required": [
+          "name",
+          "status",
+          "start_type"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "processes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Id": {},
+          "ProcessName": {},
+          "WorkingSet64": {}
+        },
+        "required": [
+          "Id",
+          "ProcessName",
+          "WorkingSet64"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "gpu": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Name": {},
+          "DriverVersion": {},
+          "AdapterRAM": {}
+        },
+        "required": [
+          "Name",
+          "DriverVersion",
+          "AdapterRAM"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "listeners": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "port": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "pid": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "scope": {
+            "enum": [
+              "loopback",
+              "wildcard",
+              "interface-redacted"
+            ]
+          }
+        },
+        "required": [
+          "port",
+          "pid",
+          "scope"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "udp_endpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "port": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "pid": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "scope": {
+            "enum": [
+              "loopback",
+              "wildcard",
+              "interface-redacted"
+            ]
+          }
+        },
+        "required": [
+          "port",
+          "pid",
+          "scope"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "observations": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "enum": [
+            "OBSERVED",
+            "EMPTY",
+            "MISSING",
+            "UNAVAILABLE"
+          ]
+        },
+        "os": {
+          "enum": [
+            "OBSERVED",
+            "EMPTY",
+            "MISSING",
+            "UNAVAILABLE"
+          ]
+        },
+        "cpu": {
+          "enum": [
+            "OBSERVED",
+            "EMPTY",
+            "MISSING",
+            "UNAVAILABLE"
+          ]
+        },
+        "disk": {
+          "enum": [
+            "OBSERVED",
+            "EMPTY",
+            "MISSING",
+            "UNAVAILABLE"
+          ]
+        },
+        "services": {
+          "enum": [
+            "OBSERVED",
+            "EMPTY",
+            "MISSING",
+            "UNAVAILABLE"
+          ]
+        },
+        "processes": {
+          "enum": [
+            "OBSERVED",
+            "EMPTY",
+            "MISSING",
+            "UNAVAILABLE"
+          ]
+        },
+        "tcp": {
+          "enum": [
+            "OBSERVED",
+            "EMPTY",
+            "MISSING",
+            "UNAVAILABLE"
+          ]
+        },
+        "udp": {
+          "enum": [
+            "OBSERVED",
+            "EMPTY",
+            "MISSING",
+            "UNAVAILABLE"
+          ]
+        },
+        "gpu": {
+          "enum": [
+            "OBSERVED",
+            "EMPTY",
+            "MISSING",
+            "UNAVAILABLE"
+          ]
+        },
+        "sandbox": {
+          "enum": [
+            "OBSERVED",
+            "EMPTY",
+            "MISSING",
+            "UNAVAILABLE"
+          ]
+        }
+      },
+      "required": [
+        "identity",
+        "os",
+        "cpu",
+        "disk",
+        "services",
+        "processes",
+        "tcp",
+        "udp",
+        "gpu",
+        "sandbox"
+      ],
+      "additionalProperties": false
+    },
+    "observation_requirements": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "const": {
+            "empty_allowed": false,
+            "required_fields": [
+              "UUID"
+            ]
+          }
+        },
+        "os": {
+          "const": {
+            "empty_allowed": false,
+            "required_fields": [
+              "Caption",
+              "Version",
+              "BuildNumber",
+              "OSArchitecture",
+              "TotalVisibleMemorySize",
+              "FreePhysicalMemory"
+            ]
+          }
+        },
+        "cpu": {
+          "const": {
+            "empty_allowed": false,
+            "required_fields": [
+              "Name",
+              "NumberOfCores",
+              "NumberOfLogicalProcessors"
+            ]
+          }
+        },
+        "disk": {
+          "const": {
+            "empty_allowed": false,
+            "required_fields": [
+              "DeviceID",
+              "Size",
+              "FreeSpace"
+            ]
+          }
+        },
+        "services": {
+          "const": {
+            "empty_allowed": false,
+            "required_fields": [
+              "name",
+              "status",
+              "start_type"
+            ]
+          }
+        },
+        "processes": {
+          "const": {
+            "empty_allowed": false,
+            "required_fields": [
+              "Id",
+              "ProcessName",
+              "WorkingSet64"
+            ]
+          }
+        },
+        "tcp": {
+          "const": {
+            "empty_allowed": true,
+            "required_fields": [
+              "LocalPort",
+              "OwningProcess",
+              "LocalAddress"
+            ]
+          }
+        },
+        "udp": {
+          "const": {
+            "empty_allowed": true,
+            "required_fields": [
+              "LocalPort",
+              "OwningProcess",
+              "LocalAddress"
+            ]
+          }
+        },
+        "gpu": {
+          "const": {
+            "empty_allowed": false,
+            "required_fields": [
+              "Name",
+              "DriverVersion",
+              "AdapterRAM"
+            ]
+          }
+        },
+        "sandbox": {
+          "const": {
+            "empty_allowed": false,
+            "required_fields": [
+              "path",
+              "reparse_point",
+              "acl_protected",
+              "acl_rule_count"
+            ]
+          }
+        }
+      },
+      "required": [
+        "identity",
+        "os",
+        "cpu",
+        "disk",
+        "services",
+        "processes",
+        "tcp",
+        "udp",
+        "gpu",
+        "sandbox"
+      ],
+      "additionalProperties": false
+    },
+    "g0_readiness": {
+      "const": "BLOCKED_INCOMPLETE_INDEPENDENT_EVIDENCE"
+    },
+    "unverified": {
+      "const": {
+        "cuda_runtime": "NOT_PROBED",
+        "python_dependencies": "SEPARATE_PINNED_ENVIRONMENT_REQUIRED",
+        "process_db_ownership": "OWNER_ATTESTATION_REQUIRED",
+        "target_identity": "INDEPENDENT_VM_ATTESTATION_REQUIRED",
+        "ancestor_acl_namespace": "NOT_PROVEN",
+        "resource_enforcement": "NOT_PROVEN"
+      }
+    },
+    "sandbox": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "path": {},
+            "reparse_point": {},
+            "acl_protected": {},
+            "acl_rule_count": {},
+            "confinement_proven": {
+              "const": false
+            }
+          },
+          "required": [
+            "path",
+            "reparse_point",
+            "acl_protected",
+            "acl_rule_count",
+            "confinement_proven"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "secrets": {
+      "const": "No environment dump, command lines, connection strings, passwords or tokens collected"
+    },
+    "g1": {
+      "const": "NOT_AUTHORIZED"
+    }
+  },
+  "required": [
+    "schema",
+    "observation_contract_version",
+    "phase",
+    "captured_utc",
+    "node_name",
+    "node_identity_sha256",
+    "os",
+    "cpu",
+    "disk",
+    "services",
+    "processes",
+    "gpu",
+    "listeners",
+    "udp_endpoints",
+    "observations",
+    "observation_requirements",
+    "g0_readiness",
+    "unverified",
+    "sandbox",
+    "secrets",
+    "g1"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "identity": {
+                "const": "OBSERVED"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "node_identity_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "node_name": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "node_identity_sha256": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "os": {
+                "const": "OBSERVED"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "os": {
+            "type": "object",
+            "properties": {
+              "Caption": {
+                "$ref": "#/$defs/requiredValue"
+              },
+              "Version": {
+                "$ref": "#/$defs/requiredValue"
+              },
+              "BuildNumber": {
+                "$ref": "#/$defs/requiredValue"
+              },
+              "OSArchitecture": {
+                "$ref": "#/$defs/requiredValue"
+              },
+              "TotalVisibleMemorySize": {
+                "$ref": "#/$defs/requiredValue"
+              },
+              "FreePhysicalMemory": {
+                "$ref": "#/$defs/requiredValue"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "os": {
+                "const": "MISSING"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "os": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "os": {
+                "const": "EMPTY"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "os": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "os": {
+                "const": "UNAVAILABLE"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "os": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "cpu": {
+                "const": "OBSERVED"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "cpu": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "properties": {
+                "Name": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "NumberOfCores": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "NumberOfLogicalProcessors": {
+                  "$ref": "#/$defs/requiredValue"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "cpu": {
+                "const": "MISSING"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "cpu": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "cpu": {
+                "const": "EMPTY"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "cpu": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "cpu": {
+                "const": "UNAVAILABLE"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "cpu": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "disk": {
+                "const": "OBSERVED"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "disk": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "properties": {
+                "DeviceID": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "Size": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "FreeSpace": {
+                  "$ref": "#/$defs/requiredValue"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "disk": {
+                "const": "MISSING"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "disk": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "disk": {
+                "const": "EMPTY"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "disk": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "disk": {
+                "const": "UNAVAILABLE"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "disk": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "services": {
+                "const": "OBSERVED"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "services": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "properties": {
+                "name": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "status": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "start_type": {
+                  "$ref": "#/$defs/requiredValue"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "services": {
+                "const": "MISSING"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "services": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "services": {
+                "const": "EMPTY"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "services": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "services": {
+                "const": "UNAVAILABLE"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "services": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "processes": {
+                "const": "OBSERVED"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "processes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "properties": {
+                "Id": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "ProcessName": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "WorkingSet64": {
+                  "$ref": "#/$defs/requiredValue"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "processes": {
+                "const": "MISSING"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "processes": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "processes": {
+                "const": "EMPTY"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "processes": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "processes": {
+                "const": "UNAVAILABLE"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "processes": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "tcp": {
+                "const": "OBSERVED"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "listeners": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "properties": {
+                "port": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "pid": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "scope": {
+                  "$ref": "#/$defs/requiredValue"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "tcp": {
+                "const": "MISSING"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "listeners": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "tcp": {
+                "const": "EMPTY"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "listeners": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "tcp": {
+                "const": "UNAVAILABLE"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "listeners": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "udp": {
+                "const": "OBSERVED"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "udp_endpoints": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "properties": {
+                "port": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "pid": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "scope": {
+                  "$ref": "#/$defs/requiredValue"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "udp": {
+                "const": "MISSING"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "udp_endpoints": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "udp": {
+                "const": "EMPTY"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "udp_endpoints": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "udp": {
+                "const": "UNAVAILABLE"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "udp_endpoints": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "gpu": {
+                "const": "OBSERVED"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gpu": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "properties": {
+                "Name": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "DriverVersion": {
+                  "$ref": "#/$defs/requiredValue"
+                },
+                "AdapterRAM": {
+                  "$ref": "#/$defs/requiredValue"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "gpu": {
+                "const": "MISSING"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gpu": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "gpu": {
+                "const": "EMPTY"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gpu": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "gpu": {
+                "const": "UNAVAILABLE"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gpu": {
+            "const": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "sandbox": {
+                "const": "OBSERVED"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "sandbox": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "$ref": "#/$defs/requiredValue"
+              },
+              "reparse_point": {
+                "$ref": "#/$defs/requiredValue"
+              },
+              "acl_protected": {
+                "$ref": "#/$defs/requiredValue"
+              },
+              "acl_rule_count": {
+                "$ref": "#/$defs/requiredValue"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "sandbox": {
+                "const": "MISSING"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "sandbox": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "sandbox": {
+                "const": "EMPTY"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "sandbox": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "observations": {
+            "properties": {
+              "sandbox": {
+                "const": "UNAVAILABLE"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "sandbox": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}
