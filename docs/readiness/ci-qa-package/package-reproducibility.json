@@ -1,0 +1,8 @@
+{
+  "source_sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+  "old_builder_a": "530d02413c7bb528e1352f535e8ef5a3477da07d009567c051dadf7639b1ea72",
+  "old_builder_b": "00b5d9e4772d7d4ddd0441347fd264ee38dd202ffb9f1a7d3c5431b85af657ed",
+  "equal_members": true,
+  "equal_zip": false,
+  "cause": "ZIP entry wall-clock timestamps"
+}

@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "binary_sha256": "a8420da78900865c7fb061e9bfaf5104d15f72d3fbd62c21ce534f5db8c7a6f5",
+  "source_sha256": "3552ff45175d551cba070b352f380cdd8af48872751d94dc5b87bd42b131caac",
+  "sources": {
+    "native/windows/Broker.cs": "3552ff45175d551cba070b352f380cdd8af48872751d94dc5b87bd42b131caac",
+    "native/windows/HandleComponent.cs": "f3f6aa749db64e3c3f7edddb9f376092278897d6656b3e820754c90d38e35504",
+    "native/windows/OwnerIntent.cs": "72be8f64004e9a81aafedaf9b277c768c29c5278e0c5cf8f3bc356e23539f7e5",
+    "native/windows/OwnerJson.cs": "b8df8f78fa43f1560c948c0c59c5ef635dd0e46eb66b58d219bd9a5c889e45d7",
+    "native/windows/OwnerNonce.cs": "064c7f8014f3fee2c36418841eb4d92e4524c399fcc94c8fefd523c61cd7726b",
+    "native/windows/WfpComponent.cs": "a6ed93dfcd052e587b141dcc8f1a0f09af609860cc3795a73f030a573561ff22"
+  },
+  "deterministic_rebuild_equal": true,
+  "target": "net472-windows-x64",
+  "packages": [
+    {
+      "id": "microsoft.net.compilers",
+      "version": "3.11.0",
+      "sha256": "e4a540a9cb41d15e6e1cc05fa2cadb847454df9ebe49d683cded2780506ef880"
+    },
+    {
+      "id": "microsoft.netframework.referenceassemblies.net472",
+      "version": "1.0.3",
+      "sha256": "ffa0a5570a39f911399164d0581ffddef99b5e3dfbaa5f220e5ce22969bcf57c"
+    },
+    {
+      "id": "bouncycastle.cryptography",
+      "version": "2.7.0",
+      "sha256": "f091ffccab4d03993e660bace277659a79dee0972f54d7f1f4bd46d680966241"
+    }
+  ],
+  "native_enforcement": false,
+  "component_tests": "NOTRUN",
+  "research_execution": "BLOCKED",
+  "source_sha": "f60869686a51693799b4844a1af49c9b39ba45d5",
+  "tree_sha": "0f7626787ec835a9a945a8e576d19181044f23ec",
+  "dirty": false,
+  "embedded_verifier_sha256": "4f96977e9c67334742c683410b3a361258219f0d3084a5e0bc10fba96cf23a0d"
+}
