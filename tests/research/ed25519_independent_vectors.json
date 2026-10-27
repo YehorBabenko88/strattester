@@ -1,0 +1,1536 @@
+{
+  "origin": "INDEPENDENT_AFFINE_TEST_ORACLE_NOT_AUTHORITY",
+  "confirmation_sha256": "43ad1a8c4f6b7ccc244149e745e2dd1d78b67695ae2b95ed39f7065303df74a6",
+  "vectors": [
+    {
+      "kind": "all-eight-canonical-torsion",
+      "encoding": "0100000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "all-eight-canonical-torsion",
+      "encoding": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a",
+      "valid": false
+    },
+    {
+      "kind": "all-eight-canonical-torsion",
+      "encoding": "0000000000000000000000000000000000000000000000000000000000000080",
+      "valid": false
+    },
+    {
+      "kind": "all-eight-canonical-torsion",
+      "encoding": "26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc05",
+      "valid": false
+    },
+    {
+      "kind": "all-eight-canonical-torsion",
+      "encoding": "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "all-eight-canonical-torsion",
+      "encoding": "26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc85",
+      "valid": false
+    },
+    {
+      "kind": "all-eight-canonical-torsion",
+      "encoding": "0000000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "all-eight-canonical-torsion",
+      "encoding": "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "eeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "eeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "efffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "efffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f2ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f2ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f4ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f4ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f5ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f5ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f6ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f6ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f9ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "f9ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "faffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "faffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "fbffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "fbffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "fcffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "fcffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "fdffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "fdffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "feffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "feffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "valid": false
+    },
+    {
+      "kind": "noncanonical-y",
+      "encoding": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "forbidden-x-zero-sign",
+      "encoding": "0100000000000000000000000000000000000000000000000000000000000080",
+      "valid": false
+    },
+    {
+      "kind": "forbidden-x-zero-sign",
+      "encoding": "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "0200000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "0700000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "0800000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "0b00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "0c00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "0d00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "1100000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "1400000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "1600000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "1f00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "2200000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "2400000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "2600000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "2900000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "2d00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "2e00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "2f00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "3100000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "3200000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "3500000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "3b00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "4000000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "4200000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "4400000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "4500000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "4700000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "4800000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "4900000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "4a00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "4c00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "4f00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "5000000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "5100000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "5200000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "5300000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "5800000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "5c00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "5d00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "5e00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "5f00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "6000000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "6200000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "6300000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "6700000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "6800000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "6900000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "6a00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "6b00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "6d00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "6e00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "7100000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "7200000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "7300000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "7500000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "7600000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "7a00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "7b00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "7c00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "7d00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "7e00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "8200000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "8400000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "8600000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "8700000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "8800000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "8900000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "8c00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "8e00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9100000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9200000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9300000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9400000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9800000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9900000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9a00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9b00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9c00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9d00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9e00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "9f00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "a300000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "a400000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "a700000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "a800000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "a900000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "aa00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "ad00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "af00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "b100000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "b300000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "b600000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "b800000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "b900000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "ba00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "bc00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "bd00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "be00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "c200000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "c400000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "c500000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "c700000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "ca00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "cd00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "ce00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "cf00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "d000000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "d300000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "d700000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "d800000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "db00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "de00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "df00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "e000000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "e100000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "e200000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "e400000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "e500000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "e600000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "e700000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "e900000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "eb00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "f000000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "f100000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "f300000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "f400000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "f500000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "f900000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "offcurve",
+      "encoding": "fd00000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "5866666666666666666666666666666666666666666666666666666666666666",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "98519eadf35b995233b51b5cd23e9cc5a28b639b5a4af0ec903cb960d81b7819",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "9bad33f580df7ecc49df5342bac8145d5bedc40f573d1b067f3c4ce449689a15",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "da99e28ba529cdde35a25fba9059e78ecaee239f99755b9b1aa4f65df00803e2",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "9599999999999999999999999999999999999999999999999999999999999999",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "55ae61520ca466adcc4ae4a32dc1633a5d749c64a5b50f136fc3469f27e487e6",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "5252cc0a7f208133b620acbd4537eba2a4123bf0a8c2e4f980c3b31bb69765ea",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "13661d745ad63221ca5da0456fa618713511dc60668aa464e55b09a20ff7fc1d",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "c9a3f86aae465f0e56513864510f3997561fa2c9e85ea21dc2292309f3cd6022",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "e6ff0e4955925b2100e8ceebbd4ffe93e6fdfc71c226b33409a570d916254f72",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "e4dd22778010b28a10d0ddcf35d7a144216299cbe36ba86b31952ef0a294176e",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "543ac908ca97124ab06caab11552257e53aba22a4e66b769175823a19a0452e0",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "245c079551b9a0f1a9aec79baef0c668a9e05d3617a15de23dd6dcf60c329fdd",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "0700f1b6aa6da4deff17311442b0016c1902038e3dd94ccbf65a8f26e9dab08d",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "0922dd887fef4d75ef2f2230ca285ebbde9d66341c945794ce6ad10f5d6be891",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "99c536f73568edb54f93554eeaadda81ac545dd5b1994896e8a7dc5e65fbad1f",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "d4b4f5784868c3020403246717ec169ff79e26608ea126a1ab69ee77d1b16712",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "08e8461bace82b50af65402ff1cad3d2399afe459544096a7f106c54fc875d42",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "9d7343a2d9e5d12de3965c79889ef8e2a8e08c6bc30c02fd47a891ff1a5c3a10",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "528b312e93bc0c3705c89c20dcd85600e229ad3d6872b1c656d3873fbe62e6e2",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "194b0a87b7973cfdfbfcdb98e813e9600861d99f715ed95e549611882e4e98ed",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "e517b9e45317d4af509abfd00e352c2dc66501ba6abbf69580ef93ab0378a2bd",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "508cbc5d261a2ed21c69a3867761071d571f73943cf3fd02b8576e00e5a3c5ef",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "9b74ced16c43f3c8fa3763df2327a9ff1dd652c2978d4e39a92c78c0419d191d",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "2f1132ca61ab38dff00f2fea3228f24c6c71d58085b80e47e19515cb27e8d047",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "b106029af8a719a13dc3ff88e1368579636d6f2369eddca26bdcf0780e9cc09c",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "97f67187662e452bf15eb092dc1e016772d7c2ab3570763f8a357715d60f657a",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "ef2efac2021a85e089d4aaa44baf56506854e6298b10b6eb4d9348a25c557584",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "beeecd359e54c7200ff0d015cdd70db3938e2a7f7a47f1b81e6aea34d8172fb8",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "3cf9fd650758e65ec23c00771ec97a869c9290dc9612235d94230f87f1633f63",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "56098e7899d1bad40ea14f6d23e1fe988d283d54ca8f89c075ca88ea29f09a85",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "fed0053dfde57a1f762b555bb450a9af97ab19d674ef4914b26cb75da3aa8a7b",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "edc876d6831fd2105d0b4389ca2e283166469289146e2ce06faefe98b22548df",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "d0424b701d60255de5df705071059ccd22b8349bb4138202ebbd65e9e0ad211b",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "acb7b49ad7626c82f4c724e6c09a430c55c07ee6c2930638a9864dea56791cf5",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "131604d01865fbedf9f662d25311c68a197cf286f2683724873a147fed6ada35",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "003789297ce02defa2f4bc7635d1d7ce99b96d76eb91d31f905101674ddab720",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "1dbdb48fe29fdaa21a208faf8efa6332dd47cb644bec7dfd14429a161f52dee4",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "41484b65289d937d0b38db193f65bcf3aa3f81193d6cf9c75679b215a986e30a",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "dae9fb2fe79a041206099d2dacee3975e6830d790d97c8db78c5eb80129525ca",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "f47e49f9d07ad2c1606b4d94067c41f9777d4ffda709b71da1d88628fce34d85",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "f06d5f4586877511233030d4528b095ce0a5229c4c58a77e4bb3dbd44b06ba37",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "23ae21f325f2a154988e13803f8f576742081f63fbdc5204af477104407beaee",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "05e1dbc711070bb71fdfa9ee201150e4419dac77051e5f1ad4b811d498570c97",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "f980b6062f852d3e9f94b26bf983be068882b00258f648e25e2779d7031cb27a",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "fd91a0ba79788aeedccfcf2bad74f6a31f5add63b3a75881b44c242bb4f945c8",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "ca51de0cda0d5eab6771ec7fc070a898bdf7e09c0423adfb50b88efbbf841511",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "e81e2438eef8f448e0205611dfeeaf1bbe625388fae1a0e52b47ee2b67a8f368",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "b862409fb5c4c4123df2abf7462b88f041ad36dd6864ce872fd5472be363c5b1",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "e9b2fe981587efae6478f48ba1fa60cec6126d0e26dde72a0a24f640dcd783e5",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "d7fcf1f00e29dd947529006e74d779973e3c1a1bad96b7807ab8644b5604ee50",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "16b981d0b88cdf3ab9fa87190822fe4905b475efda3aec7c34abfa92c19320f4",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "359dbf604a3b3bedc20d5408b9d4770fbe52c922979b3178d02ab8d41c9c3a4e",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "044d0167ea7810519b870b745e059f3139ed92f1d92218d5f5db09bf23287c1a",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "16030e0ff1d6226b8ad6ff918b288668c1c3e5e45269487f85479bb4a9fb11af",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "d7467e2f477320c5460578e6f7dd01b6fa4b8a1025c51383cb54056d3e6cdf0b",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "b4b937fca95b2f1e93e41e62fc3c78818ff38a66096fad6e7973e5c90006d321",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "99e078d056763dca46099c11c8fce4f62ca39f82091a309e0de107a5405ab262",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "7ca209dceefecdde0f7b2a64ff4ba3e712f1c9fdda393fe1da5713b881588fb3",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "2224104c31292fde7d23ffbaf8569c4c0768ad6bdfe733a04e9eac866e752efe",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "3946c80356a4d0e16c1be19d03c3877e700c7599f6905291868c1a36fff92cde",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "541f872fa989c235b9f663ee37031b09d35c607df6e5cf61f21ef85abfa54d9d",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "715df62311013221f084d59b00b45c18ed0e360225c6c01e25a8ec477ea7704c",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "cbdbefb3ced6d02182dc004507a963b3f89752942018cc5fb1615379918ad101",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "c0f1225584444ec730446e231390781ffdd2f256e9fcbeb2f40dddc2c2233d7f",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "e445a9708d645e4bfbfd5a5b3948e64eb2dfe10796d3c8b7149a1c17881a4aec",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "3096da3989d6b1435ffa46c4c409c9b5c694a895729e519c2ecbc29578e2f8e3",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "c79adf3715666d06daf6a5c3fb885da5620c07bd81f43c264d12c9acf62351e4",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "2d0eddaa7bbbb138cfbb91dcec6f87e0022d0da91603414d0bf2223d3ddcc280",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "09ba568f729ba1b40402a5a4c6b719b14d201ef8692c3748eb65e3e877e5b513",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "bd6925c676294ebca005b93b3bf6364a396b576a8d61ae63d1343d6a871d071c",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "266520c8ea9992f925095a3c0477a25a9df3f8427e0bc3d9b2ed365309dcae1b",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "2c7be86ab07488ba43e8e03d85a67625cfbf98c8544de4c877241b7aaafc7fe3",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "3c60e60c1868f00ee9fc085d2421acbb3640e41edb633a64bb8abeab517e997e",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "4573a22dfd52ef3cded49757602881ffc7c97f328d0dbae95e21223d7f05a73b",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "f8334086bc669024d5c0d79637f0f69a5202c6099008626c9640f33f245aff13",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "c18417954f8b7745bc171fc27a5989da30406737abb21b3788dbe4855503801c",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "b19f19f3e7970ff11603f7a2dbde5344c9bf1be1249cc59b44754154ae816681",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "a88c5dd202ad10c3212b68a89fd77e00383680cd72f24516a1deddc280fa58c4",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "f5cbbf7943996fdb2a3f2869c80f0965adfd39f66ff79d9369bf0cc0dba500ec",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "1337036ac32d8f30d4589c3c1c595812ce0fff40e37c6f5a97ab213f318290ad",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "c891dd2fc0ca87a7460193895e046a914c11b66fdffa8e6b7c3ba83138499c70",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "7a93feab462370d19b4c9e822e481b8f09936472e37889d430e68c8e36d4ee43",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "5b94d525f09dbb3f8bec71da454b8a76c21f9edc1a6b2c8a2650090c0c6a2bd6",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "dac8fc953cd270cf2ba763c3e3a6a7ed31f000bf1c8390a56854dec0ce7d6f52",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "256e22d03f357858b9fe6c76a1fb956eb3ee49902005719483c457cec7b6638f",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "736c0154b9dc8f2e64b3617dd1b7e470f66c9b8d1c87762bcf197371c92b11bc",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "926b2ada0f6244c074138e25bab475893de06123e594d375d9aff6f3f395d429",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "f9e42d2edc81d23367967352b47e4856b82578634e6c1de72280ce8b60ce70c0",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "7d3c658c2be956c1be76462784467a8dfe6b9af0324479a2a7fe3bc83a841745",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "b2873dacbcf96695a2fdcad05da20a8dcb79f31d04bc2c500ef1c56ea07a4cbc",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "c1fe6da82865a1d99a4aaf3554258891460b585b61597bd9fef312c680593a71",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "f41ad2d1237e2dcc98698cad4b81b7a947da879cb193e218dd7f31749f318f3f",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "70c39a73d416a93e4189b9d87bb985720194650fcdbb865d5801c437c57be8ba",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "3b78c2534306996a5d02352fa25df57234860ce2fb43d3aff10e3a915f85b343",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "2c019257d79a5e2665b550caabda776eb9f4a7a49ea68426010ced397fa6c58e",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "801f40eaaee1ef8723279a28b2cf4037b889dad222604678748b53ed0db0db92",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "e8a51d283faf217fe3721ba4d0ee3596cdfeec80a34f0d3007c07fd2fe85a3d3",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "d11f653732f7177ce31a75530e304ccf684b7d1473cc3b813e1485016e38082a",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "5f7be077cd5e5fe0b53c4bf942ad2fc42f154a84e6e2b8b70b89e0bc42f06d8d",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "6de0bf15511e1078dcd865d74d30bfc84776252ddd9fb9878b74ac12f24f246d",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "055ae2d7c050de801c8de45b2f11ca693201137f5cb0f2cff83f802d017a5c2c",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "1ce09ac8cd08e8831ce58aacf1cfb33097b482eb8c33c47ec1eb7afe91c7f7d5",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "8e841f8832a1a01f4ac3b406bd52d03bd0eab57b191d4748f4761f43bd0f9272",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "39289c8998fd69835c26b619e89848a7bf02b7cb7ad1ba1581cbc4506f2550ce",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "38df53c81875a65f33e9cb69f4154f0937cbe5978399a4c0e724d13b473112ad",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "2d1498eb2b2924e8775127208e45be4ff2a1779dfd0ce4a1d081a0eb47ec6d79",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "57730e10c4c332b0b974de61ec8ef7dd5de6e2fb38ed8caaf2588d5d8cf17e00",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "b4d763766702967ca3d949e61767b75840fd4834852e45ea7e343baf90daaf31",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "b520ac37e78a59a0cc1634960beab0f6c8341a687c665b3f18db2ec4b8ceed52",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "c0eb6714d4d6db1788aed8df71ba41b00d5e886202f31b5e2f7e5f14b8139286",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "968cf1ef3b3ccd4f468b219e13710822a2191d04c71273550da772a2730e81ff",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "df5c2eadc44c6d94a19a9aa118afe5ac3193d26401f76251f522ff042dfbcb92",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "3c48222073b9dfd654d6a1413b1e09043acdf13b11e8988f763752ac9c270b37",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "4a50e626705064ac6d124877e81f00eeeb4ead53f2a88e961f7adb181a958423",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "6dd6f41df367697a1285e26dfe65e947709528e109e519898ca0ab0490a048ce",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "0ea3d1523bb3926b5e65655ee7501a53ce6c2d9bfe089dae0add00fbd204346d",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "b1b7dddf8c462029ab295ebec4e1f6fbc5320ec4ee17677089c8ad5363d8f4c8",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "a3af19d98faf9b5392edb78817e0ff1114b152ac0d577169e08524e7e56a7bdc",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "80290be20c989685ed7a1d92019a16b88f6ad71ef61ae676735f54fb6f5fb731",
+      "valid": false
+    },
+    {
+      "kind": "normal-prime-order",
+      "encoding": "eb2767c137ab7ad8279c078eff116ab0786ead3a2e0f989f72c37f82f2969670",
+      "valid": true
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "21b25588fc650c133d650db74352e8e7db3cf7bf68b4b887ec64a89edc382bea",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "b4b0df6fe10be6afd74be81947bacf80fe317ee4f0900507aed9ccf01da85df0",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "faaf1ba391ed63a1bc626d2f3f8697598a1c3c0940e18e4eb855f00f294105eb",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "02d8983ec8548527d863f87100ee954f879152c5d1f067608d3c807d0d69698f",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "cc4daa77039af3ecc29af248bcad171824c30840974b4778139b576123c7d415",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "394f20901ef4195028b417e6b845307f01ce811b0f6ffaf85126330fe257a20f",
+      "valid": false
+    },
+    {
+      "kind": "mixed-order",
+      "encoding": "f34fe45c6e129c5e439d92d0c07968a675e3c3f6bf1e71b147aa0ff0d6befa14",
+      "valid": false
+    },
+    {
+      "kind": "RFC8032-test2-public",
+      "encoding": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "valid": true
+    },
+    {
+      "kind": "RFC8032-test2-R",
+      "encoding": "92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da",
+      "valid": true
+    }
+  ]
+}
