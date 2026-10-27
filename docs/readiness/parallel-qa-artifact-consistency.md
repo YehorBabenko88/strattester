@@ -38,3 +38,14 @@ Decompression reads are explicitly bounded by declared member bytes+1 (maximum
 8MiB+1), never ZipExtFile.read() without a size. A separate resource-boundary
 RED1failed regression caught the unbounded read; GREEN14passed includes the CLI.
 This limits allocations even when untrusted ZIP headers understate expansion.
+
+Independent review then reproduced3additional P2 consistency gaps (3failed/
+14passed): failed raw teardown,nonzero JUnit suite counters,and actual forged ZIP
+size/CRC hiding a compressed suffix. Corrected17PASS. ZIP32 stored/deflate payloads
+are now decoded directly with a bounded zlib maximum,checking EOF/unused/tail/
+expanded size/CRC and local-header/data-descriptor consistency; ZipExtFile's size
+clamp is not trusted. Raw setup/call/teardown must all pass. JUnit failure/error/
+skip/disabled counters must be zero; tests counters reconcile case parents while
+explicitly retaining subtest assertion surplus rather than summing it as nodes.
+All7real baseline gate archives (1556nodes) independently exercised against the
+new library; math surplus7/training18 recorded,all outputsBLOCKED.
