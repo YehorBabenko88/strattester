@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import sqlite3
+import time
 from urllib.parse import parse_qs
 
 
@@ -18,11 +19,16 @@ class ReadOnlyResultsApp:
         if self.source_path is None:
             return 'SOURCE_UNAVAILABLE'
         try:
-            # mode=ro must never create/migrate/checkpoint the source store.
-            con = sqlite3.connect(self.source_path.as_uri() + '?mode=ro', uri=True, timeout=0.1)
+            # Metadata-only main-file probe: ignore WAL, never create sidecars.
+            # This cannot qualify source freshness or consume a live snapshot.
+            con = sqlite3.connect(self.source_path.as_uri() + '?mode=ro&immutable=1', uri=True, timeout=0.1)
             try:
+                deadline = time.monotonic() + 0.1
+                con.set_progress_handler(lambda: int(time.monotonic() >= deadline), 100)
                 con.execute('PRAGMA query_only=ON')
-                con.execute('SELECT run_id FROM research_results LIMIT 1').fetchone()
+                row = con.execute("SELECT type FROM sqlite_master WHERE name='research_results' LIMIT 1").fetchone()
+                if row != ('table',):
+                    return 'SOURCE_UNAVAILABLE'
             finally:
                 con.close()
         except (sqlite3.Error, OSError, ValueError):
@@ -32,7 +38,7 @@ class ReadOnlyResultsApp:
     def __call__(self, environ, start_response):
         path = environ.get('PATH_INFO', '')
         method = environ.get('REQUEST_METHOD', '')
-        data = {'api_version': '1.0', 'producer': 'strattester', 'read_only': True,
+        data = {'api_version': {'major': 1, 'minor': 0}, 'producer': 'strattester', 'read_only': True,
                 'provenance': 'UNAVAILABLE'}
         status = 503
         if method != 'GET':

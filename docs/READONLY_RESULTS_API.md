@@ -7,7 +7,7 @@ Integration work order: unified-system `50e6e63cb183f6dcf1dee3c753f966717ee3b110
 callable. It starts no listener, worker, service, exchange connection, or native
 operation. Hosting, authentication and deployment remain separate work.
 
-All replies contain `api_version: "1.0"`, `producer: "strattester"`,
+All replies contain `api_version: {"major": 1, "minor": 0}`, `producer: "strattester"`,
 `read_only: true`, `provenance: "UNAVAILABLE"`, and `status`.
 
 | GET route | Response |
@@ -28,10 +28,16 @@ Runs accepts decimal `limit` 1..100 (default 50) and `offset` 0..10000
 malformed or out-of-range fields return 400 INVALID_QUERY. Other recognized
 routes accept no query fields. Run IDs use `[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}`.
 Unknown routes return 404; all non-GET methods return 405 with Allow: GET.
-Replies are no-store JSON. Source queries use SQLite mode=ro, query_only and
-100 ms lock timeout with LIMIT 1; no ResultStore.open, migrations or result
+Replies are no-store JSON. Source queries use SQLite mode=ro, immutable=1,
+query_only and a 100 ms SQL progress budget with LIMIT 1; no ResultStore.open, migrations or result
 deserialization. No source paths, query values, database errors or credentials
 are returned or logged.
+
+The probe reads only main-file schema metadata and ignores WAL. It creates no
+WAL/SHM sidecars and never consumes results or claims a coherent live snapshot.
+Uncheckpointed schema may appear unavailable. Immutable mode here cannot prove
+source immutability, freshness or historical provenance; every result route
+remains blocked even when the main-file table exists.
 
 ## Why successful results are blocked
 

@@ -15,7 +15,7 @@ def request(path, method='GET', query='', source=None):
 def test_capabilities_never_advertise_unqualified_results():
     status, data = request('/internal/v1/capabilities')
     assert status == 200
-    assert data['api_version'] == '1.0'
+    assert data['api_version'] == {'major': 1, 'minor': 0}
     assert data['capabilities'] == {'historical_research': False, 'runs': False, 'run_metrics': False}
     assert data['read_only'] is True
 
@@ -50,3 +50,4 @@ def test_reject_writes_unknown_routes_and_unbounded_queries():
     for query in ('limit=0', 'limit=101', 'limit=true', 'offset=-1', 'limit=1&limit=2', 'secret=value'):
         assert request('/internal/v1/runs', query=query)[0] == 400
     assert request('/internal/v1/runs', query='limit=100&offset=0')[0] == 503
+
