@@ -1,0 +1,35 @@
+name: independent-system-math
+on:
+  pull_request:
+    paths:
+      - 'research/test_independent_system_math_20261026.py'
+      - 'research/independent_resampling_oracle_20261026.py'
+      - 'research/test_independent_resampling_oracle_20261026.py'
+      - 'docs/MATHEMATICAL_SYSTEM_READINESS.md'
+      - '.github/workflows/independent-system-math.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  oracle:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m pytest -v research/test_independent_system_math_20261026.py research/test_independent_resampling_oracle_20261026.py --junitxml=math-oracle.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: math-oracle-${{ matrix.os }}-${{ matrix.python }}
+          path: math-oracle.xml

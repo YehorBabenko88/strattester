@@ -1,0 +1,42 @@
+# Independent model/methodology review
+
+Reviewed source HEAD: `67301726d250973602b964adabdb9eb8d50d0f13`. Read-only audit; no source changes, dependency installation, GPU execution, physical training, service or production DB changes. Report is independent of engineering acceptance. Verdict: **ALPHAFOLD_MODEL_READINESS = BLOCKED / NO-GO** for physical/model acceptance; bounded CPU engineering subset passes.
+
+## Reproduced evidence
+
+Existing local Python 3.12 / CPU torch environment: 45 tests passed, zero skips in 5.93 seconds. Covered structural model, experiment, training, evaluation, OPM explicit oracle, triangle multiplication explicit oracle and triangle attention transpose oracle. Evidence: `work/model-independent-tests.log`, `work/model-independent-junit.xml`. Initial attempt without explicit basetemp hit Windows AppData temp permissions (38 passed / 7 fixture errors); rerun explicitly in work succeeded. No algorithmic failure inferred from that environment error.
+
+Reproduce from `work/strattester` (PowerShell):
+
+```powershell
+$env:OMP_NUM_THREADS='1'; $env:MKL_NUM_THREADS='1'
+../financial-venv/Scripts/python.exe -m pytest -q tests/research/test_financial_structural_model.py tests/research/test_financial_experiment.py tests/research/test_financial_training.py tests/research/test_financial_evaluation.py tests/research/test_alphafold_outer_product.py tests/research/test_alphafold_triangle_reference.py tests/research/test_alphafold_triangle_attention_oracle.py --basetemp=../model-independent-repro-temp --junitxml=../model-independent-repro-junit.xml
+```
+
+Additional independent arithmetic checks (`work/model-independent-oracle.log`): position -1/0/+1 flat simple-return roundtrip equals `p*r - 2*abs(p)*(fee+slippage)/10000 - abs(p)*funding/10000`; analytic standard-normal NLL equals `0.5*log(2*pi)`. Negative funding credit is explicitly rejected. These checks prove only those formulas, not exchange realism or profitability.
+
+## Source-verified runtime and boundaries
+
+`financial_pipeline.predict_snapshot` verifies checkpoint/file identity and current parameter fingerprint, builds snapshot tracks, puts declared target at track zero, and invokes the model under eval/no_grad while restoring prior mode. `financial_structural_model.py:92` invokes row attention; line93 column attention; line94 MSA transition; line95 OPM and pair stack. `alphafold_pair_stack.py:38` iterates outgoing/incoming triangle multiplication and starting/ending triangle attention, then pair transition. `financial_structural_model.py:135` performs recycles+1 applications with shared parameters and normalized recycling states. Prediction is one origin per call; historical tokens can mix within the validated available window. It is not a per-token streaming prediction API. Masked finite perturbation invariance and all-parameter finite gradients are exercised, target-track flip changes output, and recycling changes predictions.
+
+Snapshot feature extraction requires exact aligned tracks, computes only trailing return/mean/volatility and emits all-available masks. Future/revision/producer truth depends on the snapshot boundary; CPU tensor tests do not attest production source history.
+
+## Findings and acceptance gaps
+
+* P1 — Resource admission is per forward, not a complete experiment/job memory ceiling. `financial_experiment.py:53` retains all feature tensors and `asdict` copies for up to1024 examples; line77 concatenates training tensors before `fit_structural` invokes model preflight. `financial_structural_model.py:123` therefore cannot bound these earlier allocations. Config permits max_tracks64/max_tokens256 and a small valid byte budget, allowing aggregate retained features to exceed that budget before the eventual operator rejection. Source-derived uncovered branch, **not an induced OOM**. Add aggregate input/materialization budget before feature extraction, snapshots/asdict copying and torch.cat; keep hard OS/job caps for G1. Concurrent jobs remain unproven.
+* P1 — Historical signed side/event funding, spread/latency/fill model, margin and forced liquidation are absent. `financial_evaluation.py:25` rejects negative funding, line35 charges the same nonnegative magnitude to long and short. `financial_experiment.py:28` has no funding parameter and line90 passes only fees/slippage, so every experiment uses zero funding. Reproduced negative-credit rejection. This is a deliberately limited independent roundtrip ledger, not a perpetual portfolio simulator; its terminal close called liquidation is not margin liquidation. Do not label exchange-accounting acceptance PASS.
+* P1 — Calibration acceptance is absent. `financial_evaluation.py:40` provides mean NLL/MAE/single95%-coverage only. There is no frozen calibration fit, PIT/residual diagnostics by regime/instrument/timeframe or acceptance threshold. `financial_experiment.py:94` evaluates controls only in MAE units while the model also selects a trading threshold. No common cost-aware model-versus-control acceptance criterion, multiplicity adjustment or real-market OOS result exists. Existing synthetic status is correctly explicit.
+* P1 — Complete independent mathematical equivalence remains unproven. OPM, column attention and incoming/outgoing triangle contractions have explicit small-index references. `test_alphafold_triangle_attention_oracle.py:20` computes the reference using the same starting implementation with transposition; this is useful orientation metamorphism, not an independent attention calculation. `test_alphafold_msa_attention.py` covers gradients, masks and causal perturbation but no separate row-attention numerical oracle. No independent whole recycled-network oracle or upstream full equivalence proof. GPU forward is expressly rejected by the model CPU device gate, so a GPU PASS cannot be inferred even from a future hardware inventory.
+* P2 — Training rollback/deterministic-repeat proof exists, optimizer resume does not. `financial_training.py:26` creates a fresh Adam optimizer every call and checkpoints contain model tensors rather than optimizer/RNG/step states. Bit-exact interrupted training restart is unsupported, distinct from inference checkpoint reload and fresh fold training.
+* P2 — Statistical interval currently concatenates instrument/timeframe trade returns then applies a three-row moving block (`financial_experiment.py:101`). This does not establish that row blocks preserve market-wide simultaneous cross-instrument dependencies; output is appropriately named exploratory. No confidence/profitability claim is justified.
+* P2 — Instrument holdout is optional, symbol-wide (all exchanges/markets/timeframes) and training excludes held-out context. Existing test exercises that exclusion; holdout policy and actual source provenance must be frozen for real acceptance. Fold retraining is fresh and future OOS reuse requires explicit sequential opt-in. OOS windows are not pooled. Chronological half-open interval purge and embargo are implemented and exercised, but trusted labels/availability still require real data evidence.
+
+No P0 code exploit reproduced in this scoped model review. These P1 gaps block model/physical acceptance under the requested full program, without implying that currently labelled synthetic engineering artifacts claim those missing capabilities.
+
+## Updated PR19 comparison
+
+Read remote commit `24045ec1035c34f13e3b70c1c13dff2cb789ef34`; latest commit adds `research/alphafold_training/ML_AND_STRATEGY_ENGINE_READINESS.md`, consistent NO-GO. Its branch also contains `independent_oracles.py` and `tests/test_alphafold_training_independent_oracles.py`, absent from checkpoint21. Those references cover signed funding cashflow, analytic Gaussian residual moments and half-open intervals, but are standalone oracles; they do not connect structural training to strategy execution or implement a historical funding ledger. Do not blindly replace integrated PR21 files with that divergent branch. Importing the two reference files with provenance and testing their differential use is a bounded possible addition, not evidence that production methodology is complete.
+
+## External blockers
+
+Producer-attested coherent real historical data; authorized independently reviewed physical nodes and resource limits; real OOS labels and selection policy; actual GPU execution (no emulation); complete independent upstream/operator equivalence; strategy/executor/system integration proof. Owner G1 authorization remains separate and is not granted by this report.
