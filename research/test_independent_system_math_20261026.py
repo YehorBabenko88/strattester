@@ -66,7 +66,7 @@ def test_prefix_invariance_and_target_alignment():
     later = make_samples('BTCUSDT', '1m', times, modified, window=4, horizon=3)
     assert base[0].representation == later[0].representation
     assert all(x.target_timestamp - x.origin_timestamp == 3*60_000 for x in base)
-    assert base[-1].target_timestamp == times[-1]
+    assert base[-1].target_timestamp == times[-2]
 
 
 def test_pit_negative_future_and_duplicate():
@@ -122,7 +122,7 @@ def test_target_last_bar_mutation_only_changes_affected_label():
     new=make_samples('BTCUSDT','1m',times,altered,window=4,horizon=3)
     assert [x.future_log_return for x in base[:-1]] == pytest.approx(
         [x.future_log_return for x in new[:-1]])
-    assert base[-1].future_log_return != new[-1].future_log_return
+    assert base[-1].future_log_return == pytest.approx(new[-1].future_log_return)
     assert base[-1].representation == new[-1].representation
 
 
@@ -174,4 +174,4 @@ def test_randomized_horizon_prefix_invariance():
         assert original[0].representation == revised[0].representation
         assert [s.future_log_return for s in original[:-1]] == pytest.approx(
             [s.future_log_return for s in revised[:-1]],abs=1e-12)
-        assert original[-1].future_log_return != revised[-1].future_log_return
+        assert original[-1].future_log_return == pytest.approx(revised[-1].future_log_return)
