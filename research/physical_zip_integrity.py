@@ -10,6 +10,8 @@ SHA256 = re.compile(r"^[0-9a-f]{64}$")
 def inspect_zip_bytes(payload, *, expected_sha256, max_archive=32_000_000,
                       max_entries=128, max_uncompressed=64_000_000):
     issues = []
+    if (any(type(x) is not int or x <= 0 for x in (max_archive, max_entries, max_uncompressed))):
+        return {"status": "BLOCKED", "issues": ["invalid_limits"]}
     if (type(payload) is not bytes or len(payload) > max_archive
             or type(expected_sha256) is not str or not SHA256.fullmatch(expected_sha256)):
         return {"status": "BLOCKED", "issues": ["invalid_input"]}
@@ -29,6 +31,17 @@ def inspect_zip_bytes(payload, *, expected_sha256, max_archive=32_000_000,
                         or "\\" in name or ":" in name or
                         any(part in ("", ".", "..") for part in name.rstrip("/").split("/"))):
                     issues.append("unsafe_entry_name")
+                components = name.rstrip("/").split("/")
+                reserved = {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"}
+                reserved.update("COM" + str(n) for n in range(1, 10))
+                reserved.update("LPT" + str(n) for n in range(1, 10))
+                if (name.endswith("//") or any(
+                    not part or part.endswith((" ", ".")) or
+                    any(ord(c) < 32 or c in '<>:"|?*' for c in part) or
+                    part.split(".")[0].upper() in reserved
+                    for part in components
+                )):
+                    issues.append("unsafe_windows_entry")
                 canonical = name.casefold()
                 if canonical in names:
                     issues.append("duplicate_entry_name")
