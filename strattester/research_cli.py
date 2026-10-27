@@ -28,6 +28,7 @@ def parser():
     for flag in ('source','source-sha256','output','trust-store','trust-store-sha256','checkpoint','checkpoint-sha256','openssl-exe','openssl-sha256','scratch-root'):
         walk.add_argument('--'+flag,required=True)
     walk.add_argument('--enable-research',action='store_true')
+    walk.add_argument('--funding-bundle');walk.add_argument('--funding-bundle-sha256')
     fixture=sub.add_parser('prepare-walk-forward')
     for flag in ('output','openssl-exe','openssl-sha256','scratch-root'):fixture.add_argument('--'+flag,required=True)
     fixture.add_argument('--seed',type=int,default=31)
@@ -111,7 +112,8 @@ def main(argv=None):
             result=prepare_walkforward_fixture(a.output,openssl_exe=v.executable,openssl_sha256=v.executable_sha256,scratch_root=v.scratch_root,seed=a.seed)
         elif a.command=='walk-forward':
             from .research.financial_walkforward_session import run_walkforward_file
-            result=run_walkforward_file(a.source,a.source_sha256,a.output,trust_store_path=a.trust_store,trust_store_sha256=a.trust_store_sha256,checkpoint_path=a.checkpoint,checkpoint_sha256=a.checkpoint_sha256,verifier=_verifier(a),enable_research=a.enable_research)
+            result=run_walkforward_file(a.source,a.source_sha256,a.output,trust_store_path=a.trust_store,trust_store_sha256=a.trust_store_sha256,checkpoint_path=a.checkpoint,checkpoint_sha256=a.checkpoint_sha256,verifier=_verifier(a),enable_research=a.enable_research,
+                funding_bundle_path=a.funding_bundle,funding_bundle_sha256=a.funding_bundle_sha256)
         elif a.command=='experiment':
             from .research.financial_experiment_session import run_experiment_file
             result=run_experiment_file(a.source,a.source_sha256,a.output,enable_research=a.enable_research)

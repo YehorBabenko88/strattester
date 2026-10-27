@@ -95,3 +95,20 @@ def load_checkpoint(path, expected_sha256, *, max_bytes=8*1024*1024):
     model.load_state_dict(state,strict=True);model.eval()
     model.checkpoint_identity=(expected_sha256,model_fingerprint(model))
     return model,{key:payload[key] for key in ('dataset_sha256','seed','config')}
+
+
+def inspect_checkpoint_recovery(path, expected_sha256, *, dataset_sha256, seed):
+    """Read only: verify an externally pinned model; never infer optimizer state.
+
+    Unregistered temporary/final artifacts are not discovered or adopted. Restart
+    a failed experiment in a fresh output directory with the same pinned inputs.
+    Optimizer moments and step cursor are absent from version 1 checkpoints.
+    """
+    digest(dataset_sha256);integer(seed,'seed')
+    model, metadata=load_checkpoint(path,expected_sha256)
+    if metadata['dataset_sha256']!=dataset_sha256 or metadata['seed']!=seed:
+        raise ValueError('checkpoint recovery training provenance mismatch')
+    return {'status':'VERIFIED_MODEL_ONLY_RESTART_REQUIRED', 'optimizer_resume':False,
+            'checkpoint_sha256':expected_sha256,'dataset_sha256':dataset_sha256,
+            'seed':seed,'model_fingerprint':model_fingerprint(model),
+            'orphan_adoption':'NEVER','physical_g1':'NOT_AUTHORIZED','trading':'NO-GO'}

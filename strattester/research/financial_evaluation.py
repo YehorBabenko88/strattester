@@ -29,7 +29,7 @@ def evaluate_ledger(trades, *, fee_bps=0., slippage_bps=0., funding_bps=0., fund
     if any(v<0 for v in costs) or not trades:raise ValueError('costs/nonempty ledger')
     if funding_windows is not None and funding_bps != 0:
         raise ValueError('cannot combine flat funding charge and funding events')
-    previous={};returns=[];turnover=0
+    previous={};returns=[];turnover=0;rows=[]
     for trade in sorted(trades,key=lambda x:(x.start_ns,x.instrument)):
         integer(trade.start_ns,'start');integer(trade.end_ns,'end',1)
         if (not trade.instrument or trade.end_ns<=trade.start_ns or trade.start_ns<previous.get(trade.instrument,-1)
@@ -38,12 +38,19 @@ def evaluate_ledger(trades, *, fee_bps=0., slippage_bps=0., funding_bps=0., fund
         previous[trade.instrument]=trade.end_ns
         changed=2*abs(trade.position);turnover+=changed
         returns.append(trade.position*trade.simple_return-changed*(fee_bps+slippage_bps)/10000-abs(trade.position)*funding_bps/10000)
+        rows.append({'instrument':trade.instrument, 'start_ns':trade.start_ns, 'end_ns':trade.end_ns,
+                     'position':trade.position, 'turnover':changed,
+                     'gross_return':trade.position*trade.simple_return,
+                     'fee_cost':changed*fee_bps/10000, 'slippage_cost':changed*slippage_bps/10000,
+                     'funding_cashflow':-abs(trade.position)*funding_bps/10000})
     if funding_windows is not None:
         from .financial_funding import funding_adjustments
         adjustments=funding_adjustments(sorted(trades,key=lambda x:(x.start_ns,x.instrument)),funding_windows)
         returns=[value+adjustment for value,adjustment in zip(returns,adjustments)]
+        for row,adjustment in zip(rows,adjustments):row['funding_cashflow']=adjustment
     if not all(math.isfinite(v) for v in returns):raise ValueError('nonfinite ledger return')
-    report={'returns':returns,'turnover':turnover,'mean':mean(returns),'accounting':'simple-return, independent round trips; no leveraged portfolio simulator'}
+    for row,value in zip(rows,returns):row['net_return']=value
+    report={'returns':returns,'rows':rows,'turnover':turnover,'mean':mean(returns),'accounting':'simple-return, independent round trips; no leveraged portfolio simulator'}
     if funding_windows is not None:
         report['funding_status']='RESEARCH_CONTRACT_ONLY_NOT_PRODUCER_AUTHENTICATED'
     return report
@@ -82,7 +89,8 @@ def delayed_features(history_x,history_events,query_events):
     return result
 
 
-def evaluate_controls(train_x,train_y,test_x,test_y,*,train_events,test_events,seed=0,history_x=None,history_events=None):
+def evaluate_controls(train_x,train_y,test_x,test_y,*,train_events,test_events,seed=0,history_x=None,history_events=None,
+                      include_predictions=False):
     """Fit all baseline/negative controls only on the supplied training slice."""
     from research.alphafold_training.baselines import MeanReturnBaseline, RidgeBaseline
     integer(seed,'seed')
@@ -112,4 +120,5 @@ def evaluate_controls(train_x,train_y,test_x,test_y,*,train_events,test_events,s
         'label_shuffle':RidgeBaseline().fit(train_x,shuffled).predict(test_x),
         'delayed_feature':RidgeBaseline().fit(train_x,train_y).predict(delayed),
     }
-    return {name:mean(abs(finite(y,'target')-finite(p,'prediction')) for y,p in zip(test_y,values)) for name,values in predictions.items()}
+    errors={name:mean(abs(finite(y,'target')-finite(p,'prediction')) for y,p in zip(test_y,values)) for name,values in predictions.items()}
+    return {'mae':errors,'predictions':predictions} if include_predictions else errors

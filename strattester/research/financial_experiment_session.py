@@ -74,7 +74,10 @@ def run_experiment_file(source_path,source_sha256,output_dir,*,enable_research=F
             mus.append(prediction.mu);scales.append(prediction.scale);labels.append(example.forward_log_return)
         ledger=evaluate_ledger(trades,fee_bps=payload['fee_bps'],slippage_bps=payload['slippage_bps'])
         metrics=gaussian_scores(mus,scales,labels)
-        if ledger!=result['ledger'] or metrics!=result['test_metrics']:raise ValueError('verified checkpoint replay differs from experiment evaluation')
+        from .financial_calibration import calibrated_scores
+        calibrated=calibrated_scores(mus,scales,labels,result['calibration'])
+        if (ledger!=result['ledger'] or metrics!=result['test_metrics']
+                or calibrated!=result['calibrated_test_metrics']):raise ValueError('verified checkpoint replay differs from experiment evaluation')
         result.update(source_sha256=source_sha256,source_bytes=len(data),checkpoint_reloaded=True,forecasts=forecasts,ledger=ledger,test_metrics=metrics,physical_g1='NOT_AUTHORIZED',trading='NO-GO',native_resource_caps='NOT_ENFORCED',prediction_availability='SYNTHETIC_ORIGIN_ONLY_NOT_DEPLOYMENT_LATENCY')
         encoded=canonical_bytes(result)
         if len(encoded)>4*1024*1024:raise ValueError('experiment output budget')

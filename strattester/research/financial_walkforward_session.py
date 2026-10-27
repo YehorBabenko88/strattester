@@ -20,6 +20,7 @@ from .financial_experiment import Example, run_walk_forward
 from .financial_checkpoint import load_checkpoint
 from .financial_pipeline import predict_snapshot
 from .financial_evaluation import Trade, evaluate_ledger, gaussian_scores
+from .financial_calibration import calibrated_scores
 
 SOURCE_KEYS = {'version', 'scope', 'label_contract', 'exports', 'labels', 'config', 'folds',
                'holdout_symbols', 'steps', 'seed', 'fee_bps', 'slippage_bps', 'embargo_ns',
@@ -110,13 +111,16 @@ def _replay(examples, model, model_sha256, fold, cancel):
         mus.append(p.mu); scales.append(p.scale); labels.append(e.forward_log_return)
     ledger = evaluate_ledger(trades, fee_bps=bounds['fee_bps'], slippage_bps=bounds['slippage_bps'])
     metrics = gaussian_scores(mus, scales, labels)
-    if ledger != fold['ledger'] or metrics != fold['test_metrics'] or len(forecasts) != fold['test_count']:
+    calibrated = calibrated_scores(mus, scales, labels, fold['calibration'])
+    if (ledger != fold['ledger'] or metrics != fold['test_metrics']
+            or calibrated != fold['calibrated_test_metrics'] or len(forecasts) != fold['test_count']):
         raise ValueError('verified fold checkpoint replay mismatch')
     return forecasts
 
 
 def run_walkforward_file(source_path, source_sha256, output_dir, *, trust_store_path, trust_store_sha256,
-                         checkpoint_path, checkpoint_sha256, verifier, enable_research=False, cancel=lambda: False):
+                         checkpoint_path, checkpoint_sha256, verifier, enable_research=False, cancel=lambda: False,
+                         funding_bundle_path=None, funding_bundle_sha256=None):
     check_cancel(cancel)
     if enable_research is not True: raise ValueError('explicit --enable-research required')
     path = Path(source_path)
@@ -135,6 +139,15 @@ def run_walkforward_file(source_path, source_sha256, output_dir, *, trust_store_
     target = Path(output_dir); root = reject_linked_path(target.parent)
     if target.exists() or target.is_symlink(): raise ValueError('output exists; refusing overwrite')
     examples, provenance = _decode(path, payload, trust_store_path, trust_store_sha256, verifier, config, cancel)
+    if (funding_bundle_path is None)!=(funding_bundle_sha256 is None):
+        raise ValueError('independent funding bundle path and SHA256 required together')
+    funding_windows=None
+    funding_report={'status':'BLOCKED','reason':'NO_SIGNED_FUNDING_EVENTS',
+                    'ledger_assumption':'FUNDING_EXCLUDED; NOT_FUNDING_ADJUSTED_PNL'}
+    if funding_bundle_path is not None:
+        from .financial_walkforward_funding import load_walkforward_funding
+        funding_windows,funding_report=load_walkforward_funding(funding_bundle_path,
+            funding_bundle_sha256,examples,verifier,cancel)
     check_cancel(cancel)
     bootstrap, metadata = load_checkpoint(checkpoint_path, checkpoint_sha256)
     if bootstrap.config != config: raise ValueError('bootstrap checkpoint configuration mismatch')
@@ -155,6 +168,11 @@ def run_walkforward_file(source_path, source_sha256, output_dir, *, trust_store_
             if saved['dataset_sha256'] != fold['training_dataset_sha256'] or saved['seed'] != payload['seed']+i:
                 raise ValueError('fold checkpoint training provenance mismatch')
             fold['forecasts'] = _replay(examples, model, fold['model_sha256'], fold, cancel)
+            if funding_windows is not None:
+                from .financial_walkforward_funding import score_funding,score_control_funding
+                fold['funding_adjusted_ledger']=score_funding(fold['forecasts'],funding_windows,fold['research_config'])
+                for card in fold['control_scorecards'].values():
+                    card['funding_adjusted_ledger']=score_control_funding(card['ledger'],funding_windows,fold['research_config'])
             fold['checkpoint_reloaded'] = True
             del model
         result.update(source_sha256=source_sha256, source_bytes=len(data), signed_exports=provenance,
@@ -163,7 +181,7 @@ def run_walkforward_file(source_path, source_sha256, output_dir, *, trust_store_
             label_contract=payload['label_contract'], label_authority='CALLER_PINNED_SYNTHETIC_ONLY_NOT_PRODUCER_ATTESTED',
             preprocessing='CAUSAL_PER_SNAPSHOT_RETURNS_NO_GLOBAL_FIT; BASELINES_FIT_TRAIN_ONLY',
             prediction_availability='SYNTHETIC_ORIGIN_ONLY_NOT_DEPLOYMENT_LATENCY',
-            funding={'status':'BLOCKED','reason':'NO_SIGNED_FUNDING_EVENTS','ledger_assumption':'FUNDING_EXCLUDED; NOT_FUNDING_ADJUSTED_PNL'},
+            funding=funding_report,
             physical_g1='NOT_AUTHORIZED', trading='NO-GO', native_resource_caps='NOT_ENFORCED')
         encoded = canonical_bytes(result)
         if len(encoded) > 8*1024*1024 or sum(p.stat().st_size for p in stage.iterdir())+len(encoded) > 64*1024*1024:
@@ -176,4 +194,5 @@ def run_walkforward_file(source_path, source_sha256, output_dir, *, trust_store_
         os.rename(stage, target)
     return {'status':'SYNTHETIC_ENGINEERING_ONLY', 'real_oos':'BLOCKED', 'source_sha256':source_sha256,
             'fold_count':result['fold_count'], 'output':str(target), 'report_sha256':sha256(encoded).hexdigest(),
-            'funding':'BLOCKED_NO_EVENT_DATA', 'trading':'NO-GO', 'physical_g1':'NOT_AUTHORIZED', 'native_resource_caps':'NOT_ENFORCED'}
+            'funding':'SIGNED_SYNTHETIC_ONLY' if funding_windows is not None else 'BLOCKED_NO_EVENT_DATA',
+            'trading':'NO-GO', 'physical_g1':'NOT_AUTHORIZED', 'native_resource_caps':'NOT_ENFORCED'}

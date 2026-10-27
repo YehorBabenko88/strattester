@@ -1,0 +1,39 @@
+name: ml-oos-synthetic
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ml-oos-synthetic-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  cpu-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      CUDA_VISIBLE_DEVICES: ''
+      PYTHONHASHSEED: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --upgrade 'pip>=26.2.2,<27' 'setuptools>=84.1,<85'
+      - run: python -m pip install -e '.[dev,postgres]'
+      - run: python -m pip install 'torch==2.14.1' --index-url https://download.pytorch.org/whl/cpu
+      - name: Mandatory regressions
+        run: python -m pytest tests/research/test_ml_oos_completion.py tests/research/test_ml_oos_funding_session.py -q --junitxml=results/ml-oos/regressions.xml --json-report --json-report-file=results/ml-oos/regressions.json
+      - name: Signed synthetic CPU E2E and fresh-process recovery
+        run: python scripts/ml_oos_synthetic_e2e.py --output results/ml-oos/e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ml-oos-synthetic-${{ github.event.pull_request.head.sha || github.sha }}
+          path: results/ml-oos/
+          if-no-files-found: error
