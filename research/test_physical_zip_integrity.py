@@ -55,6 +55,10 @@ class ZipIntegrityTests(unittest.TestCase):
     def test_file_directory_collision(self):
         self.assertIn("duplicate_entry_name", inspect(archive([("same/", b""), ("same", b"x")]))["issues"])
 
+    def test_unicode_normalization_collision(self):
+        data = archive([("caf\u00e9.txt", b"x"), ("cafe\u0301.txt", b"y")])
+        self.assertIn("duplicate_entry_name", inspect(data)["issues"])
+
     def test_unsupported_compression(self):
         payload = io.BytesIO()
         with zipfile.ZipFile(payload, "w", compression=zipfile.ZIP_BZIP2) as z:
