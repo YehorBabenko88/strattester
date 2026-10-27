@@ -34,6 +34,9 @@ def parser():
     inventory=sub.add_parser('verify-executables')
     inventory.add_argument('--manifest',required=True)
     inventory.add_argument('--manifest-sha256',required=True)
+    g0=sub.add_parser('inspect-g0-evidence')
+    g0.add_argument('--manifest',required=True)
+    g0.add_argument('--manifest-sha256',required=True)
     funding=sub.add_parser('verify-funding')
     for flag in ('funding','funding-sha256','policy','policy-sha256','trust-store','trust-store-sha256','openssl-exe','openssl-sha256','scratch-root'):
         funding.add_argument('--'+flag,required=True)
@@ -69,7 +72,10 @@ def _profile(path,expected_sha256):
 def main(argv=None):
     a=parser().parse_args(argv)
     try:
-        if a.command=='verify-executables':
+        if a.command=='inspect-g0-evidence':
+            from .research.financial_g0_evidence import inspect_g0_evidence
+            result=inspect_g0_evidence(a.manifest,a.manifest_sha256)
+        elif a.command=='verify-executables':
             from .research.financial_executable_inventory import verify_executable_inventory
             result=verify_executable_inventory(a.manifest,a.manifest_sha256)
         elif a.command=='verify-funding':

@@ -40,14 +40,24 @@ function Get-Service {[pscustomobject]@{Name='fixture-service';Status='Running';
 function Get-Process {[pscustomobject]@{Id=7;ProcessName='fixture-db';WorkingSet64=1024}}
 '''.replace('UDP_BODY', udp)
     harness += "\n" + overrides + "\n"
+    boundary='__STRATTESTER_MOCK_G0_COLLECTOR_BOUNDARY__'
+    harness += "\nWrite-Output '" + boundary + "'\n"
     harness += "\n& '" + script.as_posix().replace("'", "''") + "'\n"
     target = tmp_path / f'mocked-{shell}.ps1'
     target.write_text(harness, encoding='utf-8-sig')
-    result = subprocess.run([executable, '-NoProfile', '-NonInteractive', '-File', str(target)],
-                            capture_output=True, text=True, timeout=20)
+    try:
+        result = subprocess.run([executable, '-NoProfile', '-NonInteractive', '-File', str(target)],
+                                capture_output=True, text=True, timeout=20)
+    except subprocess.TimeoutExpired as exc:
+        output=exc.output or b''
+        marker=boundary.encode() if isinstance(output, bytes) else boundary
+        phase='AFTER_COLLECTOR_BOUNDARY' if marker in output else 'BEFORE_COLLECTOR_BOUNDARY'
+        raise AssertionError('Mocked G0 subprocess timeout20s; phase='+phase+'; no retry') from exc
     assert result.returncode == 0, result.stdout + result.stderr
     assert 'secret-DSN' not in result.stdout + result.stderr
-    return json.loads(result.stdout)
+    lines=result.stdout.splitlines()
+    assert lines and lines[0]==boundary, 'mocked collector boundary not observed'
+    return json.loads('\n'.join(lines[1:]))
 
 
 def test_udp_gpu_and_missing_facts_are_explicit(tmp_path):
@@ -156,3 +166,17 @@ def test_nonempty_partial_facts_are_missing_and_not_empty(tmp_path, shell):
     assert report['observations']['processes'] == 'MISSING'
     assert 'WorkingSet64' in report['observation_requirements']['processes']['required_fields']
     assert report['g0_readiness'].startswith('BLOCKED')
+
+
+@pytest.mark.parametrize('output,phase', [(b'', 'BEFORE_COLLECTOR_BOUNDARY'),
+    (b'__STRATTESTER_MOCK_G0_COLLECTOR_BOUNDARY__\n', 'AFTER_COLLECTOR_BOUNDARY')])
+def test_mock_timeout_retains_boundary_phase_without_retry_or_limit_increase(tmp_path, monkeypatch, output, phase):
+    calls=[]
+    def timeout(command, **kwargs):
+        calls.append((command, kwargs))
+        raise subprocess.TimeoutExpired(command, kwargs['timeout'], output=output, stderr=b'')
+    monkeypatch.setattr(subprocess, 'run', timeout)
+    monkeypatch.setattr(shutil, 'which', lambda shell: '/fixture/pwsh')
+    with pytest.raises(AssertionError, match=phase):
+        collect(tmp_path)
+    assert len(calls)==1 and calls[0][1]['timeout']==20
