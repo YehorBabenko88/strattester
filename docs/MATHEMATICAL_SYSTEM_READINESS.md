@@ -1,6 +1,6 @@
 # MATHEMATICAL_SYSTEM_READINESS — 2026-10-26
 
-**Status: NO-GO / confirmed mathematical CI failure on 5541afa3; corrective commit awaiting CI.**
+**Status: NO-GO / independent-system-math failed on 5b83d20a (four incorrect target/perturbation assertions); corrected assertions pending exact-HEAD CI.**
 
 ## Pinned source evidence
 - Strattester integration candidate: `4f3a4bbb9a2f6c0cc3e87fbb0af4fed1dfcc3fd7` (verified commit exists); default main: `37ff7e9d12a4d2dccd788fc493c28557dbe8bcea`.
