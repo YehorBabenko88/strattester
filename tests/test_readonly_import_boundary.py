@@ -2,6 +2,9 @@
 import hashlib
 import json
 import sqlite3
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 import pytest
 
@@ -66,3 +69,44 @@ def test_routes_and_capabilities_are_bounded_and_read_only(tmp_path):
         assert call('/internal/v1/runs', source, query=query)[0] == 400
     assert call('/internal/v1/runs/../../metrics', source)[0] == 404
     assert not source.exists()
+
+
+@pytest.mark.parametrize('source', [r'\\server\share\file.sqlite', '//server/share/file.sqlite',
+    r'\/server/share/file.sqlite', r'\\?\C:\fixture.sqlite', r'\\.\NUL',
+    r'C:\fixture.sqlite:stream', r'C:\one\..\fixture.sqlite', r'C:\NUL', 'relative.sqlite'])
+def test_invalid_sources_rejected_before_filesystem_or_sqlite(source):
+    # These strings are never passed to the OS. In particular no UNC is probed.
+    with patch.object(Path, 'resolve', side_effect=AssertionError('resolve IO')), \
+         patch.object(Path, 'lstat', side_effect=AssertionError('lstat IO')), \
+         patch('sqlite3.connect', side_effect=AssertionError('database IO')):
+        status, _, data = call('/internal/v1/health', source)
+    assert (status, data['reason']) == (503, 'SOURCE_UNAVAILABLE')
+    assert source not in json.dumps(data)
+
+
+def test_constructor_performs_no_filesystem_or_socket_io(tmp_path):
+    from strattester.readonly_api import ReadOnlyResultsApp
+    with patch.object(Path, 'resolve', side_effect=AssertionError('resolve IO')), \
+         patch.object(Path, 'lstat', side_effect=AssertionError('lstat IO')), \
+         patch('socket.socket', side_effect=AssertionError('socket IO')):
+        ReadOnlyResultsApp(tmp_path / 'fixture.sqlite')
+        assert call('/internal/v1/health', None)[0] == 503
+
+
+@pytest.mark.parametrize('kind', ['ancestor_reparse', 'hardlink', 'directory'])
+def test_linked_and_nonordinary_sources_blocked_before_sqlite(tmp_path, kind):
+    import stat
+    source = tmp_path / 'fixture.sqlite'
+    source.write_bytes(b'fixture')
+    original = Path.lstat
+    def metadata(path, *args, **kwargs):
+        info = original(path, *args, **kwargs)
+        if (kind == 'ancestor_reparse' and path == tmp_path) or (kind != 'ancestor_reparse' and path == source):
+            return SimpleNamespace(st_mode=stat.S_IFDIR if kind == 'directory' else stat.S_IFREG,
+                st_file_attributes=0x400 if kind == 'ancestor_reparse' else 0,
+                st_nlink=2 if kind == 'hardlink' else 1)
+        return info
+    with patch.object(Path, 'lstat', metadata), \
+         patch('sqlite3.connect', side_effect=AssertionError('database IO')):
+        status, _, data = call('/internal/v1/health', source)
+    assert (status, data['reason']) == (503, 'SOURCE_UNAVAILABLE')

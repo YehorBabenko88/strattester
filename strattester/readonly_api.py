@@ -7,21 +7,36 @@ import json
 from pathlib import Path
 import re
 import sqlite3
+import stat
 import time
 from urllib.parse import parse_qs
 
 
 class ReadOnlyResultsApp:
     def __init__(self, source_path=None):
-        self.source_path = Path(source_path).resolve() if source_path is not None else None
+        from strattester.research.financial_executable_inventory import _local_path
+        self.source_path = None
+        if source_path is not None:
+            try:
+                # Lexical admission only: resolving can probe UNC/reparse targets.
+                self.source_path = Path(_local_path(source_path))
+            except (OSError, TypeError, ValueError):
+                pass
 
     def _source_reason(self):
         if self.source_path is None:
             return 'SOURCE_UNAVAILABLE'
         try:
+            from strattester.research.financial_snapshot import reject_linked_path
+            # Preserve lexical ancestors until checked. These portable checks
+            # do not provide native confinement against namespace races.
+            source = reject_linked_path(self.source_path)
+            info = source.lstat()
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                return 'SOURCE_UNAVAILABLE'
             # Metadata-only main-file probe: ignore WAL, never create sidecars.
             # This cannot qualify source freshness or consume a live snapshot.
-            con = sqlite3.connect(self.source_path.as_uri() + '?mode=ro&immutable=1', uri=True, timeout=0.1)
+            con = sqlite3.connect(source.as_uri() + '?mode=ro&immutable=1', uri=True, timeout=0.1)
             try:
                 deadline = time.monotonic() + 0.1
                 con.set_progress_handler(lambda: int(time.monotonic() >= deadline), 100)

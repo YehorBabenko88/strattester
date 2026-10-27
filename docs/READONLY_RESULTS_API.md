@@ -7,6 +7,14 @@ Integration work order: unified-system `50e6e63cb183f6dcf1dee3c753f966717ee3b110
 callable. It starts no listener, worker, service, exchange connection, or native
 operation. Hosting, authentication and deployment remain separate work.
 
+Integration adaptation: sources must be absolute lexical local paths; UNC,
+device, alternate-stream, relative and traversal paths are rejected before
+filesystem IO. The constructor performs no resolution. Each source probe
+rejects existing ancestor symlinks/reparse points, nonordinary files and
+multiple hardlinks before SQLite access. Invalid or missing paths are
+SOURCE_UNAVAILABLE. Portable checks do not provide native race confinement or
+prove the backing storage type of a local drive. All results remain blocked.
+
 All replies contain `api_version: {"major": 1, "minor": 0}`, `producer: "strattester"`,
 `read_only: true`, `provenance: "UNAVAILABLE"`, and `status`.
 

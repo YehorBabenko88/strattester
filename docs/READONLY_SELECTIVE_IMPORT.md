@@ -10,13 +10,18 @@ PR #42 (`codex/workstream-a-readonly-results`), source HEAD
 `ef1c53861998188bdd03b9f037dc45573b3c2acb`, tree
 `f7d3fd6ebeb0a53bd840274c12c03c6ca224ffb4`. Source review used its
 changed-file delta against `37ff`, not a branch replacement of integration.
-The following files were imported unchanged:
+The following files were initially imported unchanged in `58705af`:
 
 | File | Source blob |
 | --- | --- |
 | `strattester/readonly_api.py` | `d99e01f8d0917032530bae0f1b07141a837fa07e` |
 | `tests/test_readonly_api.py` | `ba0698475a7812b6a4ed1bf56f08f737a7a3a3b3` |
 | `docs/READONLY_RESULTS_API.md` | `8076567c93893899ab2d1adc29e3e85630c8b1af` |
+
+The follow-up path-admission fix adapts `readonly_api.py` and
+`READONLY_RESULTS_API.md`; their source blobs above describe origin, not the
+final adapted content. Independent tests and this disposition document are new
+integration-owned files. No PR43 file is imported.
 
 PR #43 (`codex/provenance-a`), source HEAD
 `943095d00d5d56276f3832c42b36b290bea77a84`, tree
@@ -87,3 +92,37 @@ noncreation, bounded queries, forbidden methods and path traversal. They test
 the blocked boundary; they do not claim to validate an unimported producer's
 execution, failure or cancellation lifecycle. Financial runner, financial owner
 signatures, native blocked stage, funding, Grid and root G0 files are unchanged.
+
+## Confirmed imported-source path bug and adaptation
+
+Root review found that the imported constructor used `Path.resolve()` before
+local path admission. Mock-only tests confirmed this performed resolution for
+UNC, mixed-separator UNC, device, alternate stream, traversal and relative
+inputs; linked/nonordinary inputs also reached SQLite. No such real remote
+path was probed. This is a confirmed bug in the imported PR42 implementation,
+distinct from the new-capability RED above.
+
+The adapted constructor reuses the existing lexical `_local_path` admission
+from `financial_executable_inventory`, performs no filesystem resolution, and
+treats invalid inputs as an unavailable source. Before probing SQLite it reuses
+`financial_snapshot.reject_linked_path` and requires an ordinary file with one
+hardlink. Invalid/missing sources return `SOURCE_UNAVAILABLE` without paths or
+exceptions in responses. No helper or financial runner code was changed.
+Portable path checks do not prove native race confinement or establish the
+backing storage type of a local drive; result capabilities remain blocked.
+
+Path regression RED command:
+
+```text
+..\financial-venv\Scripts\python.exe -m pytest tests/test_readonly_import_boundary.py -q --tb=short --basetemp=.pytest-path-red
+```
+
+Result: **13 failed, 22 passed**. Failures demonstrated forbidden resolution or
+SQLite access using mocks, before the fix. Constructor/no-source request tests
+also prohibit socket creation. GREEN command:
+
+```text
+..\financial-venv\Scripts\python.exe -m pytest tests/test_readonly_import_boundary.py tests/test_readonly_api.py tests/research/test_runner.py -q --tb=short --basetemp=.pytest-path-green
+```
+
+Result: **40 passed**. Ordinary SQLite fixture tests still pass unchanged.
