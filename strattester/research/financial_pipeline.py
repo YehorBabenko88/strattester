@@ -21,8 +21,15 @@ def feature_tracks(snapshot, *, timeframe_ns, config):
     if s*n*3*4*8>config.max_work_bytes:raise ValueError('feature byte budget')
     tracks=[]
     for identity in identities:
-        logs=[math.log(b.close) for b in groups[identity]]
-        returns=[0.,*(b-a for a,b in zip(logs,logs[1:]))]
+        prices=[b.close for b in groups[identity]]
+        # Nearby prices need log1p: log(b)-log(a) loses relative changes at
+        # large/small numeraires. Far ratios use separate logs so division
+        # cannot overflow or underflow. The near branch is bounded and positive.
+        returns=[0.]
+        for a,b in zip(prices,prices[1:]):
+            delta=b-a
+            returns.append(math.log1p(delta/a) if abs(delta)<=a/2
+                           else math.log(b)-math.log(a))
         track=[]
         for i,r in enumerate(returns):
             window=returns[max(0,i-7):i+1];mu=sum(window)/len(window)
@@ -34,6 +41,7 @@ def feature_tracks(snapshot, *, timeframe_ns, config):
 
 def predict_snapshot(snapshot, model, *, instrument, timeframe_ns, horizon_ns, model_sha256, available_ns):
     import torch
+    integer(timeframe_ns,'timeframe_ns',1)
     integer(horizon_ns,'horizon_ns',1);integer(available_ns,'available_ns');digest(model_sha256)
     if horizon_ns!=model.config.horizon_ns or horizon_ns%timeframe_ns:
         raise ValueError('horizon must equal trained horizon and align to timeframe')

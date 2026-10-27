@@ -1,0 +1,226 @@
+{
+  "baseline": "f60869686a51693799b4844a1af49c9b39ba45d5",
+  "baseline_tree": "0f7626787ec835a9a945a8e576d19181044f23ec",
+  "replacement_objects": "DISABLED",
+  "independent_worktrees": true,
+  "nonoverlapping_source_paths": true,
+  "lanes": [
+    {
+      "lane": "g0",
+      "source_pr": 49,
+      "source_head": "e900087274410e4e0966c540612c35e3321119e5",
+      "source_tree": "1b8c1ab78a2c19e084141ee65fabc15635cec9ba",
+      "integration_commits": [
+        "f7693d48aa0569d34c621cbb5b3b25cc1bf93712"
+      ],
+      "files": [
+        {
+          "path": "docs/readiness/parallel-g0-preflight.md",
+          "source_blob": "0ccc14160e1b3a4c1f6a5f946c6fd53d8ac8bd67",
+          "imported_blob": "0ccc14160e1b3a4c1f6a5f946c6fd53d8ac8bd67"
+        },
+        {
+          "path": "strattester/research/financial_g0_preflight.py",
+          "source_blob": "921f31bbb68bc1cd9a8fac43a6d1b08d4a313176",
+          "imported_blob": "921f31bbb68bc1cd9a8fac43a6d1b08d4a313176"
+        },
+        {
+          "path": "tests/research/test_parallel_g0_preflight.py",
+          "source_blob": "cf8770cd6fed5550459bc080251b93e356aedd65",
+          "imported_blob": "cf8770cd6fed5550459bc080251b93e356aedd65"
+        }
+      ],
+      "reason": "Pure missing/invalid/unverified G0 preflight, always blocked"
+    },
+    {
+      "lane": "grid",
+      "source_pr": 48,
+      "source_head": "7125b3d4caff3814629625e59d66dc5b299cc609",
+      "source_tree": "b95811d3d0833c9937289f180fc35dc736c2d3ab",
+      "integration_commits": [
+        "075aa16f6cb84e557176465de9633510088553e7"
+      ],
+      "files": [
+        {
+          "path": "docs/readiness/parallel-grid-schema.md",
+          "source_blob": "801b5bc6fab1ac6194763c30b7884bee4246fbe6",
+          "imported_blob": "801b5bc6fab1ac6194763c30b7884bee4246fbe6"
+        },
+        {
+          "path": "docs/readiness/parallel-grid-source-audit.json",
+          "source_blob": "af62bad37b761f20902254759b4ade68c34415ef",
+          "imported_blob": "af62bad37b761f20902254759b4ade68c34415ef"
+        },
+        {
+          "path": "strattester/research/financial_grid_exporter.py",
+          "source_blob": "9e074f70d6428e4f16582289151c06c907c6fa71",
+          "imported_blob": "9e074f70d6428e4f16582289151c06c907c6fa71"
+        },
+        {
+          "path": "tests/research/test_parallel_grid_schema.py",
+          "source_blob": "367a0ed00173bf58e69779e163a25a0dd75f40c4",
+          "imported_blob": "367a0ed00173bf58e69779e163a25a0dd75f40c4"
+        }
+      ],
+      "reason": "Reject unpinned SQLite views/indexes/triggers"
+    },
+    {
+      "lane": "ml",
+      "source_pr": 51,
+      "source_head": "e4e8f19d9b54c35851486466b062a7d9fdc11839",
+      "source_tree": "ac1c992be7fe05cd82f4f198f66ccce6eec94ca3",
+      "integration_commits": [
+        "14fce860fb19d166edc511f61897883d1eb6f132"
+      ],
+      "files": [
+        {
+          "path": "docs/readiness/parallel-ml-audit.md",
+          "source_blob": "64f8a4201283b19dae82782a1fbc28fea6c011a9",
+          "imported_blob": "64f8a4201283b19dae82782a1fbc28fea6c011a9"
+        },
+        {
+          "path": "docs/readiness/parallel-ml-evidence.json",
+          "source_blob": "0a9c2060a33ab8a3fc1af41e9f489e28a4c06fe9",
+          "imported_blob": "0a9c2060a33ab8a3fc1af41e9f489e28a4c06fe9"
+        },
+        {
+          "path": "strattester/research/financial_evaluation.py",
+          "source_blob": "45de797ac73d67b89a7372798e8e6a626625e145",
+          "imported_blob": "45de797ac73d67b89a7372798e8e6a626625e145"
+        },
+        {
+          "path": "tests/research/test_parallel_ml_controls.py",
+          "source_blob": "4b42e7ae8dfb724164a55a35a5094096bffae4f5",
+          "imported_blob": "4b42e7ae8dfb724164a55a35a5094096bffae4f5"
+        }
+      ],
+      "reason": "Reject future training origins before OOS control fitting"
+    },
+    {
+      "lane": "math",
+      "source_pr": 54,
+      "source_head": "988b42c170b822f6aef37e63e9fb5c9f4806b0c0",
+      "source_tree": "8a86fd9dbde5353aa2a76d130e22639fb502a950",
+      "integration_commits": [
+        "9c9e52036713598c7e400cf441b974b9807c1c3a"
+      ],
+      "files": [
+        {
+          "path": "docs/readiness/parallel-math-precision-audit.md",
+          "source_blob": "6eab727ff6e0447781b39bc15d4a73d7e1c0156a",
+          "imported_blob": "6eab727ff6e0447781b39bc15d4a73d7e1c0156a"
+        },
+        {
+          "path": "docs/readiness/parallel-math-precision-evidence.json",
+          "source_blob": "a85cc1d118fbe89d4565ac61d9a65714e8c48094",
+          "imported_blob": "a85cc1d118fbe89d4565ac61d9a65714e8c48094"
+        },
+        {
+          "path": "strattester/research/financial_pipeline.py",
+          "source_blob": "8b6524dd7be0b20faab224ef0e03b64e759de2be",
+          "imported_blob": "8b6524dd7be0b20faab224ef0e03b64e759de2be"
+        },
+        {
+          "path": "tests/research/test_parallel_math_feature_precision.py",
+          "source_blob": "b39260fd4d58e690c4457b70b515ea1bcd88cd10",
+          "imported_blob": "b39260fd4d58e690c4457b70b515ea1bcd88cd10"
+        }
+      ],
+      "reason": "Independent Decimal precision/timeframe regressions and stable features"
+    },
+    {
+      "lane": "trust",
+      "source_pr": 52,
+      "source_head": "50182f50b9fc041e67d60bbc80f7f735d21363b9",
+      "source_tree": "8331a22469da820f934684fcb30cdb1cac7b2ca5",
+      "integration_commits": [
+        "d2824cc81135439956286927a989ffaea6c25638"
+      ],
+      "files": [
+        {
+          "path": "docs/readiness/parallel-trust-audit.md",
+          "source_blob": "79f38a78e43216b5ba6111f60084b6fbe2811b9a",
+          "imported_blob": "79f38a78e43216b5ba6111f60084b6fbe2811b9a"
+        },
+        {
+          "path": "docs/readiness/parallel-trust-green.md",
+          "source_blob": "5a38ab928d8bf22406dee91aaa8ec9f7dcea8f99",
+          "imported_blob": "5a38ab928d8bf22406dee91aaa8ec9f7dcea8f99"
+        },
+        {
+          "path": "docs/readiness/parallel-trust-intermediate.md",
+          "source_blob": "c92a12a9bcc077471b2807011c5ef6f50bfe6544",
+          "imported_blob": "c92a12a9bcc077471b2807011c5ef6f50bfe6544"
+        },
+        {
+          "path": "docs/readiness/parallel-trust-red.md",
+          "source_blob": "5b7cb313df74d9d1b546f7d694b97ba1eead1c08",
+          "imported_blob": "5b7cb313df74d9d1b546f7d694b97ba1eead1c08"
+        },
+        {
+          "path": "strattester/research/financial_g0_receipt.py",
+          "source_blob": "1e87d53426fa216174581a255ce95fc4bac84cca",
+          "imported_blob": "1e87d53426fa216174581a255ce95fc4bac84cca"
+        },
+        {
+          "path": "tests/research/test_g0_signed_receipt.py",
+          "source_blob": "b02abf92bb82765131533bc5bcea4d9333e865a3",
+          "imported_blob": "b02abf92bb82765131533bc5bcea4d9333e865a3"
+        },
+        {
+          "path": "tests/research/test_parallel_trust_verifier.py",
+          "source_blob": "fe7589503fc32e098d4fef50054facf91503fdf8",
+          "imported_blob": "fe7589503fc32e098d4fef50054facf91503fdf8"
+        }
+      ],
+      "reason": "Exact independent G0 verifier contract; no arbitrary callbacks"
+    },
+    {
+      "lane": "qa",
+      "source_pr": 53,
+      "source_head": "dedc98382ee33787de476f44dd00e20864be881b",
+      "source_tree": "9eeb5454c15e89f265cb7d586c0a7bc2fdedb911",
+      "integration_commits": [
+        "9d1118a3ace24abf921b74aa6cedbecd1afe2a31",
+        "c088d748cb225c9aececc910e9234ac75b22de88"
+      ],
+      "files": [
+        {
+          "path": "docs/readiness/parallel-qa-artifact-consistency.md",
+          "source_blob": "d5fbeda7cd4ecadf0a7bc126542f3ce8e3ee78e2",
+          "imported_blob": "d5fbeda7cd4ecadf0a7bc126542f3ce8e3ee78e2"
+        },
+        {
+          "path": "scripts/audit_qualification_artifact.py",
+          "source_blob": "ae9a315709069e7f2042eaceaee370ed5be3fca9",
+          "imported_blob": "ae9a315709069e7f2042eaceaee370ed5be3fca9"
+        },
+        {
+          "path": "strattester/research/financial_ci_artifacts.py",
+          "source_blob": "a015afb506c61e539cae087abb3af35c94fbb669",
+          "imported_blob": "a015afb506c61e539cae087abb3af35c94fbb669"
+        },
+        {
+          "path": "tests/research/test_parallel_ci_artifacts.py",
+          "source_blob": "0cbc059b145e37fe5bd4bdf49fd8f7b1c95a7e91",
+          "imported_blob": "0cbc059b145e37fe5bd4bdf49fd8f7b1c95a7e91"
+        }
+      ],
+      "reason": "Bounded reproducible artifact/raw/JUnit consistency, never authority"
+    }
+  ],
+  "lead_only_adaptations": [
+    "research_cli explicit preflight",
+    "test package transitive runtime roster",
+    "required-node manifest and integration tests",
+    "provenance and readiness"
+  ],
+  "constraints": {
+    "vm": "NOT_SELECTED",
+    "physical_g0": "PLAN_READY_TARGET_EVIDENCE_BLOCKED",
+    "g1_execute": "NOT_AUTHORIZED",
+    "g1_cleanup": "NOT_AUTHORIZED",
+    "deployment": "NO-GO",
+    "trading": "NO-GO"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "source_commit": "d537d525296ef34f727996e240ae6c60102c6082",
+  "remote_main_rechecked": "2026-10-27",
+  "source_blobs": {
+    "grid/db.py": "09ffb08fd955455a901dc09c5bbd06d19ee17228",
+    "grid/migrations.py": "eb86864c8c523001740a8f2b0cdf7e160173b531",
+    "grid/storage.py": "da33a2fb80bb836bcf8e2b01c51228530f46ebe6",
+    "grid/segment_wal.py": "87c1281be7a74d984913548f5f97cca1f54e052a",
+    "grid/control_state.py": "36dae681892a009fe8170089a93760b86b24b14d",
+    "grid/level_generator.py": "d784cec89b6a17e3680300cb9ecbefed0ea94de6",
+    "grid/legacy_working_copy.py": "2729a3e81ba54ce686732700d1f49c1fbafb1c75",
+    "grid/config.py": "4b5f2df3191b870ce853a206cbce2e779f8586f1"
+  },
+  "source_receipts": [
+    {
+      "path": "grid/db.py",
+      "sha256": "5eb11360921800d12eb6ba4f62d4d034dc084c5406d37a30784d98ec3a588f1c",
+      "byte_count": 3238
+    },
+    {
+      "path": "grid/migrations.py",
+      "sha256": "b65cf37d0016cc068074daf2e0f79fbbaba9a66cfff1172b328d81958c734322",
+      "byte_count": 33978
+    },
+    {
+      "path": "grid/storage.py",
+      "sha256": "cba2176f603ebe303100014e46b0eca83bd121a00af8b1f837498ff9c5ac560b",
+      "byte_count": 10459
+    },
+    {
+      "path": "grid/segment_wal.py",
+      "sha256": "eebe62044131912c9cf2dbd4cdb1dd07599e03988ba7a3868b887313f807ef79",
+      "byte_count": 10167
+    },
+    {
+      "path": "grid/control_state.py",
+      "sha256": "6029b701ad89124773af32dc9b51bf3d83653aa92b7f0a1a9c8c4f7ef97a04ba",
+      "byte_count": 2756
+    },
+    {
+      "path": "grid/level_generator.py",
+      "sha256": "ec0300fa7a17c9389fead873648117db7683d271c5d086d1fac403d8bd3f0cd8",
+      "byte_count": 2666
+    },
+    {
+      "path": "grid/legacy_working_copy.py",
+      "sha256": "1e3c6db9582c46dac0baf3623fe0aa9d48d0a1ac8c851d0aa12b1738db3d2dd1",
+      "byte_count": 576
+    },
+    {
+      "path": "grid/config.py",
+      "sha256": "2e590b2cfdd9162df78bef3aceda01c37b8502e5f7a0bb83160fc5eb22faf3bc",
+      "byte_count": 2819
+    }
+  ],
+  "status": "BLOCKED",
+  "missing_facts": [
+    "first_availability_history",
+    "retained_revisions",
+    "cross_source_coherence",
+    "market_partition_authority",
+    "physical_schema_identity",
+    "source_completeness_receipts",
+    "producer_issued_immutable_export"
+  ],
+  "authorization": {
+    "G1 Execute": "NOT_AUTHORIZED",
+    "G1 Cleanup": "NOT_AUTHORIZED",
+    "Deployment": "NO-GO",
+    "Trading": "NO-GO"
+  }
+}

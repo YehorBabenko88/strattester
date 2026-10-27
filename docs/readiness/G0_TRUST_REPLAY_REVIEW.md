@@ -2,10 +2,16 @@
 
 Requested source: PR #21, `f60869686a51693799b4844a1af49c9b39ba45d5`.
 GitHub metadata and a fresh `refs/pull/21/head` fetch both confirmed that exact
-HEAD before work on 2026-10-27. Review branch: `parallel/g0-trust-replay`.
+HEAD before work on 2026-10-27. The source branch advanced during the audit;
+the review branch subsequently incorporates refreshed source HEAD
+`593cf92b1cfbfb6a04961dd7f260349c01459cc0` and reruns verification. The earlier
+review HEAD `8d84370d4db076ae82fd2781b84813e4a31cdb0d` and its sealed evidence
+remain historical, not evidence for the refreshed HEAD. Review branch: `parallel/g0-trust-replay`.
 The Draft PR targets `integration/alphafold-financial-system` so its diff is
-limited to this review, tests and mandatory test selection. No production
-verifier, admission implementation, native component or workflow is changed.
+limited to this review, tests and mandatory test selection. Relative to the refreshed source base, this review changes no production
+verifier, admission implementation, native component or workflow. Upstream
+includes its separately reviewed exact-OpenSSLVerifier type guard; it is
+preserved and does not remove the degenerate-key finding below.
 
 ## Results and trust boundary
 
@@ -40,8 +46,10 @@ and cleanup remain `NOT_AUTHORIZED`; deployment and trading remain `NO-GO`.
 ## Reproducible validation
 
 New file: `tests/research/test_g0_trust_replay.py` (92 tests).
-Security gate: 336 -> 428 exact mandatory nodes; all seven engineering gates:
-1556 -> 1648 distinct mandatory nodes. No existing node removed, threshold
+Initial security gate: 336 -> 428; initial engineering total: 1556 -> 1648.
+After incorporating the refreshed source base, the combined mandatory counts
+are recorded in the final PR/evidence; all upstream and all 92 audit nodes are
+preserved by a set union, with each gate minimum equal to its exact node count. No existing node removed, threshold
 lowered, test skipped or assertion relabelled as admission evidence.
 
 Local baseline: 69 existing receipt/signature/owner tests passed. The initial 90

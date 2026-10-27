@@ -1,0 +1,67 @@
+{
+  "baseline": "f60869686a51693799b4844a1af49c9b39ba45d5",
+  "branch": "parallel/20261027-math",
+  "source_blobs": {
+    "strattester/research/financial_pipeline.py": "8b6524dd7be0b20faab224ef0e03b64e759de2be",
+    "tests/research/test_parallel_math_feature_precision.py": "b39260fd4d58e690c4457b70b515ea1bcd88cd10"
+  },
+  "upstream": {
+    "head": "c77e5d2a8961d1a353632c462914ff0a32a950f6",
+    "modules_blob": "11042362604c72e7005b269c1b5f1ea004f870a1",
+    "config_blob": "a2355a95be172fa6f79bbb3ed31dda71d7f9cd2d"
+  },
+  "runs": {
+    "red": {
+      "sha256": "e246a63d5c726b9e1c2a1e4bdaaccca20d76598ebbb3126a686903092ddac526",
+      "counts": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "8",
+        "skipped": "0",
+        "tests": "14",
+        "time": "5.233",
+        "timestamp": "2026-10-27T18:52:26.889323+01:00",
+        "hostname": "LS5"
+      },
+      "log": "F.FF.F....FFFF                                                           [100%]\r\n================================== FAILURES ===================================\r\n___ test_representable_small_returns_survive_feature_extraction[0.0-1e-200] ___\r\n\r\nbase = 1e-200, direction = 0.0\r\n\r\n    @pytest.mark.parametrize('base', [1e-200, 1., 1e200])\r\n    @pytest.mark.parametrize('direction', [0., math.inf])\r\n    def test_representable_small_returns_survive_feature_extraction(base, direction):\r\n        prices = [base, math.nextafter(base, direction), base]\r\n        actual = feature_tracks(snapshot(prices), timeframe_ns=60, config=StructuralConfig())[0][0, 0]\r\n>       torch.testing.assert_close(actual.double(), oracle(prices), rtol=1e-6, atol=1e-30)\r\nE       AssertionError: Tensor-likes are not close!\r\nE       \r\nE       Mismatched elements: 5 / 9 (55.6%)\r\nE       Greatest absolute difference: 1.450417759929779e-16 at index (1, 0) (up to 1e-30 allowed)\r\nE       Greatest relative difference: 1.0 at index (1, 0) (up to 1e-06 allowed)\r\n\r\ntests\\research\\test_parallel_math_feature_precision.py:43: AssertionError\r\n___ test_representable_small_returns_survive_feature_extraction[0.0-1e+200] ___\r\n\r\nbase = 1e+200, direction = 0.0\r\n\r\n    @pytest.mark.parametrize('base', [1e-200, 1., 1e200])\r\n    @pytest.mark.parametrize('direction', [0., math.inf])\r\n    def test_representable_small_returns_survive_feature_extraction(base, direction):\r\n        prices = [base, math.nextafter(base, direction), base]\r\n        actual = feature_tracks(snapshot(prices), timeframe_ns=60, config=StructuralConfig())[0][0, 0]\r\n>       torch.testing.assert_close(actual.double(), oracle(prices), rtol=1e-6, atol=1e-30)\r\nE       AssertionError: Tensor-likes are not close!\r\nE       \r\nE       Mismatched elements: 5 / 9 (55.6%)\r\nE       Greatest absolute difference: 1.699641577013655e-16 at index (1, 0) (up to 1e-30 allowed)\r\nE       Greatest relative difference: 1.0 at index (1, 0) (up to 1e-06 allowed)\r\n\r\ntests\\research\\test_parallel_math_feature_precision.py:43: AssertionError\r\n___ test_representable_small_returns_survive_feature_extraction[inf-1e-200] ___\r\n\r\nbase = 1e-200, direction = inf\r\n\r\n    @pytest.mark.parametrize('base', [1e-200, 1., 1e200])\r\n    @pytest.mark.parametrize('direction', [0., math.inf])\r\n    def test_representable_small_returns_survive_feature_extraction(base, direction):\r\n        prices = [base, math.nextafter(base, direction), base]\r\n        actual = feature_tracks(snapshot(prices), timeframe_ns=60, config=StructuralConfig())[0][0, 0]\r\n>       torch.testing.assert_close(actual.double(), oracle(prices), rtol=1e-6, atol=1e-30)\r\nE       AssertionError: Tensor-likes are not close!\r\nE       \r\nE       Mismatched elements: 5 / 9 (55.6%)\r\nE       Greatest absolute difference: 1.4504177599297789e-16 at index (1, 0) (up to 1e-30 allowed)\r\nE       Greatest relative difference: 1.0 at index (1, 0) (up to 1e-06 allowed)\r\n\r\ntests\\research\\test_parallel_math_feature_precision.py:43: AssertionError\r\n___ test_representable_small_returns_survive_feature_extraction[inf-1e+200] ___\r\n\r\nbase = 1e+200, direction = inf\r\n\r\n    @pytest.mark.parametrize('base', [1e-200, 1., 1e200])\r\n    @pytest.mark.parametrize('direction', [0., math.inf])\r\n    def test_representable_small_returns_survive_feature_extraction(base, direction):\r\n        prices = [base, math.nextafter(base, direction), base]\r\n        actual = feature_tracks(snapshot(prices), timeframe_ns=60, config=StructuralConfig())[0][0, 0]\r\n>       torch.testing.assert_close(actual.double(), oracle(prices), rtol=1e-6, atol=1e-30)\r\nE       AssertionError: Tensor-likes are not close!\r\nE       \r\nE       Mismatched elements: 5 / 9 (55.6%)\r\nE       Greatest absolute difference: 1.6996415770136547e-16 at index (1, 0) (up to 1e-30 allowed)\r\nE       Greatest relative difference: 1.0 at index (1, 0) (up to 1e-06 allowed)\r\n\r\ntests\\research\\test_parallel_math_feature_precision.py:43: AssertionError\r\n________ test_predict_validates_timeframe_before_checkpoint_access[0] _________\r\n\r\ntimeframe = 0\r\n\r\n    @pytest.mark.parametrize('timeframe', [0, -60, True, 60.])\r\n    def test_predict_validates_timeframe_before_checkpoint_access(timeframe):\r\n        with pytest.raises(ValueError, match='timeframe'):\r\n>           predict_snapshot(None, SimpleNamespace(config=StructuralConfig()),\r\n                             instrument=None, timeframe_ns=timeframe, horizon_ns=120,\r\n                             model_sha256='a'*64, available_ns=0)\r\n\r\ntests\\research\\test_parallel_math_feature_precision.py:61: \r\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\r\n\r\nsnapshot = None\r\nmodel = namespace(config=StructuralConfig(model_equations_version=2, input_channels=3, horizon_ns=120, hidden=8, heads=2, inte...e=4, depth=1, recycles=1, max_batch=8, max_tracks=16, max_tokens=32, max_parameters=2000000, max_work_bytes=134217728))\r\ninstrument = None, timeframe_ns = 0, horizon_ns = 120\r\nmodel_sha256 = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'\r\navailable_ns = 0\r\n\r\n    def predict_snapshot(snapshot, model, *, instrument, timeframe_ns, horizon_ns, model_sha256, available_ns):\r\n        import torch\r\n        integer(horizon_ns,'horizon_ns',1);integer(available_ns,'available_ns');digest(model_sha256)\r\n>       if horizon_ns!=model.config.horizon_ns or horizon_ns%timeframe_ns:\r\n                                                  ^^^^^^^^^^^^^^^^^^^^^^^\r\nE       ZeroDivisionError: integer modulo by zero\r\n\r\nstrattester\\research\\financial_pipeline.py:38: ZeroDivisionError\r\n_______ test_predict_validates_timeframe_before_checkpoint_access[-60] ________\r\n\r\ntimeframe = -60\r\n\r\n    @pytest.mark.parametrize('timeframe', [0, -60, True, 60.])\r\n    def test_predict_validates_timeframe_before_checkpoint_access(timeframe):\r\n>       with pytest.raises(ValueError, match='timeframe'):\r\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nE       AssertionError: Regex pattern did not match.\r\nE         Expected regex: 'timeframe'\r\nE         Actual message: 'unverified or changed checkpoint identity'\r\n\r\ntests\\research\\test_parallel_math_feature_precision.py:60: AssertionError\r\n_______ test_predict_validates_timeframe_before_checkpoint_access[True] _______\r\n\r\ntimeframe = True\r\n\r\n    @pytest.mark.parametrize('timeframe', [0, -60, True, 60.])\r\n    def test_predict_validates_timeframe_before_checkpoint_access(timeframe):\r\n>       with pytest.raises(ValueError, match='timeframe'):\r\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nE       AssertionError: Regex pattern did not match.\r\nE         Expected regex: 'timeframe'\r\nE         Actual message: 'unverified or changed checkpoint identity'\r\n\r\ntests\\research\\test_parallel_math_feature_precision.py:60: AssertionError\r\n_______ test_predict_validates_timeframe_before_checkpoint_access[60.0] _______\r\n\r\ntimeframe = 60.0\r\n\r\n    @pytest.mark.parametrize('timeframe', [0, -60, True, 60.])\r\n    def test_predict_validates_timeframe_before_checkpoint_access(timeframe):\r\n>       with pytest.raises(ValueError, match='timeframe'):\r\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nE       AssertionError: Regex pattern did not match.\r\nE         Expected regex: 'timeframe'\r\nE         Actual message: 'unverified or changed checkpoint identity'\r\n\r\ntests\\research\\test_parallel_math_feature_precision.py:60: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/research/test_parallel_math_feature_precision.py::test_representable_small_returns_survive_feature_extraction[0.0-1e-200]\r\nFAILED tests/research/test_parallel_math_feature_precision.py::test_representable_small_returns_survive_feature_extraction[0.0-1e+200]\r\nFAILED tests/research/test_parallel_math_feature_precision.py::test_representable_small_returns_survive_feature_extraction[inf-1e-200]\r\nFAILED tests/research/test_parallel_math_feature_precision.py::test_representable_small_returns_survive_feature_extraction[inf-1e+200]\r\nFAILED tests/research/test_parallel_math_feature_precision.py::test_predict_validates_timeframe_before_checkpoint_access[0]\r\nFAILED tests/research/test_parallel_math_feature_precision.py::test_predict_validates_timeframe_before_checkpoint_access[-60]\r\nFAILED tests/research/test_parallel_math_feature_precision.py::test_predict_validates_timeframe_before_checkpoint_access[True]\r\nFAILED tests/research/test_parallel_math_feature_precision.py::test_predict_validates_timeframe_before_checkpoint_access[60.0]\r\n8 failed, 6 passed in 5.24s\r\n"
+    },
+    "green": {
+      "sha256": "6bc388b32711dab98c8c4ce938ca98692d709dca0352cd486a63d77794e2133f",
+      "counts": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "116",
+        "time": "7.500",
+        "timestamp": "2026-10-27T18:53:01.034523+01:00",
+        "hostname": "LS5"
+      },
+      "log": "........................................................................ [ 62%]\r\n............................................                             [100%]\r\n116 passed in 7.50s\r\n"
+    },
+    "final": {
+      "sha256": "304e882b7c32413d1cd9f6f64994b606909b02f1a66bfa1a495a5ad504eebc9c",
+      "counts": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "119",
+        "time": "9.633",
+        "timestamp": "2026-10-27T18:53:35.367841+01:00",
+        "hostname": "LS5"
+      },
+      "log": "........................................................................ [ 60%]\r\n...............................................                          [100%]\r\n119 passed in 9.63s\r\n"
+    },
+    "initial_collection_error": {
+      "sha256": "6fb436ff0e8e1af45fd4460f3b8d6990e074263b5779559899a6aca3f7709a3c",
+      "log": "\r\nno tests ran in 0.00s\r\nERROR: file or directory not found: tests/research/test_financial_pipeline.py\r\n\r\n",
+      "explanation": "One nonexistent path requested; no tests ran. Corrected file list, retained evidence."
+    }
+  },
+  "deselected": 0,
+  "gpu": "BLOCKED",
+  "G1Execute": "NOT_AUTHORIZED",
+  "G1Cleanup": "NOT_AUTHORIZED",
+  "deployment_trading": "NO-GO"
+}
