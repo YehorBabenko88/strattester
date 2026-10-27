@@ -6,6 +6,7 @@ on:
       - 'tests/research/test_cycle4_triangle_adversarial.py'
       - 'tests/research/test_cycle4_causal_boundary.py'
       - 'tests/research/test_cycle4_opm_reference.py'
+      - 'tests/research/test_cycle4_triangle_attention_oracle.py'
       - '.github/workflows/cycle4-upstream-triangle.yml'
   workflow_dispatch:
 permissions:
@@ -24,10 +25,10 @@ jobs:
       - run: python -m pip install 'torch==2.14.1' --index-url https://download.pytorch.org/whl/cpu
       - run: python -m pip install pytest pytest-json-report
       - name: Pinned-upstream differential
-        run: python -m pytest -q -o addopts='' tests/research/test_cycle4_upstream_triangle_oracle.py tests/research/test_cycle4_triangle_adversarial.py tests/research/test_cycle4_causal_boundary.py tests/research/test_cycle4_opm_reference.py --json-report --json-report-file=cycle4-report.json
-      - name: Strict twenty-one-case accounting
+        run: python -m pytest -q -o addopts='' tests/research/test_cycle4_upstream_triangle_oracle.py tests/research/test_cycle4_triangle_adversarial.py tests/research/test_cycle4_causal_boundary.py tests/research/test_cycle4_opm_reference.py tests/research/test_cycle4_triangle_attention_oracle.py --json-report --json-report-file=cycle4-report.json
+      - name: Strict twenty-five-case accounting
         run: |
-          python -c "import json; d=json.load(open('cycle4-report.json')); s=d['summary']; assert s.get('passed')==21 and s.get('total')==21; assert not any(s.get(k,0) for k in ('failed','error','skipped','xfailed','xpassed','deselected')); assert len({t['nodeid'] for t in d['tests'] if t['outcome']=='passed'})==21"
+          python -c "import json; d=json.load(open('cycle4-report.json')); s=d['summary']; assert s.get('passed')==25 and s.get('total')==25; assert not any(s.get(k,0) for k in ('failed','error','skipped','xfailed','xpassed','deselected')); assert len({t['nodeid'] for t in d['tests'] if t['outcome']=='passed'})==25"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
