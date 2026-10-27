@@ -1,0 +1,40 @@
+{
+  "source_pr": "https://github.com/YehorBabenko88/strattester/pull/44",
+  "source_head": "400a2235460b8a37cb25ad3779778d90eee2e9fc",
+  "source_tree": "1840b383de34f35959ac5dfe38185c67258cece1",
+  "integration_commit": "823632863c9638b0bcf3cad5836b87fdd95a5dd6",
+  "reason": "Explicit bounded signed funding byte verification with external policy and Decimal contract; no runtime activation",
+  "tests": "84 source tests and35 fresh independent tests; final integration CI required",
+  "contracts": "New opt-in verify-funding only; old HMAC helper not imported; real history/coverage/native/OOS stay BLOCKED",
+  "compatibility": "Existing signed runner unchanged; package includes52 source files",
+  "files": {
+    "docs/financial-authenticated-funding-provenance.json": {
+      "source_blob": "8aaed323dd155df64ee3023218817477e70ad43d",
+      "integration_blob": "8aaed323dd155df64ee3023218817477e70ad43d"
+    },
+    "docs/financial-authenticated-funding.md": {
+      "source_blob": "c3e26a6c5535b443bb5503c353c9627f0dd4c120",
+      "integration_blob": "c3e26a6c5535b443bb5503c353c9627f0dd4c120"
+    },
+    "strattester/research/financial_authenticated_funding.py": {
+      "source_blob": "f3b89330be781f8bce9088f7ec5b9b18630efb93",
+      "integration_blob": "f3b89330be781f8bce9088f7ec5b9b18630efb93"
+    },
+    "strattester/research/financial_test_package.py": {
+      "source_blob": "d288d32be8e5532cf56d38130c1c7a3a118f4f3d",
+      "integration_blob": "d288d32be8e5532cf56d38130c1c7a3a118f4f3d"
+    },
+    "strattester/research_cli.py": {
+      "source_blob": "c205dc2b3bd19ec2f717202a74b95caf67183740",
+      "integration_blob": "c205dc2b3bd19ec2f717202a74b95caf67183740"
+    },
+    "tests/research/test_financial_authenticated_funding.py": {
+      "source_blob": "5e5c2cd539b2f2eabe658624f6936bcaf3f2fbec",
+      "integration_blob": "5e5c2cd539b2f2eabe658624f6936bcaf3f2fbec"
+    },
+    "tests/research/test_financial_test_package.py": {
+      "source_blob": "6e614bdae0f230c0985b67d6b08e6560aa7f600b",
+      "integration_blob": "6e614bdae0f230c0985b67d6b08e6560aa7f600b"
+    }
+  }
+}

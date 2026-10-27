@@ -25,5 +25,6 @@
   "tests/research/test_financial_filesystem_security.py::test_ancestor_windows_junction_is_rejected[artifact]": "Windows-specific platform test: retained in Windows full regression",
   "tests/research/test_financial_filesystem_security.py::test_ancestor_windows_junction_is_rejected[sqlite]": "Windows-specific platform test: retained in Windows full regression",
   "tests/research/test_financial_filesystem_security.py::test_checkpoint_publication_rejects_junction_parent": "Windows-specific platform test: retained in Windows full regression",
-  "tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services": "Windows PowerShell lifecycle: retained in Windows full regression"
+  "tests/test_windows_uninstall_lifecycle.py::test_uninstaller_stops_guardian_before_other_services": "Windows PowerShell lifecycle: retained in Windows full regression",
+  "tests/test_physical_g0_inventory_contract.py::test_windows_powershell_51_hashing_uses_compatible_primitives": "Windows PowerShell5.1 mocked contract: mandatory Windows full regression; executable unavailable on Linux"
 }
