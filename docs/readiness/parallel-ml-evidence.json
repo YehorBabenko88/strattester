@@ -1,0 +1,49 @@
+{
+  "baseline": "f60869686a51693799b4844a1af49c9b39ba45d5",
+  "scope": "SYNTHETIC_ENGINEERING_ONLY",
+  "red": {
+    "deselected": 0,
+    "failed": 3,
+    "passed": 1,
+    "skipped": 0
+  },
+  "green": {
+    "deselected": 0,
+    "failed": 0,
+    "passed": 88,
+    "skipped": 0,
+    "elapsed_seconds": 135.05
+  },
+  "independent_green": {
+    "passed": 4
+  },
+  "ledger_green": {
+    "passed": 39
+  },
+  "logs": [
+    {
+      "sha256": "100c0dbe8e792e8105db234b111b735f4b21d488e8675b30b62a90bb015c4f20",
+      "path": "C:\\Users\\LS-5\\Documents\\Codex\\ml-red-20261027.log"
+    },
+    {
+      "sha256": "9dfcda5535f8481d366ad3c793098677dc47b658493a6ba3811b7d99e18c1d29",
+      "path": "C:\\Users\\LS-5\\Documents\\Codex\\ml-red2-20261027.log"
+    },
+    {
+      "sha256": "499cf559149b1782cb454ebd021e501fbd07843eca0cda0f6c48386cb1f59ba8",
+      "path": "C:\\Users\\LS-5\\Documents\\Codex\\ml-green-unit-20261027.log"
+    },
+    {
+      "sha256": "f716f1d652528bc120c9236c4c5b7c8b8ac69b2cac084babdd79321112c350b6",
+      "path": "C:\\Users\\LS-5\\Documents\\Codex\\ml-green-ledger-20261027.log"
+    },
+    {
+      "sha256": "2e5757eeebc064649157cfb5cbe2c085724b09b5a03b1aa446df98a686fafac4",
+      "path": "C:\\Users\\LS-5\\Documents\\Codex\\ml-green-20261027.log"
+    }
+  ],
+  "real_oos": "BLOCKED",
+  "funding": "BLOCKED_NO_PRODUCER_AUTHENTICATED_EVENTS",
+  "g1_execute_cleanup": "NOT_AUTHORIZED",
+  "deployment_trading": "NO-GO"
+}
