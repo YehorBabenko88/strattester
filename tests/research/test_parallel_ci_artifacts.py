@@ -2,6 +2,8 @@ import hashlib
 import io
 import json
 import zipfile
+import struct
+import zlib
 
 import pytest
 
@@ -13,15 +15,19 @@ NODE='tests/test_sample.py::Sample::test_one'
 
 def fixture(root, mutation=None):
     raw=dict(exitcode=0,summary=dict(passed=1,total=1,collected=1),
-             tests=[dict(nodeid=NODE,outcome='passed',call=dict(outcome='passed'))])
+             tests=[dict(nodeid=NODE,outcome='passed',setup=dict(outcome='passed'),
+                         call=dict(outcome='passed'),teardown=dict(outcome='passed'))])
     normalized=execution_report(raw,HEAD,'security',0)
     xml=b'<testsuites><testsuite><testcase classname="tests.test_sample.Sample" name="test_one"/></testsuite></testsuites>'
     if mutation=='raw_skip': raw['tests'][0]['outcome']='skipped'
     if mutation=='summary_substitution':raw['summary']['passed']=0
     if mutation=='collected_substitution':raw['summary']['collected']=2
+    if mutation=='failed_teardown':raw['tests'][0]['teardown']['outcome']='failed'
     if mutation=='junit_skip':xml=xml.replace(b'/>',b'><skipped/></testcase>',1)
     if mutation=='xml_entity':xml=b'<!DOCTYPE x [<!ENTITY a "secret">]>'+xml
     if mutation=='xml_entity_utf16':xml=('<!DOCTYPE x [<!ENTITY a "secret">]>'+xml.decode()).encode('utf-16')
+    if mutation=='suite_failure':xml=xml.replace(b'<testsuite>',b'<testsuite failures="1">')
+    if mutation=='zip_lie':xml+=b'HIDDEN_EXPANSION'
     members={'security.json':json.dumps(normalized).encode(),'security-pytest.json':json.dumps(raw).encode(),'security.xml':xml}
     if mutation=='traversal':members['../escape']=b'x'
     if mutation=='duplicate':members['SECURITY.json']=members['security.json']
@@ -29,6 +35,20 @@ def fixture(root, mutation=None):
     data=io.BytesIO()
     with zipfile.ZipFile(data,'w',zipfile.ZIP_DEFLATED) as z:
         for name,body in members.items():z.writestr(name,body)
+    if mutation=='zip_lie':
+        packed=bytearray(data.getvalue())
+        with zipfile.ZipFile(io.BytesIO(packed)) as z:
+            info=z.getinfo('security.xml');directory=z.start_dir
+        prefix=xml.removesuffix(b'HIDDEN_EXPANSION');crc=zlib.crc32(prefix)
+        struct.pack_into('<I',packed,info.header_offset+14,crc)
+        struct.pack_into('<I',packed,info.header_offset+22,len(prefix))
+        while directory<len(packed) and packed[directory:directory+4]==b'PK\x01\x02':
+            n,e,c=struct.unpack_from('<HHH',packed,directory+28)
+            if packed[directory+46:directory+46+n]==b'security.xml':
+                struct.pack_into('<I',packed,directory+16,crc)
+                struct.pack_into('<I',packed,directory+24,len(prefix));break
+            directory+=46+n+e+c
+        data=io.BytesIO(packed)
     artifact=root/'archive.zip';artifact.write_bytes(data.getvalue())
     meta=dict(id=1,name='financial-security-'+HEAD,size_in_bytes=len(data.getvalue()),
               digest='sha256:'+hashlib.sha256(data.getvalue()).hexdigest(),expired=False,
@@ -51,7 +71,8 @@ def test_artifact_consistency_is_never_execution_or_physical_authority(tmp_path)
 
 
 @pytest.mark.parametrize('mutation',['raw_skip','summary_substitution','junit_skip','xml_entity',
-    'traversal','duplicate','large','run','hash','collected_substitution','xml_entity_utf16'])
+    'traversal','duplicate','large','run','hash','collected_substitution','xml_entity_utf16',
+    'failed_teardown','suite_failure','zip_lie'])
 def test_artifact_attacks_fail_closed(tmp_path,mutation):
     from strattester.research.financial_ci_artifacts import audit_gate_archive
     with pytest.raises(ValueError):audit_gate_archive(**fixture(tmp_path,mutation))
@@ -74,13 +95,16 @@ def test_pinned_cli_audit_is_read_only_and_blocked(tmp_path):
     assert output['artifact_consistency']=='VERIFIED_ONLY' and output['status']=='BLOCKED'
 
 
-def test_member_reads_are_bounded_even_if_zip_headers_lie(tmp_path,monkeypatch):
+def test_decompression_is_bounded_even_if_zip_headers_lie(tmp_path,monkeypatch):
     from strattester.research.financial_ci_artifacts import audit_gate_archive
-    args=fixture(tmp_path);original=zipfile.ZipExtFile.read;calls=[]
-    def read(stream,n=-1):
-        assert 0<=n<=8*1024*1024+1,'unbounded decompression read'
-        calls.append(n)
-        return original(stream,n)
-    monkeypatch.setattr(zipfile.ZipExtFile,'read',read)
+    args=fixture(tmp_path);original=zlib.decompressobj;calls=[]
+    class Decoder:
+        def __init__(self,*args,**kwargs):self.decoder=original(*args,**kwargs)
+        def decompress(self,data,max_length=0):
+            assert 0<max_length<=8*1024*1024+1,'unbounded decompression'
+            calls.append(max_length)
+            return self.decoder.decompress(data,max_length)
+        def __getattr__(self,name):return getattr(self.decoder,name)
+    monkeypatch.setattr(zlib,'decompressobj',Decoder)
     assert audit_gate_archive(**args)['status']=='BLOCKED'
     assert len(calls)==3
