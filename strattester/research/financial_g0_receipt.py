@@ -8,7 +8,7 @@ from hashlib import sha256
 from .financial_contract import digest, integer
 from .financial_executable_inventory import _local_path
 from .financial_g0_evidence import _exact
-from .financial_signatures import load_trust_store, decode64, PUBLIC_SOFTWARE_FIXTURE_KEYS
+from .financial_signatures import load_trust_store, decode64, PUBLIC_SOFTWARE_FIXTURE_KEYS, OpenSSLVerifier
 from .financial_snapshot import bounded_json, canonical_bytes, verified_bytes
 
 DOMAIN = b'STRATTESTER_G0_TARGET_BINDING_V1\x00'
@@ -24,6 +24,9 @@ ROLE_FIELDS = ('owner_id', 'provider_id', 'owner_key_id', 'provider_key_id')
 
 def verify_g0_receipt(*, manifest_path, manifest_sha256, policy_path, policy_sha256,
                       trust_store_path, trust_store_sha256, verifier, now_ns):
+    # Callbacks/subclasses can attest forged bytes without checking Ed25519.
+    if type(verifier) is not OpenSSLVerifier:
+        raise ValueError('independent pinned verifier required')
     integer(now_ns, 'verification time')
     policy = bounded_json(verified_bytes(_local_path(policy_path), policy_sha256, 32*1024))
     _exact(policy, ('version','purpose','expected',*ROLE_FIELDS,'valid_from_ns','valid_until_ns'))

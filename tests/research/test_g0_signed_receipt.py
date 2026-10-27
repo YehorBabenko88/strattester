@@ -189,14 +189,13 @@ def test_only_three_pinned_inputs_read_no_referenced_artifacts(tmp_path, monkeyp
         calls.append(Path(path).name)
         return real(path,*args)
     def forbidden(*args,**kwargs): raise AssertionError('unexpected external operation')
-    class SignatureStub:
-        def verify(self,*args): return True
+    monkeypatch.setattr(signatures.OpenSSLVerifier, 'verify', lambda self, *args: True)
     monkeypatch.setattr(module,'verified_bytes',read)
     monkeypatch.setattr(signatures,'verified_bytes',read)
     monkeypatch.setattr(subprocess,'Popen',forbidden)
     monkeypatch.setattr(socket,'socket',forbidden)
     monkeypatch.setattr(sqlite3,'connect',forbidden)
-    assert verify(verifier=SignatureStub())['status']=='BLOCKED'
+    assert verify()['status']=='BLOCKED'
     assert calls==['policy.json','receipt.json','trust.json']
 
 
