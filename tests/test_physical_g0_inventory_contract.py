@@ -108,8 +108,8 @@ def test_partial_pipeline_error_is_not_observed(tmp_path, shell):
 @pytest.mark.parametrize('source', ['os', 'cpu', 'disk', 'gpu'])
 def test_empty_hardware_source_is_missing_not_observed(tmp_path, shell, source):
     report = collect(tmp_path, shell=shell, overrides="function Get-CimInstance {param($ClassName,$Filter)}")
-    assert report['observations'][source] == 'MISSING'
-    assert report['observations']['identity'] == 'MISSING'
+    assert report['observations'][source] == 'EMPTY'
+    assert report['observations']['identity'] == 'EMPTY'
     assert report['node_identity_sha256'] is None
 
 
@@ -117,7 +117,7 @@ def test_empty_hardware_source_is_missing_not_observed(tmp_path, shell, source):
 def test_source_warning_diagnostics_are_redacted(tmp_path, shell):
     report = collect(tmp_path, shell=shell, overrides="function Get-NetUDPEndpoint {Write-Warning 'denied secret-DSN'; Write-Information 'denied secret-DSN' -InformationAction Continue}")
     assert report['udp_endpoints'] == []
-    assert report['observations']['udp'] == 'OBSERVED'
+    assert report['observations']['udp'] == 'EMPTY'
 
 
 @pytest.mark.parametrize('shell', ['powershell.exe', 'pwsh'])
@@ -141,5 +141,18 @@ def test_empty_listener_sources_are_distinct_from_missing_hardware(tmp_path, she
     report = collect(tmp_path, shell=shell, overrides="function Get-NetTCPConnection {}; function Get-NetUDPEndpoint {}")
     assert report['listeners'] == []
     assert report['udp_endpoints'] == []
-    assert report['observations']['tcp'] == 'OBSERVED'
-    assert report['observations']['udp'] == 'OBSERVED'
+    assert report['observations']['tcp'] == 'EMPTY'
+    assert report['observations']['udp'] == 'EMPTY'
+    assert report['observation_contract_version'] == 2
+    assert report['observation_requirements']['tcp']['empty_allowed'] is True
+    assert report['observation_requirements']['udp']['empty_allowed'] is True
+    assert report['observation_requirements']['cpu']['empty_allowed'] is False
+
+
+@pytest.mark.parametrize('shell', ['powershell.exe', 'pwsh'])
+def test_nonempty_partial_facts_are_missing_and_not_empty(tmp_path, shell):
+    report = collect(tmp_path, shell=shell, overrides="function Get-Process {[pscustomobject]@{Id=7;ProcessName='fixture-process'}}")
+    assert len(report['processes']) == 1
+    assert report['observations']['processes'] == 'MISSING'
+    assert 'WorkingSet64' in report['observation_requirements']['processes']['required_fields']
+    assert report['g0_readiness'].startswith('BLOCKED')

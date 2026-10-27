@@ -2,6 +2,8 @@
 *.egg-info/
 __pycache__/
 .pytest_cache/
+# Preserved task-owned API fixtures; cleanup was policy-blocked, not retried.
+.pytest-api-final-cycle-20261027/
 *.py[cod]
 .env
 config/local.*

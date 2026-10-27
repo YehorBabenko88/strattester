@@ -2,14 +2,16 @@
 # mutations, installs, outbound requests, or filesystem writes. Emits JSON only.
 $ErrorActionPreference='Stop'
 $observations=[ordered]@{}
+$observationRequirements=[ordered]@{}
 # Capture before publishing: a source that fails after yielding rows is unavailable,
 # never a successful empty/partial inventory. Provider diagnostics are not evidence.
 function Read-G0Source {
     param([string]$Name,[scriptblock]$Read,[string[]]$Required=@(),[bool]$AllowEmpty=$false)
+    $observationRequirements[$Name]=[ordered]@{empty_allowed=$AllowEmpty;required_fields=$Required}
     try {
         $rows=@(& $Read 3>$null 4>$null 5>$null 6>$null)
         $observations[$Name]='OBSERVED'
-        if (!$AllowEmpty -and $rows.Count -eq 0) {$observations[$Name]='MISSING'}
+        if ($rows.Count -eq 0) {$observations[$Name]='EMPTY'}
         foreach($row in $rows) {
             foreach($field in $Required) {
                 if ($null -eq $row.$field -or [string]::IsNullOrWhiteSpace([string]$row.$field)) {
@@ -59,11 +61,11 @@ $udp=@($udpRows | ForEach-Object {
     [ordered]@{port=$_.LocalPort;pid=$_.OwningProcess;scope=$(if($_.LocalAddress -in @('127.0.0.1','::1')){'loopback'}elseif($_.LocalAddress -in @('0.0.0.0','::')){'wildcard'}else{'interface-redacted'})}
 })
 [ordered]@{
-    schema=1;phase='G0_READ_ONLY';captured_utc=(Get-Date).ToUniversalTime().ToString('o')
+    schema=1;observation_contract_version=2;phase='G0_READ_ONLY';captured_utc=(Get-Date).ToUniversalTime().ToString('o')
     node_name=$env:COMPUTERNAME;node_identity_sha256=$nodeHash
     os=$(if($os.Count -eq 1){$os[0]}else{$null})
     cpu=$cpu;disk=$disk;services=$services;processes=$processes
-    listeners=$ports;udp_endpoints=$udp;gpu=$gpu;observations=$observations
+    listeners=$ports;udp_endpoints=$udp;gpu=$gpu;observations=$observations;observation_requirements=$observationRequirements
     g0_readiness='BLOCKED_INCOMPLETE_INDEPENDENT_EVIDENCE'
     unverified=[ordered]@{cuda_runtime='NOT_PROBED';python_dependencies='SEPARATE_PINNED_ENVIRONMENT_REQUIRED';process_db_ownership='OWNER_ATTESTATION_REQUIRED';target_identity='INDEPENDENT_VM_ATTESTATION_REQUIRED';ancestor_acl_namespace='NOT_PROVEN';resource_enforcement='NOT_PROVEN'}
     sandbox=$(if($sandbox.Count -eq 1){$sandbox[0]}else{$null})
