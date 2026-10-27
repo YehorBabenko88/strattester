@@ -1,6 +1,6 @@
 {
   "core": {
-    "minimum": 591,
+    "minimum": 592,
     "nodeids": [
       "research/test_independent_asof_revisions.py::test_duplicate_revision_rejected",
       "research/test_independent_asof_revisions.py::test_future_revision_does_not_rewrite_past",
@@ -576,6 +576,7 @@
       "tests/test_physical_g0_inventory_contract.py::test_missing_identity_never_hashes_a_hostname_only[FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF-pwsh]",
       "tests/test_physical_g0_inventory_contract.py::test_missing_identity_never_hashes_a_hostname_only[not-a-uuid-pwsh]",
       "tests/test_physical_g0_inventory_contract.py::test_missing_service_property_is_explicit[pwsh]",
+      "tests/test_physical_g0_inventory_contract.py::test_nonempty_partial_facts_are_missing_and_not_empty[pwsh]",
       "tests/test_physical_g0_inventory_contract.py::test_partial_pipeline_error_is_not_observed[pwsh]",
       "tests/test_physical_g0_inventory_contract.py::test_singletons_have_stable_collection_shape[pwsh]",
       "tests/test_physical_g0_inventory_contract.py::test_source_failure_returns_redacted_partial_report[Get-Acl-sandbox-pwsh]",

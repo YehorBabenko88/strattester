@@ -45,5 +45,6 @@
   "tests/test_physical_g0_inventory_contract.py::test_source_failure_returns_redacted_partial_report[Get-CimInstance-identity-powershell.exe]": "Windows PowerShell5.1 mocked collector: required Windows full regression, unavailable Linux",
   "tests/test_physical_g0_inventory_contract.py::test_source_failure_returns_redacted_partial_report[Get-Process-processes-powershell.exe]": "Windows PowerShell5.1 mocked collector: required Windows full regression, unavailable Linux",
   "tests/test_physical_g0_inventory_contract.py::test_source_failure_returns_redacted_partial_report[Get-Service-services-powershell.exe]": "Windows PowerShell5.1 mocked collector: required Windows full regression, unavailable Linux",
-  "tests/test_physical_g0_inventory_contract.py::test_source_warning_diagnostics_are_redacted[powershell.exe]": "Windows PowerShell5.1 mocked collector: required Windows full regression, unavailable Linux"
+  "tests/test_physical_g0_inventory_contract.py::test_source_warning_diagnostics_are_redacted[powershell.exe]": "Windows PowerShell5.1 mocked collector: required Windows full regression, unavailable Linux",
+  "tests/test_physical_g0_inventory_contract.py::test_nonempty_partial_facts_are_missing_and_not_empty[powershell.exe]": "Windows PowerShell5.1 mocked G0 v2 contract: required Windows full regression, unavailable Linux"
 }
