@@ -38,6 +38,18 @@ class ZipIntegrityTests(unittest.TestCase):
         self.assertIn("uncompressed_limit", inspect(archive([("big", b"x"*10000)]),
                                                    max_uncompressed=100)["issues"])
 
+    def test_windows_device_alias(self):
+        self.assertIn("unsafe_windows_entry", inspect(archive([("folder/CON.txt", b"x")]))["issues"])
+
+    def test_windows_trailing_dot(self):
+        self.assertIn("unsafe_windows_entry", inspect(archive([("folder. /item", b"x")]))["issues"])
+
+    def test_double_directory_separator(self):
+        self.assertIn("unsafe_windows_entry", inspect(archive([("folder//", b"")]))["issues"])
+
+    def test_invalid_budget(self):
+        self.assertIn("invalid_limits", inspect(archive([("a", b"x")]), max_entries=0)["issues"])
+
     def test_malformed_zip(self):
         self.assertIn("malformed_zip", inspect(b"not a zip")["issues"])
 
