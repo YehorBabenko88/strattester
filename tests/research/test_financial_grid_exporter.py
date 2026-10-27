@@ -684,7 +684,7 @@ def test_later_store_mutation_after_first_cut_does_not_publish_mixed_sources(tmp
             yield execute
         observed.append(source.source_id)
         if source.source_id == first.source_id:
-            with sqlite3.connect(second.location) as writer:
+            with closing(sqlite3.connect(second.location)) as writer, writer:
                 changed = rows[0] | {'bar': rows[0]['bar'] | {'close': 999.}}
                 writer.execute('UPDATE history_rows SET payload=? WHERE rowid=1', (canonical_bytes(changed).decode(),))
     monkeypatch.setattr(module, '_reader', reader)
@@ -704,7 +704,7 @@ def test_resealed_rows_cannot_alias_source_epoch_or_availability_facts(tmp_path,
     for name, value in change.items():
         if name == 'bar': rows[0]['bar'].update(value)
         else: rows[0][name] = value
-    with sqlite3.connect(source.location) as con:
+    with closing(sqlite3.connect(source.location)) as con, con:
         con.execute('DELETE FROM history_rows')
         con.executemany('INSERT INTO history_rows VALUES (?)', [(canonical_bytes(r).decode(),) for r in rows])
     source = replace(source, seal_sha256=history_seal(meta, rows))
@@ -717,7 +717,7 @@ def test_resealed_rows_cannot_alias_source_epoch_or_availability_facts(tmp_path,
 def test_revision_selection_uses_availability_boundary_not_retained_latest(tmp_path, cutoff, expected_revision, expected_close):
     source, rows, meta = fixture(tmp_path)
     meta.update(event_watermark_ns=cutoff, availability_watermark_ns=cutoff)
-    with sqlite3.connect(source.location) as con:
+    with closing(sqlite3.connect(source.location)) as con, con:
         con.execute('UPDATE history_meta SET payload=?', (canonical_bytes(meta).decode(),))
     source = replace(source, seal_sha256=history_seal(meta, rows))
     result = export_history(HistoryProfile(PROFILE, 'epoch', cutoff, (source,)), tmp_path/'output',
