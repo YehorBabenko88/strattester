@@ -1,5 +1,4 @@
 import json
-import sqlite3
 
 from strattester.persistence.result_store import ResultStore
 
@@ -50,4 +49,3 @@ def test_reject_writes_unknown_routes_and_unbounded_queries():
     for query in ('limit=0', 'limit=101', 'limit=true', 'offset=-1', 'limit=1&limit=2', 'secret=value'):
         assert request('/internal/v1/runs', query=query)[0] == 400
     assert request('/internal/v1/runs', query='limit=100&offset=0')[0] == 503
-
