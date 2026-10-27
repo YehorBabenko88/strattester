@@ -50,6 +50,10 @@ def inspect_zip_bytes(payload, *, expected_sha256, max_archive=32_000_000,
                     issues.append("encrypted_entry")
                 if (entry.external_attr >> 16) & 0o170000 == 0o120000:
                     issues.append("symlink_entry")
+                if entry.file_size > max_uncompressed:
+                    issues.append("oversized_member")
+                if entry.file_size and entry.compress_size == 0:
+                    issues.append("invalid_compressed_size")
                 total += entry.file_size
                 if total > max_uncompressed:
                     issues.append("uncompressed_limit")
