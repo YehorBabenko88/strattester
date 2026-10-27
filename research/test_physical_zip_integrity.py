@@ -47,6 +47,11 @@ class ZipIntegrityTests(unittest.TestCase):
     def test_double_directory_separator(self):
         self.assertIn("unsafe_windows_entry", inspect(archive([("folder//", b"")]))["issues"])
 
+    def test_individual_oversized_member(self):
+        result = inspect(archive([("large", b"x"*200), ("small", b"y")]),
+                         max_uncompressed=100)
+        self.assertIn("oversized_member", result["issues"])
+
     def test_invalid_budget(self):
         self.assertIn("invalid_limits", inspect(archive([("a", b"x")]), max_entries=0)["issues"])
 
