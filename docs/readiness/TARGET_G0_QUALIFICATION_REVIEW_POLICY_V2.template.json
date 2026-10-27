@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "purpose": "G0_EXTERNAL_QUALIFICATION_REVIEW_POLICY",
+  "expected": {"qualification_sha256": null, "evidence_sha256": null, "manifest_sha256": null, "policy_sha256": null, "trust_store_sha256": null, "replay_sha256": null},
+  "challenge_nonce_sha256": null,
+  "replay_namespace_sha256": null,
+  "replay_sequence": null,
+  "maximum_replay_age_ns": 30000000000,
+  "valid_from_ns": null,
+  "valid_until_ns": null,
+  "command_requirements": null
+}

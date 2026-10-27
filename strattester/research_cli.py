@@ -44,6 +44,13 @@ def parser():
     for flag in ('manifest','manifest-sha256','policy','policy-sha256','trust-store','trust-store-sha256','openssl-exe','openssl-sha256','scratch-root'):
         receipt.add_argument('--'+flag,required=True)
     receipt.add_argument('--verification-time-ns',required=True,type=int)
+    qualification=sub.add_parser('verify-g0-qualification')
+    for name in ('qualification','evidence','manifest','policy','trust-store','review-policy','replay'):
+        qualification.add_argument('--'+name,required=True)
+        qualification.add_argument('--'+name+'-sha256',required=True)
+    for name in ('openssl-exe','openssl-sha256','scratch-root'):
+        qualification.add_argument('--'+name,required=True)
+    qualification.add_argument('--verification-time-ns',required=True,type=int)
     funding=sub.add_parser('verify-funding')
     for flag in ('funding','funding-sha256','policy','policy-sha256','trust-store','trust-store-sha256','openssl-exe','openssl-sha256','scratch-root'):
         funding.add_argument('--'+flag,required=True)
@@ -79,7 +86,14 @@ def _profile(path,expected_sha256):
 def main(argv=None):
     a=parser().parse_args(argv)
     try:
-        if a.command=='inspect-g0-preflight':
+        if a.command=='verify-g0-qualification':
+            from .research.financial_g0_qualification import verify_g0_qualification
+            inputs={}
+            for name in ('qualification','evidence','manifest','policy','trust_store','review_policy','replay'):
+                inputs[name+'_path']=getattr(a,name)
+                inputs[name+'_sha256']=getattr(a,name+'_sha256')
+            result=verify_g0_qualification(**inputs,verifier=_verifier(a),now_ns=a.verification_time_ns)
+        elif a.command=='inspect-g0-preflight':
             from .research.financial_g0_preflight import inspect_g0_preflight
             from .research.financial_snapshot import bounded_json,verified_bytes
             from .research.financial_executable_inventory import _local_path
@@ -151,6 +165,6 @@ def main(argv=None):
         print(json.dumps({'status':'CANCELLED','code':'RESEARCH_CANCELLED'}));return 130
     except Exception as exc:
         # Exception strings can contain DSNs, paths, credentials or driver text.
-        print(json.dumps({'status':'BLOCKED','code':'RESEARCH_ERROR','error_type':type(exc).__name__,'physical_g1':'NOT_AUTHORIZED'}));return 2
+        print(json.dumps({'status':'BLOCKED','code':'RESEARCH_ERROR','error_type':type(exc).__name__,'physical_g1':'NOT_AUTHORIZED','trading':'NO-GO'}));return 2
 
 if __name__=='__main__':raise SystemExit(main())
