@@ -4,6 +4,7 @@ on:
     paths:
       - 'tests/research/test_cycle4_upstream_triangle_oracle.py'
       - 'tests/research/test_cycle4_triangle_adversarial.py'
+      - 'tests/research/test_cycle4_causal_boundary.py'
       - '.github/workflows/cycle4-upstream-triangle.yml'
   workflow_dispatch:
 permissions:
@@ -22,10 +23,10 @@ jobs:
       - run: python -m pip install 'torch==2.14.1' --index-url https://download.pytorch.org/whl/cpu
       - run: python -m pip install pytest pytest-json-report
       - name: Pinned-upstream differential
-        run: python -m pytest -q -o addopts='' tests/research/test_cycle4_upstream_triangle_oracle.py tests/research/test_cycle4_triangle_adversarial.py --json-report --json-report-file=cycle4-report.json
-      - name: Strict thirteen-case accounting
+        run: python -m pytest -q -o addopts='' tests/research/test_cycle4_upstream_triangle_oracle.py tests/research/test_cycle4_triangle_adversarial.py tests/research/test_cycle4_causal_boundary.py --json-report --json-report-file=cycle4-report.json
+      - name: Strict nineteen-case accounting
         run: |
-          python -c "import json; d=json.load(open('cycle4-report.json')); s=d['summary']; assert s.get('passed')==13 and s.get('total')==13; assert not any(s.get(k,0) for k in ('failed','error','skipped','xfailed','xpassed','deselected')); assert len({t['nodeid'] for t in d['tests'] if t['outcome']=='passed'})==13"
+          python -c "import json; d=json.load(open('cycle4-report.json')); s=d['summary']; assert s.get('passed')==19 and s.get('total')==19; assert not any(s.get(k,0) for k in ('failed','error','skipped','xfailed','xpassed','deselected')); assert len({t['nodeid'] for t in d['tests'] if t['outcome']=='passed'})==19"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
