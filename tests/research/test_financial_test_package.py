@@ -34,6 +34,7 @@ def test_prepare_produces_signed_reproducible_offline_session_and_external_owner
     assert template['input_hashes']['package'] is None
     assert (config.parent/'runtime/strattester/research/financial_owner_intent_v2.py').is_file()
     assert (config.parent/'runtime/strattester/research/financial_funding.py').is_file()
+    assert (config.parent/'runtime/strattester/research/financial_authenticated_funding.py').is_file()
     assert (config.parent/'runtime/strattester/research/financial_torch_runtime.py').is_file()
     assert (config.parent/'runtime/strattester/research/financial_executable_inventory.py').is_file()
     assert template['package_sha256'] is None
@@ -55,6 +56,7 @@ from hashlib import sha256
 inventory=root.parent/'executables.json'
 assert main(['verify-executables','--manifest',str(inventory),'--manifest-sha256',sha256(inventory.read_bytes()).hexdigest()])==0
 from strattester.research.financial_funding import FundingWindow,FundingEvent
+from strattester.research.financial_authenticated_funding import FundingPolicy,load_authenticated_funding
 from strattester.research.financial_evaluation import Trade,evaluate_ledger
 funding=FundingWindow('fixture/linear/TEST',0,20,20,'a'*64,(FundingEvent('fixture/linear/TEST','event',10,11,'25','bps'),))
 funded=evaluate_ledger([Trade(funding.instrument,0,20,0.,1)],funding_windows=(funding,))
