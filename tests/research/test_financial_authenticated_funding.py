@@ -211,3 +211,100 @@ def test_signed_cancelling_settlements_preserve_decimal_residual_under_small_con
     assert result['returns']==[float(expected)]==[-1e-34]
     # The exact same settled event bytes never depend on the decision timeframe.
     with pytest.raises(ValueError):load(b,policy=replace(b['policy'],timeframe_ns=20))
+
+@pytest.mark.parametrize('location', ['envelope', 'event'])
+@pytest.mark.parametrize('field,value', [('revision', 1), ('replaces_event_id', 'settlement-1'),
+    ('cancelled', True)])
+def test_signed_unknown_revision_semantics_fail_closed(tmp_path, location, field, value):
+    b = bundle(tmp_path)
+    target = b['manifest'] if location == 'envelope' else b['manifest']['events'][0]
+    target[field] = value
+    b['sha'] = b['publish']()
+    with pytest.raises(ValueError, match='schema'):
+        load(b)
+
+
+@pytest.mark.parametrize('change', [dict(rate='26'), dict(event_id='replacement', rate='26'),
+    dict(settlement_ns=60, available_ns=61, rate='26')])
+@pytest.mark.parametrize('reverse', [False, True])
+def test_signed_conflicting_revision_candidates_never_choose_first_or_latest(tmp_path, change, reverse):
+    b = bundle(tmp_path)
+    original = b['manifest']['events'][0]
+    rows = [original, {**original, **change}]
+    b['manifest']['events'] = list(reversed(rows)) if reverse else rows
+    b['sha'] = b['publish']()
+    with pytest.raises(ValueError, match='duplicate'):
+        load(b)
+
+
+@pytest.mark.parametrize('change', [dict(valid_from_ns=102), dict(valid_until_ns=100),
+    dict(valid_until_ns=105), dict(revoked=True), dict(key_id='rotated-key'),
+    dict(producer_id='other-producer')])
+def test_independently_pinned_trust_rotation_and_revocation_fail_closed(tmp_path, change):
+    import json
+    from strattester.research.financial_snapshot import canonical_bytes
+    b = bundle(tmp_path)
+    trust = json.loads((tmp_path/'trust.json').read_bytes())
+    trust['keys'][0].update(change)
+    data = canonical_bytes(trust)
+    (tmp_path/'trust.json').write_bytes(data)
+    with pytest.raises(ValueError):
+        load(b, trust_store_sha256=sha256(data).hexdigest())
+
+
+@pytest.mark.parametrize('field,value', [('producer_id', 'other-producer'), ('source_id', 'other-source'),
+    ('scope', 'PRODUCER_ATTESTED_RESEARCH'), ('start_ns', 1), ('knowledge_cutoff_ns', True),
+    ('issued_at_ns', True), ('end_ns', True)])
+def test_signed_remaining_identity_and_boolean_timestamp_aliases_rejected(tmp_path, field, value):
+    b = bundle(tmp_path)
+    b['manifest'][field] = value
+    b['sha'] = b['publish']()
+    with pytest.raises(ValueError):
+        load(b)
+
+
+@pytest.mark.parametrize('field,value', [('exchange', 'other-venue'), ('timeframe_ns', True),
+    ('symbol', True), ('extra', 'unknown')])
+def test_signed_full_partition_is_exact(tmp_path, field, value):
+    b = bundle(tmp_path)
+    b['manifest']['partition'][field] = value
+    b['sha'] = b['publish']()
+    with pytest.raises(ValueError):
+        load(b)
+
+
+@pytest.mark.parametrize('field', ['settlement_ns', 'available_ns', 'rate', 'event_id'])
+def test_signed_event_boolean_aliases_rejected(tmp_path, field):
+    b = bundle(tmp_path)
+    b['manifest']['events'][0][field] = True
+    b['sha'] = b['publish']()
+    with pytest.raises(ValueError):
+        load(b)
+
+
+def test_genuinely_signed_replacement_requires_new_external_pin(tmp_path):
+    b = bundle(tmp_path)
+    old_pin = b['sha']
+    b['manifest']['events'][0]['rate'] = '26'
+    b['sha'] = b['publish']()
+    assert b['sha'] != old_pin
+    with pytest.raises(ValueError):
+        load(b, expected_sha256=old_pin)
+    result = load(b)
+    assert result.window.events[0].rate == '26'
+    assert result.provenance['runtime_funding_admission'] == 'NOT_ENABLED'
+    assert result.provenance['historical_truth'] == 'NOT_ESTABLISHED_BY_SIGNATURE'
+
+
+def test_mutated_signed_payload_rejected_even_with_new_artifact_pin(tmp_path):
+    from strattester.research.financial_snapshot import canonical_bytes
+    b = bundle(tmp_path)
+    import json
+    original = load(b)
+    signed = json.loads((tmp_path/'funding.json').read_bytes())
+    signed['events'][0]['rate'] = '26'
+    data = canonical_bytes(signed)
+    (tmp_path/'funding.json').write_bytes(data)
+    with pytest.raises(ValueError, match='signature'):
+        load(b, expected_sha256=sha256(data).hexdigest())
+    assert original.window.events[0].rate == '25.000000000000000000000000000001'
