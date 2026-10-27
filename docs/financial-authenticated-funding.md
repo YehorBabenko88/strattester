@@ -75,3 +75,15 @@ Initial capability RED:25 absent-module tests. CLI/policy/package RED:5 failed,
 26 passed. These show missing capability, not a confirmed vulnerability in the
 baseline. Tests use genuine signatures under a publicly distributed RFC8032 key,
 synthetic events and inert task-owned files; no native or physical run occurs.
+
+## Revision audit boundary
+
+Version 1 has no revision-selection or cancellation semantics. A signed unknown
+`revision`, `replaces_event_id`, or `cancelled` field is rejected at both envelope
+and event level. Conflicting event IDs or settlements are rejected in either row
+order; the consumer never silently chooses the first or latest row. A newly
+signed replacement file requires its own independently supplied artifact pin.
+These checks establish consumer behavior for public synthetic fixtures only.
+They do not establish first availability, retained producer revisions, complete
+settlement coverage, or coherent historical truth. Historical qualification and
+runtime funding admission remain separately BLOCKED / NOT_ENABLED.
