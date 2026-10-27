@@ -78,8 +78,10 @@ Run `40539165917` attempt 1/job `122312512345` failed at the first mocked pwsh
 subprocess, 20 seconds, no stdout/stderr. Python killed it on timeout; returncode
 -9 is not proof of OOM. Successful retry job `122316177306` used the same source
 but a different runner image (20261025.353.1 -> 20261012.334.1), Python
-(3.13.17 -> 3.13.16), region and worker. Its first fixture took about 4.381 seconds.
-Source defect, resource exhaustion, startup cause and flakiness are **unproven**.
+(3.13.17 -> 3.13.16), region and worker. Adjacent log records around its first
+fixture span about 4.381 seconds; this is not an independently timed subprocess.
+An intermittent timeout is established. Source defect, resource exhaustion and
+startup mechanism remain **unproven**.
 Original FAIL and successful retry remain separate evidence, not a RED/GREEN fix.
 Forensic report SHA256:
 `be9e4954ae11acc81b66eeed20283f41011297c621d2a022c5680704d9898dbf`.
