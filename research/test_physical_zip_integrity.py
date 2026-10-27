@@ -52,6 +52,15 @@ class ZipIntegrityTests(unittest.TestCase):
                          max_uncompressed=100)
         self.assertIn("oversized_member", result["issues"])
 
+    def test_file_directory_collision(self):
+        self.assertIn("duplicate_entry_name", inspect(archive([("same/", b""), ("same", b"x")]))["issues"])
+
+    def test_unsupported_compression(self):
+        payload = io.BytesIO()
+        with zipfile.ZipFile(payload, "w", compression=zipfile.ZIP_BZIP2) as z:
+            z.writestr("a", b"x")
+        self.assertIn("unsupported_compression", inspect(payload.getvalue())["issues"])
+
     def test_invalid_budget(self):
         self.assertIn("invalid_limits", inspect(archive([("a", b"x")]), max_entries=0)["issues"])
 
