@@ -1,4 +1,5 @@
 from dataclasses import asdict, replace
+from contextlib import closing
 from hashlib import sha256
 import json
 import sqlite3
@@ -15,7 +16,7 @@ def fixture(tmp_path, name='one', epoch='epoch', symbol='BTCUSDT'):
     rows=[{'bar':asdict(bar),'first_available_ns':10,'source_id':name,'coherence_epoch_id':epoch},
           {'bar':asdict(replace(bar,available_ns=40,revision=2,close=200.,watermark_ns=40)),'first_available_ns':10,'source_id':name,'coherence_epoch_id':epoch}]
     meta=dict(source_id=name,snapshot_id='cut-'+name,coherence_epoch_id=epoch,schema_sha256=SCHEMA_SHA256,complete=True,first_availability_retained=True,revision_history_retained=True,event_watermark_ns=30,availability_watermark_ns=30,partitions=[asdict(p)])
-    with sqlite3.connect(path) as con:
+    with closing(sqlite3.connect(path)) as con, con:
         con.execute('PRAGMA journal_mode=WAL')
         for ddl in DDL: con.execute(ddl)
         con.execute('INSERT INTO history_meta VALUES (?)',(canonical_bytes(meta).decode(),))
@@ -642,3 +643,85 @@ def test_resealed_revision_history_still_requires_complete_ordered_first_availab
     with pytest.raises(ValueError, match='availability|revision'):
         run(HistoryProfile(PROFILE, 'epoch', 30, (source,)), tmp_path/'output')
     assert not (tmp_path/'output').exists()
+
+
+def test_source_replacement_after_path_preflight_cannot_override_external_seal(tmp_path, monkeypatch):
+    """Owned regular-file substitution; no symlink privilege or external paths."""
+    import os
+    source, rows, meta = fixture(tmp_path)
+    original = sqlite3.connect
+    replacement = tmp_path/'replacement.sqlite'
+    changed = [row | {'bar': row['bar'] | {'close': 999.}} for row in rows]
+    with closing(original(replacement)) as con, con:
+        for ddl in DDL: con.execute(ddl)
+        con.execute('INSERT INTO history_meta VALUES (?)', (canonical_bytes(meta).decode(),))
+        con.executemany('INSERT INTO history_rows VALUES (?)', [(canonical_bytes(r).decode(),) for r in changed])
+    swapped = []
+    def connect(database, *args, **kwargs):
+        assert kwargs.get('uri') is True and '?mode=ro' in database
+        if not swapped:
+            os.replace(replacement, source.location)
+            swapped.append(True)
+        return original(database, *args, **kwargs)
+    monkeypatch.setattr(sqlite3, 'connect', connect)
+    with pytest.raises(ValueError, match='seal changed'):
+        run(HistoryProfile(PROFILE, 'epoch', 30, (source,)), tmp_path/'output')
+    assert swapped == [True]
+    assert not (tmp_path/'output').exists()
+    assert not list(tmp_path.glob('.history-export-*'))
+
+
+def test_later_store_mutation_after_first_cut_does_not_publish_mixed_sources(tmp_path, monkeypatch):
+    from contextlib import contextmanager
+    import strattester.research.financial_grid_exporter as module
+    first, _, _ = fixture(tmp_path)
+    second, rows, _ = fixture(tmp_path, 'two', symbol='ETHUSDT')
+    original = module._reader
+    observed = []
+    @contextmanager
+    def reader(source, check, **limits):
+        with original(source, check, **limits) as execute:
+            yield execute
+        observed.append(source.source_id)
+        if source.source_id == first.source_id:
+            with sqlite3.connect(second.location) as writer:
+                changed = rows[0] | {'bar': rows[0]['bar'] | {'close': 999.}}
+                writer.execute('UPDATE history_rows SET payload=? WHERE rowid=1', (canonical_bytes(changed).decode(),))
+    monkeypatch.setattr(module, '_reader', reader)
+    with pytest.raises(ValueError, match='seal changed'):
+        run(HistoryProfile(PROFILE, 'epoch', 30, (first, second)), tmp_path/'output')
+    assert observed == [first.source_id]
+    assert not (tmp_path/'output').exists()
+    assert not list(tmp_path.glob('.history-export-*'))
+
+
+@pytest.mark.parametrize('change', [
+    {'source_id': 'wrong-source'}, {'coherence_epoch_id': 'wrong-epoch'},
+    {'first_available_ns': True}, {'bar': {'available_ns': 10.0}}, {'bar': {'eligible': 1}},
+])
+def test_resealed_rows_cannot_alias_source_epoch_or_availability_facts(tmp_path, change):
+    source, rows, meta = fixture(tmp_path)
+    for name, value in change.items():
+        if name == 'bar': rows[0]['bar'].update(value)
+        else: rows[0][name] = value
+    with sqlite3.connect(source.location) as con:
+        con.execute('DELETE FROM history_rows')
+        con.executemany('INSERT INTO history_rows VALUES (?)', [(canonical_bytes(r).decode(),) for r in rows])
+    source = replace(source, seal_sha256=history_seal(meta, rows))
+    with pytest.raises(ValueError):
+        run(HistoryProfile(PROFILE, 'epoch', 30, (source,)), tmp_path/'output')
+    assert not (tmp_path/'output').exists()
+
+
+@pytest.mark.parametrize('cutoff,expected_revision,expected_close', [(39, 1, 100.), (40, 2, 200.)])
+def test_revision_selection_uses_availability_boundary_not_retained_latest(tmp_path, cutoff, expected_revision, expected_close):
+    source, rows, meta = fixture(tmp_path)
+    meta.update(event_watermark_ns=cutoff, availability_watermark_ns=cutoff)
+    with sqlite3.connect(source.location) as con:
+        con.execute('UPDATE history_meta SET payload=?', (canonical_bytes(meta).decode(),))
+    source = replace(source, seal_sha256=history_seal(meta, rows))
+    result = export_history(HistoryProfile(PROFILE, 'epoch', cutoff, (source,)), tmp_path/'output',
+        producer_id='producer', producer_build_sha='a'*40, key_id='key', export_id='export', issued_at_ns=cutoff+1)
+    assert [(bar.revision, bar.close) for bar in result.snapshot.bars] == [(expected_revision, expected_close)]
+    provenance = json.loads((result.directory/'provenance.json').read_bytes())
+    assert provenance['native_grid_truth'] == 'NOT_ESTABLISHED'
