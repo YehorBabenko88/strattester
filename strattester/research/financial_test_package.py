@@ -16,7 +16,7 @@ from .financial_snapshot import canonical_bytes,snapshot_bytes,verified_bytes,re
 from .financial_signed_export import SNAPSHOT_SCHEMA_SHA256,SIGNATURE_DOMAIN
 from .financial_signatures import OpenSSLVerifier
 
-RUNTIME_FILES=('strattester/__init__.py','strattester/research_cli.py','strattester/research/__init__.py',
+RUNTIME_FILES=('strattester/__init__.py','strattester/research_cli.py','strattester/readonly_api.py','strattester/research/__init__.py',
  'strattester/strategies/__init__.py','strattester/strategies/base.py','strattester/strategies/registry.py',
  'strattester/strategies/builtin/__init__.py','strattester/strategies/builtin/financial_structural.py',
  'strattester/engine/__init__.py','strattester/engine/executor.py','strattester/marketdata/__init__.py','strattester/marketdata/datasets.py')
