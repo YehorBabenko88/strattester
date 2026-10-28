@@ -5,7 +5,8 @@ class R:
     def json(self): return {'retCode':0,'result':{'list':[['1','2']]}}
 class S:
     def __init__(self): self.calls=[]
-    def get(self,url,params=None,timeout=None):
+    def get(self,url,params=None,timeout=None,stream=False):
+        assert stream is True
         self.calls.append((url,params)); return R()
 
 def test_rich_history_methods_use_explicit_bybit_endpoints():

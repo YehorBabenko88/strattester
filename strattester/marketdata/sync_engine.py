@@ -36,8 +36,10 @@ def _bybit_interval(timeframe:str)->str:
     return mapping.get(tf, timeframe)
 
 class SyncEngine:
-    def __init__(self,store,client,clock_ms=None):
+    def __init__(self,store,client,clock_ms=None,*,category='linear',cancel=lambda:False,max_pages=None,checkpoint=None):
         self.store=store; self.client=client; self.clock_ms=clock_ms or (lambda:int(time.time()*1000))
+        self.category=category;self.cancel=cancel;self.max_pages=max_pages;self.checkpoint=checkpoint
+        if max_pages is not None and (type(max_pages) is not int or max_pages<1):raise ValueError('invalid page budget')
 
     def _step(self,req):
         if req.timeframe in _STEP_MS:return _STEP_MS[req.timeframe]
@@ -52,32 +54,39 @@ class SyncEngine:
 
     def _ranges(self,req,step=None):
         step=step or self._step(req)
-        cov=self.store.coverage(req.symbol,req.dataset,req.timeframe,step)
+        cov=self.store.coverage(req.symbol,req.dataset,req.timeframe,step,start_ms=req.start_ms,end_ms=req.end_ms)
         ranges=[]
         if cov.earliest is None:return [(req.start_ms,req.end_ms)]
-        if req.start_ms<cov.earliest:ranges.append((req.start_ms,cov.earliest-step))
+        if req.start_ms<cov.earliest:ranges.append((req.start_ms,min(req.end_ms,cov.earliest-step)))
         ranges.extend((max(req.start_ms,g.start),min(req.end_ms,g.end)) for g in cov.gaps if g.end>=req.start_ms and g.start<=req.end_ms)
-        if cov.latest+step<=req.end_ms:ranges.append((cov.latest+step,req.end_ms))
+        if cov.latest+step<=req.end_ms:ranges.append((max(req.start_ms,cov.latest+step),req.end_ms))
         return [(a,b) for a,b in ranges if a<=b]
 
     def _sync_rows(self,req,start,end):
         step=self._step(req)
+        kwargs={} if self.category=='linear' else {'category':self.category}
         if req.dataset=='candles':
-            rows=self.client.fetch_klines(req.symbol,start,end,_bybit_interval(req.timeframe))
+            rows=self.client.fetch_klines(req.symbol,start,end,_bybit_interval(req.timeframe),**kwargs)
+            seen={}
+            if type(rows) is not list or len(rows)>1000:raise ValueError('candle page budget')
+            for row in rows:
+                ts=int(row[0]);value=tuple(row)
+                if ts in seen and seen[ts]!=value:raise ValueError('conflicting duplicate candle timestamp')
+                seen[ts]=value
             accepted=[]
             for row in rows:
                 ts=int(row[0])
-                if start<=ts<=req.end_ms and ts+step<=self.clock_ms():
+                if start<=ts<=end and ts+step<=self.clock_ms():
                     accepted.append(Candle(req.symbol,req.timeframe,ts,float(row[1]),float(row[2]),float(row[3]),float(row[4]),float(row[5]),float(row[6]) if len(row)>6 else None,True))
             return self.store.upsert_candles(accepted),rows
         if req.dataset in ('mark_price','index_price','premium_index'):
             method={'mark_price':'fetch_mark_klines','index_price':'fetch_index_klines','premium_index':'fetch_premium_klines'}[req.dataset]
-            rows=getattr(self.client,method)(req.symbol,start,end,_bybit_interval(req.timeframe))
-            closed=[r for r in rows if start<=int(r[0])<=req.end_ms and int(r[0])+step<=self.clock_ms()]
+            rows=getattr(self.client,method)(req.symbol,start,end,_bybit_interval(req.timeframe),**kwargs)
+            closed=[r for r in rows if start<=int(r[0])<=end and int(r[0])+step<=self.clock_ms()]
             return self.store.upsert_price_klines(req.dataset,req.symbol,closed,req.timeframe),rows
         if req.dataset=='open_interest':
             interval={'5m':'5min','15m':'15min','30m':'30min','1h':'1h','4h':'4h','1d':'1d'}.get(req.timeframe,req.timeframe)
-            rows=self.client.fetch_open_interest(req.symbol,start,end,interval)
+            rows=self.client.fetch_open_interest(req.symbol,start,end,interval,**kwargs)
             def ts(r):
                 v=r.get('timestamp') if r.get('timestamp') is not None else r.get('time')
                 if v is None:raise ValueError('open-interest row missing timestamp')
@@ -85,12 +94,12 @@ class SyncEngine:
             closed=[r for r in rows if start<=ts(r)<=req.end_ms and ts(r)+step<=self.clock_ms()]
             return self.store.upsert_open_interest(req.symbol,closed,req.timeframe),rows
         if req.dataset=='funding':
-            rows=self.client.fetch_funding(req.symbol,start,end)
+            rows=self.client.fetch_funding(req.symbol,start,end,**kwargs)
             filtered=[r for r in rows if start<=int(r.get('fundingRateTimestamp'))<=req.end_ms and int(r.get('fundingRateTimestamp'))<=self.clock_ms()]
             return self.store.upsert_funding(req.symbol,filtered),rows
         if req.dataset=='long_short_ratio':
             period={'5m':'5min','15m':'15min','30m':'30min','1h':'1h','4h':'4h','1d':'1d'}.get(req.timeframe,req.timeframe)
-            rows=self.client.fetch_long_short_ratio(req.symbol,start,end,period)
+            rows=self.client.fetch_long_short_ratio(req.symbol,start,end,period,**kwargs)
             filtered=[r for r in rows if start<=int(r.get('timestamp'))<=req.end_ms and int(r.get('timestamp'))+step<=self.clock_ms()]
             return self.store.upsert_long_short_ratio(req.symbol,filtered,req.timeframe),rows
         if req.dataset=='public_trade_aggregates':
@@ -102,14 +111,19 @@ class SyncEngine:
             return SyncResult(SyncState.REPAIR_REQUIRED,message='historical public trades require archive provider; recent REST trades are not a historical substitute')
         if req.dataset not in ('candles','mark_price','index_price','premium_index','open_interest','funding','long_short_ratio'):
             return SyncResult(SyncState.REPAIR_REQUIRED,message='unsupported dataset')
-        written=unchanged=rejected=0
+        written=unchanged=rejected=pages=0
         step=self._step(req)
         try:
             for start,end in self._ranges(req,step):
                 page_end=end
                 while page_end>=start:
+                    if self.cancel():return SyncResult(SyncState.PARTIAL,written,unchanged,rejected,'cancelled')
+                    if self.max_pages is not None and pages>=self.max_pages:
+                        return SyncResult(SyncState.PARTIAL,written,unchanged,rejected,'page budget checkpoint')
                     stats,rows=self._sync_rows(req,start,page_end)
+                    pages+=1
                     written+=stats.accepted; unchanged+=stats.unchanged; rejected+=stats.rejected
+                    if self.checkpoint is not None:self.checkpoint({'symbol':req.symbol,'dataset':req.dataset,'timeframe':req.timeframe,'page_end':page_end,'pages':pages})
                     if not rows:
                         # Empty pages are not evidence of coverage. Leave the
                         # requested range missing so the result cannot become READY.
@@ -134,7 +148,9 @@ class SyncEngine:
         except Exception as exc:
             name=exc.__class__.__name__
             text=str(exc).lower()
-            if name in ('DatasetUnavailableError','NotSupportedError') or any(x in text for x in ('not supported','not available for this symbol','unsupported dataset')):
+            if isinstance(exc,ValueError):
+                state=SyncState.REPAIR_REQUIRED
+            elif name in ('DatasetUnavailableError','NotSupportedError') or any(x in text for x in ('not supported','not available for this symbol','unsupported dataset')):
                 state=SyncState.UNAVAILABLE
             elif name=='BybitAccessError':
                 state=SyncState.DEGRADED
