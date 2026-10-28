@@ -90,8 +90,11 @@ class ShardedMarketStore:
         stores={}
         for req in requirements:
             if not req.required:continue
-            store=self._read_store(symbol,req.dataset,req.timeframe,_step_ms(req.timeframe),req.start_ms,req.end_ms)
-            stores[str(store.path.resolve())]=store
+            dataset=getattr(req.dataset,'value',req.dataset)
+            timeframes=(req.timeframe,) if hasattr(req,'timeframe') else (req.timeframes or ('1m',))
+            for timeframe in timeframes:
+                store=self._read_store(symbol,dataset,timeframe,_step_ms(timeframe),getattr(req,'start_ms',None),getattr(req,'end_ms',None))
+                stores[str(store.path.resolve())]=store
         if len(stores)!=1:raise RuntimeError('cross-store research snapshot is not coherent')
         with next(iter(stores.values())).research_snapshot(symbol,requirements) as snapshot:
             yield snapshot

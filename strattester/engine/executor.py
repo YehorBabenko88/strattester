@@ -106,6 +106,12 @@ def require_execution_permission(definition,research_permission=None):
 def execute_strategy(definition,store,symbol,checkpoint=None,start_ms=None,end_ms=None,*,research_permission=None,cancel=lambda:False,closed_before_ms=None):
     require_execution_permission(definition,research_permission)
     if cancel():raise InterruptedError('research cancelled')
+    if any(req.required for req in definition.requirements) and not getattr(store,'research_snapshot_active',False):
+        factory=getattr(store,'research_snapshot',None)
+        if factory is None:raise RuntimeError('coherent research snapshot unavailable')
+        with factory(symbol,definition.requirements) as snapshot:
+            return execute_strategy(definition,snapshot,symbol,checkpoint,start_ms,end_ms,
+                research_permission=research_permission,cancel=cancel,closed_before_ms=closed_before_ms)
     if not requirements_ready(definition,store,symbol,start_ms=start_ms,end_ms=end_ms,closed_before_ms=closed_before_ms):
         raise RuntimeError('strategy requirements are not ready')
     impl=definition.implementation()
