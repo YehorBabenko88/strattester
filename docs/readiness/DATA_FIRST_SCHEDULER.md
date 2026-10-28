@@ -86,4 +86,3 @@ Hosted `data-first-scheduler` CI uses synthetic clients and disposable SQLite on
 ### Direct-executor TOCTOU followup
 
 Candidate56ae944 passed scheduler/CI checks but a separate direct-executor regression reproduced a writer deleting data between readiness validation and strategy consumption (output0). Generic execution now opens the same read-only coherent snapshot around both steps; nested scheduler snapshots are reused. The race regression expects the original validated row (output1) and passes. Sharded generic admission expands declaration timeframes and refuses cross-authority snapshots. Independent focused followup:10passed; complete local scoped regression:211passed. Prior56CI artifacts are retained as historical and do not establish PASS for the followup HEAD.
-

@@ -13,7 +13,7 @@ class PayloadSession:
     def get(self,*a,**k): return PayloadResponse(self.payload)
 
 def test_bybit_discovers_only_trading_usdt_linear_perpetuals():
-    payload={'retCode':0,'result':{'list':[
+    payload={'retCode':0,'result':{'category':'linear','list':[
       {'symbol':'BTCUSDT','status':'Trading','quoteCoin':'USDT','contractType':'LinearPerpetual'},
       {'symbol':'OLDUSDT','status':'Settled','quoteCoin':'USDT','contractType':'LinearPerpetual'},
       {'symbol':'BTCUSDC','status':'Trading','quoteCoin':'USDC','contractType':'LinearPerpetual'}]}}

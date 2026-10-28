@@ -50,10 +50,13 @@ class BybitClient:
             if self.cancel():raise InterruptedError('Bybit request cancelled')
             if self.before_request is not None:self.before_request()
             try:
-                r=self.session.get(self.base_url+path,params=params,timeout=self.timeout,stream=True)
+                r=self.session.get(self.base_url+path,params=params,timeout=self.timeout,stream=True,allow_redirects=False)
             except requests.RequestException as exc:
                 last=RetryableBybitError(str(exc))
             else:
+                if 300<=r.status_code<400:
+                    if hasattr(r,'close'):r.close()
+                    raise BybitResponseError('Bybit redirect prohibited')
                 if r.status_code==403:
                     if hasattr(r,'close'):r.close()
                     raise BybitAccessError('Bybit access forbidden (HTTP 403)')
@@ -107,13 +110,13 @@ class BybitClient:
             data=self.get('/v5/market/instruments-info',params)
             result=data.get('result',{})
             rows=result.get('list')
-            if type(rows) is not list or result.get('category',category)!=category:raise BybitResponseError('malformed instrument page')
+            if type(rows) is not list or result.get('category')!=category:raise BybitResponseError('malformed instrument page market identity')
             for row in rows:
                 if type(row) is not dict or type(row.get('symbol')) is not str or not row['symbol'] or row['symbol'] in symbols:
                     raise BybitResponseError('duplicate or malformed instrument identity')
                 symbols.add(row['symbol']);instruments.append(dict(row))
                 if len(instruments)>max_instruments:raise BybitResponseError('instrument count budget')
-            cursor=result.get('nextPageCursor') or ''
+            cursor=result.get('nextPageCursor','')
             if type(cursor) is not str or len(cursor)>4096:raise BybitResponseError('invalid pagination cursor')
             if not cursor:return instruments
             if category=='spot' or cursor in cursors or not rows:raise BybitResponseError('incomplete or repeated instrument cursor')

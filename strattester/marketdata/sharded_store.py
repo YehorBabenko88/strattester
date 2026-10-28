@@ -42,9 +42,18 @@ class ShardedMarketStore:
                 if not acknowledge_existing and (self.legacy_store is not None or next(self.root.glob('*/*.sqlite3'),None) is not None):
                     raise ValueError('existing sharded data require explicit category provenance')
                 con.execute("INSERT INTO market_identity VALUES('category',?)",(category,))
+            if acknowledge_existing:
+                # Owner acknowledgement applies to the existing files only.
+                # Persist each identity before publishing the root identity;
+                # later unbound/replaced files still fail closed on lazy open.
+                for path in sorted(self.root.glob('*/*.sqlite3')):
+                    existing=SQLiteMarketStore.open(path)
+                    try:existing.bind_market_category(category,acknowledge_existing=True)
+                    finally:existing.close()
+            if self.legacy_store is not None:
+                self.legacy_store.bind_market_category(category,acknowledge_existing=acknowledge_existing)
             con.commit();self._market_category=category
         except BaseException:con.rollback();raise
-        if self.legacy_store is not None:self.legacy_store.bind_market_category(category,acknowledge_existing=acknowledge_existing)
 
     def shard_path(self,symbol:str)->Path:
         name=safe_symbol(symbol)
@@ -57,7 +66,9 @@ class ShardedMarketStore:
         store=self._stores.get(key)
         if store is None:
             store=SQLiteMarketStore.open(self.shard_path(key))
-            if self._market_category is not None:store.bind_market_category(self._market_category)
+            try:
+                if self._market_category is not None:store.bind_market_category(self._market_category)
+            except BaseException:store.close();raise
             self._stores[key]=store
         return store
 

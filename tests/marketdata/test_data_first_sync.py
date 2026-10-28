@@ -17,7 +17,7 @@ def test_repeating_cursor_is_not_full_discovery():
     client=BybitClient();number=[0]
     def get(*args):
         number[0]+=1
-        return {'result':{'list':[{'symbol':'X'+str(number[0])}],'nextPageCursor':'again'}}
+        return {'result':{'category':'linear','list':[{'symbol':'X'+str(number[0])}],'nextPageCursor':'again'}}
     client.get=get
     with pytest.raises(BybitResponseError,match='cursor'):client.fetch_instruments()
 
