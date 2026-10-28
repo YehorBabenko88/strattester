@@ -59,3 +59,18 @@ def test_disabled_runner_never_starts_sync(tmp_path):
         with pytest.raises(ValueError,match='disabled'):
             ResearchRunner(store,Forbidden()).run(d,{'symbol':'X','launchTime':'0'},start_ms=0,end_ms=60000)
     finally:store.close()
+
+def test_direct_executor_keeps_validated_snapshot_if_writer_deletes_rows(tmp_path):
+    store=SQLiteMarketStore.open(tmp_path/'m.db')
+    writer=SQLiteMarketStore.open(tmp_path/'m.db')
+    try:
+        store.upsert_candles([Candle('X','1m',0,1,1,1,1,1)])
+        validate=store.validate_range
+        def changed_after_validation(*args):
+            valid=validate(*args)
+            writer.connection.execute('DELETE FROM candles');writer.connection.commit()
+            return valid
+        store.validate_range=changed_after_validation
+        d=StrategyDefinition('count','1',(DataRequirement('candles',('1m',)),),Count)
+        assert execute_strategy(d,store,'X').output==1
+    finally:store.close();writer.close()

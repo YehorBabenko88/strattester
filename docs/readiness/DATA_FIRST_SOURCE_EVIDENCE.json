@@ -3,8 +3,8 @@
   "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
   "os": "Windows-11-10.0.26300-SP0",
   "local_source_regression": {
-    "collected": 210,
-    "passed": 210,
+    "collected": 211,
+    "passed": 211,
     "failed": 0,
     "skipped": 0,
     "deselected": 0
@@ -15,11 +15,11 @@
     "math": 191,
     "cpu": 141,
     "training": 85,
-    "security": 523,
+    "security": 524,
     "integration": 110
   },
-  "required_total": 1844,
-  "new_required_parent_nodes": 39,
+  "required_total": 1845,
+  "new_required_parent_nodes": 40,
   "source_fixes": [
     "disabled admission",
     "minimum observations",
@@ -28,7 +28,8 @@
     "incremental bounded pages",
     "persistent market binding",
     "archive/lease publication fences",
-    "uncertain RUNNING cancellation blocked"
+    "uncertain RUNNING cancellation blocked",
+    "generic executor readiness and execution share coherent read-only snapshot"
   ],
   "compatibility": [
     "DataRequirement fingerprints include min_observations/lookback",
@@ -55,5 +56,24 @@
     "funding/public trades/microstructure required historical contracts absent -> BLOCKED",
     "unknown historical universe/launch/trading calendar -> BLOCKED",
     "cooperative resource/cancellation limits do not sandbox arbitrary strategy code"
-  ]
+  ],
+  "prior_candidates": [
+    {
+      "head": "56ae944de9dd8b8717e6a96c1205750d722a2f19",
+      "tree": "9c67cc3727abefae77538c42bfdb88018c993414",
+      "local_tests": 210,
+      "required_nodes": 1844,
+      "data_first_ci": 40730495573,
+      "financial_ci": 40730495646,
+      "full_matrix_ci": 40730495347,
+      "disposition": "historical PASS for scheduler path; direct-executor TOCTOU subsequently reproduced, so not final candidate PASS"
+    }
+  ],
+  "followup_red_source_head": "56ae944de9dd8b8717e6a96c1205750d722a2f19",
+  "followup_evidence_sha256": {
+    "direct-snapshot-red.log": "542e9e472bdcc5c382a3ab6d13deae4de91ac9015ae8714263a337d21c018de9",
+    "followup.log": "42d766f7eda54dfea67f23a00525c5ae9ee6a7ff1abab148df1c0f9b8d4ceac8",
+    "followup.json": "7bb018be3b16ba541a62ac98f8a69051ce421fc818bfe9fef9827c23b5ebff5d",
+    "followup.xml": "ab4f9c5061272630933c040847405958405db89e64a635f47681a8d570b21909"
+  }
 }

@@ -37,6 +37,7 @@ class SQLiteMarketStore:
         self.path=Path(path); self.connection=connection
         cols={r[1] for r in connection.execute('PRAGMA table_info(candles)')}
         self._legacy_candles='ts' in cols and 'open_time' not in cols
+        self.research_snapshot_active=False
 
     @classmethod
     def open(cls,path: Path):
@@ -363,13 +364,18 @@ class SQLiteMarketStore:
 
     @contextmanager
     def research_snapshot(self,symbol,requirements=()):
+        if self.research_snapshot_active:
+            yield self
+            return
         if self.connection.in_transaction:raise RuntimeError('research snapshot already in transaction')
         previous=self.connection.execute('PRAGMA query_only').fetchone()[0]
         self.connection.execute('PRAGMA query_only=ON')
         self.connection.execute('BEGIN')
+        self.research_snapshot_active=True
         try:yield self
         finally:
             self.connection.rollback()
+            self.research_snapshot_active=False
             self.connection.execute(f'PRAGMA query_only={int(previous)}')
 
     def range_fingerprint(self,req):

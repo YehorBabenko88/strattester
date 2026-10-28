@@ -1236,9 +1236,10 @@
     ]
   },
   "security": {
-    "minimum": 523,
+    "minimum": 524,
     "nodeids": [
       "tests/engine/test_data_first_admission.py::test_bound_research_permission_never_skips_data_requirements",
+      "tests/engine/test_data_first_admission.py::test_direct_executor_keeps_validated_snapshot_if_writer_deletes_rows",
       "tests/engine/test_data_first_admission.py::test_disabled_executor_requires_explicit_bound_research_permission",
       "tests/engine/test_data_first_admission.py::test_disabled_runner_never_starts_sync",
       "tests/engine/test_data_first_admission.py::test_minimum_observations_is_mandatory",
