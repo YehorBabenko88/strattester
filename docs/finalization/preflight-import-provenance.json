@@ -1,0 +1,86 @@
+[
+  {
+    "source_pr": null,
+    "source_commit": "6bcb305eb021e5157d42fb6981f730a19dccbf7a",
+    "source_tree": "a47e90cf5fe186793c1563b063a6508056e8081a",
+    "source_path": "docs/financial-funding-contract.md",
+    "target_path": "docs/financial-funding-contract.md",
+    "source_blob_sha": "18d2fea0d6afa1c76288c7593297d1d2adbd8157",
+    "reason": "Exact bounded Decimal funding; software-only authority",
+    "tests": "Original raw source logs retained in delivery; same-HEAD CI required",
+    "contract_changes": "Exact bounded Decimal funding; software-only authority",
+    "compatibility": "Selective import; independent raw logs outside source; no native changes"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "6bcb305eb021e5157d42fb6981f730a19dccbf7a",
+    "source_tree": "a47e90cf5fe186793c1563b063a6508056e8081a",
+    "source_path": "strattester/research/financial_funding.py",
+    "target_path": "strattester/research/financial_funding.py",
+    "source_blob_sha": "f9721a99fec3152750416c0d2e34a9b8df6fb8df",
+    "reason": "Exact bounded Decimal funding; software-only authority",
+    "tests": "Original raw source logs retained in delivery; same-HEAD CI required",
+    "contract_changes": "Exact bounded Decimal funding; software-only authority",
+    "compatibility": "Selective import; independent raw logs outside source; no native changes"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "6bcb305eb021e5157d42fb6981f730a19dccbf7a",
+    "source_tree": "a47e90cf5fe186793c1563b063a6508056e8081a",
+    "source_path": "tests/research/test_financial_funding.py",
+    "target_path": "tests/research/test_financial_funding.py",
+    "source_blob_sha": "1660da1c40003c1a42964948361a22f8fbdd6c0f",
+    "reason": "Exact bounded Decimal funding; software-only authority",
+    "tests": "Original raw source logs retained in delivery; same-HEAD CI required",
+    "contract_changes": "Exact bounded Decimal funding; software-only authority",
+    "compatibility": "Selective import; independent raw logs outside source; no native changes"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "6f76ded830bd2903b7598ff0bceb1620c253943e",
+    "source_tree": "73c1f933385207eaa66d6041a244ea63eeabecce",
+    "source_path": "strattester/research/financial_grid_exporter.py",
+    "target_path": "strattester/research/financial_grid_exporter.py",
+    "source_blob_sha": "eb469d2614086c060acfc7f32c89bfa56601f810",
+    "reason": "Strict sealed receipt numeric identity; no invented source facts",
+    "tests": "Original raw source logs retained in delivery; same-HEAD CI required",
+    "contract_changes": "Strict sealed receipt numeric identity; no invented source facts",
+    "compatibility": "Selective import; independent raw logs outside source; no native changes"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "6f76ded830bd2903b7598ff0bceb1620c253943e",
+    "source_tree": "73c1f933385207eaa66d6041a244ea63eeabecce",
+    "source_path": "tests/research/test_financial_grid_exporter.py",
+    "target_path": "tests/research/test_financial_grid_exporter.py",
+    "source_blob_sha": "203086894d5180ed3080f4e0672d74f8549e4128",
+    "reason": "Strict sealed receipt numeric identity; no invented source facts",
+    "tests": "Original raw source logs retained in delivery; same-HEAD CI required",
+    "contract_changes": "Strict sealed receipt numeric identity; no invented source facts",
+    "compatibility": "Selective import; independent raw logs outside source; no native changes"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "00950353e856e795922bd689c992d1febafff04b",
+    "source_tree": "a8ebe52dc74d036cc3c699ebb0d2ec7fed6d2c09",
+    "source_path": "tests/research/test_trust_rotation_review.py",
+    "target_path": "tests/research/test_trust_rotation_review.py",
+    "source_blob_sha": "a8ea23ce9c554f192a696bcbdb244564354e1401",
+    "reason": "Independent trust/byte-pin regressions; no production change",
+    "tests": "Original raw source logs retained in delivery; same-HEAD CI required",
+    "contract_changes": "Independent trust/byte-pin regressions; no production change",
+    "compatibility": "Selective import; independent raw logs outside source; no native changes"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "00950353e856e795922bd689c992d1febafff04b",
+    "source_tree": "a8ebe52dc74d036cc3c699ebb0d2ec7fed6d2c09",
+    "source_path": "review-evidence/trust-policy-review.md",
+    "target_path": "docs/finalization/trust-policy-review-next.md",
+    "source_blob_sha": "746f5d82f0034f7955acc20a21566aaed7881085",
+    "reason": "Independent trust/byte-pin regressions; no production change",
+    "tests": "Original raw source logs retained in delivery; same-HEAD CI required",
+    "contract_changes": "Independent trust/byte-pin regressions; no production change",
+    "compatibility": "Selective import; independent raw logs outside source; no native changes"
+  }
+]

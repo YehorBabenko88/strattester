@@ -1,0 +1,21 @@
+{
+  "integration_baseline": "9c913494481abbfc997e1c0a9dd46fab04576ebb",
+  "reviewed_source_pr": 35,
+  "reviewed_source_head": "371f963b6897b320787ad00f7db10ba31bc216e2",
+  "reviewed_source_tree": "d1785a6443142046e2f29d230faae5569935f0d7",
+  "reviewed_source_files": [
+    {"path": "research/alphafold_training/authenticated_funding.py", "blob": "d311e3519cea0f3fb926adf690dd58a12cfe311c", "imported": false},
+    {"path": "tests/research/test_authenticated_funding.py", "blob": "093f0afaaf9260da45deca87067727e0de076909", "imported": false}
+  ],
+  "reason": "Preserve independent issuer and epoch requirement; implement a bounded Ed25519 consumer over existing integration contracts instead of importing HMAC/float/unbounded helper.",
+  "existing_integration_contracts": [
+    {"path": "strattester/research/financial_signed_export.py", "blob": "4963dcb711759cd48efd3fe98efe39b1a6861f23"},
+    {"path": "strattester/research/financial_funding.py", "blob": "f9721a99fec3152750416c0d2e34a9b8df6fb8df"}
+  ],
+  "new_contract": "Explicit verify-funding capability. Domain-separated signed schema; external artifact, policy, producer trust and verifier pins; exact identity/coverage/epoch. No automatic session funding admission.",
+  "compatibility": "Existing caller-asserted FundingWindow/ledger API and signed runner behavior unchanged; package adds one source module.",
+  "tests": "tests/research/test_financial_authenticated_funding.py; existing funding, signed export, trust rotation and packaged fresh-interpreter tests",
+  "historical_truth": "BLOCKED_NOT_ESTABLISHED_BY_SIGNATURE",
+  "physical_g1": "NOT_AUTHORIZED",
+  "trading": "NO-GO"
+}

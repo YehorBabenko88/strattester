@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "purpose": "G0_TARGET_IDENTITY_BINDING_REVIEW_TEMPLATE",
+  "state": "NOT_COLLECTED",
+  "execution_authorized": false,
+  "provider": {"authority_identity": null, "tenant_or_project_identity_sha256": null, "immutable_vm_id_sha256": null, "vm_generation_or_creation_identity_sha256": null, "provider_receipt_sha256": null},
+  "guest": {"label": null, "collector_host_identity_sha256": null, "raw_identity_capture_sha256": null, "binding_to_provider_receipt_sha256": null},
+  "release": {"source_sha": null, "tree_sha": null, "package_sha256": null, "command_manifest_sha256": null, "collector_sha256": null, "trust_policy_sha256": null},
+  "scope": {"owner_identity": null, "sandbox_root": null, "private_evidence_root": null, "backing_volume_identity_sha256": null, "ancestor_acl_receipt_sha256": null, "source_ownership_roster_sha256": null, "production_or_shared_mounts": "NOT_COLLECTED"},
+  "freshness": {"issued_at_ns": null, "expires_at_ns": null, "challenge_nonce_sha256": null},
+  "detached_signature": {"key_id": null, "signature_sha256": null, "verification_receipt_sha256": null},
+  "independent_review": {"reviewer_identity": null, "receipt_sha256": null, "decision": "BLOCKED"},
+  "physical_g0": "PLAN_READY_TARGET_EVIDENCE_BLOCKED",
+  "physical_g1": "NOT_AUTHORIZED"
+}

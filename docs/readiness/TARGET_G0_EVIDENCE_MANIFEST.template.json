@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "purpose": "TARGET_SPECIFIC_G0_EVIDENCE_MANIFEST",
+  "manifest_state": "PLAN_ONLY_NOT_COLLECTED",
+  "execution_authorized": false,
+  "release_binding": {"source_sha": null, "tree_sha": null, "package_sha256": null, "command_manifest_sha256": null},
+  "collector_contract": {"schema": 1, "observation_contract_version": 2, "artifact_sha256": null, "capture_sha256": null, "capture_state": "NOT_COLLECTED"},
+  "target": {"label": null, "expected_host_identity_sha256": null, "observed_host_identity_sha256": null, "independent_identity_receipt_sha256": null, "binding_status": "UNRESOLVED", "protected_nodes": ["LS5", "PC4"]},
+  "facts": {
+    "host_identity": {"capture_state": "NOT_COLLECTED", "observed": null, "owner_receipt_sha256": null},
+    "os_and_powershell": {"capture_state": "NOT_COLLECTED", "observed": null, "owner_receipt_sha256": null},
+    "python_base_and_venv": {"capture_state": "NOT_COLLECTED", "observed": null, "executable_roster_sha256": null, "owner_receipt_sha256": null},
+    "torch_and_dependencies": {"capture_state": "NOT_COLLECTED", "observed": null, "wheel_lock_sha256": null, "installed_metadata_sha256": null, "owner_receipt_sha256": null},
+    "cpu_ram_disk_and_limits": {"capture_state": "NOT_COLLECTED", "observed": null, "enforcement_receipt_sha256": null, "owner_receipt_sha256": null},
+    "gpu_driver_and_cuda": {"capture_state": "NOT_COLLECTED", "observed": null, "real_gpu_execution_evidence_sha256": null, "owner_receipt_sha256": null},
+    "processes_and_services": {"capture_state": "NOT_COLLECTED", "observed": null, "pid_creation_identity_bindings_sha256": null, "owner_receipt_sha256": null},
+    "tcp_and_udp_ports": {"capture_state": "NOT_COLLECTED", "observed": null, "pid_to_process_bindings_sha256": null, "owner_receipt_sha256": null},
+    "acl_namespace_and_mounts": {"capture_state": "NOT_COLLECTED", "observed": null, "ancestor_acl_roster_sha256": null, "backing_volume_identity_sha256": null, "owner_receipt_sha256": null},
+    "source_and_database_ownership": {"capture_state": "NOT_COLLECTED", "observed": null, "grid_postgresql_metaanalyse_ownership_roster_sha256": null, "producer_receipts_sha256": null, "owner_receipt_sha256": null}
+  },
+  "command_captures": null,
+  "observation_states": {"OBSERVED": "Successful nonempty observation; required properties present, not independent truth", "EMPTY": "Successful observation yielded zero rows; admission depends on separate empty_allowed policy", "MISSING": "Nonempty observation lacks required fields or valid identity", "UNAVAILABLE": "Command/provider failed; no partial output admitted", "NOT_COLLECTED": "No target observation attempted; template only"},
+  "required_private_bindings": ["Exact target identity with independent owner/hypervisor receipt", "OS/Python/Torch/dependency byte and version identities", "Actual resource/GPU facts and separate enforcement/execution evidence", "Process creation identity, executable pins, TCP/UDP ownership", "Ancestor ACL, namespace/backing volume/mount identity", "Source/DB owners without DB connections; production sources DO_NOT_TOUCH"],
+  "stop_conditions": ["Any unresolved target/release/tool/hash/ownership binding", "Protected LS5/PC4 target", "Any NOT_COLLECTED, UNAVAILABLE or MISSING required section", "EMPTY where empty_allowed is false; unknown absence is never EMPTY", "Provider error/partial output, unexpected IO/network/child/write, secret exposure", "Any attempt to infer G0/G1 approval from software fixture or self-declared receipt"],
+  "physical_g0_readiness": "PLAN_READY_TARGET_EVIDENCE_BLOCKED",
+  "physical_g1": "NOT_AUTHORIZED",
+  "trading": "NO-GO"
+}

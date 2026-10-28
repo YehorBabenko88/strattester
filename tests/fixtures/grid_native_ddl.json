@@ -1,0 +1,433 @@
+{
+  "source_commit": "d537d525296ef34f727996e240ae6c60102c6082",
+  "sources": {
+    "grid/db.py": {
+      "sha256": "5eb11360921800d12eb6ba4f62d4d034dc084c5406d37a30784d98ec3a588f1c",
+      "git_blob": "09ffb08fd955455a901dc09c5bbd06d19ee17228"
+    },
+    "grid/migrations.py": {
+      "sha256": "b65cf37d0016cc068074daf2e0f79fbbaba9a66cfff1172b328d81958c734322",
+      "git_blob": "eb86864c8c523001740a8f2b0cdf7e160173b531"
+    },
+    "tests/test_legacy_gap_repair.py": {
+      "sha256": "bc512739667a46130a6261044030e937560bfd56251205c3de70d1ef4d65e68a",
+      "git_blob": "7f4ca0408858a9b62c3c7702b1cca372757113bf"
+    }
+  },
+  "postgres_base": "\n            CREATE TABLE IF NOT EXISTS schema_migrations(\n              version bigint PRIMARY KEY, name text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now()\n            );\n            CREATE TABLE IF NOT EXISTS market_events(\n              id bigserial PRIMARY KEY,\n              symbol text NOT NULL,\n              event_ts timestamptz NOT NULL,\n              event_type text NOT NULL,\n              source text NOT NULL DEFAULT 'bybit',\n              payload jsonb NOT NULL,\n              ingest_ts timestamptz NOT NULL DEFAULT now(),\n              UNIQUE(symbol,event_ts,event_type,payload)\n            );\n            CREATE INDEX IF NOT EXISTS market_events_symbol_ts_idx ON market_events(symbol,event_ts DESC);\n            CREATE INDEX IF NOT EXISTS market_events_payload_gin_idx ON market_events USING gin(payload);\n\n            CREATE TABLE IF NOT EXISTS candles_1m(\n              symbol text NOT NULL, ts timestamptz NOT NULL,\n              open numeric, high numeric, low numeric, close numeric,\n              buy_volume numeric, sell_volume numeric, delta numeric,\n              trade_count integer, poc_price numeric,\n              extra jsonb NOT NULL DEFAULT '{}'::jsonb,\n              PRIMARY KEY(symbol,ts)\n            );\n\n            CREATE TABLE IF NOT EXISTS footprint_1m(\n              symbol text NOT NULL, ts timestamptz NOT NULL, price numeric NOT NULL,\n              buy_volume numeric, sell_volume numeric, delta numeric, volume numeric,\n              buy_count integer, sell_count integer,\n              extra jsonb NOT NULL DEFAULT '{}'::jsonb,\n              PRIMARY KEY(symbol,ts,price)\n            );\n\n            CREATE TABLE IF NOT EXISTS orderbook_snapshots(\n              symbol text NOT NULL, ts timestamptz NOT NULL,\n              best_bid numeric, best_ask numeric, spread numeric,\n              bid_depth numeric, ask_depth numeric, imbalance numeric,\n              walls jsonb NOT NULL DEFAULT '[]'::jsonb,\n              book jsonb NOT NULL DEFAULT '{}'::jsonb,\n              extra jsonb NOT NULL DEFAULT '{}'::jsonb,\n              PRIMARY KEY(symbol,ts)\n            );\n\n            CREATE TABLE IF NOT EXISTS derivatives_metrics(\n              symbol text NOT NULL, ts timestamptz NOT NULL,\n              open_interest numeric, funding_rate numeric, mark_price numeric,\n              index_price numeric, basis numeric,\n              extra jsonb NOT NULL DEFAULT '{}'::jsonb,\n              PRIMARY KEY(symbol,ts)\n            );\n            ",
+  "migrations": [
+    [
+      1,
+      "baseline_jsonb_extensible",
+      [
+        "ALTER TABLE candles_1m ADD COLUMN IF NOT EXISTS extra jsonb NOT NULL DEFAULT '{}'::jsonb",
+        "ALTER TABLE footprint_1m ADD COLUMN IF NOT EXISTS extra jsonb NOT NULL DEFAULT '{}'::jsonb"
+      ]
+    ],
+    [
+      2,
+      "market_microstructure_tables",
+      [
+        "CREATE TABLE IF NOT EXISTS orderbook_snapshots(\nsymbol text NOT NULL, ts timestamptz NOT NULL, best_bid numeric, best_ask numeric, spread numeric,\nbid_depth numeric, ask_depth numeric, imbalance numeric, walls jsonb NOT NULL DEFAULT '[]'::jsonb,\nbook jsonb NOT NULL DEFAULT '{}'::jsonb, extra jsonb NOT NULL DEFAULT '{}'::jsonb, PRIMARY KEY(symbol,ts))",
+        "CREATE TABLE IF NOT EXISTS derivatives_metrics(\nsymbol text NOT NULL, ts timestamptz NOT NULL, open_interest numeric, funding_rate numeric,\nmark_price numeric, index_price numeric, basis numeric, extra jsonb NOT NULL DEFAULT '{}'::jsonb,\nPRIMARY KEY(symbol,ts))"
+      ]
+    ],
+    [
+      3,
+      "minute_data_quality",
+      [
+        "ALTER TABLE candles_1m ADD COLUMN IF NOT EXISTS quality_status text NOT NULL DEFAULT 'UNKNOWN'",
+        "ALTER TABLE candles_1m ADD COLUMN IF NOT EXISTS quality_reasons jsonb NOT NULL DEFAULT '[]'::jsonb",
+        "CREATE INDEX IF NOT EXISTS candles_1m_quality_idx ON candles_1m(quality_status,ts DESC)"
+      ]
+    ],
+    [
+      4,
+      "market_features_1m",
+      [
+        "CREATE TABLE IF NOT EXISTS market_features_1m(\nsymbol text NOT NULL, ts timestamptz NOT NULL, eligible boolean NOT NULL,\nquality_status text NOT NULL, features jsonb NOT NULL, capabilities jsonb NOT NULL,\nbuilt_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(symbol,ts))",
+        "CREATE INDEX IF NOT EXISTS market_features_1m_eligible_idx ON market_features_1m(eligible,ts DESC)"
+      ]
+    ],
+    [
+      5,
+      "volatility_regime_columns",
+      [
+        "ALTER TABLE market_features_1m ADD COLUMN IF NOT EXISTS regime text NOT NULL DEFAULT 'QUIET'",
+        "ALTER TABLE market_features_1m ADD COLUMN IF NOT EXISTS regime_score double precision NOT NULL DEFAULT 1.0",
+        "CREATE INDEX IF NOT EXISTS market_features_1m_regime_idx ON market_features_1m(regime,ts DESC)"
+      ]
+    ],
+    [
+      6,
+      "poc_lifecycle",
+      [
+        "CREATE TABLE IF NOT EXISTS poc_lifecycle(\nsymbol text NOT NULL, source_ts timestamptz NOT NULL, poc_price numeric NOT NULL,\nsource_close numeric, source_regime text, source_features jsonb NOT NULL DEFAULT '{}'::jsonb,\nstatus text NOT NULL DEFAULT 'NAKED', first_touch_ts timestamptz, first_touch_minutes integer,\nfirst_touch_kind text, cross_ts timestamptz, acceptance_ts timestamptz,\ntouch_count integer NOT NULL DEFAULT 0, max_distance_pct double precision NOT NULL DEFAULT 0,\nlast_checked_ts timestamptz, PRIMARY KEY(symbol,source_ts))",
+        "CREATE INDEX IF NOT EXISTS poc_lifecycle_open_idx ON poc_lifecycle(symbol,status,source_ts)"
+      ]
+    ],
+    [
+      7,
+      "historical_level_events",
+      [
+        "CREATE TABLE IF NOT EXISTS historical_levels(\nsymbol text NOT NULL, timeframe text NOT NULL, level_kind text NOT NULL,\nsource_ts timestamptz NOT NULL, price numeric NOT NULL, active boolean NOT NULL DEFAULT true,\nfirst_cross_ts timestamptz, test_count integer NOT NULL DEFAULT 0,\nPRIMARY KEY(symbol,timeframe,level_kind,source_ts))",
+        "CREATE TABLE IF NOT EXISTS level_events(\nid bigserial PRIMARY KEY, symbol text NOT NULL, timeframe text NOT NULL, level_kind text NOT NULL,\nsource_ts timestamptz NOT NULL, level_price numeric NOT NULL, event_ts timestamptz NOT NULL,\nevent_type text NOT NULL, direction text, pre_features jsonb NOT NULL DEFAULT '{}'::jsonb,\nevent_features jsonb NOT NULL DEFAULT '{}'::jsonb, outcome jsonb NOT NULL DEFAULT '{}'::jsonb)",
+        "CREATE INDEX IF NOT EXISTS level_events_lookup_idx ON level_events(symbol,timeframe,event_type,event_ts DESC)"
+      ]
+    ],
+    [
+      8,
+      "historical_level_availability",
+      [
+        "ALTER TABLE historical_levels ADD COLUMN IF NOT EXISTS available_ts timestamptz",
+        "CREATE INDEX IF NOT EXISTS historical_levels_active_idx ON historical_levels(symbol,active,timeframe,price)"
+      ]
+    ],
+    [
+      9,
+      "level_event_idempotency",
+      [
+        "CREATE UNIQUE INDEX IF NOT EXISTS level_events_unique_event_idx ON level_events(symbol,timeframe,level_kind,source_ts,event_ts,event_type)"
+      ]
+    ],
+    [
+      10,
+      "observer_recovery_state",
+      [
+        "CREATE TABLE IF NOT EXISTS observer_checkpoints(\nobserver text NOT NULL, symbol text NOT NULL, last_ts timestamptz,\nstate jsonb NOT NULL DEFAULT '{}'::jsonb, updated_at timestamptz NOT NULL DEFAULT now(),\nPRIMARY KEY(observer,symbol))",
+        "ALTER TABLE level_events ADD COLUMN IF NOT EXISTS quality_status text NOT NULL DEFAULT 'UNKNOWN'",
+        "ALTER TABLE level_events ADD COLUMN IF NOT EXISTS completeness double precision NOT NULL DEFAULT 0",
+        "ALTER TABLE level_events ADD COLUMN IF NOT EXISTS ml_eligible boolean NOT NULL DEFAULT false"
+      ]
+    ],
+    [
+      11,
+      "ml_event_samples",
+      [
+        "CREATE TABLE IF NOT EXISTS ml_event_samples(\nsample_id bigserial PRIMARY KEY, symbol text NOT NULL, event_id bigint REFERENCES level_events(id),\nsample_type text NOT NULL, feature_ts timestamptz NOT NULL, event_ts timestamptz NOT NULL,\nfeatures jsonb NOT NULL, instrument_features jsonb NOT NULL DEFAULT '{}'::jsonb,\ntarget jsonb NOT NULL DEFAULT '{}'::jsonb, target_ready boolean NOT NULL DEFAULT false,\nquality_status text NOT NULL, split_group text, created_at timestamptz NOT NULL DEFAULT now())",
+        "CREATE UNIQUE INDEX IF NOT EXISTS ml_event_samples_event_type_idx ON ml_event_samples(event_id,sample_type)",
+        "CREATE INDEX IF NOT EXISTS ml_event_samples_train_idx ON ml_event_samples(target_ready,quality_status,event_ts)"
+      ]
+    ],
+    [
+      12,
+      "ml_orchestrator_concurrency",
+      [
+        "CREATE TABLE IF NOT EXISTS ml_jobs(\nid uuid PRIMARY KEY, job_type text NOT NULL, payload jsonb NOT NULL DEFAULT '{}'::jsonb,\nstatus text NOT NULL DEFAULT 'queued', priority integer NOT NULL DEFAULT 100,\nlease_owner text, lease_until timestamptz, attempts integer NOT NULL DEFAULT 0,\ndataset_cutoff timestamptz, created_at timestamptz NOT NULL DEFAULT now(),\nstarted_at timestamptz, finished_at timestamptz, error text)",
+        "CREATE INDEX IF NOT EXISTS ml_jobs_claim_idx ON ml_jobs(status,priority,created_at)",
+        "CREATE TABLE IF NOT EXISTS dataset_snapshots(\nid uuid PRIMARY KEY, purpose text NOT NULL, cutoff_ts timestamptz NOT NULL,\ncreated_at timestamptz NOT NULL DEFAULT now(), created_by text NOT NULL,\ncriteria jsonb NOT NULL DEFAULT '{}'::jsonb, status text NOT NULL DEFAULT 'ready')",
+        "CREATE TABLE IF NOT EXISTS service_leases(\nservice_key text PRIMARY KEY, owner text NOT NULL, lease_until timestamptz NOT NULL,\nheartbeat_at timestamptz NOT NULL DEFAULT now(), metadata jsonb NOT NULL DEFAULT '{}'::jsonb)"
+      ]
+    ],
+    [
+      13,
+      "ml_artifact_lifecycle",
+      [
+        "CREATE TABLE IF NOT EXISTS ml_artifacts(\nid uuid PRIMARY KEY, artifact_type text NOT NULL, owner_job uuid,\nstorage_uri text NOT NULL, bytes bigint NOT NULL DEFAULT 0,\nstatus text NOT NULL DEFAULT 'ACTIVE', reusable boolean NOT NULL DEFAULT false,\nexpires_at timestamptz, last_used_at timestamptz NOT NULL DEFAULT now(),\ncreated_at timestamptz NOT NULL DEFAULT now(), metadata jsonb NOT NULL DEFAULT '{}'::jsonb)",
+        "CREATE INDEX IF NOT EXISTS ml_artifacts_gc_idx ON ml_artifacts(status,reusable,expires_at,last_used_at)"
+      ]
+    ],
+    [
+      14,
+      "ml_lifecycle_registry",
+      [
+        "ALTER TABLE dataset_snapshots ADD COLUMN IF NOT EXISTS dataset_hash text",
+        "ALTER TABLE dataset_snapshots ADD COLUMN IF NOT EXISTS sample_count bigint NOT NULL DEFAULT 0",
+        "ALTER TABLE dataset_snapshots ADD COLUMN IF NOT EXISTS feature_version text",
+        "CREATE TABLE IF NOT EXISTS model_registry(\nid uuid PRIMARY KEY, model_family text NOT NULL, symbol_scope jsonb NOT NULL DEFAULT '[]'::jsonb,\ndataset_id uuid NOT NULL REFERENCES dataset_snapshots(id), parent_model_id uuid,\nstatus text NOT NULL DEFAULT 'CANDIDATE', artifact_id uuid,\ncode_version text, feature_version text, hyperparameters jsonb NOT NULL DEFAULT '{}'::jsonb,\ncreated_at timestamptz NOT NULL DEFAULT now(), promoted_at timestamptz)",
+        "CREATE TABLE IF NOT EXISTS model_evaluations(\nid uuid PRIMARY KEY, model_id uuid NOT NULL REFERENCES model_registry(id),\nstage text NOT NULL, dataset_id uuid REFERENCES dataset_snapshots(id),\nmetrics jsonb NOT NULL, passed boolean NOT NULL, evaluator_version text,\ncreated_at timestamptz NOT NULL DEFAULT now(), UNIQUE(model_id,stage,dataset_id))",
+        "CREATE TABLE IF NOT EXISTS shadow_predictions(\nmodel_id uuid NOT NULL REFERENCES model_registry(id), symbol text NOT NULL,\nevent_ts timestamptz NOT NULL, setup_type text NOT NULL, prediction jsonb NOT NULL,\noutcome jsonb, evaluated_at timestamptz, PRIMARY KEY(model_id,symbol,event_ts,setup_type))"
+      ]
+    ],
+    [
+      15,
+      "immutable_dataset_membership",
+      [
+        "CREATE TABLE IF NOT EXISTS dataset_samples(\ndataset_id uuid NOT NULL REFERENCES dataset_snapshots(id) ON DELETE CASCADE,\nsample_id bigint NOT NULL REFERENCES ml_event_samples(sample_id),\nordinal bigint NOT NULL, PRIMARY KEY(dataset_id,sample_id), UNIQUE(dataset_id,ordinal))"
+      ]
+    ],
+    [
+      16,
+      "consumer_safe_retention_and_control_state",
+      [
+        "CREATE TABLE IF NOT EXISTS consumer_watermarks(\ndataset text NOT NULL, consumer text NOT NULL, symbol text NOT NULL,\nconsumed_through timestamptz NOT NULL, required boolean NOT NULL DEFAULT true,\nupdated_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(dataset,consumer,symbol))",
+        "CREATE TABLE IF NOT EXISTS retention_holds(\nid uuid PRIMARY KEY, dataset text NOT NULL, symbol text, from_ts timestamptz,\nthrough_ts timestamptz, reason text NOT NULL, owner_type text NOT NULL,\nowner_id text NOT NULL, expires_at timestamptz, created_at timestamptz NOT NULL DEFAULT now())",
+        "CREATE INDEX IF NOT EXISTS retention_holds_lookup_idx ON retention_holds(dataset,symbol,from_ts,through_ts)",
+        "CREATE TABLE IF NOT EXISTS replicated_control_state(\nstate_key text PRIMARY KEY, value jsonb NOT NULL, version bigint NOT NULL DEFAULT 1,\nupdated_at timestamptz NOT NULL DEFAULT now(), updated_by text NOT NULL)"
+      ]
+    ],
+    [
+      17,
+      "integrity_repair_state",
+      [
+        "CREATE TABLE IF NOT EXISTS integrity_repairs(\nid uuid PRIMARY KEY,node_id text NOT NULL,target_version text NOT NULL,\nstatus text NOT NULL DEFAULT 'queued',required_health_acks integer NOT NULL DEFAULT 3,\nhealth_acks integer NOT NULL DEFAULT 0,previous_version text,\nfiles jsonb NOT NULL DEFAULT '[]'::jsonb,created_at timestamptz NOT NULL DEFAULT now(),\ndeadline timestamptz NOT NULL DEFAULT now()+interval '10 minutes',last_error text)",
+        "CREATE INDEX IF NOT EXISTS integrity_repairs_node_status_idx ON integrity_repairs(node_id,status,created_at DESC)"
+      ]
+    ],
+    [
+      18,
+      "ml_fencing_immutable_payloads_and_label_horizon",
+      [
+        "ALTER TABLE ml_jobs ADD COLUMN IF NOT EXISTS lease_generation bigint NOT NULL DEFAULT 0",
+        "ALTER TABLE ml_jobs ADD COLUMN IF NOT EXISTS max_attempts integer NOT NULL DEFAULT 5",
+        "ALTER TABLE ml_jobs ADD COLUMN IF NOT EXISTS not_before timestamptz",
+        "ALTER TABLE ml_event_samples ADD COLUMN IF NOT EXISTS label_end_ts timestamptz",
+        "CREATE TABLE IF NOT EXISTS dataset_sample_payloads(\ndataset_id uuid NOT NULL REFERENCES dataset_snapshots(id) ON DELETE CASCADE,\nsample_id bigint NOT NULL,ordinal bigint NOT NULL,payload jsonb NOT NULL,\npayload_hash text NOT NULL,event_ts timestamptz NOT NULL,feature_ts timestamptz NOT NULL,\nlabel_end_ts timestamptz,split_group text,\nPRIMARY KEY(dataset_id,sample_id),UNIQUE(dataset_id,ordinal))",
+        "CREATE INDEX IF NOT EXISTS dataset_payload_event_idx ON dataset_sample_payloads(dataset_id,event_ts,ordinal)"
+      ]
+    ],
+    [
+      19,
+      "ml_job_deduplication",
+      [
+        "ALTER TABLE ml_jobs ADD COLUMN IF NOT EXISTS dedupe_key text",
+        "CREATE UNIQUE INDEX IF NOT EXISTS ml_jobs_active_dedupe_idx ON ml_jobs(dedupe_key)\nWHERE dedupe_key IS NOT NULL AND status IN ('queued','assigned','running')"
+      ]
+    ],
+    [
+      20,
+      "ml_resource_reservations",
+      [
+        "CREATE TABLE IF NOT EXISTS ml_resource_reservations(\njob_id uuid PRIMARY KEY REFERENCES ml_jobs(id) ON DELETE CASCADE,\nnode_id text NOT NULL,cpu double precision NOT NULL,ram_gb double precision NOT NULL,\nscratch_gb double precision NOT NULL,gpu boolean NOT NULL DEFAULT false,\nlease_generation bigint NOT NULL DEFAULT 0,expires_at timestamptz NOT NULL,\ncreated_at timestamptz NOT NULL DEFAULT now())",
+        "CREATE INDEX IF NOT EXISTS ml_reservations_node_idx ON ml_resource_reservations(node_id,expires_at)"
+      ]
+    ],
+    [
+      21,
+      "markov_transition_edge_results",
+      [
+        "CREATE TABLE IF NOT EXISTS markov_transition_edges(\ndataset_id uuid REFERENCES dataset_snapshots(id),model_id uuid REFERENCES model_registry(id),\nstrategy_name text NOT NULL,symbol text NOT NULL DEFAULT '*',setup_type text NOT NULL,\nstate_from text NOT NULL,state_to text NOT NULL,trades bigint NOT NULL,net_pnl double precision NOT NULL,\nexpectancy double precision NOT NULL,hit_rate double precision NOT NULL,\ncreated_at timestamptz NOT NULL DEFAULT now(),\nPRIMARY KEY(dataset_id,model_id,strategy_name,symbol,setup_type,state_from,state_to))"
+      ]
+    ],
+    [
+      22,
+      "strategy_comparison_results",
+      [
+        "CREATE TABLE IF NOT EXISTS strategy_comparison_results(\ndataset_id uuid REFERENCES dataset_snapshots(id),strategy_name text NOT NULL,variant text NOT NULL,\ncomparison_group text NOT NULL,metrics jsonb NOT NULL,incremental jsonb,uncertainty jsonb,\ncreated_at timestamptz NOT NULL DEFAULT now(),\nPRIMARY KEY(dataset_id,strategy_name,variant,comparison_group))"
+      ]
+    ],
+    [
+      23,
+      "historical_experiment_runs",
+      [
+        "CREATE TABLE IF NOT EXISTS historical_experiment_runs(\nid uuid PRIMARY KEY,dataset_id uuid NOT NULL REFERENCES dataset_snapshots(id),\nstrategy_name text NOT NULL,status text NOT NULL DEFAULT 'queued',\nconfig jsonb NOT NULL DEFAULT '{}'::jsonb,total_symbols integer NOT NULL DEFAULT 0,\ncompleted_symbols integer NOT NULL DEFAULT 0,failed_symbols integer NOT NULL DEFAULT 0,\ncreated_at timestamptz NOT NULL DEFAULT now(),started_at timestamptz,finished_at timestamptz,\nlast_error text)",
+        "CREATE TABLE IF NOT EXISTS historical_experiment_checkpoints(\nrun_id uuid NOT NULL REFERENCES historical_experiment_runs(id) ON DELETE CASCADE,\nsymbol text NOT NULL,status text NOT NULL DEFAULT 'queued',attempts integer NOT NULL DEFAULT 0,\nstarted_at timestamptz,finished_at timestamptz,last_error text,\nPRIMARY KEY(run_id,symbol))",
+        "CREATE INDEX IF NOT EXISTS historical_experiment_cp_status_idx ON historical_experiment_checkpoints(run_id,status,symbol)"
+      ]
+    ],
+    [
+      24,
+      "cold_start_backfill",
+      [
+        "CREATE TABLE IF NOT EXISTS ohlcv_1m(\nsymbol text NOT NULL,ts timestamptz NOT NULL,open numeric NOT NULL,high numeric NOT NULL,\nlow numeric NOT NULL,close numeric NOT NULL,volume numeric NOT NULL,turnover numeric,\nsource text NOT NULL DEFAULT 'BYBIT_REST',PRIMARY KEY(symbol,ts))",
+        "CREATE INDEX IF NOT EXISTS ohlcv_1m_symbol_ts_idx ON ohlcv_1m(symbol,ts DESC)",
+        "CREATE TABLE IF NOT EXISTS market_backfill_state(\nsymbol text NOT NULL,timeframe text NOT NULL DEFAULT '1',status text NOT NULL DEFAULT 'queued',\noldest_loaded_ts timestamptz,newest_loaded_ts timestamptz,next_end_ms bigint,\nattempts integer NOT NULL DEFAULT 0,last_error text,updated_at timestamptz NOT NULL DEFAULT now(),\nPRIMARY KEY(symbol,timeframe))",
+        "CREATE INDEX IF NOT EXISTS market_backfill_status_idx ON market_backfill_state(status,updated_at)"
+      ]
+    ],
+    [
+      25,
+      "market_data_capabilities",
+      [
+        "CREATE TABLE IF NOT EXISTS market_data_capabilities(\nsymbol text PRIMARY KEY,ohlcv_history text NOT NULL DEFAULT 'UNKNOWN',\ntrade_history text NOT NULL DEFAULT 'UNKNOWN',live_trades text NOT NULL DEFAULT 'UNKNOWN',\nlive_orderbook text NOT NULL DEFAULT 'UNKNOWN',footprint_history text NOT NULL DEFAULT 'UNKNOWN',\norderbook_history text NOT NULL DEFAULT 'UNAVAILABLE',\ntrade_history_from timestamptz,trade_history_through timestamptz,\nupdated_at timestamptz NOT NULL DEFAULT now(),details jsonb NOT NULL DEFAULT '{}'::jsonb)",
+        "CREATE TABLE IF NOT EXISTS trade_archive_backfill(\nsymbol text NOT NULL,archive_date date NOT NULL,status text NOT NULL DEFAULT 'queued',\nsource_uri text,bytes bigint,rows bigint,sha256 text,attempts integer NOT NULL DEFAULT 0,\nlast_error text,updated_at timestamptz NOT NULL DEFAULT now(),\nPRIMARY KEY(symbol,archive_date))",
+        "CREATE INDEX IF NOT EXISTS trade_archive_backfill_status_idx ON trade_archive_backfill(status,archive_date,symbol)"
+      ]
+    ],
+    [
+      26,
+      "archive_compaction_manifests",
+      [
+        "CREATE TABLE IF NOT EXISTS archive_compaction_manifests(\nsymbol text NOT NULL,archive_date date NOT NULL,source_sha256 text NOT NULL,\nsource_rows bigint NOT NULL,derived_candles bigint NOT NULL,derived_footprint_rows bigint NOT NULL,\nmin_ts timestamptz,max_ts timestamptz,status text NOT NULL DEFAULT 'DERIVED',\nverified_at timestamptz,raw_deleted_at timestamptz,details jsonb NOT NULL DEFAULT '{}'::jsonb,\nPRIMARY KEY(symbol,archive_date))",
+        "CREATE INDEX IF NOT EXISTS archive_compaction_status_idx ON archive_compaction_manifests(status,archive_date)"
+      ]
+    ],
+    [
+      27,
+      "trade_archive_discovery",
+      [
+        "CREATE TABLE IF NOT EXISTS trade_archive_discovery(\nsymbol text PRIMARY KEY,status text NOT NULL DEFAULT 'queued',mode text,\nearliest_date date,latest_date date,discovered_files integer NOT NULL DEFAULT 0,\nlast_scan_at timestamptz,last_error text,details jsonb NOT NULL DEFAULT '{}'::jsonb)",
+        "CREATE INDEX IF NOT EXISTS trade_archive_discovery_status_idx ON trade_archive_discovery(status,last_scan_at)"
+      ]
+    ],
+    [
+      28,
+      "legacy_bootstrap_import",
+      [
+        "CREATE TABLE IF NOT EXISTS legacy_bootstrap_imports(\nsource_id text PRIMARY KEY,source_path text NOT NULL,research_path text,\nresearch_cutoff timestamptz,status text NOT NULL DEFAULT 'PENDING',\ncoverage_symbols integer NOT NULL DEFAULT 0,imported_candles bigint NOT NULL DEFAULT 0,\nimported_levels bigint NOT NULL DEFAULT 0,imported_samples bigint NOT NULL DEFAULT 0,\nmanifest jsonb NOT NULL DEFAULT '{}'::jsonb,created_at timestamptz NOT NULL DEFAULT now(),\nverified_at timestamptz,last_error text)",
+        "CREATE TABLE IF NOT EXISTS legacy_symbol_coverage(\nsource_id text NOT NULL REFERENCES legacy_bootstrap_imports(source_id) ON DELETE CASCADE,\nsymbol text NOT NULL,min_ts timestamptz,max_ts timestamptz,candles bigint NOT NULL,\ngap_minutes bigint NOT NULL DEFAULT 0,coverage_fingerprint text NOT NULL,\nPRIMARY KEY(source_id,symbol))",
+        "CREATE TABLE IF NOT EXISTS imported_historical_levels(\nsource_id text NOT NULL REFERENCES legacy_bootstrap_imports(source_id) ON DELETE CASCADE,\nsymbol text NOT NULL,timeframe text NOT NULL,level_type text NOT NULL,source_start timestamptz NOT NULL,\navailable_at timestamptz NOT NULL,price numeric NOT NULL,trigger numeric NOT NULL,\nbroken boolean NOT NULL,broken_at timestamptz,entries integer NOT NULL DEFAULT 0,\nPRIMARY KEY(source_id,symbol,timeframe,level_type,source_start,price))",
+        "CREATE TABLE IF NOT EXISTS legacy_research_samples(\nsource_id text NOT NULL REFERENCES legacy_bootstrap_imports(source_id) ON DELETE CASCADE,\nsymbol text NOT NULL,sample_key text NOT NULL,sample_type text NOT NULL,event_ts timestamptz NOT NULL,\nsplit text,payload jsonb NOT NULL,PRIMARY KEY(source_id,symbol,sample_key))",
+        "CREATE INDEX IF NOT EXISTS legacy_research_samples_type_idx ON legacy_research_samples(sample_type,event_ts)"
+      ]
+    ],
+    [
+      29,
+      "legacy_symbol_import_state",
+      [
+        "ALTER TABLE legacy_symbol_coverage ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'PENDING'",
+        "ALTER TABLE legacy_symbol_coverage ADD COLUMN IF NOT EXISTS imported_candles bigint NOT NULL DEFAULT 0",
+        "ALTER TABLE legacy_symbol_coverage ADD COLUMN IF NOT EXISTS verified_at timestamptz",
+        "ALTER TABLE legacy_symbol_coverage ADD COLUMN IF NOT EXISTS last_error text"
+      ]
+    ],
+    [
+      30,
+      "required_retention_consumer_registry",
+      [
+        "CREATE TABLE IF NOT EXISTS retention_consumers(\ndataset text NOT NULL,consumer text NOT NULL,required boolean NOT NULL DEFAULT true,\nactive boolean NOT NULL DEFAULT true,created_at timestamptz NOT NULL DEFAULT now(),\nupdated_at timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(dataset,consumer))"
+      ]
+    ],
+    [
+      31,
+      "derived_minute_completion",
+      [
+        "CREATE TABLE IF NOT EXISTS derived_minute_state(\nsymbol text NOT NULL,ts timestamptz NOT NULL,status text NOT NULL DEFAULT 'DONE',\nprocessed_at timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(symbol,ts))",
+        "CREATE INDEX IF NOT EXISTS derived_minute_state_ts_idx ON derived_minute_state(ts)"
+      ]
+    ],
+    [
+      32,
+      "pilot_bootstrap_state",
+      [
+        "CREATE TABLE IF NOT EXISTS pilot_bootstrap_state(\nnode_id text PRIMARY KEY,mode text NOT NULL DEFAULT 'PILOT_BOOTSTRAP',\nphase text NOT NULL DEFAULT 'WAITING',paused boolean NOT NULL DEFAULT false,\nprogress numeric NOT NULL DEFAULT 0,source_path text,research_path text,\ndetails jsonb NOT NULL DEFAULT '{}'::jsonb,updated_at timestamptz NOT NULL DEFAULT now(),\ncompleted_at timestamptz,expansion_notified_at timestamptz)",
+        "CREATE INDEX IF NOT EXISTS pilot_bootstrap_mode_idx ON pilot_bootstrap_state(mode,phase)"
+      ]
+    ],
+    [
+      33,
+      "telegram_update_idempotency",
+      [
+        "CREATE TABLE IF NOT EXISTS telegram_updates(\nupdate_id bigint PRIMARY KEY,chat_id text,command text,status text NOT NULL DEFAULT 'CLAIMED',\nclaimed_by text NOT NULL,claimed_at timestamptz NOT NULL DEFAULT now(),\ncompleted_at timestamptz,error text)"
+      ]
+    ],
+    [
+      34,
+      "microstructure_research_capture",
+      [
+        "CREATE TABLE IF NOT EXISTS setup_candidates(\nid bigserial PRIMARY KEY,symbol text NOT NULL,setup_type text NOT NULL,\ndirection text NOT NULL,detected_at timestamptz NOT NULL,reference_price numeric,\nconfidence double precision,features jsonb NOT NULL DEFAULT '{}'::jsonb,\nstate text NOT NULL DEFAULT 'DETECTED',invalidated_at timestamptz,\noutcome jsonb NOT NULL DEFAULT '{}'::jsonb,created_at timestamptz NOT NULL DEFAULT now())",
+        "CREATE INDEX IF NOT EXISTS setup_candidates_lookup_idx ON setup_candidates(setup_type,symbol,detected_at DESC)",
+        "CREATE INDEX IF NOT EXISTS setup_candidates_state_idx ON setup_candidates(state,detected_at DESC)"
+      ]
+    ],
+    [
+      35,
+      "hot_table_autovacuum_policy",
+      [
+        "ALTER TABLE market_events SET (autovacuum_vacuum_scale_factor=0.02,autovacuum_analyze_scale_factor=0.01,autovacuum_vacuum_threshold=1000)",
+        "ALTER TABLE orderbook_snapshots SET (autovacuum_vacuum_scale_factor=0.02,autovacuum_analyze_scale_factor=0.01,autovacuum_vacuum_threshold=1000)",
+        "ALTER TABLE footprint_1m SET (autovacuum_vacuum_scale_factor=0.03,autovacuum_analyze_scale_factor=0.02,autovacuum_vacuum_threshold=1000)",
+        "ALTER TABLE dataset_sample_payloads SET (autovacuum_vacuum_scale_factor=0.02,autovacuum_analyze_scale_factor=0.01,autovacuum_vacuum_threshold=500)",
+        "ALTER TABLE ml_jobs SET (autovacuum_vacuum_scale_factor=0.05,autovacuum_analyze_scale_factor=0.02,autovacuum_vacuum_threshold=100)",
+        "ALTER TABLE dataset_snapshots SET (autovacuum_vacuum_scale_factor=0.05,autovacuum_analyze_scale_factor=0.02,autovacuum_vacuum_threshold=100)"
+      ]
+    ],
+    [
+      36,
+      "micro_agent_research",
+      [
+        "CREATE TABLE IF NOT EXISTS micro_agent_signals(\nid bigserial PRIMARY KEY,symbol text NOT NULL,event_ts timestamptz NOT NULL,\nagent text NOT NULL,state text NOT NULL,score double precision NOT NULL,\ndirection smallint NOT NULL DEFAULT 0,features jsonb NOT NULL DEFAULT '{}'::jsonb,\ncreated_at timestamptz NOT NULL DEFAULT now())",
+        "CREATE INDEX IF NOT EXISTS micro_agent_signals_lookup_idx ON micro_agent_signals(symbol,agent,event_ts DESC)",
+        "CREATE TABLE IF NOT EXISTS micro_pattern_candidates(\nid bigserial PRIMARY KEY,symbol text NOT NULL,event_ts timestamptz NOT NULL,\npattern_key text NOT NULL,direction smallint NOT NULL DEFAULT 0,strength double precision NOT NULL,\nagents jsonb NOT NULL DEFAULT '[]'::jsonb,features jsonb NOT NULL DEFAULT '{}'::jsonb,\noutcome jsonb NOT NULL DEFAULT '{}'::jsonb,outcome_ready boolean NOT NULL DEFAULT false,\nresearch_only boolean NOT NULL DEFAULT true,created_at timestamptz NOT NULL DEFAULT now())",
+        "CREATE INDEX IF NOT EXISTS micro_pattern_candidates_eval_idx ON micro_pattern_candidates(outcome_ready,pattern_key,event_ts)"
+      ]
+    ],
+    [
+      37,
+      "scientific_hypothesis_memory",
+      [
+        "CREATE TABLE IF NOT EXISTS scientific_hypotheses(\nid uuid PRIMARY KEY,fingerprint text NOT NULL UNIQUE,method text NOT NULL,pattern text NOT NULL,\nhorizon_ms integer NOT NULL,direction smallint NOT NULL,feature_version text NOT NULL,\ndefinition jsonb NOT NULL,status text NOT NULL DEFAULT 'CANDIDATE',\nresearch_only boolean NOT NULL DEFAULT true,first_seen_at timestamptz NOT NULL DEFAULT now(),\nupdated_at timestamptz NOT NULL DEFAULT now(),validated_at timestamptz,rejected_at timestamptz)",
+        "CREATE INDEX IF NOT EXISTS scientific_hypotheses_status_idx ON scientific_hypotheses(status,updated_at DESC)",
+        "CREATE TABLE IF NOT EXISTS scientific_hypothesis_evidence(\nid uuid PRIMARY KEY,hypothesis_id uuid NOT NULL REFERENCES scientific_hypotheses(id) ON DELETE CASCADE,\nexperiment_key text NOT NULL,symbol text NOT NULL,regime text NOT NULL,split_key text NOT NULL,\nsample_count bigint NOT NULL,mean_return_bps double precision NOT NULL,\nhit_rate double precision NOT NULL,cost_bps double precision NOT NULL DEFAULT 0,\ndataset_cutoff timestamptz,passed boolean NOT NULL,metrics jsonb NOT NULL DEFAULT '{}'::jsonb,\ncreated_at timestamptz NOT NULL DEFAULT now(),\nUNIQUE(hypothesis_id,experiment_key))",
+        "CREATE INDEX IF NOT EXISTS scientific_evidence_lookup_idx ON scientific_hypothesis_evidence(hypothesis_id,created_at)",
+        "CREATE TABLE IF NOT EXISTS scientific_negative_memory(\nfingerprint text PRIMARY KEY,reason text NOT NULL,evidence_count bigint NOT NULL DEFAULT 0,\ncooldown_until timestamptz,details jsonb NOT NULL DEFAULT '{}'::jsonb,\nupdated_at timestamptz NOT NULL DEFAULT now())"
+      ]
+    ],
+    [
+      38,
+      "durable_scientific_outcomes",
+      [
+        "CREATE TABLE IF NOT EXISTS scientific_outcome_requests(\nid uuid PRIMARY KEY,event_id text NOT NULL,hypothesis_fingerprint text NOT NULL,\nsymbol text NOT NULL,event_ts_ms bigint NOT NULL,due_ts_ms bigint NOT NULL,\nhorizon_ms integer NOT NULL,reference_price double precision NOT NULL,\nevent_type text NOT NULL,payload jsonb NOT NULL DEFAULT '{}'::jsonb,\nstatus text NOT NULL DEFAULT 'PENDING',created_at timestamptz NOT NULL DEFAULT now(),\ncompleted_at timestamptz,observed_ts_ms bigint,outcome_price double precision,\nlog_return double precision,return_bps double precision,\nUNIQUE(event_id,hypothesis_fingerprint,horizon_ms))",
+        "CREATE INDEX IF NOT EXISTS scientific_outcomes_due_idx ON scientific_outcome_requests(symbol,status,due_ts_ms)",
+        "CREATE TABLE IF NOT EXISTS scientific_outcome_clock(\nsymbol text PRIMARY KEY,last_observed_ts_ms bigint NOT NULL,\nupdated_at timestamptz NOT NULL DEFAULT now())"
+      ]
+    ],
+    [
+      39,
+      "scientific_source_event_fencing",
+      [
+        "ALTER TABLE micro_agent_signals ADD COLUMN IF NOT EXISTS source_event_id bigint",
+        "CREATE UNIQUE INDEX IF NOT EXISTS micro_agent_signals_source_idx ON micro_agent_signals(source_event_id,agent) WHERE source_event_id IS NOT NULL",
+        "CREATE INDEX IF NOT EXISTS micro_agent_signals_recovery_idx ON micro_agent_signals(source_event_id) WHERE source_event_id IS NOT NULL"
+      ]
+    ],
+    [
+      40,
+      "scientific_pattern_mining",
+      [
+        "CREATE TABLE IF NOT EXISTS scientific_mining_families(\nfamily_key text PRIMARY KEY,method text NOT NULL,horizon_ms integer NOT NULL,\nfeature_version text NOT NULL,hypotheses_tested bigint NOT NULL DEFAULT 0,\nlast_run_at timestamptz,details jsonb NOT NULL DEFAULT '{}'::jsonb,\nupdated_at timestamptz NOT NULL DEFAULT now())",
+        "CREATE TABLE IF NOT EXISTS scientific_mining_runs(\nid uuid PRIMARY KEY,family_key text NOT NULL REFERENCES scientific_mining_families(family_key),\nsplit_key text NOT NULL,dataset_cutoff timestamptz NOT NULL,\ncandidate_count integer NOT NULL DEFAULT 0,accepted_count integer NOT NULL DEFAULT 0,\nstatus text NOT NULL DEFAULT 'RUNNING',details jsonb NOT NULL DEFAULT '{}'::jsonb,\nstarted_at timestamptz NOT NULL DEFAULT now(),completed_at timestamptz)",
+        "CREATE INDEX IF NOT EXISTS scientific_mining_runs_idx ON scientific_mining_runs(family_key,started_at DESC)",
+        "ALTER TABLE scientific_hypothesis_evidence ADD COLUMN IF NOT EXISTS p_value double precision",
+        "ALTER TABLE scientific_hypothesis_evidence ADD COLUMN IF NOT EXISTS corrected_p_value double precision",
+        "ALTER TABLE scientific_hypothesis_evidence ADD COLUMN IF NOT EXISTS effect_z double precision"
+      ]
+    ],
+    [
+      41,
+      "scientific_simulation_promotion_gate",
+      [
+        "CREATE TABLE IF NOT EXISTS scientific_simulation_runs(\nid uuid PRIMARY KEY,hypothesis_id uuid NOT NULL REFERENCES scientific_hypotheses(id) ON DELETE CASCADE,\nsimulation_version text NOT NULL,config jsonb NOT NULL,dataset_cutoff timestamptz NOT NULL,\nstatus text NOT NULL DEFAULT 'QUEUED',metrics jsonb NOT NULL DEFAULT '{}'::jsonb,\nstress_metrics jsonb NOT NULL DEFAULT '{}'::jsonb,reason text,\ncreated_at timestamptz NOT NULL DEFAULT now(),started_at timestamptz,completed_at timestamptz,\nUNIQUE(hypothesis_id,simulation_version,dataset_cutoff))",
+        "CREATE INDEX IF NOT EXISTS scientific_simulation_status_idx ON scientific_simulation_runs(status,created_at)",
+        "ALTER TABLE scientific_simulation_runs ADD COLUMN IF NOT EXISTS oos_start timestamptz",
+        "CREATE TABLE IF NOT EXISTS scientific_simulation_trades(\nrun_id uuid NOT NULL REFERENCES scientific_simulation_runs(id) ON DELETE CASCADE,\nordinal bigint NOT NULL,symbol text NOT NULL,event_ts_ms bigint NOT NULL,split_key text NOT NULL,\nraw_return_bps double precision NOT NULL,net_return_bps double precision NOT NULL,\nfill_fraction double precision NOT NULL,fee_bps double precision NOT NULL,\nslippage_bps double precision NOT NULL,latency_bps double precision NOT NULL,\nfunding_bps double precision NOT NULL,equity_after double precision NOT NULL,\nPRIMARY KEY(run_id,ordinal))",
+        "ALTER TABLE scientific_simulation_trades ADD COLUMN IF NOT EXISTS spread_bps double precision NOT NULL DEFAULT 0",
+        "CREATE INDEX IF NOT EXISTS scientific_simulation_trades_split_idx ON scientific_simulation_trades(run_id,split_key,ordinal)"
+      ]
+    ],
+    [
+      42,
+      "historical_scientific_bootstrap",
+      [
+        "CREATE TABLE IF NOT EXISTS historical_scientific_bundles(\nid uuid PRIMARY KEY,source text NOT NULL,sha256 text NOT NULL UNIQUE,\ncapabilities jsonb NOT NULL,research_scope text NOT NULL,\ncreated_at_source double precision,imported_at timestamptz NOT NULL DEFAULT now(),\nstatus text NOT NULL DEFAULT 'IMPORTED',details jsonb NOT NULL DEFAULT '{}'::jsonb)",
+        "CREATE TABLE IF NOT EXISTS historical_scientific_symbol_state(\nbundle_id uuid NOT NULL REFERENCES historical_scientific_bundles(id) ON DELETE CASCADE,\nsymbol text NOT NULL,status text NOT NULL,samples bigint NOT NULL DEFAULT 0,\nfrom_ms bigint,through_ms bigint,summary jsonb NOT NULL DEFAULT '{}'::jsonb,\nfeatures jsonb NOT NULL DEFAULT '{}'::jsonb,\nPRIMARY KEY(bundle_id,symbol))",
+        "CREATE INDEX IF NOT EXISTS historical_science_symbol_idx ON historical_scientific_symbol_state(symbol,through_ms DESC)"
+      ]
+    ],
+    [
+      43,
+      "system_lifecycle_orchestration",
+      [
+        "CREATE TABLE IF NOT EXISTS system_lifecycle_state(\nsingleton boolean PRIMARY KEY DEFAULT true CHECK(singleton),\nphase text NOT NULL DEFAULT 'INFRASTRUCTURE',\ncompleted jsonb NOT NULL DEFAULT '[]'::jsonb,\ndetails jsonb NOT NULL DEFAULT '{}'::jsonb,\nupdated_at timestamptz NOT NULL DEFAULT now())",
+        "INSERT INTO system_lifecycle_state(singleton,phase) VALUES(true,'INFRASTRUCTURE')\nON CONFLICT(singleton) DO NOTHING"
+      ]
+    ],
+    [
+      44,
+      "scientific_method_plugins",
+      [
+        "CREATE TABLE IF NOT EXISTS scientific_methods(\nmethod_key text PRIMARY KEY,method_version text NOT NULL,schema_version integer NOT NULL DEFAULT 1,\nstatus text NOT NULL DEFAULT 'ENABLED',config jsonb NOT NULL DEFAULT '{}'::jsonb,\ncapabilities jsonb NOT NULL DEFAULT '{}'::jsonb,failure_count integer NOT NULL DEFAULT 0,\nlast_error text,created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now())",
+        "CREATE TABLE IF NOT EXISTS scientific_method_events(\nid bigserial PRIMARY KEY,method_key text NOT NULL,event_ts timestamptz NOT NULL DEFAULT now(),\nevent_type text NOT NULL,payload jsonb NOT NULL DEFAULT '{}'::jsonb,\nschema_version integer NOT NULL DEFAULT 1,created_at timestamptz NOT NULL DEFAULT now())",
+        "CREATE INDEX IF NOT EXISTS scientific_method_events_lookup_idx ON scientific_method_events(method_key,event_ts DESC)",
+        "CREATE TABLE IF NOT EXISTS scientific_method_errors(\nid bigserial PRIMARY KEY,method_key text NOT NULL,event_ts timestamptz,\nerror_type text NOT NULL,error_message text NOT NULL,context jsonb NOT NULL DEFAULT '{}'::jsonb,\ncreated_at timestamptz NOT NULL DEFAULT now())",
+        "CREATE INDEX IF NOT EXISTS scientific_method_errors_lookup_idx ON scientific_method_errors(method_key,created_at DESC)"
+      ]
+    ],
+    [
+      45,
+      "scientific_simulation_attempt_fencing",
+      [
+        "ALTER TABLE scientific_simulation_runs ADD COLUMN IF NOT EXISTS attempt_id uuid"
+      ]
+    ],
+    [
+      46,
+      "scientific_method_event_idempotency",
+      [
+        "ALTER TABLE scientific_method_events ADD COLUMN IF NOT EXISTS source_event_id bigint",
+        "CREATE UNIQUE INDEX IF NOT EXISTS scientific_method_events_source_unique\nON scientific_method_events(method_key,source_event_id)\nWHERE source_event_id IS NOT NULL"
+      ]
+    ]
+  ],
+  "sqlite_legacy_test_ddl": "create table candles(symbol text,ts integer,open text,high text,low text,\n      close text,volume text,turnover text,primary key(symbol,ts))"
+}

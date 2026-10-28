@@ -1,0 +1,195 @@
+{
+  "observed_date": "2026-10-27",
+  "baseline": "9c913494481abbfc997e1c0a9dd46fab04576ebb",
+  "prs": [
+    {
+      "pr": 15,
+      "head": "02bb79796b9627345b8f7c98a50349d044e5b7be",
+      "branch": "experiment/alphafold-market-geometry-20261024",
+      "draft": true,
+      "base": "main",
+      "tree": "cb5a83b7561e296953c54bb334eec0893dd0d34d",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 16,
+      "head": "5aadb120ac37f4832ea74c055051878c6a3171c6",
+      "branch": "parallel/alphafold-original-backend",
+      "draft": true,
+      "base": "main",
+      "tree": "916ec530ac3cdc0bd58b8f8a82a1eba23e4e4435",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 17,
+      "head": "eab45b5d9ce04f8282755684a1c1e93b03e38c77",
+      "branch": "parallel/alphafold-data-sync",
+      "draft": true,
+      "base": "main",
+      "tree": "f6e1a7566c95b548f0e4a7a26615cb3bfb348514",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 18,
+      "head": "0ce06f5a021e9261ba9a2f060906133bbe11690d",
+      "branch": "parallel/alphafold-grid-math",
+      "draft": true,
+      "base": "main",
+      "tree": "b4a5c195da46729e4030c0d03211859e192d2617",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 19,
+      "head": "24045ec1035c34f13e3b70c1c13dff2cb789ef34",
+      "branch": "parallel/alphafold-training-backtest",
+      "draft": true,
+      "base": "main",
+      "tree": "9c438597026a81263f39113487f4c734a71626b9",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 20,
+      "head": "2c5e378777112b9152e42cf2261f29ef8d29bf13",
+      "branch": "parallel/alphafold-qa-security",
+      "draft": true,
+      "base": "main",
+      "tree": "4c9dcd9cab6662e413c15b11b3a707a8bf619ee5",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 21,
+      "head": "9c913494481abbfc997e1c0a9dd46fab04576ebb",
+      "branch": "integration/alphafold-financial-system",
+      "draft": true,
+      "base": "main",
+      "tree": "a9201b51bfe76abfa3d0a3fe9fa4f9d2ea230535",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 24,
+      "head": "d1b1b1424d771a58d436df086bd5b7075d7561c7",
+      "branch": "cycle2/grid-producer",
+      "draft": true,
+      "base": "integration/alphafold-financial-system",
+      "tree": "cd84868f056edf4cb960d71d7f58d43992457dea",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 25,
+      "head": "d4e1132f0ab47f87bd6eaf80f728f3f4d5a4770c",
+      "branch": "cycle2/security",
+      "draft": true,
+      "base": "integration/alphafold-financial-system",
+      "tree": "ec8d08118e1455f56105604a589a7cc9ded723aa",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 26,
+      "head": "5dd37a03ec710aed1b7418edf2881f9a641d0c56",
+      "branch": "cycle2/structural-model",
+      "draft": true,
+      "base": "integration/alphafold-financial-system",
+      "tree": "d972d5c0af8de601e336683bc2328da2c048b171",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 27,
+      "head": "5a24698256058d28a36166cbd28f73a32d350904",
+      "branch": "cycle2/math-verification",
+      "draft": true,
+      "base": "integration/alphafold-financial-system",
+      "tree": "27b97035514a2319cf137af2f89f2cfe95a0b5cc",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 28,
+      "head": "9f82afd1c4f048dfdaeb3eabfec90f36897735d9",
+      "branch": "cycle2/training-backtest",
+      "draft": true,
+      "base": "integration/alphafold-financial-system",
+      "tree": "bd7356bf82fae24df010ffe191a692f2dff5be76",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 35,
+      "head": "909da5975f87f00927d7eb002a14a48dbe1ff027",
+      "branch": "parallel/alphafold-training-backtest-audit-4f3a4bb",
+      "draft": true,
+      "base": "main",
+      "tree": "ca40fb428c68c840c77bf1c8f3686afce6da988a",
+      "disposition": "NO_HMAC_FLOAT_HELPER_IMPORT_NEW_BOUNDED_ED25519_CONTRACT_SEPARATELY_REVIEWED",
+      "reviewed_blobs": {
+        "research/alphafold_training/authenticated_funding.py": "d311e3519cea0f3fb926adf690dd58a12cfe311c",
+        "research/alphafold_training/funding_reconciliation.py": "bdabbd153ca13b15e58266e520404020ab266b05"
+      }
+    },
+    {
+      "pr": 37,
+      "head": "1ba067fcdeb864c4f185421433a9410550ff22f9",
+      "branch": "parallel/alphafold-grid-math-independent-20261026",
+      "draft": true,
+      "base": "main",
+      "tree": "7e694bfff96f257e2c81237ac95b28d09a0cd4f8",
+      "disposition": "REJECT_CONFLICTING_LAST_TARGET_ASSERTIONS_IMPLEMENTATION_ALREADY_PRESENT",
+      "reviewed_blobs": {
+        "strattester/research/financial_structure_dataset.py": "f233d9811349a4df4f7827ca5f08d32986b871c2",
+        "research/test_independent_system_math_20261026.py": "a443195632b981eef4bc56370d6f59acbca54cdb"
+      }
+    },
+    {
+      "pr": 38,
+      "head": "d0d5ee0161246249adb394fd4f15708ac0ec803a",
+      "branch": "parallel/windows-physical-independent",
+      "draft": true,
+      "base": "main",
+      "tree": "2a8dee23e31f559e5cf8c750162350590ef57fa3",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 39,
+      "head": "9ea131319c1d630980710bd1ca374cd31207bbfa",
+      "branch": "parallel/alphafold-upstream-audit-cycle4",
+      "draft": true,
+      "base": "integration/alphafold-financial-system",
+      "tree": "2ed94291595d29c5ae49708bc51e38ad727053c1",
+      "disposition": "REVIEWED_SOURCE_IDENTITY_ONLY_NO_BLIND_MERGE"
+    },
+    {
+      "pr": 40,
+      "head": "89b38f47fe36b82ee261834906ae3590be732df1",
+      "branch": "engineering/signed-pipeline-cycle",
+      "draft": true,
+      "base": "integration/alphafold-financial-system",
+      "tree": "51e9d79c9c8de15fe5136525d0c23a712bde5604",
+      "disposition": "PREVIOUS_SELECTIVE_IMPORT_RETAINED_REQUIRE_NEW_HEAD_CI"
+    },
+    {
+      "pr": 41,
+      "head": "9ea19edb3ab250aa7ead4310dde041af0a2c2ae7",
+      "branch": "engineering/producer-facts-cycle",
+      "draft": true,
+      "base": "integration/alphafold-financial-system",
+      "tree": "1bdf38ed559d0caa6becbe8987ee06ab109411e1",
+      "disposition": "PREVIOUS_SELECTIVE_IMPORT_RETAINED_REQUIRE_NEW_HEAD_CI"
+    },
+    {
+      "pr": 42,
+      "head": "ef1c53861998188bdd03b9f037dc45573b3c2acb",
+      "branch": "codex/workstream-a-readonly-results",
+      "draft": true,
+      "base": "main",
+      "tree": "f7d3fd6ebeb0a53bd840274c12c03c6ca224ffb4",
+      "disposition": "DEFER_SEPARATE_API_COMPATIBILITY_AND_RECEIPT_REVIEW"
+    },
+    {
+      "pr": 43,
+      "head": "943095d00d5d56276f3832c42b36b290bea77a84",
+      "branch": "codex/provenance-a",
+      "draft": true,
+      "base": "codex/workstream-a-readonly-results",
+      "tree": "5b9d99f3beb55ba31ea551ef9c1c82488c6f457a",
+      "disposition": "DEFER_SEPARATE_API_COMPATIBILITY_AND_RECEIPT_REVIEW"
+    }
+  ],
+  "git_replacement_objects": "DISABLED_FOR_SOURCE_PROVENANCE"
+}

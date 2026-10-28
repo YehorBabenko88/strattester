@@ -1,0 +1,96 @@
+name: windows-native-components
+on:
+  workflow_call:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-components-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+jobs:
+  disposable-native-components:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      NATIVE_OUTPUT: results/native-components
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Record exact source and bounded qualification scope
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force $env:NATIVE_OUTPUT | Out-Null
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:SOURCE_SHA) { throw 'Checkout does not match exact PR head' }
+          @{
+            schema = 1; source_sha = $actual; scope = 'COMPONENT_API_DIRECT_TCP_OWNER_SIGNATURE_AND_NONCE'
+            native_enforcement = $false; research_execution = 'BLOCKED'; G1 = 'NOTRUN'
+            runner = 'github-hosted-disposable-windows'; qualification = 'NOT_FULL_SANDBOX'
+            missing_controls = @('dns_service_proxy', 'full_filesystem_namespace', 'owner_admission_execution_bridge', 'qualified_research_transport', 'output_bounds', 'complete_network_qualification')
+          } | ConvertTo-Json -Depth 5 | Set-Content "$env:NATIVE_OUTPUT/scope.json"
+          git ls-tree -r HEAD native/windows scripts/build_windows_native.py tests/native | Set-Content "$env:NATIVE_OUTPUT/source-blobs.txt"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Build twice using pinned task-private toolchain
+        id: build
+        shell: pwsh
+        run: |
+          python scripts/build_windows_native.py --output "$env:NATIVE_OUTPUT/build" --cache "$env:RUNNER_TEMP/native-compiler-cache" 2>&1 | Tee-Object "$env:NATIVE_OUTPUT/build.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install bounded portable native test dependencies
+        run: python -m pip install --upgrade 'pip>=26.2.2,<27' 'setuptools>=84.1,<85' 'pytest>=9.1,<10' 'pytest-json-report>=1.5,<2'
+      - name: Read-only diagnose and safe build/CLI contracts
+        if: always() && steps.build.outcome == 'success'
+        shell: pwsh
+        run: |
+          $env:NATIVE_BROKER = (Resolve-Path "$env:NATIVE_OUTPUT/build/StratTester.Native.exe").Path
+          & $env:NATIVE_BROKER --diagnose | Tee-Object "$env:NATIVE_OUTPUT/diagnose.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pytest tests/native -q --basetemp="$env:RUNNER_TEMP/native-safe-tests" --junitxml="$env:NATIVE_OUTPUT/native-tests.xml" --json-report --json-report-file="$env:NATIVE_OUTPUT/native-tests.json" 2>&1 | Tee-Object "$env:NATIVE_OUTPUT/contracts.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Persistent owner nonce atomicity and interrupted publication
+        if: always() && steps.build.outcome == 'success'
+        shell: pwsh
+        run: |
+          & "$env:NATIVE_OUTPUT/build/StratTester.Native.exe" --selftest-owner-nonce COMPONENT_TESTS_ONLY 2>&1 | Tee-Object "$env:NATIVE_OUTPUT/owner-nonce.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $receipt = Get-Content -Raw "$env:NATIVE_OUTPUT/owner-nonce.json" | ConvertFrom-Json
+          if ($receipt.status -ne 'OWNER_NONCE_COMPONENT_PASS' -or $receipt.native_enforcement -ne $false -or $receipt.research_process_created -ne $false) { throw 'Invalid nonce-only receipt' }
+          $manifest = Join-Path $receipt.fixture 'cleanup-manifest.json'
+          if ((Get-FileHash -LiteralPath $manifest -Algorithm SHA256).Hash.ToLowerInvariant() -ne $receipt.cleanup_manifest_sha256) { throw 'Nonce cleanup manifest hash mismatch' }
+          Copy-Item -LiteralPath $manifest -Destination "$env:NATIVE_OUTPUT/owner-nonce-cleanup.json"
+      - name: Native token/job/input/owned-probe component APIs
+        if: always() && steps.build.outcome == 'success'
+        shell: pwsh
+        run: |
+          & "$env:NATIVE_OUTPUT/build/StratTester.Native.exe" --selftest-native COMPONENT_TESTS_ONLY 2>&1 | Tee-Object "$env:NATIVE_OUTPUT/component-native.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $receipt = Get-Content -Raw "$env:NATIVE_OUTPUT/component-native.json" | ConvertFrom-Json
+          if ($receipt.status -ne 'COMPONENT_API_TESTS_PASS' -or $receipt.native_enforcement -ne $false -or $receipt.research_process_created -ne $false) { throw 'Invalid component-only native receipt' }
+      - name: Explicit read-only inherited handle and environment components
+        if: always() && steps.build.outcome == 'success'
+        shell: pwsh
+        run: |
+          & "$env:NATIVE_OUTPUT/build/StratTester.Native.exe" --selftest-handles COMPONENT_TESTS_ONLY 2>&1 | Tee-Object "$env:NATIVE_OUTPUT/component-handles.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $receipt = Get-Content -Raw "$env:NATIVE_OUTPUT/component-handles.json" | ConvertFrom-Json
+          if ($receipt.status -ne 'READONLY_HANDLE_COMPONENT_PASS' -or $receipt.native_enforcement -ne $false -or $receipt.research_process_created -ne $false) { throw 'Invalid component-only handles receipt' }
+      - name: Owned direct TCP WFP baseline-block-recovery experiment
+        if: always() && steps.build.outcome == 'success'
+        shell: pwsh
+        run: |
+          & "$env:NATIVE_OUTPUT/build/StratTester.Native.exe" --selftest-wfp COMPONENT_TESTS_ONLY 2>&1 | Tee-Object "$env:NATIVE_OUTPUT/component-wfp.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $receipt = Get-Content -Raw "$env:NATIVE_OUTPUT/component-wfp.json" | ConvertFrom-Json
+          if ($receipt.status -ne 'WFP_OWNED_SOCKET_COMPONENT_PASS' -or $receipt.native_enforcement -ne $false -or $receipt.research_process_created -ne $false) { throw 'Invalid direct-TCP-only component receipt' }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: native-component-proof-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ env.NATIVE_OUTPUT }}/
+          if-no-files-found: error
+          retention-days: 14

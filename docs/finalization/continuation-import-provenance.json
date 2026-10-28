@@ -1,0 +1,145 @@
+[
+  {
+    "source_pr": null,
+    "source_commit": "6fd2a929ff30815ff2ce12d32496f6d09dd90c4f",
+    "source_tree": "fb09a92ee18a2a5ee9013b5e31a5e49f853dd766",
+    "path": "docs/research/grid-history-contract-cycle.md",
+    "source_blob_sha": "a0c7c94f80b269d56194fc5740ec39b73989c1c7",
+    "reason": "bounded cancellation during sealed history validation",
+    "contract_changes": "Per-row/group cancellation; no historical truth inferred",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "6fd2a929ff30815ff2ce12d32496f6d09dd90c4f",
+    "source_tree": "fb09a92ee18a2a5ee9013b5e31a5e49f853dd766",
+    "path": "strattester/research/financial_grid_exporter.py",
+    "source_blob_sha": "124b65011aae59c482596ff3ca5853f8461d81ab",
+    "reason": "bounded cancellation during sealed history validation",
+    "contract_changes": "Per-row/group cancellation; no historical truth inferred",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "6fd2a929ff30815ff2ce12d32496f6d09dd90c4f",
+    "source_tree": "fb09a92ee18a2a5ee9013b5e31a5e49f853dd766",
+    "path": "tests/research/test_financial_grid_exporter.py",
+    "source_blob_sha": "1015392603fa1fc07aa41f1022b90f51df60a3ea",
+    "reason": "bounded cancellation during sealed history validation",
+    "contract_changes": "Per-row/group cancellation; no historical truth inferred",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "a40c23c7a67d9188d4861e6ac43118fa42152a61",
+    "source_tree": "e8b6a16d19e2618afa6d5fa4b972fe642d01ab9b",
+    "path": "strattester/research/financial_session.py",
+    "source_blob_sha": "af0434bd1a7d267f627eb8e82e0cbd5b15ef39a8",
+    "reason": "deterministic session publication replay",
+    "contract_changes": "Exclude receipt from immutable result identity",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "a40c23c7a67d9188d4861e6ac43118fa42152a61",
+    "source_tree": "e8b6a16d19e2618afa6d5fa4b972fe642d01ab9b",
+    "path": "tests/research/test_financial_offline_jobs.py",
+    "source_blob_sha": "e4b80f1d3fe1f4287afffba9f6dbba9c120cec64",
+    "reason": "deterministic session publication replay",
+    "contract_changes": "Exclude receipt from immutable result identity",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "925d991ff78d1142830b7fea2781cfa552ba8c42",
+    "source_tree": "0bdf8d63e67635bd20be24d4db3313e47e816a93",
+    "path": "strattester/research/financial_checkpoint.py",
+    "source_blob_sha": "59d70f96cb8de22dc98a246b6449c21810aa3952",
+    "reason": "preserve CPU caller RNG on checkpoint load",
+    "contract_changes": "CPU fork_rng; not concurrent-thread isolation",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "925d991ff78d1142830b7fea2781cfa552ba8c42",
+    "source_tree": "0bdf8d63e67635bd20be24d4db3313e47e816a93",
+    "path": "tests/research/test_financial_checkpoint.py",
+    "source_blob_sha": "00615ebc944de4c7db68ba2df17bcc87766729f1",
+    "reason": "preserve CPU caller RNG on checkpoint load",
+    "contract_changes": "CPU fork_rng; not concurrent-thread isolation",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "f4fb6509cde00f5f031fee115475a29b134ea1f0",
+    "source_tree": "c826d8d8557d3517b52fd790e8aaee03f3d00400",
+    "path": "docs/financial-funding-contract.md",
+    "source_blob_sha": "e535038e4ea6161af8ea5c74ffd6cdae28afcf2c",
+    "reason": "explicit software funding events and independent Decimal tests",
+    "contract_changes": "Optional funding_windows; no producer authentication, defaults unchanged",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "f4fb6509cde00f5f031fee115475a29b134ea1f0",
+    "source_tree": "c826d8d8557d3517b52fd790e8aaee03f3d00400",
+    "path": "strattester/research/financial_evaluation.py",
+    "source_blob_sha": "206ee51b7637031a70dae8d6d6f81df57d987a44",
+    "reason": "explicit software funding events and independent Decimal tests",
+    "contract_changes": "Optional funding_windows; no producer authentication, defaults unchanged",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "f4fb6509cde00f5f031fee115475a29b134ea1f0",
+    "source_tree": "c826d8d8557d3517b52fd790e8aaee03f3d00400",
+    "path": "strattester/research/financial_funding.py",
+    "source_blob_sha": "14f10229dd12c328e58a4ff39d43c782465b7545",
+    "reason": "explicit software funding events and independent Decimal tests",
+    "contract_changes": "Optional funding_windows; no producer authentication, defaults unchanged",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "f4fb6509cde00f5f031fee115475a29b134ea1f0",
+    "source_tree": "c826d8d8557d3517b52fd790e8aaee03f3d00400",
+    "path": "tests/research/test_financial_funding.py",
+    "source_blob_sha": "d83e0dbe9930ed79260c8dfa98efcca6e8248982",
+    "reason": "explicit software funding events and independent Decimal tests",
+    "contract_changes": "Optional funding_windows; no producer authentication, defaults unchanged",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "1cfa5a73530bb83bc4685fe30aa162b14fdf4195",
+    "source_tree": "f2cbe2b562890c4e545ae043f8e41bfe1a5281b7",
+    "path": "docs/research/pr37-sample-boundary-review.md",
+    "source_blob_sha": "7ca3e6eccafb810ea69b5e753e1ed69cf07d6ba1",
+    "reason": "minimum valid supervised history regression; reject PR37 off-by-one change",
+    "contract_changes": "Tests/docs only; source implementation not imported",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  },
+  {
+    "source_pr": null,
+    "source_commit": "1cfa5a73530bb83bc4685fe30aa162b14fdf4195",
+    "source_tree": "f2cbe2b562890c4e545ae043f8e41bfe1a5281b7",
+    "path": "tests/research/test_financial_structure_dataset.py",
+    "source_blob_sha": "6b723b701f13be8832968d7b78be02fb4b3b6cc0",
+    "reason": "minimum valid supervised history regression; reject PR37 off-by-one change",
+    "contract_changes": "Tests/docs only; source implementation not imported",
+    "compatibility": "Selective cherry-pick -x; reviewed by integration lead, root adaptations in subsequent commits",
+    "tests": "Executed source tests are recorded in audit/evidence; only fresh common-HEAD CI qualifies integration"
+  }
+]

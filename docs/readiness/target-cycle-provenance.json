@@ -1,0 +1,163 @@
+{
+  "baseline": "33fd4dcf5dd1f7c16130567f0b24915931d8595d",
+  "replacement_objects": "DISABLED_FOR_OBJECT_PROVENANCE",
+  "reviewed_prs": [
+    {
+      "pr": 43,
+      "head": "943095d00d5d56276f3832c42b36b290bea77a84",
+      "branch": "codex/provenance-a",
+      "draft": true,
+      "tree": "5b9d99f3beb55ba31ea551ef9c1c82488c6f457a"
+    },
+    {
+      "pr": 44,
+      "head": "400a2235460b8a37cb25ad3779778d90eee2e9fc",
+      "branch": "engineering/authenticated-funding-intake",
+      "draft": true,
+      "tree": "1840b383de34f35959ac5dfe38185c67258cece1"
+    },
+    {
+      "pr": 46,
+      "head": "3c7880772bd6f31f9f91e798683ee154eb445664",
+      "branch": "codex/selective-readonly-provenance",
+      "draft": true,
+      "tree": "174c5cff3d530afcc255cb1867eef8d7a48e5f73"
+    },
+    {
+      "pr": 39,
+      "head": "a57e125dfd6f598ce8ccc15f6133fd744a3480d9",
+      "branch": "parallel/alphafold-upstream-audit-cycle4",
+      "draft": true,
+      "tree": "f87e67c83b709552e2f09586af7175a37f97a5f2"
+    },
+    {
+      "pr": 35,
+      "head": "bb9489e7592152a255655e4c9d37e1c7f78bc223",
+      "branch": "parallel/alphafold-training-backtest-audit-4f3a4bb",
+      "draft": true,
+      "tree": "a142f6e8e0e4777ff353ed9074a08af703d56f70"
+    },
+    {
+      "pr": 42,
+      "head": "ef1c53861998188bdd03b9f037dc45573b3c2acb",
+      "branch": "codex/workstream-a-readonly-results",
+      "draft": true,
+      "tree": "f7d3fd6ebeb0a53bd840274c12c03c6ca224ffb4"
+    },
+    {
+      "pr": 37,
+      "head": "b96ff8c18bc4e7209adb2ab69f62cd766f0f0430",
+      "branch": "parallel/alphafold-grid-math-independent-20261026",
+      "draft": true,
+      "tree": "0a57133646a68fd94207ac2e4239f50aee9e87eb"
+    },
+    {
+      "pr": 21,
+      "head": "33fd4dcf5dd1f7c16130567f0b24915931d8595d",
+      "branch": "integration/alphafold-financial-system",
+      "draft": true,
+      "tree": "e9ebd051277582f68941d79bbe20da917f9c0e45"
+    },
+    {
+      "pr": 47,
+      "head": "8dcecddb102622c8d125573ecda69dcdfbdfa263",
+      "branch": "audit/g0-collector-deep",
+      "draft": true,
+      "tree": "57fa2574037dc5f170629f91996e40fb0b58470f"
+    },
+    {
+      "pr": 38,
+      "head": "77517cf106803bbd44524cdb0c56e9fcc51b509e",
+      "branch": "parallel/windows-physical-independent",
+      "draft": true,
+      "tree": "a782a5a38f0aa3f3d89cf6fbef5149063a696e6d"
+    },
+    {
+      "pr": 45,
+      "head": "0b9a9fb2955156710efab07481e307e175ad1ee5",
+      "branch": "audit/funding-revisions",
+      "draft": true,
+      "tree": "132c378f7d9c0dca3bf99e05cb8355393f6bac36"
+    }
+  ],
+  "selective_imports": [
+    {
+      "source_pr": 45,
+      "source_head": "0b9a9fb2955156710efab07481e307e175ad1ee5",
+      "source_tree": "132c378f7d9c0dca3bf99e05cb8355393f6bac36",
+      "reason": "Genuine signed funding revision/trust negatives; no implementation change",
+      "files": {
+        "docs/financial-authenticated-funding.md": {
+          "source_blob": "d652be47337c05c329c080d781e981ddda909559",
+          "integration_blob": "d652be47337c05c329c080d781e981ddda909559"
+        },
+        "tests/research/test_financial_authenticated_funding.py": {
+          "source_blob": "096af4f81d66e834bd29488880ea1ae890c552ae",
+          "integration_blob": "096af4f81d66e834bd29488880ea1ae890c552ae"
+        }
+      },
+      "compatibility": "Default result/funding activation disabled; no runner/store/native/workflow changes",
+      "tests": "See source review reports and final exact-HEAD CI; no old PASS transferred"
+    },
+    {
+      "source_pr": 46,
+      "source_head": "3c7880772bd6f31f9f91e798683ee154eb445664",
+      "source_tree": "174c5cff3d530afcc255cb1867eef8d7a48e5f73",
+      "reason": "PR42 blocked WSGI boundary adapted with local source admission; PR43 producer deferred",
+      "files": {
+        "docs/READONLY_RESULTS_API.md": {
+          "source_blob": "33256e89c7d5d37c6632758929e433fd3bfbac7a",
+          "integration_blob": "33256e89c7d5d37c6632758929e433fd3bfbac7a"
+        },
+        "docs/READONLY_SELECTIVE_IMPORT.md": {
+          "source_blob": "9d1b115a2b3f96a67985d4edcb91df78de7d1de3",
+          "integration_blob": "9d1b115a2b3f96a67985d4edcb91df78de7d1de3"
+        },
+        "strattester/readonly_api.py": {
+          "source_blob": "1fd32fbfcaf3b3c4461f954b637250c5c0b42416",
+          "integration_blob": "1fd32fbfcaf3b3c4461f954b637250c5c0b42416"
+        },
+        "tests/test_readonly_api.py": {
+          "source_blob": "ba0698475a7812b6a4ed1bf56f08f737a7a3a3b3",
+          "integration_blob": "ba0698475a7812b6a4ed1bf56f08f737a7a3a3b3"
+        },
+        "tests/test_readonly_import_boundary.py": {
+          "source_blob": "4b901f364536f3ad793bbfbaeeebf3b836bf6691",
+          "integration_blob": "4b901f364536f3ad793bbfbaeeebf3b836bf6691"
+        }
+      },
+      "compatibility": "Default result/funding activation disabled; no runner/store/native/workflow changes",
+      "tests": "See source review reports and final exact-HEAD CI; no old PASS transferred"
+    },
+    {
+      "source_pr": 47,
+      "source_head": "8dcecddb102622c8d125573ecda69dcdfbdfa263",
+      "source_tree": "57fa2574037dc5f170629f91996e40fb0b58470f",
+      "reason": "Confirmed G0 identity/redaction/missing-observation corrections; mocked PS5.1/7 only",
+      "files": {
+        "docs/readiness/g0-collector-deep-audit.md": {
+          "source_blob": "2b610679c38e4e2dc92991a9ce8300ff2a43157a",
+          "integration_blob": "2b610679c38e4e2dc92991a9ce8300ff2a43157a"
+        },
+        "scripts/physical_g0_inventory.ps1": {
+          "source_blob": "0e1c8463a30fdededdb9f1f5ea588a4301495e28",
+          "integration_blob": "0e1c8463a30fdededdb9f1f5ea588a4301495e28"
+        },
+        "tests/test_physical_g0_inventory_contract.py": {
+          "source_blob": "4a3ff3843a35cf1099805bd78971074b8fc1ecf2",
+          "integration_blob": "4a3ff3843a35cf1099805bd78971074b8fc1ecf2"
+        }
+      },
+      "compatibility": "Default result/funding activation disabled; no runner/store/native/workflow changes",
+      "tests": "See source review reports and final exact-HEAD CI; no old PASS transferred"
+    }
+  ],
+  "deferred": {
+    "PR43": "Source-owned producer/report/lease/immutable-window binding requires independent redesign/review; no source code imported"
+  },
+  "required_count": 1474,
+  "platform_count": 47,
+  "collection_count": 1521,
+  "physical_g0": "PLAN_READY_TARGET_EVIDENCE_BLOCKED",
+  "physical_g1": "NOT_AUTHORIZED"
+}

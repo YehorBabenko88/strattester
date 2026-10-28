@@ -1,0 +1,90 @@
+{
+  "baseline": "1ab3c807d4a4ed9446cbd2cc84365d7ac5dbbdb4",
+  "baseline_tree": "2696d6e55e9f87656dd7f7e6f6d7e95f2efa51b4",
+  "replacement_objects": "DISABLED",
+  "source_reviews": [
+    {
+      "source_pr": 45,
+      "source_head": "0b9a9fb2955156710efab07481e307e175ad1ee5",
+      "source_tree": "132c378f7d9c0dca3bf99e05cb8355393f6bac36",
+      "files": {
+        "strattester/research/financial_authenticated_funding.py": {
+          "source_blob": "f3b89330be781f8bce9088f7ec5b9b18630efb93",
+          "current_blob": "f3b89330be781f8bce9088f7ec5b9b18630efb93"
+        },
+        "tests/research/test_financial_authenticated_funding.py": {
+          "source_blob": "096af4f81d66e834bd29488880ea1ae890c552ae",
+          "current_blob": "096af4f81d66e834bd29488880ea1ae890c552ae"
+        },
+        "docs/financial-authenticated-funding.md": {
+          "source_blob": "d652be47337c05c329c080d781e981ddda909559",
+          "current_blob": "d652be47337c05c329c080d781e981ddda909559"
+        }
+      },
+      "disposition": "No missing source changes; API/funding unchanged; G0 independently adapts EMPTY in v2"
+    },
+    {
+      "source_pr": 46,
+      "source_head": "3c7880772bd6f31f9f91e798683ee154eb445664",
+      "source_tree": "174c5cff3d530afcc255cb1867eef8d7a48e5f73",
+      "files": {
+        "strattester/readonly_api.py": {
+          "source_blob": "1fd32fbfcaf3b3c4461f954b637250c5c0b42416",
+          "current_blob": "1fd32fbfcaf3b3c4461f954b637250c5c0b42416"
+        },
+        "tests/test_readonly_api.py": {
+          "source_blob": "ba0698475a7812b6a4ed1bf56f08f737a7a3a3b3",
+          "current_blob": "ba0698475a7812b6a4ed1bf56f08f737a7a3a3b3"
+        },
+        "tests/test_readonly_import_boundary.py": {
+          "source_blob": "4b901f364536f3ad793bbfbaeeebf3b836bf6691",
+          "current_blob": "4b901f364536f3ad793bbfbaeeebf3b836bf6691"
+        },
+        "docs/READONLY_RESULTS_API.md": {
+          "source_blob": "33256e89c7d5d37c6632758929e433fd3bfbac7a",
+          "current_blob": "33256e89c7d5d37c6632758929e433fd3bfbac7a"
+        },
+        "docs/READONLY_SELECTIVE_IMPORT.md": {
+          "source_blob": "9d1b115a2b3f96a67985d4edcb91df78de7d1de3",
+          "current_blob": "9d1b115a2b3f96a67985d4edcb91df78de7d1de3"
+        }
+      },
+      "disposition": "No missing source changes; API/funding unchanged; G0 independently adapts EMPTY in v2"
+    },
+    {
+      "source_pr": 47,
+      "source_head": "8dcecddb102622c8d125573ecda69dcdfbdfa263",
+      "source_tree": "57fa2574037dc5f170629f91996e40fb0b58470f",
+      "files": {
+        "scripts/physical_g0_inventory.ps1": {
+          "source_blob": "0e1c8463a30fdededdb9f1f5ea588a4301495e28",
+          "current_blob": "fbffa4cf5b6d7d2e15e77e1d000e83176dcbc8a7"
+        },
+        "tests/test_physical_g0_inventory_contract.py": {
+          "source_blob": "4a3ff3843a35cf1099805bd78971074b8fc1ecf2",
+          "current_blob": "7e95056d899b44cef1394aa8a4bd24d9c4dab448"
+        },
+        "docs/readiness/g0-collector-deep-audit.md": {
+          "source_blob": "2b610679c38e4e2dc92991a9ce8300ff2a43157a",
+          "current_blob": "2b610679c38e4e2dc92991a9ce8300ff2a43157a"
+        }
+      },
+      "disposition": "No missing source changes; API/funding unchanged; G0 independently adapts EMPTY in v2"
+    }
+  ],
+  "mandatory_count": 1475,
+  "platform_count": 48,
+  "collected_count": 1523,
+  "audits": {
+    "api": "40 focused tests passed; results503/capabilitiesfalse, no source edits",
+    "funding_grid": "212 passed/1 deselected in corrected owned-SQLite selection; original broader owned-PG run interrupted and not claimed PASS",
+    "g0": "14failed/29passed RED then43passed GREEN; independent43passed; all inventory commands mocked"
+  },
+  "procedural_evidence": {
+    "policy_blocked_cleanup": "API fixture directory preserved; no delete/move/retry; exact ignore rule only for noncode fixtures",
+    "interrupted_owned_pg": "Audit selection exceeded delegation; diagnostics preserved, scoped status no server running; no producer DB touched"
+  },
+  "physical_g0": "PLAN_READY_TARGET_EVIDENCE_BLOCKED",
+  "physical_g1": "NOT_AUTHORIZED",
+  "trading": "NO-GO"
+}

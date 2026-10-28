@@ -1,0 +1,74 @@
+"""Native signature verification is read-only; no research process admission."""
+import os,json,subprocess,unittest,tempfile,time,hashlib
+from pathlib import Path
+
+@unittest.skipUnless(os.name=='nt' and os.environ.get('NATIVE_BROKER'),'compiled Windows broker required')
+class NativeOwnerTests(unittest.TestCase):
+    def signed(self,folder,change=None,include_package=True,public_fixture=False):
+        folder=folder.resolve(strict=True) # trusted fixture root, not artifact-selected paths
+        exe='C:/Program Files/Git/usr/bin/openssl.exe'
+        def ssl(*a):return subprocess.run([exe,*a],capture_output=True,check=True).stdout
+        ssl('genpkey','-algorithm','ED25519','-outform','DER','-out',str(folder/'key.der'))
+        if public_fixture:
+            (folder/'key.der').write_bytes(bytes.fromhex('302e020100300506032b6570042204204ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb'))
+        pub=ssl('pkey','-inform','DER','-in',str(folder/'key.der'),'-pubout','-outform','DER')[-32:];(folder/'pub').write_bytes(pub)
+        b=os.environ['NATIVE_BROKER'];meta=json.loads(subprocess.check_output([b,'--owner-vm-identity'],text=True))
+        (folder/'input').write_bytes(b'synthetic immutable bytes')
+        (folder/'package').write_bytes(b'ephemeral deployment package bytes')
+        sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+        now=time.time_ns();p=dict(version=2,purpose='PHYSICAL_G1_AUTHORIZATION',owner_id='ephemeral-test',key_id='test',target_sha=meta['source_sha'],tree_sha=meta['tree_sha'],binary_sha256=sha(Path(b)),package_sha256='d'*64,vm_identity_sha256=meta['vm_identity_sha256'],input_hashes={'snapshot':sha(folder/'input')},issued_at_ns=now-1_000_000_000,expires_at_ns=now+60_000_000_000,nonce='a'*64,operations=['synthetic_cpu_inference'],limits=dict(cpu_percent=10,memory_bytes=67108864,wall_seconds=2,output_bytes=1024,max_processes=1))
+        paths={'snapshot':str(folder/'input')}
+        if include_package:p['package_sha256']=sha(folder/'package');p['input_hashes']['package']=p['package_sha256'];paths['package']=str(folder/'package')
+        if change:p.update(change)
+        raw=json.dumps(p,sort_keys=True,separators=(',',':')).encode();(folder/'plan').write_bytes(raw)
+        (folder/'message').write_bytes(b'STRATTESTER_PHYSICAL_G1_OWNER_V2\0'+raw)
+        ssl('pkeyutl','-sign','-rawin','-keyform','DER','-inkey',str(folder/'key.der'),'-in',str(folder/'message'),'-out',str(folder/'sig'))
+        (folder/'paths').write_text(json.dumps(paths,sort_keys=True,separators=(',',':')))
+        return [b,'--verify-owner',str(folder/'plan'),sha(folder/'plan'),str(folder/'sig'),sha(folder/'sig'),str(folder/'pub'),sha(folder/'pub'),meta['source_sha'],meta['tree_sha'],sha(Path(b)),p['package_sha256'],meta['vm_identity_sha256'],str(folder/'paths')]
+
+    def test_independent_openssl_signature_and_native_verifier_agree(self):
+        with tempfile.TemporaryDirectory(prefix='owner-v2-') as t:
+            p=subprocess.run(self.signed(Path(t)),capture_output=True,text=True,timeout=20)
+            self.assertEqual(p.returncode,0,p.stdout+p.stderr)
+            r=json.loads(p.stdout);self.assertTrue(r['signature_verified']);self.assertFalse(r['process_created']);self.assertFalse(r['nonce_consumed'])
+
+    def test_unmeasured_deployment_package_cannot_be_verified(self):
+        with tempfile.TemporaryDirectory(prefix='owner-v2-') as t:
+            p=subprocess.run(self.signed(Path(t),include_package=False),capture_output=True,text=True,timeout=20)
+            self.assertEqual(p.returncode,78,p.stdout)
+
+    def test_trusted_fixture_setup_resolves_os_temporary_directory_alias(self):
+        with tempfile.TemporaryDirectory(prefix='owner-v2-') as t:
+            folder=Path(t);alias=folder/'..'/folder.name
+            p=subprocess.run(self.signed(alias),capture_output=True,text=True,timeout=20)
+            self.assertEqual(p.returncode,0,p.stdout)
+
+    def test_monotonic_owner_clock_rejects_late_admission_and_rollback(self):
+        p=subprocess.run([os.environ['NATIVE_BROKER'],'--selftest-owner-clock'],capture_output=True,text=True,timeout=15)
+        self.assertEqual(p.returncode,0,p.stdout);self.assertEqual(json.loads(p.stdout)['clock_tests'],'PASS')
+
+    def test_public_producer_fixture_key_cannot_be_aliased_as_owner(self):
+        with tempfile.TemporaryDirectory(prefix='owner-v2-') as t:
+            p=subprocess.run(self.signed(Path(t),public_fixture=True),capture_output=True,text=True,timeout=20)
+            self.assertEqual(p.returncode,78,p.stdout);self.assertFalse(json.loads(p.stdout)['process_created'])
+
+    def test_signed_wrong_vm_inputs_expiry_and_boolean_limits_fail(self):
+        for change in ({'vm_identity_sha256':'0'*64},{'input_hashes':{'snapshot':'0'*64}},{'expires_at_ns':1},{'limits':dict(cpu_percent=True,memory_bytes=67108864,wall_seconds=2,output_bytes=1024,max_processes=1)}):
+            with self.subTest(change=change),tempfile.TemporaryDirectory(prefix='owner-v2-') as t:
+                p=subprocess.run(self.signed(Path(t),change),capture_output=True,text=True,timeout=20)
+                self.assertEqual(p.returncode,78,p.stdout);self.assertFalse(json.loads(p.stdout)['process_created'])
+
+    def test_vm_measurement_is_read_only(self):
+        p=subprocess.run([os.environ['NATIVE_BROKER'],'--owner-vm-identity'],capture_output=True,text=True,timeout=15)
+        self.assertEqual(p.returncode,0,p.stdout+p.stderr)
+        r=json.loads(p.stdout)
+        self.assertRegex(r['vm_identity_sha256'],'^[0-9a-f]{64}$')
+        self.assertRegex(r['source_sha'],'^[0-9a-f]{40}$')
+        self.assertFalse(r['process_created'])
+
+    def test_malformed_owner_request_never_authorizes(self):
+        p=subprocess.run([os.environ['NATIVE_BROKER'],'--verify-owner'],capture_output=True,text=True,timeout=15)
+        r=json.loads(p.stdout)
+        self.assertEqual(p.returncode,78)
+        self.assertFalse(r['process_created'])
+        self.assertEqual(r['physical_g1'],'NOT_AUTHORIZED')
