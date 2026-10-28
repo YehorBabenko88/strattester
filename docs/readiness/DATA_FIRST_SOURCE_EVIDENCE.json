@@ -1,0 +1,59 @@
+{
+  "baseline_head": "57d560a0c75b7061d1735a740da9164384420626",
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "os": "Windows-11-10.0.26300-SP0",
+  "local_source_regression": {
+    "collected": 210,
+    "passed": 210,
+    "failed": 0,
+    "skipped": 0,
+    "deselected": 0
+  },
+  "required_gate_nodeids": {
+    "core": 594,
+    "data": 200,
+    "math": 191,
+    "cpu": 141,
+    "training": 85,
+    "security": 523,
+    "integration": 110
+  },
+  "required_total": 1844,
+  "new_required_parent_nodes": 39,
+  "source_fixes": [
+    "disabled admission",
+    "minimum observations",
+    "exact closed-grid quality",
+    "full cursor pagination",
+    "incremental bounded pages",
+    "persistent market binding",
+    "archive/lease publication fences",
+    "uncertain RUNNING cancellation blocked"
+  ],
+  "compatibility": [
+    "DataRequirement fingerprints include min_observations/lookback",
+    "synthetic HTTP sessions accept stream=True",
+    "malformed auxiliary timestamp now REPAIR_REQUIRED; old required node renamed explicitly"
+  ],
+  "evidence_sha256": {
+    "admission-red.log": "d799b6490aa8a84aed1f773b019c4784d3b50348e231dbf28c522cf0c5bc5924",
+    "runner-red.log": "2461132547d08c692bbb13e11d50a2de7330e517fd6309d43adcc7d797760ccd",
+    "system-regression.log": "1d7c5ae685c98ea95a13cc6a1ab024982b740f031889d1cd82724315021bc273",
+    "precommit.log": "285e531af13c8468a3406ff4d366e547051e0003750ecbfc87caf447db70339c",
+    "precommit.xml": "43b9a08657fbadd1d62fdde68b638da3d5390e69aaa2c35bc0a73abe6573753c",
+    "precommit.json": "630f7d316121b47b23af951bf72db6782433eb406d5529a2994d5ab88abc21e6"
+  },
+  "restrictions": {
+    "LS5_CONNECTED_SYNC": "NOT_AUTHORIZED",
+    "PHYSICAL_G1": "NOT_AUTHORIZED",
+    "TRADING": "NO-GO",
+    "physical_model_executed": false,
+    "production_mutations": false
+  },
+  "limitations": [
+    "caller-supplied archive source hashes are not authentication",
+    "funding/public trades/microstructure required historical contracts absent -> BLOCKED",
+    "unknown historical universe/launch/trading calendar -> BLOCKED",
+    "cooperative resource/cancellation limits do not sandbox arbitrary strategy code"
+  ]
+}

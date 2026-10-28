@@ -1,5 +1,5 @@
 from __future__ import annotations
-from strattester.engine.executor import execute_strategy
+from strattester.engine.executor import execute_strategy,require_execution_permission
 from strattester.marketdata.sync_engine import DataRequirement as SyncRequirement,SyncEngine,SyncState
 
 class ResearchRunner:
@@ -20,12 +20,15 @@ class ResearchRunner:
                     raise RuntimeError(f'required history not ready: {dataset}/{tf}: {r.state.value} {r.message}'.strip())
         return tuple(results)
 
-    def run(self,definition,instrument,*,start_ms:int|None=None,end_ms:int,checkpoint=None):
+    def run(self,definition,instrument,*,start_ms:int|None=None,end_ms:int,checkpoint=None,research_permission=None):
+        require_execution_permission(definition,research_permission)
         symbol=instrument['symbol']
-        launch=int(instrument.get('launchTime') or 0)
-        launch=(launch//60_000)*60_000
+        if instrument.get('launchTime') is None:raise ValueError('unknown instrument launch')
+        launch=int(instrument['launchTime'])
+        launch=((launch+59_999)//60_000)*60_000
         start=launch if start_ms is None else max(launch,int(start_ms))
         if end_ms<start:
             raise ValueError('end_ms precedes instrument availability')
         self._sync_definition(definition,symbol,start,end_ms)
-        return execute_strategy(definition,self.store,symbol,checkpoint=checkpoint,start_ms=start,end_ms=end_ms)
+        return execute_strategy(definition,self.store,symbol,checkpoint=checkpoint,start_ms=start,end_ms=end_ms,research_permission=research_permission,
+                                closed_before_ms=self.clock_ms() if self.clock_ms is not None else None)

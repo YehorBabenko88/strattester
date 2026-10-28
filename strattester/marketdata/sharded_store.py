@@ -28,6 +28,23 @@ class ShardedMarketStore:
         self.buckets=max(1,int(buckets))
         self._stores={}
         self.manifest=manifest or ShardManifest.open(self.root/'manifest.sqlite3')
+        self._market_category=None
+
+    def bind_market_category(self,category,*,acknowledge_existing=False):
+        if category not in ('linear','inverse','spot'):raise ValueError('market category')
+        con=self.manifest.con
+        con.execute('CREATE TABLE IF NOT EXISTS market_identity(key TEXT PRIMARY KEY,value TEXT NOT NULL)');con.commit()
+        con.execute('BEGIN IMMEDIATE')
+        try:
+            row=con.execute("SELECT value FROM market_identity WHERE key='category'").fetchone()
+            if row and row[0]!=category:raise ValueError('persistent sharded market category mismatch')
+            if not row:
+                if not acknowledge_existing and (self.legacy_store is not None or next(self.root.glob('*/*.sqlite3'),None) is not None):
+                    raise ValueError('existing sharded data require explicit category provenance')
+                con.execute("INSERT INTO market_identity VALUES('category',?)",(category,))
+            con.commit();self._market_category=category
+        except BaseException:con.rollback();raise
+        if self.legacy_store is not None:self.legacy_store.bind_market_category(category,acknowledge_existing=acknowledge_existing)
 
     def shard_path(self,symbol:str)->Path:
         name=safe_symbol(symbol)
@@ -40,6 +57,7 @@ class ShardedMarketStore:
         store=self._stores.get(key)
         if store is None:
             store=SQLiteMarketStore.open(self.shard_path(key))
+            if self._market_category is not None:store.bind_market_category(self._market_category)
             self._stores[key]=store
         return store
 
@@ -61,6 +79,22 @@ class ShardedMarketStore:
         # Never merge two independently mutable SQLite files implicitly.
         return self._read_store(symbol,dataset,timeframe,step_ms,start_ms,end_ms).coverage(
             symbol,dataset,timeframe,step_ms,start_ms,end_ms)
+
+    def validate_range(self,symbol,dataset,timeframe,start_ms,end_ms,step_ms):
+        return self._read_store(symbol,dataset,timeframe,step_ms,start_ms,end_ms).validate_range(
+            symbol,dataset,timeframe,start_ms,end_ms,step_ms)
+
+    @contextmanager
+    def research_snapshot(self,symbol,requirements=()):
+        from strattester.engine.executor import _step_ms
+        stores={}
+        for req in requirements:
+            if not req.required:continue
+            store=self._read_store(symbol,req.dataset,req.timeframe,_step_ms(req.timeframe),req.start_ms,req.end_ms)
+            stores[str(store.path.resolve())]=store
+        if len(stores)!=1:raise RuntimeError('cross-store research snapshot is not coherent')
+        with next(iter(stores.values())).research_snapshot(symbol,requirements) as snapshot:
+            yield snapshot
 
 
     _DATASET_TABLES=(

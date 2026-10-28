@@ -109,13 +109,13 @@ def test_open_interest_timestamp_zero_is_not_replaced_by_fallback(tmp_path):
     assert store.coverage('BTCUSDT','open_interest','5m').earliest==0
     store.close()
 
-def test_auxiliary_row_without_any_timestamp_is_retryable_not_ready(tmp_path):
+def test_auxiliary_row_without_any_timestamp_requires_repair_not_ready(tmp_path):
     store=SQLiteMarketStore.open(tmp_path/'m.db')
     class C:
         def fetch_open_interest(self,*a,**k):return [{'openInterest':'12.5'}]
     req=DataRequirement('BTCUSDT','open_interest','5m',0,0)
     result=SyncEngine(store,C(),clock_ms=lambda:999999).sync_requirement(req)
-    assert result.state is SyncState.RETRYABLE
+    assert result.state is SyncState.REPAIR_REQUIRED
     assert store.coverage('BTCUSDT','open_interest','5m').count==0
     store.close()
 
