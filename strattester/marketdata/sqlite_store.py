@@ -5,6 +5,8 @@ import sqlite3
 import math
 import threading
 from typing import Iterable
+from contextlib import contextmanager
+import hashlib,json
 from .storage_health import storage_health
 from .coverage import Coverage, TimeRange
 from .schema import SCHEMA_SQL, SCHEMA_VERSION
@@ -75,6 +77,20 @@ class SQLiteMarketStore:
         if mode not in ('PASSIVE','FULL','RESTART','TRUNCATE'):
             raise ValueError('unsupported WAL checkpoint mode')
         return self.connection.execute(f'PRAGMA wal_checkpoint({mode})').fetchone()
+
+    def bind_market_category(self,category,*,acknowledge_existing=False):
+        if category not in ('linear','inverse','spot'):raise ValueError('market category')
+        self.connection.execute('BEGIN IMMEDIATE')
+        try:
+            row=self.connection.execute("SELECT value FROM schema_meta WHERE key='market_category'").fetchone()
+            if row is not None and row[0]!=category:raise ValueError('persistent market category mismatch')
+            if row is None:
+                tables=('candles','mark_prices','index_prices','premium_index','open_interest','funding','long_short_ratio','public_trade_aggregates')
+                if not acknowledge_existing and any(self.connection.execute(f'SELECT 1 FROM {table} LIMIT 1').fetchone() for table in tables):
+                    raise ValueError('existing market rows require explicit category provenance')
+                self.connection.execute("INSERT INTO schema_meta(key,value) VALUES('market_category',?)",(category,))
+            self.connection.commit()
+        except BaseException:self.connection.rollback();raise
 
     def integrity_check(self):
         row=self.connection.execute('PRAGMA quick_check').fetchone()
@@ -314,3 +330,63 @@ class SQLiteMarketStore:
                     yield Candle(r[0],'1m',r[1],r[2],r[3],r[4],r[5],r[6],r[7],True)
                 else:
                     yield Candle(*r[:-1],complete=bool(r[-1]))
+
+    def validate_range(self,symbol,dataset,timeframe,start_ms,end_ms,step_ms):
+        """Exact grid and finite stored values; not historical availability attestation."""
+        if dataset=='candles':
+            expected=start_ms
+            for row in self.iter_candles(symbol,timeframe,start_ms=start_ms,end_ms=end_ms):
+                if row.open_time!=expected or not row.complete or not self._valid(row):return False
+                if not all(math.isfinite(v) for v in (row.open,row.high,row.low,row.close,row.volume)):return False
+                if row.turnover is not None and (not math.isfinite(row.turnover) or row.turnover<0):return False
+                expected+=step_ms
+            return expected==end_ms+step_ms
+        tables={'mark_price':('mark_prices','open,high,low,close','complete=1'),
+                'index_price':('index_prices','open,high,low,close','complete=1'),
+                'premium_index':('premium_index','open,high,low,close','complete=1'),
+                'open_interest':('open_interest','value','complete=1'),
+                'long_short_ratio':('long_short_ratio','buy_ratio,sell_ratio,long_short_ratio','1=1'),
+                'public_trade_aggregates':('public_trade_aggregates','buy_volume,sell_volume,turnover,trade_count','1=1')}
+        if dataset not in tables:return False
+        table,columns,condition=tables[dataset];expected=start_ms
+        rows=self.connection.execute(f'SELECT open_time,{columns} FROM {table} WHERE symbol=? AND timeframe=? AND open_time>=? AND open_time<=? AND {condition} ORDER BY open_time',(symbol,timeframe,start_ms,end_ms))
+        for row in rows:
+            if row[0]!=expected:return False
+            values=row[1:]
+            if any(v is None or not math.isfinite(v) for v in values):return False
+            if dataset in ('open_interest','public_trade_aggregates','long_short_ratio') and any(v<0 for v in values):return False
+            if dataset in ('mark_price','index_price','premium_index'):
+                op,hi,lo,cl=values
+                if not lo<=op<=hi or not lo<=cl<=hi:return False
+            expected+=step_ms
+        return expected==end_ms+step_ms
+
+    @contextmanager
+    def research_snapshot(self,symbol,requirements=()):
+        if self.connection.in_transaction:raise RuntimeError('research snapshot already in transaction')
+        previous=self.connection.execute('PRAGMA query_only').fetchone()[0]
+        self.connection.execute('PRAGMA query_only=ON')
+        self.connection.execute('BEGIN')
+        try:yield self
+        finally:
+            self.connection.rollback()
+            self.connection.execute(f'PRAGMA query_only={int(previous)}')
+
+    def range_fingerprint(self,req):
+        tables={'mark_price':('mark_prices','open,high,low,close,complete'),
+                'index_price':('index_prices','open,high,low,close,complete'),
+                'premium_index':('premium_index','open,high,low,close,complete'),
+                'open_interest':('open_interest','value,complete'),
+                'long_short_ratio':('long_short_ratio','buy_ratio,sell_ratio,long_short_ratio')}
+        h=hashlib.sha256();count=0
+        if req.dataset=='candles':
+            rows=((r.open_time,r.open,r.high,r.low,r.close,r.volume,r.turnover,r.complete)
+                  for r in self.iter_candles(req.symbol,req.timeframe,start_ms=req.start_ms,end_ms=req.end_ms))
+        else:
+            if req.dataset not in tables:raise ValueError('fingerprint dataset contract unavailable')
+            table,columns=tables[req.dataset]
+            rows=self.connection.execute(f'SELECT open_time,{columns} FROM {table} WHERE symbol=? AND timeframe=? AND open_time>=? AND open_time<=? ORDER BY open_time',
+                                         (req.symbol,req.timeframe,req.start_ms,req.end_ms))
+        for row in rows:
+            h.update(json.dumps(tuple(row),separators=(',',':'),allow_nan=False).encode());h.update(b'\n');count+=1
+        return {'dataset':req.dataset,'timeframe':req.timeframe,'start_ms':req.start_ms,'end_ms':req.end_ms,'count':count,'sha256':h.hexdigest()}
