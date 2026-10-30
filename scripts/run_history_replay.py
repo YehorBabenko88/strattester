@@ -15,8 +15,11 @@ def main():
         if len(b)>8*1024*1024:raise ValueError('INPUT_LIMIT')
         return json.loads(b)
     pins=read(a.pins)
-    with MathClient(a.math_root,pins['math_commit'],pins['math_tree'],pins['python_sha256']) as client:
-        result=replay(read(a.dataset),pins['dataset_fingerprint'],client,read(a.policy))
+    dataset=read(a.dataset)
+    if dataset.get('schema')!='grid.history.v1.1' or dataset.get('dataset_id')!=pins['dataset_id']:
+        raise ValueError('TIMED_DATASET_REQUIRED')
+    with MathClient(a.math_root,pins['math_commit'],pins['math_tree'],pins['python_sha256'],timed=True) as client:
+        result=replay(dataset,pins['dataset_fingerprint'],client,read(a.policy))
     # No partial result is written on admission/computation failure.
     target=Path(a.output)
     with target.open('xb') as f:f.write(canonical(result))

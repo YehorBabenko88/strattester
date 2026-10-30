@@ -23,17 +23,20 @@ jobs:
       - name: Fetch immutable producer references
         run: python scripts/fetch_history_references.py
       - name: Exact-head synthetic checks
-        run: python scripts/history_ci.py tests/research test_grid_math_history.py
+        run: python scripts/history_ci.py tests/research 'test_*history*.py'
         env:
-          GRID_REFERENCE: ${{ github.workspace }}/.history-evidence/grid
-          MATH_REFERENCE: ${{ github.workspace }}/.history-evidence/math
+          GRID_REFERENCE: ${{ github.workspace }}/.history-evidence/timed-v11/grid
+          MATH_REFERENCE: ${{ github.workspace }}/.history-evidence/timed-v11/math
+          TERMINAN_REFERENCE: ${{ github.workspace }}/.history-evidence/timed-v11/terminan
           HISTORY_EVIDENCE_ROOT: ${{ github.workspace }}/.history-evidence
           HISTORY_REQUIRE_CROSSREPO: '1'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: history-${{ runner.os }}-${{ github.event.pull_request.head.sha || github.sha }}
-          path: .history-evidence/*.json
+          path: |
+            .history-evidence/*.json
+            .history-evidence/terminan-review.html
           include-hidden-files: true
           if-no-files-found: error
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

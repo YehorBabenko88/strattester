@@ -33,6 +33,15 @@ def policy():
        'notional':100.,'latency_ms':0,'starting_cash':10000.}
 
 class Integration(unittest.TestCase):
+    def test_nonzero_latency_uses_next_executable_bar(self):
+        class Long:
+            commit='fixture';tree='fixture';manifest={};python_sha256='fixture'
+            def predict(s,prices,fp,train_count=None):return {'forecast':prices[-1]+1,'volatility':0.}
+        d=dataset();r=replay(d,d['dataset_fingerprint'],Long(),{**policy(),'latency_ms':1})
+        self.assertTrue(r['fills'])
+        for fill in r['fills']:self.assertGreaterEqual(fill['entry_ms'],fill['decision_ms']+1)
+        self.assertTrue(all(a['exit_ms']<=b['entry_ms'] for a,b in zip(r['fills'],r['fills'][1:])))
+
     def test_funding_event_count_bound_before_allocation(self):
         with patch('strattester.research.grid_math_history.range',create=True,side_effect=AssertionError('must not allocate')):
             with self.assertRaises(ValueError):
