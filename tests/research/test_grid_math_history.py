@@ -12,6 +12,8 @@ ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
 GRID=Path(os.environ.get('GRID_REFERENCE',ROOT.parent/'grid'))
 MATH=Path(os.environ.get('MATH_REFERENCE',ROOT.parent/'math'))
+if not (GRID/'tests/test_history_export.py').is_file() or not (MATH/'python/history_worker.py').is_file():
+    raise unittest.SkipTest('cross-repository fixture refs are required; history-integration CI provisions exact pins')
 sys.path.insert(0,str(GRID))
 spec=importlib.util.spec_from_file_location('fixture',GRID/'tests/test_history_export.py')
 fixture=importlib.util.module_from_spec(spec);spec.loader.exec_module(fixture)
