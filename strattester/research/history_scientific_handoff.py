@@ -72,7 +72,7 @@ def handoff_packet(review):
               "review_fingerprint": receipt, "result_receipt": review["result_receipt"],
               "dataset_id": src["dataset_id"],
               "snapshot_fingerprint": src["snapshot_fingerprint"],
-              "source": src, "market": src["identity"], "strategy": review["strategy"],
+              "source": src, "market": review["market"], "strategy": review["strategy"],
               "model": review['model'], "model_version": review['model_version'],
               "units": src['units'], "split_receipts": review['split_receipts'],
               "oos_available_at_ms": max(r['available_at_ms'] for r in rows),

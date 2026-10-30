@@ -91,7 +91,7 @@ def review_packet(result,expected_receipt):
                 or c['label_close']!=row['close'] or c['features']!={k:trace[k] for k in ('forecast','volatility')}):raise ValueError('TRAINING_REVIEW_LOOKAHEAD')
             seen.add(key)
         packet={'schema':'terminan.history.review.v1.1','run_id':run_id,'result_receipt':expected_receipt,
-          'evidence_class':r['evidence_class'],'strategy':r['strategy'],'model':r['math'],
+          'evidence_class':r['evidence_class'],'strategy':r['strategy'],'market':r['market'],'model':r['math'],
           'model_version':r['model_version'],'evaluation_protocol':r['evaluation_protocol'],
           'source':{'dataset_id':r['dataset_id'],'snapshot_fingerprint':r['dataset_fingerprint'],
              'identity':r['source'],'watermark_ms':r['watermark_ms'],'units':r['units'],
