@@ -1,0 +1,15 @@
+{
+  "bootstrap": "E2E_BOOTSTRAP_FAILED",
+  "candle_download": "E2E_CANDLE_DOWNLOAD_FAILED",
+  "coverage_validation": "E2E_COVERAGE_VALIDATION_FAILED",
+  "module_admission": "E2E_MODULE_ADMISSION_FAILED",
+  "network_initialization": "E2E_NETWORK_INITIALIZATION_FAILED",
+  "package_integrity": "E2E_PACKAGE_INTEGRITY_FAILED",
+  "publication": "E2E_PUBLICATION_FAILED",
+  "rate_verification": "E2E_RATE_VERIFICATION_FAILED",
+  "runtime_integrity": "E2E_RUNTIME_INTEGRITY_FAILED",
+  "server_time": "E2E_SERVER_TIME_FAILED",
+  "sqlite_initialization": "E2E_SQLITE_INITIALIZATION_FAILED",
+  "success_completion": "E2E_SUCCESS_COMPLETION_FAILED",
+  "universe_discovery": "E2E_UNIVERSE_DISCOVERY_FAILED"
+}

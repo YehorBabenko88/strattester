@@ -1,0 +1,48 @@
+name: LS5 history collector source
+on:
+  pull_request:
+    paths: ['tools/ls5_history/**', '.github/workflows/history-collector-source.yml']
+  push:
+    branches: ['research/ls5-history-batches-f1']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.12', '3.13']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    env:
+      F1_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Source fixtures only, exact node accounting
+        run: python -B tools/ls5_history/run_source_checks.py --output results/f1
+      - name: PowerShell Parser and existing monitor source compile
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          Get-ChildItem tools/ls5_history -Filter *.ps1 -Recurse | ForEach-Object {
+            $tokens=$null; $errors=$null
+            [void][Management.Automation.Language.Parser]::ParseFile($_.FullName,[ref]$tokens,[ref]$errors)
+            if($errors.Count){throw 'PARSER_ERROR'}
+          }
+          Get-ChildItem tools/ls5_history -Filter *.cs | ForEach-Object {Add-Type -Path $_.FullName}
+          & ./tools/ls5_history/tests/test_descendant.ps1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: f1-${{ matrix.os }}-${{ matrix.python }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: results/f1
+          if-no-files-found: error

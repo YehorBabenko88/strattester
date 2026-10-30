@@ -1,0 +1,109 @@
+{
+  "base_runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951",
+  "base_runtime_tree": "f3a7f9858a0ce59f425543b14e8c1d3593a1b8a9",
+  "imports": [
+    {
+      "file": "strict_rate.py",
+      "sha256": "7e8c7170fd47440608cbca12683d88c4129356381ae371b2349d6c2587dbc573",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "rate_verify.py",
+      "sha256": "301d1d1d39e2553c0e1b0a73789ee39b4e58caa730cb5c2476248445c5d6ecb2",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "public_http.py",
+      "sha256": "c6a91f2c49295849d2ba60f760e9c941072609fd97f7dec8e85628f99e872723",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "public_core.py",
+      "sha256": "ead10fc51646a5cee1f03c7d3458cab1dd3c6215d9c42441078190d9fdba2fdc",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "RateEvidence.ps1",
+      "sha256": "34544ff681ee9a9818c3323ba20d9adf1c6d75bc5c96ef971bcdb97348cfac3f",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "ProcessFamily.cs",
+      "sha256": "ee5130992e4dcc79e0be77c97ffa4cac5a2eea97d9510f58c5b7ed668c568f46",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "DescendantCapture.cs",
+      "sha256": "cb780761cd66ae03949763e0648308ecf4174497a63d908e8a4c26cb0a56fb3a",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "OutputCapture.cs",
+      "sha256": "0535b158eb9a28b06e252e95f4ee2cba3b9cd6336da06b793f81739cef87d81b",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "DescendantEvidence.ps1",
+      "sha256": "135deb090afbf565a8eea9806d94fee5b1f79628ef5da05e57a43a6bb230f2ea",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "PythonwEvidence.ps1",
+      "sha256": "c808b580403f1ecc2a8be6b4b8c47aba9044a3e3db74d724453a7bea2f1f4ecf",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "FailureEvidence.ps1",
+      "sha256": "2e82e10c36c9fe80f1db253ab0b5d753fa09d97f1de6a8a5bb7231145cca36ec",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "failure_diagnostics.py",
+      "sha256": "33e7baa33d45d3296a000006b271c314ec3273c1f1376563a14735ff70772471",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    },
+    {
+      "file": "PINS.json",
+      "sha256": "b8e2f6d4d2234c91a5fefe85959bed059f51a77104647679fc2696e8bfd53fdf",
+      "source": "SEALED_LS5_STAGE_D_E_PREPARATION_PACKAGES",
+      "reason": "Reuse approved transport/rate or diagnostic monitor contract; no native qualification claim",
+      "runtime_head": "11b6c793e6617c3de08e6ca4fa741625c54c1951"
+    }
+  ],
+  "new_files": [
+    "history_collector.py",
+    "history_verify.py",
+    "worker.py",
+    "RUN_BATCH_AFTER_AUTHORIZATION.ps1",
+    "research_adapter_contract.py"
+  ],
+  "contract_changes": [
+    "Batch checkpoint v1",
+    "Real-data adapter contract-only; no execution or synthetic gate change"
+  ],
+  "external_authorization": "PHYSICAL_DOWNLOAD_NOT_AUTHORIZED"
+}
