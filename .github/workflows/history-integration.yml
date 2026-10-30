@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+env:
+  EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 jobs:
   synthetic:
     strategy:
@@ -39,6 +41,7 @@ jobs:
           name: history-${{ runner.os }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             .history-evidence/*.json
+            .history-evidence/SHA256SUMS
             .history-evidence/terminan-review.html
           include-hidden-files: true
           if-no-files-found: error

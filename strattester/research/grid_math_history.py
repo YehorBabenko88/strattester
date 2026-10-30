@@ -29,9 +29,11 @@ class MathClient:
     computation. Python/stdlib and OS are trusted local runtime, not attested by
     a response. Executable hash is an operator pin, not host attestation.
     """
+    MAX_OUTPUT_LIMIT=262144
+
     def __init__(self,root,commit,tree,python_sha256,*,timeout=5.,output_limit=32768,timed=False):
         self.root=Path(root);self.commit=commit;self.tree=tree;self.python_sha256=python_sha256
-        if not number(timeout) or not 0<timeout<=10 or type(output_limit) is not int or not 1<=output_limit<=262144:raise ValueError('LIMITS')
+        if not number(timeout) or not 0<timeout<=10 or type(output_limit) is not int or not 1<=output_limit<=self.MAX_OUTPUT_LIMIT:raise ValueError('LIMITS')
         self.timeout=timeout;self.output_limit=output_limit;self.temp=None;self.calls=0;self.timed=timed
 
     def git(self,*args):

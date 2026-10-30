@@ -7,7 +7,10 @@ from .grid_math_history import MathClient, admit, digest
 
 
 class JointMathClient(MathClient):
+    MAX_OUTPUT_LIMIT = 4 * 1024 * 1024
+
     def __init__(self, root, commit, tree, python_sha256, *, node, node_sha256, **kw):
+        kw.setdefault('output_limit', self.MAX_OUTPUT_LIMIT)
         super().__init__(root, commit, tree, python_sha256, timed=True, **kw)
         self.node = str(Path(node).resolve())
         self.node_sha256 = node_sha256
