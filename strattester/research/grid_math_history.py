@@ -29,9 +29,11 @@ class MathClient:
     computation. Python/stdlib and OS are trusted local runtime, not attested by
     a response. Executable hash is an operator pin, not host attestation.
     """
+    MAX_OUTPUT_LIMIT=262144
+
     def __init__(self,root,commit,tree,python_sha256,*,timeout=5.,output_limit=32768,timed=False):
         self.root=Path(root);self.commit=commit;self.tree=tree;self.python_sha256=python_sha256
-        if not number(timeout) or not 0<timeout<=10 or type(output_limit) is not int or not 1<=output_limit<=262144:raise ValueError('LIMITS')
+        if not number(timeout) or not 0<timeout<=10 or type(output_limit) is not int or not 1<=output_limit<=self.MAX_OUTPUT_LIMIT:raise ValueError('LIMITS')
         self.timeout=timeout;self.output_limit=output_limit;self.temp=None;self.calls=0;self.timed=timed
 
     def git(self,*args):
@@ -54,7 +56,7 @@ class MathClient:
     def __exit__(self,*args):
         if self.temp:self.temp.cleanup();self.temp=None
 
-    def _execute(self,q,worker='history_worker.py',input_limit=262144):
+    def _execute(self,q,worker='history_worker.py',input_limit=262144,worker_args=()):
         if not self.temp:raise ValueError('CLIENT_CLOSED')
         self.calls+=1
         if self.calls>2000 or time.monotonic()-self.started>120:raise ValueError('EXPERIMENT_RESOURCE_LIMIT')
@@ -66,7 +68,7 @@ class MathClient:
         with tempfile.TemporaryFile() as inp,tempfile.TemporaryFile() as out,tempfile.TemporaryFile() as err:
             inp.write(raw);inp.seek(0)
             try:
-                p=subprocess.Popen([sys.executable,'-I','-S',str(self.path/worker)],
+                p=subprocess.Popen([sys.executable,'-I','-S',str(self.path/worker),*worker_args],
                     stdin=inp,stdout=out,stderr=err,cwd=self.path)
                 start=time.monotonic()
                 try:
@@ -181,6 +183,8 @@ def replay(dataset,expected_pin,client,policy):
     entry_times=[row['event_start_ms'] for row in rows]
     for i in range(19,len(rows)-1):
         decision=rows[i]['available_at_ms']
+        # A delayed feature cannot forecast an event horizon already reached.
+        if timed and decision>=rows[i]['event_end_ms']+60000:continue
         entry_index=bisect_left(entry_times,decision+p['latency_ms'],lo=i+1)
         if entry_index>=len(rows):continue
         prefix=rows[:i+1]

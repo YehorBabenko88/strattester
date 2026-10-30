@@ -57,7 +57,10 @@ def handoff_packet(review):
         decision = t.get("decision_ms")
         if (any(type(x) is not int for x in (event, known, target, decision))
             or not 0 <= event <= known <= decision < target
-            or not number(t.get("forecast")) or t["forecast"] <= 0\n            or type(t.get("request_digest")) is not str\n            or len(t["request_digest"]) != 64\n            or any(c not in "0123456789abcdef" for c in t["request_digest"])):
+            or not number(t.get("forecast")) or t["forecast"] <= 0
+            or type(t.get("request_digest")) is not str
+            or len(t["request_digest"]) != 64
+            or any(c not in "0123456789abcdef" for c in t["request_digest"])):
             raise ValueError("TRACE_CHRONOLOGY")
         forecasts.append({"feature_event_end_ms": event,
                           "feature_available_at_ms": known, "decision_ms": decision,
