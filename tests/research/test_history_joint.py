@@ -72,6 +72,9 @@ class JointIntegration(unittest.TestCase):
             self.assertEqual(r['math_source']['tree'], c.tree)
             self.assertTrue(any(k.startswith('src/') for k in r['math_source']['manifest']))
             self.assertTrue(any(k.startswith('python/') for k in r['math_source']['manifest']))
+            committed = subprocess.check_output(['git', '-C', str(MATH), 'show',
+                                                 c.commit + ':src/scientific-engine.mjs'])
+            self.assertEqual(c.joint_manifest['src/scientific-engine.mjs'], hashlib.sha256(committed).hexdigest())
             self.assertFalse(r['execution_authority'])
 
     def test_future_suffix_cannot_change_decision_outputs(self):

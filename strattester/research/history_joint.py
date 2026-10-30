@@ -1,8 +1,7 @@
 """One immutable Math source for both APIs; no local numerical computation."""
 import hashlib
-import io
 from pathlib import Path, PurePosixPath
-import tarfile
+import subprocess
 from .grid_math_history import MathClient, admit, digest
 
 
@@ -24,22 +23,32 @@ class JointMathClient(MathClient):
         try:
             self._node_pin()
             # A single commit supplies every Python/JS dependency, never two checkouts.
-            archive = self.git('archive', self.commit, '--', 'python', 'src', 'scripts/history')
-            if len(archive) > 16 * 1024 * 1024:
-                raise ValueError('SOURCE_LIMIT')
+            entries = []
+            for line in self.git('ls-tree', '-r', '-z', '-l', self.commit, '--', 'python', 'src', 'scripts/history').split(b'\0'):
+                if not line: continue
+                metadata, name = line.split(b'\t', 1)
+                mode, kind, oid, size = metadata.split()
+                p = PurePosixPath(name.decode())
+                if (mode not in (b'100644', b'100755') or kind != b'blob' or p.is_absolute()
+                        or '..' in p.parts or p.suffix not in ('.py', '.mjs') or int(size) > 2 * 1024 * 1024):
+                    raise ValueError('SOURCE_MEMBER')
+                entries.append((str(p), oid, int(size)))
+            if sum(size for _, _, size in entries) > 16 * 1024 * 1024: raise ValueError('SOURCE_LIMIT')
+            # cat-file returns raw blob bytes; git archive may apply autocrlf conversions.
+            batch = subprocess.check_output(['git', '--no-replace-objects', '-C', str(self.root), 'cat-file', '--batch'],
+                input=b''.join(oid + b'\n' for _, oid, _ in entries), timeout=10, stderr=subprocess.DEVNULL)
             self.joint_manifest = {}
-            with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
-                for member in tar:
-                    p = PurePosixPath(member.name)
-                    if member.isdir(): continue
-                    if (not member.isfile() or p.is_absolute() or '..' in p.parts or
-                            p.suffix not in ('.py', '.mjs') or member.size > 2 * 1024 * 1024):
-                        raise ValueError('SOURCE_MEMBER')
-                    data = tar.extractfile(member).read()
-                    target = self.path / 'joint' / member.name
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    target.write_bytes(data)
-                    self.joint_manifest[member.name] = hashlib.sha256(data).hexdigest()
+            offset = 0
+            for name, oid, size in entries:
+                end = batch.index(b'\n', offset)
+                actual_oid, kind, actual_size = batch[offset:end].split()
+                if actual_oid != oid or kind != b'blob' or int(actual_size) != size: raise ValueError('BLOB_HEADER')
+                data = batch[end + 1:end + 1 + size]; offset = end + size + 2
+                target = self.path / 'joint' / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+                self.joint_manifest[name] = hashlib.sha256(data).hexdigest()
+            if offset != len(batch): raise ValueError('BLOB_TRAILING_BYTES')
             required = ('python/history_scientific_worker.py', 'python/history_timed_worker.py',
                         'scripts/history/scientific-stdio.mjs', 'src/scientific-engine.mjs')
             if any(f not in self.joint_manifest for f in required):
