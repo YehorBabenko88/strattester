@@ -1,5 +1,17 @@
 {
-  "grid": {"repository":"bybit-cluster-grid","commit":"28d4ae46c8ddbc0238b351e8d6b2bd29c6602ef2","tree":"000d1749543dbcd99033ed390fbf4b4f5b0a9a29"},
-  "math": {"repository":"math","commit":"d6d39ea1ade02024ae99367252fb321bb514fe9e","tree":"492381ce0fa7c44d9f989a37386354f8381c5938"},
-  "terminan": {"repository":"Terminan","commit":"d10d5a0e2f00fcd68e284d2b6e743f61430997c9","tree":"8d4025fddbcf6f6ea1c2db152404e217d0240aec"}
+  "grid": {
+    "repository": "bybit-cluster-grid",
+    "commit": "28d4ae46c8ddbc0238b351e8d6b2bd29c6602ef2",
+    "tree": "000d1749543dbcd99033ed390fbf4b4f5b0a9a29"
+  },
+  "math": {
+    "repository": "math",
+    "commit": "3a9c542841e160f8b1924f155aaa2d1a676dfd04",
+    "tree": "407cfc78c24041a9ea168de177999f6b317524ef"
+  },
+  "terminan": {
+    "repository": "Terminan",
+    "commit": "d10d5a0e2f00fcd68e284d2b6e743f61430997c9",
+    "tree": "8d4025fddbcf6f6ea1c2db152404e217d0240aec"
+  }
 }
