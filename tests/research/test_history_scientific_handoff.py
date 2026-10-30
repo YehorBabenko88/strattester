@@ -33,7 +33,9 @@ class HandoffTests(unittest.TestCase):
                          self.review["observations"][0]["available_at_ms"])
         self.assertEqual(p["handoff_sha256"], digest({k:v for k,v in p.items()
                                                      if k != "handoff_sha256"}))
-        self.assertTrue(p["forecast_points"])\n        self.assertEqual(p["market"], self.review["source"]["identity"])\n        self.assertEqual(p["strategy"], self.review["strategy"])
+        self.assertTrue(p["forecast_points"])
+        self.assertEqual(p["market"], self.review["source"]["identity"])
+        self.assertEqual(p["strategy"], self.review["strategy"])
 
     def test_mutations_fail_closed(self):
         for change in (
@@ -42,11 +44,33 @@ class HandoffTests(unittest.TestCase):
             lambda p: p["observations"][0].update(available_at_ms=0),
             lambda p: p["observations"][0].update(close=float("nan")),
             lambda p: p.update(evidence_class="HISTORICAL"),
-            lambda p: p["math_trace"][0].update(forecast=-1),\n            lambda p: p["math_trace"][0].update(request_digest="not-a-digest"),
+            lambda p: p["math_trace"][0].update(forecast=-1),
+            lambda p: p["math_trace"][0].update(request_digest="not-a-digest"),
         ):
             r = copy.deepcopy(self.review)
             change(r)
             with self.subTest(change=change), self.assertRaises(ValueError):
+                handoff_packet(r)
+
+    def test_export_preserves_model_units_splits_and_oos_clock(self):
+        p = handoff_packet(self.review)
+        self.assertEqual(p['model'], self.review['model'])
+        self.assertEqual(p['model_version'], 'grid-frozen-analog-v1')
+        self.assertEqual(p['units']['price'], 'USDT/BTC')
+        self.assertEqual(p['split_receipts'], self.review['split_receipts'])
+        self.assertEqual(p['oos_available_at_ms'], 4800000)
+        self.assertGreater(len(p['forecast_points']), 2)
+
+    def test_rehashed_clock_and_units_mutations_still_fail(self):
+        for mutate in (
+            lambda r: r['math_trace'][0].update(forecast_target_event_end_ms=2**53),
+            lambda r: r['source']['units'].update(price='USD/BTC'),
+            lambda r: r['math_trace'][0].update(request_digest='not-a-digest'),
+        ):
+            r = copy.deepcopy(self.review)
+            mutate(r)
+            r['packet_fingerprint'] = digest({k:v for k,v in r.items() if k!='packet_fingerprint'})
+            with self.subTest(mutate=mutate), self.assertRaises(ValueError):
                 handoff_packet(r)
 
 

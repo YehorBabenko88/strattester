@@ -26,6 +26,8 @@ def handoff_packet(review):
         src.get("source_authenticity") != "REQUIRES_INDEPENDENT_RECEIPT_PROVISIONING" or
         review.get("evidence_class") != "SYNTHETIC"):
         raise ValueError("SOURCE_NOT_ADMITTED")
+    if src.get('units') != {'cash':'USDT','price':'USDT/BTC','quantity':'BTC','time':'UTC_MS'}:
+        raise ValueError('UNITS')
     rows = review.get("observations")
     if type(rows) is not list or not 1 <= len(rows) <= 2000:
         raise ValueError("OBSERVATION_COUNT")
@@ -55,9 +57,12 @@ def handoff_packet(review):
             ("feature_event_end_ms", "feature_available_at_ms",
              "forecast_target_event_end_ms"))
         decision = t.get("decision_ms")
-        if (any(type(x) is not int for x in (event, known, target, decision))
+        if (any(type(x) is not int or not 0 <= x <= 2**53-1 for x in (event, known, target, decision))
             or not 0 <= event <= known <= decision < target
-            or not number(t.get("forecast")) or t["forecast"] <= 0\n            or type(t.get("request_digest")) is not str\n            or len(t["request_digest"]) != 64\n            or any(c not in "0123456789abcdef" for c in t["request_digest"])):
+            or not number(t.get("forecast")) or t["forecast"] <= 0
+            or type(t.get("request_digest")) is not str
+            or len(t["request_digest"]) != 64
+            or any(c not in "0123456789abcdef" for c in t["request_digest"])):
             raise ValueError("TRACE_CHRONOLOGY")
         forecasts.append({"feature_event_end_ms": event,
                           "feature_available_at_ms": known, "decision_ms": decision,
@@ -68,6 +73,9 @@ def handoff_packet(review):
               "dataset_id": src["dataset_id"],
               "snapshot_fingerprint": src["snapshot_fingerprint"],
               "source": src, "market": src["identity"], "strategy": review["strategy"],
+              "model": review['model'], "model_version": review['model_version'],
+              "units": src['units'], "split_receipts": review['split_receipts'],
+              "oos_available_at_ms": max(r['available_at_ms'] for r in rows),
               "evidence_class": "SYNTHETIC",
               "source_authenticity": "UNATTESTED",
               "math_history_api": "math.history.result.v1.1",
