@@ -1,0 +1,12 @@
+[
+  "interpreter_ready",
+  "integrity_started",
+  "integrity_completed",
+  "collector_started",
+  "network_admitted",
+  "collector_completed",
+  "checkpoint_verified",
+  "rate_verified",
+  "result_published",
+  "worker_completed"
+]
