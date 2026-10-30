@@ -10,11 +10,19 @@ def main():
     parser.add_argument("--input",required=True)
     parser.add_argument("--receipt-pin",required=True)
     parser.add_argument("--output",required=True)
+    parser.add_argument('--published-at-ms',type=int,help='Declared logical publication time; absent means OOS remains unpublished')
     args=parser.parse_args()
     source=Path(args.input)
-    if source.stat().st_size>8*1024*1024:raise ValueError("INPUT_LIMIT")
-    result=json.loads(source.read_text(encoding="utf-8"))
-    packet=handoff_packet(review_packet(result,args.receipt_pin))
+    with source.open('rb') as input_file:raw=input_file.read(8*1024*1024+1)
+    if len(raw)>8*1024*1024:raise ValueError("INPUT_LIMIT")
+    def pairs(items):
+        d={}
+        for k,v in items:
+            if k in d:raise ValueError('DUPLICATE_KEY')
+            d[k]=v
+        return d
+    result=json.loads(raw,object_pairs_hook=pairs)
+    packet=handoff_packet(review_packet(result,args.receipt_pin),published_at_ms=args.published_at_ms)
     target=Path(args.output)
     if target.exists():raise ValueError("OUTPUT_EXISTS")
     if not target.parent.is_dir():raise ValueError("OUTPUT_PARENT_MISSING")

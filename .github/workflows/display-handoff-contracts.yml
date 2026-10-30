@@ -1,0 +1,33 @@
+name: Display handoff contracts (no Math execution)
+on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: display-contract-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
+jobs:
+  contract-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Inert export contracts and recorded legacy review/CLI
+        run: |
+          mkdir -p .display-evidence
+          python -m unittest tests.research.test_display_handoff_contract tests.research.test_joint_display_contract tests.research.test_display_legacy_cli tests.research.test_joint_request_capture -v > .display-evidence/tests.txt 2>&1
+          git rev-parse HEAD > .display-evidence/head.txt
+          git rev-parse 'HEAD^{tree}' > .display-evidence/tree.txt
+          sha256sum tests/fixtures/history-replay-contract.v1.json > .display-evidence/fixture.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: display-contract-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}
+          path: .display-evidence/
+          include-hidden-files: true
+          if-no-files-found: error

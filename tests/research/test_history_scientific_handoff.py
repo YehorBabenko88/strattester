@@ -34,7 +34,7 @@ class HandoffTests(unittest.TestCase):
         self.assertEqual(p["handoff_sha256"], digest({k:v for k,v in p.items()
                                                      if k != "handoff_sha256"}))
         self.assertTrue(p["forecast_points"])
-        self.assertEqual(p["market"], self.review["source"]["identity"])
+        self.assertEqual(p["market"], self.review["market"])
         self.assertEqual(p["strategy"], self.review["strategy"])
 
     def test_mutations_fail_closed(self):

@@ -1,5 +1,6 @@
 """One immutable Math source for both APIs; no local numerical computation."""
 import hashlib
+import copy
 from pathlib import Path, PurePosixPath
 import subprocess
 from .grid_math_history import MathClient, admit, digest
@@ -88,7 +89,8 @@ class JointMathClient(MathClient):
                 or r.get('history', {}).get('prefix_digest') != digest(rows)
                 or r.get('scientific', {}).get('schema') != 'math.scientific.result.v2'):
             raise ValueError('JOINT_RESULT_BINDING')
-        r['math_source'] = {'commit': self.commit, 'tree': self.tree, 'manifest': self.joint_manifest,
+        r['math_source'] = {'commit': self.commit, 'tree': self.tree, 'manifest': dict(self.joint_manifest),
                             'python_sha256': self.python_sha256, 'node_sha256': self.node_sha256}
+        r['joint_request'] = copy.deepcopy(q)
         r['completion_receipt'] = digest(r)
         return r
