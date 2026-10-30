@@ -54,7 +54,7 @@ class MathClient:
     def __exit__(self,*args):
         if self.temp:self.temp.cleanup();self.temp=None
 
-    def _execute(self,q,worker='history_worker.py',input_limit=262144):
+    def _execute(self,q,worker='history_worker.py',input_limit=262144,worker_args=()):
         if not self.temp:raise ValueError('CLIENT_CLOSED')
         self.calls+=1
         if self.calls>2000 or time.monotonic()-self.started>120:raise ValueError('EXPERIMENT_RESOURCE_LIMIT')
@@ -66,7 +66,7 @@ class MathClient:
         with tempfile.TemporaryFile() as inp,tempfile.TemporaryFile() as out,tempfile.TemporaryFile() as err:
             inp.write(raw);inp.seek(0)
             try:
-                p=subprocess.Popen([sys.executable,'-I','-S',str(self.path/worker)],
+                p=subprocess.Popen([sys.executable,'-I','-S',str(self.path/worker),*worker_args],
                     stdin=inp,stdout=out,stderr=err,cwd=self.path)
                 start=time.monotonic()
                 try:
@@ -181,6 +181,8 @@ def replay(dataset,expected_pin,client,policy):
     entry_times=[row['event_start_ms'] for row in rows]
     for i in range(19,len(rows)-1):
         decision=rows[i]['available_at_ms']
+        # A delayed feature cannot forecast an event horizon already reached.
+        if timed and decision>=rows[i]['event_end_ms']+60000:continue
         entry_index=bisect_left(entry_times,decision+p['latency_ms'],lo=i+1)
         if entry_index>=len(rows):continue
         prefix=rows[:i+1]
