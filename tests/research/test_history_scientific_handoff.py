@@ -33,7 +33,7 @@ class HandoffTests(unittest.TestCase):
                          self.review["observations"][0]["available_at_ms"])
         self.assertEqual(p["handoff_sha256"], digest({k:v for k,v in p.items()
                                                      if k != "handoff_sha256"}))
-        self.assertTrue(p["forecast_points"])
+        self.assertTrue(p["forecast_points"])\n        self.assertEqual(p["market"], self.review["source"]["identity"])\n        self.assertEqual(p["strategy"], self.review["strategy"])
 
     def test_mutations_fail_closed(self):
         for change in (
@@ -42,7 +42,7 @@ class HandoffTests(unittest.TestCase):
             lambda p: p["observations"][0].update(available_at_ms=0),
             lambda p: p["observations"][0].update(close=float("nan")),
             lambda p: p.update(evidence_class="HISTORICAL"),
-            lambda p: p["math_trace"][0].update(forecast=-1),
+            lambda p: p["math_trace"][0].update(forecast=-1),\n            lambda p: p["math_trace"][0].update(request_digest="not-a-digest"),
         ):
             r = copy.deepcopy(self.review)
             change(r)
