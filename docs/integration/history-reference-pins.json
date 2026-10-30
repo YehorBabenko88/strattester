@@ -1,8 +1,8 @@
 {
   "grid": {
     "repository": "bybit-cluster-grid",
-    "commit": "be7a3b9780cb44f58b5cb432afc1a45ed658c9c8",
-    "tree": "eaaa6bb94537b25977759932642a4df7b18f2aeb"
+    "commit": "d2dcffb43e520db75936eb97389b66db2f3e1365",
+    "tree": "78db4513bb300dd0cb4d1993a2854ddfba1ee83a"
   },
   "math": {
     "repository": "math",
