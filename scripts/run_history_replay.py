@@ -11,7 +11,7 @@ def main():
     for name in ('dataset','policy','pins','math-root','output'):p.add_argument('--'+name,required=True)
     a=p.parse_args()
     def read(path):
-        b=Path(path).read_bytes()
+        with Path(path).open('rb') as f:b=f.read(8*1024*1024+1)
         if len(b)>8*1024*1024:raise ValueError('INPUT_LIMIT')
         return json.loads(b)
     pins=read(a.pins)

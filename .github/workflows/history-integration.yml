@@ -28,6 +28,7 @@ jobs:
           GRID_REFERENCE: ${{ github.workspace }}/.history-evidence/grid
           MATH_REFERENCE: ${{ github.workspace }}/.history-evidence/math
           HISTORY_EVIDENCE_ROOT: ${{ github.workspace }}/.history-evidence
+          HISTORY_REQUIRE_CROSSREPO: '1'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
