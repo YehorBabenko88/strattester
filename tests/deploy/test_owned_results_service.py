@@ -141,7 +141,7 @@ def test_raw_bootstrap_real_source_pins_and_dirty_source_rejection(tmp_path,monk
     before=store.read_bytes()
     process=subprocess.Popen(command[:-1]+['--serve','--store',str(store),'--port',str(port)],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
     try:
-        deadline=time.monotonic()+10
+        deadline=time.monotonic()+adapter().SOURCE_VERIFY_TIMEOUT+5
         while True:
             if process.poll() is not None:pytest.fail(process.stderr.read().decode())
             client=http.client.HTTPConnection('127.0.0.1',port,timeout=2)
@@ -149,7 +149,7 @@ def test_raw_bootstrap_real_source_pins_and_dirty_source_rejection(tmp_path,monk
                 client.request('GET','/internal/v2/module/health',headers={'Authorization':'Bearer '+TOKEN})
                 response=client.getresponse();body=json.loads(response.read())
                 if response.status==200:break
-            except ConnectionError:pass
+            except (ConnectionError,TimeoutError):pass
             finally:client.close()
             assert time.monotonic()<deadline
             time.sleep(.05)
@@ -223,7 +223,7 @@ def test_slow_header_cannot_hold_single_private_listener(store):
         start=time.monotonic();closed=False
         while time.monotonic()-start<1:
             try:client.sendall(b'a')
-            except (BrokenPipeError,ConnectionResetError):closed=True;break
+            except ConnectionError:closed=True;break
             time.sleep(.08)
         assert closed and time.monotonic()-start<.9
     finally:client.close();server.shutdown();server.server_close();thread.join(2)

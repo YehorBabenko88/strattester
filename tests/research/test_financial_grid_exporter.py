@@ -306,7 +306,9 @@ def test_disposable_postgres_mvcc_and_seals(tmp_path, monkeypatch):
     if binary is None:
         if explicit or os.environ.get('CI'):pytest.fail('required PostgreSQL fixture binaries unavailable')
         pytest.skip('optional local PostgreSQL fixture binaries unavailable')
-    version=subprocess.run([str(binary/('postgres'+suffix)),'--version'],check=True,capture_output=True,text=True,timeout=5).stdout.strip()
+    # Cold Windows binary verification can include the runner's first-use scan.
+    # This verifies the actual version, not a five-second performance target.
+    version=subprocess.run([str(binary/('postgres'+suffix)),'--version'],check=True,capture_output=True,text=True,timeout=15).stdout.strip()
     assert version.startswith('postgres (PostgreSQL) ')
     pg_root=owned_postgres_fixture_root(tmp_path)
     data=pg_root/'pg-owned';log=pg_root/'pg-owned.log'
