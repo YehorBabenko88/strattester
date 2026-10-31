@@ -37,6 +37,8 @@ def test_pinned_worker_extraction_ignores_blob_replacement(tmp_path, monkeypatch
     assert git(root, '--no-replace-objects', 'rev-parse', 'HEAD^{tree}').decode() == tree
     assert git(root, '--no-replace-objects', 'status', '--porcelain') == b''
     # Keep replacement-aware Git active here and inside an unhardened consumer.
-    assert git(root, 'show', commit + ':python/history_worker.py') == replacement.strip()
+    # Direct blob lookup avoids native Git commit/tree peeling regressions while
+    # still proving the actual replacement-aware object lookup returns poison.
+    assert git(root, 'cat-file', 'blob', blob) == replacement.strip()
     with MathClient(root, commit, tree, runtime_pin()) as client:
         assert (client.path / 'history_worker.py').read_bytes() == original
