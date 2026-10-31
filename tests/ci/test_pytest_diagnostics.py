@@ -90,3 +90,16 @@ def test_non_ascii_test_identifiers_do_not_break_ascii_ci_stdout(tmp_path, monke
     result = diagnose(report)
     assert result.returncode == 0
     assert 'test_\\u2603' in result.stdout and 'expected\\u2192actual' in result.stdout
+
+
+def test_data_first_failure_diagnostics_run_after_unmodified_pytest_without_masking():
+    workflow = (HELPER.parents[1] / '.github/workflows/data-first.yml').read_text()
+    pytest_command = 'python -m pytest tests/engine tests/marketdata tests/strategies tests/persistence tests/research/test_runner.py -q --junitxml=results/data-first/tests.xml --json-report --json-report-file=results/data-first/tests.json'
+    assert 'run: ' + pytest_command in workflow
+    before, after = workflow.split('      - name: Bounded synthetic test failure diagnostics\n')
+    diagnostic, provenance = after.split('      - name: Exact source and dependency provenance\n')
+    assert 'name: Synthetic clients and disposable SQLite only' in before
+    assert '        if: always()\n' in diagnostic
+    assert '        run: python scripts/pytest_diagnostics.py results/data-first/tests.xml\n' in diagnostic
+    assert 'continue-on-error' not in workflow and 'retry' not in diagnostic.lower()
+    assert 'actions/upload-artifact@v4' in provenance and 'if: always()' in provenance
