@@ -1,0 +1,245 @@
+{
+  "schema": "strattester.source-composition.v1",
+  "base": "931f85f",
+  "sources": [
+    {
+      "commit": "c951b3f711780affc8e6936f75fe3796d8ef99eb",
+      "role": "history-consumer foundation"
+    },
+    {
+      "commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "role": "descendant display and causal provenance fixes"
+    }
+  ],
+  "imports": [
+    {
+      "path": "docs/integration/history-joint-contract.md",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "544ab90365ed775a5cfe2dae46852dc5a5cc708b95b309b372b29725b39e81fb",
+      "current_sha256": "544ab90365ed775a5cfe2dae46852dc5a5cc708b95b309b372b29725b39e81fb",
+      "adaptation": null
+    },
+    {
+      "path": "docs/integration/history-pipeline-v1.md",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "31677cb271d619d5dec2c7d5201a4cf09f66c2448574ce8ba8c83745de817aab",
+      "current_sha256": "31677cb271d619d5dec2c7d5201a4cf09f66c2448574ce8ba8c83745de817aab",
+      "adaptation": null
+    },
+    {
+      "path": "docs/integration/history-protocol-v1.1.md",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "d69605790f6e7bc4a59d525b9502404c46b0abd7d085efa6889af148a5e09721",
+      "current_sha256": "d69605790f6e7bc4a59d525b9502404c46b0abd7d085efa6889af148a5e09721",
+      "adaptation": null
+    },
+    {
+      "path": "docs/integration/history-reference-pins.json",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "3b9ff026739feaf25cc25221d126dedcf8456316b0fd2e7202d0fd9d248af23b",
+      "current_sha256": "3b9ff026739feaf25cc25221d126dedcf8456316b0fd2e7202d0fd9d248af23b",
+      "adaptation": null
+    },
+    {
+      "path": "docs/integration/history-scientific-handoff-v1.md",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "f99bf22164114ca1360ccf4a6dd9bb0dd69cedb37d5a55876535a7089d86085a",
+      "current_sha256": "f99bf22164114ca1360ccf4a6dd9bb0dd69cedb37d5a55876535a7089d86085a",
+      "adaptation": null
+    },
+    {
+      "path": "docs/integration/unified-display-handoff.md",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "e202302ce5e8ae0045501f3e843b3c22786b75b3e8ea1b854f88906049dcf95f",
+      "current_sha256": "e202302ce5e8ae0045501f3e843b3c22786b75b3e8ea1b854f88906049dcf95f",
+      "adaptation": null
+    },
+    {
+      "path": "scripts/export_history_scientific_handoff.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "113e2c86975cbc7478671a4cf373e7ca876e5c33511772e220b13822b7526df4",
+      "current_sha256": "113e2c86975cbc7478671a4cf373e7ca876e5c33511772e220b13822b7526df4",
+      "adaptation": null
+    },
+    {
+      "path": "scripts/export_joint_display.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "bd3f99e4993c894d422f93416a22d726164e3d51404af533ad04c9bdabbaf251",
+      "current_sha256": "bd3f99e4993c894d422f93416a22d726164e3d51404af533ad04c9bdabbaf251",
+      "adaptation": null
+    },
+    {
+      "path": "scripts/fetch_history_references.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "a1b5a841069f008bc885afa34210e5ecbf81748afcd3cd2be9effd815e51d6a0",
+      "current_sha256": "a1b5a841069f008bc885afa34210e5ecbf81748afcd3cd2be9effd815e51d6a0",
+      "adaptation": null
+    },
+    {
+      "path": "scripts/history_ci.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "b9de722f2b4522b5c363ae643da2a367d5324b003bdbbe20682ef01adbd7ed77",
+      "current_sha256": "b9de722f2b4522b5c363ae643da2a367d5324b003bdbbe20682ef01adbd7ed77",
+      "adaptation": null
+    },
+    {
+      "path": "scripts/render_history_review.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "92296e263df74c079ef9bdd18a4d1377dc156f97f1698d3dfd12042f79fbb967",
+      "current_sha256": "92296e263df74c079ef9bdd18a4d1377dc156f97f1698d3dfd12042f79fbb967",
+      "adaptation": null
+    },
+    {
+      "path": "scripts/run_history_composition.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "a7c67b9fef4f4cc1b612adf1cb000e94a3e36175491540bd67df443c45d6228c",
+      "current_sha256": "a7c67b9fef4f4cc1b612adf1cb000e94a3e36175491540bd67df443c45d6228c",
+      "adaptation": null
+    },
+    {
+      "path": "scripts/run_history_replay.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "09699b3b6c2b8449e8f30670501aa5e8f473f1891e54bfc059aef9f773c3a96f",
+      "current_sha256": "09699b3b6c2b8449e8f30670501aa5e8f473f1891e54bfc059aef9f773c3a96f",
+      "adaptation": null
+    },
+    {
+      "path": "strattester/research/grid_math_history.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "949c10f6f6cfa891a949661136773493f055d5c3ec4b31d77820ec36d1f4b9ee",
+      "current_sha256": "6e73870e367067943a04c1476c54ebe4f1b565526cd6a935caf35863da3bb3a1",
+      "adaptation": "Disable Git replacement objects for every pinned source lookup"
+    },
+    {
+      "path": "strattester/research/history_admission.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "d899ce173e011ddbb158943dc669a19de1f942c01ff028fbac837d96cdb025a1",
+      "current_sha256": "d899ce173e011ddbb158943dc669a19de1f942c01ff028fbac837d96cdb025a1",
+      "adaptation": null
+    },
+    {
+      "path": "strattester/research/history_joint.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "dfd53b51bed326af075b92d2cbace886d9ab2afe1a0654dfaed17aa4b484c4e2",
+      "current_sha256": "dfd53b51bed326af075b92d2cbace886d9ab2afe1a0654dfaed17aa4b484c4e2",
+      "adaptation": null
+    },
+    {
+      "path": "strattester/research/history_joint_display.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "8dbdc5ff1f51013df9e1da4332af4560fde7e98ca69af135cdce7409cd6bdb4a",
+      "current_sha256": "8dbdc5ff1f51013df9e1da4332af4560fde7e98ca69af135cdce7409cd6bdb4a",
+      "adaptation": null
+    },
+    {
+      "path": "strattester/research/history_scientific_handoff.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "f49ab74a43ee09242e9eda86e23a47ffa33532316480fed499fc54a4b57a3609",
+      "current_sha256": "f49ab74a43ee09242e9eda86e23a47ffa33532316480fed499fc54a4b57a3609",
+      "adaptation": null
+    },
+    {
+      "path": "strattester/research/history_terminan.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "da102828e8a117a505f8f1359fb7f14d6e37d1fedef654f31df89925f0be1a42",
+      "current_sha256": "da102828e8a117a505f8f1359fb7f14d6e37d1fedef654f31df89925f0be1a42",
+      "adaptation": null
+    },
+    {
+      "path": "tests/fixtures/history-replay-contract.receipt.json",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "31ef7c9a457fd97ed2e2b6e073ca8a876376ebe7ddbec89d2844965e51de4008",
+      "current_sha256": "31ef7c9a457fd97ed2e2b6e073ca8a876376ebe7ddbec89d2844965e51de4008",
+      "adaptation": null
+    },
+    {
+      "path": "tests/fixtures/history-replay-contract.v1.json",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "da9aad3c9757811f647758952511843f771c1f333c8da5888fda48cddb8644b9",
+      "current_sha256": "da9aad3c9757811f647758952511843f771c1f333c8da5888fda48cddb8644b9",
+      "adaptation": null
+    },
+    {
+      "path": "tests/research/test_display_handoff_contract.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "b2e940c8a3003dc7aa891218a324d68d90348e5ede2a0923c414d2912528f77f",
+      "current_sha256": "b2e940c8a3003dc7aa891218a324d68d90348e5ede2a0923c414d2912528f77f",
+      "adaptation": null
+    },
+    {
+      "path": "tests/research/test_display_legacy_cli.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "c994367acc12bfc2a747b6d0bed030afb6fa6ace28e295d12c72c8eb43224e94",
+      "current_sha256": "c994367acc12bfc2a747b6d0bed030afb6fa6ace28e295d12c72c8eb43224e94",
+      "adaptation": null
+    },
+    {
+      "path": "tests/research/test_grid_math_history.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "5e19c943744eeecab2dcbcb1fb1c9eb0d74e89c33fcd6632e8511b1fcd282970",
+      "current_sha256": "5e19c943744eeecab2dcbcb1fb1c9eb0d74e89c33fcd6632e8511b1fcd282970",
+      "adaptation": null
+    },
+    {
+      "path": "tests/research/test_grid_math_history_v11.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "4d5836e005d3a7d6ca55c7d021d89ee1d23d3d265a096beefa5b7e70880fcfe7",
+      "current_sha256": "4d5836e005d3a7d6ca55c7d021d89ee1d23d3d265a096beefa5b7e70880fcfe7",
+      "adaptation": null
+    },
+    {
+      "path": "tests/research/test_history_importability.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "411846b7eb6f7094da313f0f332f106ed9b6623779deffdd895715c362948126",
+      "current_sha256": "411846b7eb6f7094da313f0f332f106ed9b6623779deffdd895715c362948126",
+      "adaptation": null
+    },
+    {
+      "path": "tests/research/test_history_joint.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "ce056ff097765ed0f4ebf10af17aaa30e1ed3df0ca67617c286f5c3cf4542629",
+      "current_sha256": "ce056ff097765ed0f4ebf10af17aaa30e1ed3df0ca67617c286f5c3cf4542629",
+      "adaptation": null
+    },
+    {
+      "path": "tests/research/test_history_scientific_handoff.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "35cef3e34c47f7626c6c27af836db956252230e0f78c31822abb1c9690d60437",
+      "current_sha256": "35cef3e34c47f7626c6c27af836db956252230e0f78c31822abb1c9690d60437",
+      "adaptation": null
+    },
+    {
+      "path": "tests/research/test_history_terminan_review.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "f55390afb8141859d1ceda2ce23c0ae6fd4b2b3c960df9d3b14c5d60240a60c6",
+      "current_sha256": "f55390afb8141859d1ceda2ce23c0ae6fd4b2b3c960df9d3b14c5d60240a60c6",
+      "adaptation": null
+    },
+    {
+      "path": "tests/research/test_joint_display_contract.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "bb717aec7aae92119ce61d0f6cc580326efdd0176ccf5ef687b107590d58a7a0",
+      "current_sha256": "bb717aec7aae92119ce61d0f6cc580326efdd0176ccf5ef687b107590d58a7a0",
+      "adaptation": null
+    },
+    {
+      "path": "tests/research/test_joint_request_capture.py",
+      "source_commit": "8a9f31fa7d07f9201edadc2d2ff94a5e3e1c75a5",
+      "source_sha256": "2e2e05bf681880fe0aae54fd9afef75fed6cede3adc0527e6e9361de7e50faa7",
+      "current_sha256": "2e2e05bf681880fe0aae54fd9afef75fed6cede3adc0527e6e9361de7e50faa7",
+      "adaptation": null
+    }
+  ],
+  "retained": [
+    "engine/executor.py permission and snapshot protection",
+    "research/runner.py sealed ownership integration",
+    "persistence/result_store.py immutable owned runs",
+    "F1 history tooling and data-first/financial components"
+  ],
+  "authorization": {
+    "training": false,
+    "trading": false,
+    "physical_qualification": "NOT_RUN"
+  },
+  "reference_pins_note": "Imported history-reference-pins.json documents original source qualification; coordinated release pins belong to parent-owned Unified manifest."
+}
