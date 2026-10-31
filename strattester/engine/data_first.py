@@ -235,8 +235,15 @@ class DataFirstScheduler:
                     and (j['lease_until'] is None or j['lease_until']<=now)]
         candidates.sort(key=lambda j:(j['state']!='READY',j['last_event'],j['id']))
         selected=candidates[:self.max_jobs]
+        # Jobs for one instrument share the existing DB partition lease. Queue
+        # only this tick's bounded selection in priority order, so retries cannot
+        # race an untouched strategy's claim. Other instruments remain parallel.
+        partitions={}
+        for job in selected:partitions.setdefault(job['partition_key'],[]).append(job)
+        def process_partition(jobs):
+            return tuple(self._process(job['id'],deadline) for job in jobs)
         results=[]
         with ThreadPoolExecutor(max_workers=active_limit) as pool:
-            futures=[pool.submit(self._process,j['id'],deadline) for j in selected]
-            for future in as_completed(futures):results.append(future.result())
+            futures=[pool.submit(process_partition,jobs) for jobs in partitions.values()]
+            for future in as_completed(futures):results.extend(future.result())
         return tuple(results)

@@ -25,31 +25,36 @@ class ReadOnlyResultsApp:
             except (OSError, TypeError, ValueError):
                 pass
 
-    def _source_reason(self):
-        if self.source_path is None:
-            return 'SOURCE_UNAVAILABLE'
+    def _source_uri(self):
+        """Validate lexical local paths before probing any WAL target."""
+        from strattester.research.financial_snapshot import reject_linked_path
+        if self.source_path is None:raise ValueError('source unavailable')
+        source=reject_linked_path(self.source_path)
+        info=source.lstat()
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink!=1:raise ValueError('source unavailable')
+        wal=source.with_name(source.name+'-wal')
         try:
-            from strattester.research.financial_snapshot import reject_linked_path
-            # Preserve lexical ancestors until checked. These portable checks
-            # do not provide native confinement against namespace races.
-            source = reject_linked_path(self.source_path)
-            info = source.lstat()
-            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-                return 'SOURCE_UNAVAILABLE'
-            # Metadata-only main-file probe: ignore WAL, never create sidecars.
-            # This cannot qualify source freshness or consume a live snapshot.
-            con = sqlite3.connect(source.as_uri() + '?mode=ro&immutable=1', uri=True, timeout=0.1)
+            wal=reject_linked_path(wal)
+            info=wal.lstat()
+        except FileNotFoundError:
+            return source.as_uri()+'?mode=ro&immutable=1'
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink!=1:raise ValueError('WAL unavailable')
+        shm=reject_linked_path(source.with_name(source.name+'-shm'))
+        info=shm.lstat()
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink!=1:raise ValueError('SHM unavailable')
+        return source.as_uri()+'?mode=ro'
+
+    def _source_reason(self):
+        try:
+            con=sqlite3.connect(self._source_uri(),uri=True,timeout=0.1)
             try:
-                deadline = time.monotonic() + 0.1
-                con.set_progress_handler(lambda: int(time.monotonic() >= deadline), 100)
-                con.execute('PRAGMA query_only=ON')
-                row = con.execute("SELECT type FROM sqlite_master WHERE name='research_results' LIMIT 1").fetchone()
-                if row != ('table',):
-                    return 'SOURCE_UNAVAILABLE'
-            finally:
-                con.close()
-        except (sqlite3.Error, OSError, ValueError):
-            return 'SOURCE_UNAVAILABLE'
+                deadline=time.monotonic()+0.1
+                con.set_progress_handler(lambda:int(time.monotonic()>=deadline),100)
+                con.execute('PRAGMA query_only=ON');con.execute('BEGIN')
+                row=con.execute("SELECT type FROM sqlite_master WHERE name='research_results' LIMIT 1").fetchone()
+                if row!=('table',):return 'SOURCE_UNAVAILABLE'
+            finally:con.close()
+        except (sqlite3.Error,OSError,ValueError):return 'SOURCE_UNAVAILABLE'
         return 'SOURCE_PROVENANCE_UNQUALIFIED'
 
     def _qualified(self, path, query):
@@ -57,23 +62,8 @@ class ReadOnlyResultsApp:
         if not self.trusted_sources: return None, 'SOURCE_TRUST_UNCONFIGURED'
         if self.source_path is None: return None, 'SOURCE_UNAVAILABLE'
         try:
-            from strattester.research.financial_snapshot import reject_linked_path, unique_object
-            source = reject_linked_path(self.source_path)
-            info = source.lstat()
-            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-                return None, 'SOURCE_UNAVAILABLE'
-            # A live WAL is read only with its existing regular sidecars. A
-            # checkpointed main file uses immutable mode to avoid new sidecars.
-            wal = source.with_name(source.name + '-wal')
-            shm = source.with_name(source.name + '-shm')
-            live_wal = wal.exists()
-            if live_wal:
-                for sidecar in (wal, shm):
-                    sidecar = reject_linked_path(sidecar)
-                    sideinfo = sidecar.lstat()
-                    if not stat.S_ISREG(sideinfo.st_mode) or sideinfo.st_nlink != 1:
-                        return None, 'SOURCE_UNAVAILABLE'
-            uri = source.as_uri() + ('?mode=ro' if live_wal else '?mode=ro&immutable=1')
+            from strattester.research.financial_snapshot import unique_object
+            uri=self._source_uri()
             con=sqlite3.connect(uri,uri=True,timeout=0.1)
             try:
                 deadline=time.monotonic()+0.1
