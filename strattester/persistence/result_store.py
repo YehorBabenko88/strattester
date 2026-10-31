@@ -1,9 +1,9 @@
 from __future__ import annotations
 from pathlib import Path
-import json,sqlite3,time
+import json,sqlite3,time,uuid
 
 class ResultStore:
-    def __init__(self,path,con): self.path=Path(path); self.con=con
+    def __init__(self,path,con): self.path=Path(path); self.con=con; self.producer_epoch=str(uuid.uuid4())
     @classmethod
     def open(cls,path):
         p=Path(path); p.parent.mkdir(parents=True,exist_ok=True)
@@ -25,6 +25,10 @@ class ResultStore:
         if 'job_id' not in staged_cols:con.execute('ALTER TABLE staged_research_results ADD COLUMN job_id TEXT')
         if 'lease_token' not in staged_cols:con.execute('ALTER TABLE staged_research_results ADD COLUMN lease_token INTEGER NOT NULL DEFAULT 0')
         if 'node_generation' not in staged_cols:con.execute('ALTER TABLE staged_research_results ADD COLUMN node_generation INTEGER NOT NULL DEFAULT 0')
+        con.execute("CREATE TABLE IF NOT EXISTS owned_runs(run_id TEXT PRIMARY KEY,state TEXT NOT NULL,record TEXT)")
+        con.execute("CREATE TRIGGER IF NOT EXISTS owned_complete_no_replace BEFORE INSERT ON owned_runs WHEN EXISTS(SELECT 1 FROM owned_runs WHERE run_id=NEW.run_id AND state='COMPLETE') BEGIN SELECT RAISE(ABORT,'immutable completed run'); END")
+        con.execute("CREATE TRIGGER IF NOT EXISTS owned_complete_immutable BEFORE UPDATE ON owned_runs WHEN OLD.state='COMPLETE' BEGIN SELECT RAISE(ABORT,'immutable completed run'); END")
+        con.execute("CREATE TRIGGER IF NOT EXISTS owned_complete_no_delete BEFORE DELETE ON owned_runs WHEN OLD.state='COMPLETE' BEGIN SELECT RAISE(ABORT,'immutable completed run'); END")
         con.commit(); return cls(p,con)
     def put(self,run_id,symbol,strategy_id,strategy_version,metrics,created_at=None):
         created_at=time.time() if created_at is None else float(created_at)
@@ -100,6 +104,21 @@ class ResultStore:
                         'lease_token':int(row[7] or 0),'node_generation':int(row[8] or 0)}
         return None
 
+    def begin_owned(self,run_id):
+        with self.con:
+            self.con.execute("INSERT INTO owned_runs VALUES(?,'RUNNING',NULL)",(run_id,))
+
+    def abort_owned(self,run_id):
+        with self.con:
+            self.con.execute("UPDATE owned_runs SET state='ABORTED' WHERE run_id=? AND state='RUNNING'",(run_id,))
+
+    def complete_owned(self,run_id,record,lease_validator):
+        from strattester.research.provenance import canonical,validate
+        if record.get('run_id')!=run_id or validate(record): raise ValueError('RECORD_INVALID')
+        with self.con:
+            if not lease_validator(): raise RuntimeError('PUBLICATION_FENCED')
+            cursor=self.con.execute("UPDATE owned_runs SET state='COMPLETE',record=? WHERE run_id=? AND state='RUNNING'",(canonical(record).decode(),run_id))
+            if cursor.rowcount!=1: raise RuntimeError('RUN_STATE_INVALID')
     def latest(self,symbol,strategy_id):
         row=self.con.execute('''SELECT run_id,symbol,strategy_id,strategy_version,created_at,metrics
             FROM research_results WHERE symbol=? AND strategy_id=? ORDER BY created_at DESC LIMIT 1''',

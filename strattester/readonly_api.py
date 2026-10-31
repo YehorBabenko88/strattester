@@ -13,7 +13,9 @@ from urllib.parse import parse_qs
 
 
 class ReadOnlyResultsApp:
-    def __init__(self, source_path=None):
+    def __init__(self, source_path=None, *, trusted_sources=(), trusted_receipts=()):
+        self.trusted_sources = frozenset(tuple(x) for x in trusted_sources)
+        self.trusted_receipts = frozenset(tuple(x) for x in trusted_receipts)
         from strattester.research.financial_executable_inventory import _local_path
         self.source_path = None
         if source_path is not None:
@@ -50,6 +52,57 @@ class ReadOnlyResultsApp:
             return 'SOURCE_UNAVAILABLE'
         return 'SOURCE_PROVENANCE_UNQUALIFIED'
 
+    def _qualified(self, path, query):
+        from strattester.research.provenance import validate
+        if not self.trusted_sources: return None, 'SOURCE_TRUST_UNCONFIGURED'
+        if self.source_path is None: return None, 'SOURCE_UNAVAILABLE'
+        try:
+            from strattester.research.financial_snapshot import reject_linked_path, unique_object
+            source = reject_linked_path(self.source_path)
+            info = source.lstat()
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                return None, 'SOURCE_UNAVAILABLE'
+            # A live WAL is read only with its existing regular sidecars. A
+            # checkpointed main file uses immutable mode to avoid new sidecars.
+            wal = source.with_name(source.name + '-wal')
+            shm = source.with_name(source.name + '-shm')
+            live_wal = wal.exists()
+            if live_wal:
+                for sidecar in (wal, shm):
+                    sidecar = reject_linked_path(sidecar)
+                    sideinfo = sidecar.lstat()
+                    if not stat.S_ISREG(sideinfo.st_mode) or sideinfo.st_nlink != 1:
+                        return None, 'SOURCE_UNAVAILABLE'
+            uri = source.as_uri() + ('?mode=ro' if live_wal else '?mode=ro&immutable=1')
+            con=sqlite3.connect(uri,uri=True,timeout=0.1)
+            try:
+                deadline=time.monotonic()+0.1
+                con.set_progress_handler(lambda: int(time.monotonic()>=deadline),100)
+                con.execute('PRAGMA query_only=ON'); con.execute('BEGIN')
+                if path=='/internal/v1/runs':
+                    rows=con.execute("SELECT run_id,state,CASE WHEN length(CAST(record AS BLOB))<=900000 THEN record ELSE NULL END FROM owned_runs WHERE state='COMPLETE' ORDER BY run_id LIMIT ? OFFSET ?",(int(query.get('limit',['50'])[0]),int(query.get('offset',['0'])[0])))
+                else:
+                    rows=con.execute("SELECT run_id,state,CASE WHEN length(CAST(record AS BLOB))<=900000 THEN record ELSE NULL END FROM owned_runs WHERE run_id=?",(path.split('/')[-2],))
+                records=[]; total_bytes=0
+                for run_id,state,raw in rows:
+                    if state!='COMPLETE': return None,'RUN_INCOMPLETE'
+                    if raw is None: return None,'ARTIFACT_SIZE_UNAVAILABLE'
+                    if not isinstance(raw,str): return None,'RECORD_INVALID'
+                    total_bytes+=len(raw.encode('utf-8'))
+                    if total_bytes>900_000: return None,'ARTIFACT_SIZE_UNAVAILABLE'
+                    if time.monotonic()>=deadline: return None,'SOURCE_TIMEOUT'
+                    record=json.loads(raw,object_pairs_hook=unique_object)
+                    reason=validate(record)
+                    if reason: return None,reason
+                    if record['run_id']!=run_id: return None,'RUN_ID_MISMATCH'
+                    if (record['producer_identity'],record['source_revision'],record['dataset']['source_identity']) not in self.trusted_sources: return None,'SOURCE_IDENTITY_UNTRUSTED'
+                    if (record['producer_identity'],record['source_revision'],run_id,record['completion_receipt']) not in self.trusted_receipts: return None,'SOURCE_RECEIPT_UNTRUSTED'
+                    if time.monotonic()>=deadline: return None,'SOURCE_TIMEOUT'
+                    records.append(record)
+                return (records,None) if records else (None,'RUN_UNAVAILABLE')
+            finally: con.close()
+        except (sqlite3.Error,OSError,ValueError,TypeError,KeyError,AttributeError,RecursionError): return None,'SOURCE_PROVENANCE_UNQUALIFIED'
+
     def __call__(self, environ, start_response):
         path = environ.get('PATH_INFO', '')
         method = environ.get('REQUEST_METHOD', '')
@@ -78,7 +131,18 @@ class ReadOnlyResultsApp:
             except ValueError:
                 status, data['reason'] = 400, 'INVALID_QUERY'
             else:
-                data['reason'] = self._source_reason()
+                if path == '/internal/v1/health' or not self.trusted_sources:
+                    data['reason'] = self._source_reason()
+                else:
+                    records, reason = self._qualified(path, query)
+                    if reason:
+                        data['reason'] = reason
+                    else:
+                        status = 200
+                        data.update(provenance='QUALIFIED',mode='HISTORICAL',execution_authority=False,
+                                    runs=records,freshness='HISTORICAL',data_quality='COMPLETE',
+                                    source_authenticity='OWNER_POLICY_ADMITTED',physical_attestation='UNVERIFIED',
+                                    listing_policy='COMPLETE_ONLY',unfinished_runs='UNAVAILABLE_BY_ID')
         else:
             status, data['reason'] = 404, 'NOT_FOUND'
         data['status'] = 'AVAILABLE' if status == 200 else 'UNAVAILABLE'
