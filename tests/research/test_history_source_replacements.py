@@ -29,7 +29,9 @@ def test_pinned_worker_extraction_ignores_blob_replacement(tmp_path, monkeypatch
     blob = git(root, '--no-replace-objects', 'rev-parse', 'HEAD:python/history_worker.py').decode()
     substitute = git(root, 'hash-object', '-w', '--stdin', input=replacement).decode()
     git(root, 'update-ref', namespace + '/' + blob, substitute)
-    monkeypatch.setenv('GIT_REPLACE_REF_BASE', namespace)
+    # Replacement iteration trims the namespace prefix; current Git requires
+    # this prefix to end in '/', otherwise it aborts before object lookup.
+    monkeypatch.setenv('GIT_REPLACE_REF_BASE', namespace + '/')
     # Trusted metadata must refer to raw source objects, independently of the
     # poisoned namespace. Ordinary post-poison peeling aborts in some Git builds
     # before the consumer is exercised; it is not the attack witness below.
