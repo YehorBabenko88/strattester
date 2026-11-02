@@ -8,6 +8,7 @@ import hashlib
 from bisect import bisect_left
 import json
 import math
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -73,9 +74,10 @@ class MathClient:
                 start=time.monotonic()
                 try:
                     while p.poll() is None:
-                        if time.monotonic()-start>self.timeout or out.tell()>self.output_limit or err.tell()>self.output_limit:raise ValueError('MATH_RESOURCE_LIMIT')
+                        # Inspect size without touching an inherited child cursor.
+                        if time.monotonic()-start>self.timeout or os.fstat(out.fileno()).st_size>self.output_limit or os.fstat(err.fileno()).st_size>self.output_limit:raise ValueError('MATH_RESOURCE_LIMIT')
                         time.sleep(.005)
-                    if p.returncode or time.monotonic()-start>self.timeout or out.tell()>self.output_limit or err.tell()>self.output_limit:raise ValueError('MATH_FAILED')
+                    if p.returncode or time.monotonic()-start>self.timeout or os.fstat(out.fileno()).st_size>self.output_limit or os.fstat(err.fileno()).st_size>self.output_limit:raise ValueError('MATH_FAILED')
                 finally:
                     if p.poll() is None:p.kill()
                     p.wait(timeout=2)
