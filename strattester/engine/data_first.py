@@ -247,3 +247,22 @@ class DataFirstScheduler:
             futures=[pool.submit(process_partition,jobs) for jobs in partitions.values()]
             for future in as_completed(futures):results.extend(future.result())
         return tuple(results)
+
+    def finalize_bootstrap(self,root):
+        """Attempt historical handoff from real durable jobs, per market category.
+
+        Research execution completion and full scientific readiness are separate.
+        Missing event-history contracts remain incomplete, never manufactured.
+        """
+        from pathlib import Path
+        from strattester.runtime.bootstrap_completion import BootstrapCompletionCoordinator
+        reports={}
+        for category in self.categories:
+            symbols=sorted({j['payload']['instrument']['symbol'] for j in self.state.jobs()
+                            if j['payload']['instrument']['category']==category})
+            store=self._open_store(category)
+            try:
+                reports[category]=BootstrapCompletionCoordinator(self.state,store,Path(root)/category,
+                         category=category).finalize_if_ready(symbols)
+            finally:store.close()
+        return reports

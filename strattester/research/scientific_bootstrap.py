@@ -5,7 +5,9 @@ Uses only historically available datasets. L2/liquidations are explicitly absent
 from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
+from types import SimpleNamespace
 import json,hashlib,time
+from strattester.engine.executor import _coverage_ready
 from .volatility import VolatilityObservatory
 from .orderflow import cumulative_delta
 from .volume_profile import proxy_profile
@@ -14,18 +16,47 @@ from .scalp_bootstrap import historical_scalp_events
 from .scientific_graph import ScientificGraph,observation_artifact,volatility_artifact,nonlinear_evidence_artifact,regime_artifact
 
 HISTORICAL_CAPABILITIES={
-    "candles":True,
-    "mark_price":True,
-    "index_price":True,
-    "premium_index":True,
-    "open_interest":True,
-    "funding":True,
-    "long_short_ratio":True,
-    "public_trade_aggregates":True,
+    "candles":False,
+    "mark_price":False,
+    "index_price":False,
+    "premium_index":False,
+    "open_interest":False,
+    "funding":False,
+    "long_short_ratio":False,
+    "public_trade_aggregates":False,
     "true_l2_orderbook":False,
     "liquidations":False,
     "true_l2_absorption":False,
 }
+DATASETS={'candles':('1m',60000),'mark_price':('1m',60000),
+          'index_price':('1m',60000),'premium_index':('1m',60000),
+          'open_interest':('5m',300000),'funding':('480m',28800000),
+          'long_short_ratio':('5m',300000),'public_trade_aggregates':('1m',60000)}
+
+
+def dataset_evidence(store,symbol,start_ms,end_ms):
+    """Local byte/coverage evidence; never an exchange-origin attestation.
+
+    Funding/trade events have no completeness contract in the current store. Counting
+    a sparse event table cannot establish its expected historical universe.
+    """
+    evidence={}
+    for dataset,(timeframe,step) in DATASETS.items():
+        lower=((start_ms+step-1)//step)*step
+        upper=(end_ms//step)*step
+        if dataset=='funding':lower,upper=start_ms,end_ms
+        cov=store.coverage(symbol,dataset,timeframe,step_ms=step,start_ms=lower,end_ms=upper)
+        fingerprint=store.range_fingerprint(SimpleNamespace(symbol=symbol,dataset=dataset,
+                    timeframe=timeframe,start_ms=lower,end_ms=upper))
+        event_history=dataset in ('funding','public_trade_aggregates')
+        complete=(not event_history and lower<=upper and
+                  _coverage_ready(store,symbol,dataset,timeframe,lower,upper,1,min(int(time.time()*1000),end_ms+60000)))
+        evidence[dataset]={**fingerprint,'count':cov.count,'earliest':cov.earliest,
+            'latest':cov.latest,'gaps':[asdict(gap) for gap in cov.gaps],
+            'coverage_complete':complete,'provenance':'LOCAL_STORED_ROWS_NOT_EXCHANGE_ATTESTATION',
+            'reason':('EVENT_HISTORY_CONTRACT_UNAVAILABLE' if event_history else
+                      'EXACT_CLOSED_GRID' if complete else 'MISSING_INVALID_OR_INCOMPLETE_COVERAGE')}
+    return evidence
 
 def _bars(store,symbol,start_ms=None,end_ms=None):
     return [{"t":x.open_time,"open":x.open,"high":x.high,"low":x.low,"close":x.close,
@@ -36,8 +67,22 @@ def _trade_aggs(store,symbol,start_ms=None,end_ms=None):
     return list(store.iter_public_trade_aggregates(symbol,"1m",start_ms=start_ms,end_ms=end_ms))
 
 def build_symbol_science(store,symbol,start_ms=None,end_ms=None):
+    requirements=[SimpleNamespace(dataset=dataset,timeframe=tf,start_ms=start_ms,end_ms=end_ms,required=True)
+                  for dataset,(tf,_) in DATASETS.items()]
+    with store.research_snapshot(symbol,requirements) as snapshot:
+        return _build_symbol_science(snapshot,symbol,start_ms,end_ms)
+
+
+def _build_symbol_science(store,symbol,start_ms=None,end_ms=None):
     bars=_bars(store,symbol,start_ms,end_ms)
-    if len(bars)<30:return {"symbol":symbol,"status":"INSUFFICIENT","samples":len(bars)}
+    lower=start_ms if start_ms is not None else (bars[0]['t'] if bars else 0)
+    upper=end_ms if end_ms is not None else (bars[-1]['t'] if bars else lower)
+    evidence=dataset_evidence(store,symbol,lower,upper)
+    common={'symbol':symbol,'samples':len(bars),'dataset_evidence':evidence,
+            'live_promotion_allowed':False}
+    if len(bars)<41:return {**common,"status":"INSUFFICIENT"}
+    if not evidence['candles']['coverage_complete']:
+        return {**common,'status':'PARTIAL','reason':'CANDLE_COVERAGE_INCOMPLETE'}
     trades=_trade_aggs(store,symbol,start_ms,end_ms)
     vol=VolatilityObservatory(window=20,percentile_lookback=252).snapshots(bars,bar_ms=60000)
     flow=cumulative_delta(trades) if trades else ()
@@ -57,7 +102,7 @@ def build_symbol_science(store,symbol,start_ms=None,end_ms=None):
     nonlinear=graph.add(nonlinear_evidence_artifact(obs,returns))
     regime=graph.add(regime_artifact(vol_model,nonlinear))
     return {
-      "symbol":symbol,"status":"READY","samples":len(bars),
+      **common,"status":"READY" if all(x['coverage_complete'] for x in evidence.values()) else "PARTIAL",
       "from_ms":bars[0]["t"],"through_ms":bars[-1]["t"],
       "summary":{
         "mean_return":mean(returns),
@@ -78,12 +123,18 @@ def build_symbol_science(store,symbol,start_ms=None,end_ms=None):
     }
 
 def export_scientific_bootstrap(store,symbols,out_path,start_ms=None,end_ms=None,source_id="strattester"):
-    rows=[build_symbol_science(store,str(s).upper(),start_ms,end_ms) for s in symbols]
+    symbols=list(dict.fromkeys(str(s).upper() for s in symbols))
+    rows=[build_symbol_science(store,s,start_ms,end_ms) for s in symbols]
+    capabilities=dict(HISTORICAL_CAPABILITIES)
+    for dataset in DATASETS:
+        capabilities[dataset]=bool(rows) and all(r['dataset_evidence'][dataset]['coverage_complete'] for r in rows)
     payload={
       "schema":1,
       "source":source_id,
       "created_at":time.time(),
-      "capabilities":HISTORICAL_CAPABILITIES,
+      "capabilities":capabilities,
+      "status":"READY" if rows and all(r['status']=='READY' for r in rows) else "PARTIAL" if rows else "BLOCKED",
+      "live_promotion_allowed":False,
       "research_scope":"HISTORICAL_BOOTSTRAP_ONLY",
       "symbols":rows,
     }

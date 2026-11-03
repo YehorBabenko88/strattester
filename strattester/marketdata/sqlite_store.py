@@ -383,11 +383,15 @@ class SQLiteMarketStore:
                 'index_price':('index_prices','open,high,low,close,complete'),
                 'premium_index':('premium_index','open,high,low,close,complete'),
                 'open_interest':('open_interest','value,complete'),
-                'long_short_ratio':('long_short_ratio','buy_ratio,sell_ratio,long_short_ratio')}
+                'long_short_ratio':('long_short_ratio','buy_ratio,sell_ratio,long_short_ratio'),
+                'public_trade_aggregates':('public_trade_aggregates','buy_volume,sell_volume,turnover,trade_count,vwap,max_trade')}
         h=hashlib.sha256();count=0
         if req.dataset=='candles':
             rows=((r.open_time,r.open,r.high,r.low,r.close,r.volume,r.turnover,r.complete)
                   for r in self.iter_candles(req.symbol,req.timeframe,start_ms=req.start_ms,end_ms=req.end_ms))
+        elif req.dataset=='funding':
+            rows=self.connection.execute('SELECT funding_time,rate FROM funding WHERE symbol=? AND funding_time>=? AND funding_time<=? ORDER BY funding_time',
+                                         (req.symbol,req.start_ms,req.end_ms))
         else:
             if req.dataset not in tables:raise ValueError('fingerprint dataset contract unavailable')
             table,columns=tables[req.dataset]
