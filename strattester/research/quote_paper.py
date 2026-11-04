@@ -60,6 +60,9 @@ def _evaluate(p,now):
  qty=policy['notional']/entry;signed=qty if side=='long' else -qty
  f=p['funding'];receipt(f,('kind','observed_ms','previous_ms','next_ms','interval_ms','events'))
  prev,nxt,interval=(clock(f[k]) for k in ('previous_ms','next_ms','interval_ms'));need(1<=interval<=86400000 and prev<=x['event_ms']<y['event_ms']<nxt and (nxt-prev)%interval==0)
+ # Millisecond timestamps alone cannot order a fill against funding at the
+ # same instant. Reject the ambiguity in every equivalent schedule encoding.
+ need((x['event_ms']-prev)%interval!=0 and (y['event_ms']-prev)%interval!=0)
  need(clock(f['observed_ms'])<=now)
  events=f['events'];need(type(events) is list and len(events)<=128)
  need((nxt-prev)//interval-1<=128);expected=list(range(prev+interval,nxt,interval))

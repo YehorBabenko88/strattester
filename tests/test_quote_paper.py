@@ -243,3 +243,28 @@ def test_old_format_is_rejected_without_implicit_migration(tmp_path):
  before=path.read_bytes()
  with pytest.raises(ValueError):PaperLedger(path)
  assert path.read_bytes()==before
+
+
+@pytest.mark.parametrize('boundary',[1010,1210])
+@pytest.mark.parametrize('kind',['COMPLETE_INTERVAL','COMPLETE_EVENTS'])
+def test_equal_millisecond_funding_and_fill_has_no_declared_event_order(boundary,kind):
+ p=fixture()
+ f=p['funding'];f.update(previous_ms=boundary if kind=='COMPLETE_INTERVAL' else boundary-1000,
+  next_ms=boundary+1000,interval_ms=1000,observed_ms=boundary,
+  kind=kind,events=[])
+ if kind=='COMPLETE_EVENTS':
+  f['events']=[seal(dict(receipt_id='at-boundary',symbol=p['symbol'],source_id='SYNTHETIC_TEST_INPUT',
+   raw_sha256='a'*64,event_ms=boundary,observed_ms=boundary,rate=.01,mark_price=100.))]
+ seal(f)
+ with pytest.raises(ValueError):evaluate(p,now_ms=1300)
+
+
+def test_equivalent_funding_windows_do_not_change_nonboundary_accounting():
+ a=fixture();a['quotes'][0].update(event_ms=1012,observed_ms=1013);seal(a['quotes'][0])
+ a['funding'].update(previous_ms=1010,next_ms=2010,interval_ms=1000,observed_ms=1010);seal(a['funding'])
+ b=copy.deepcopy(a);f=b['funding'];f.update(kind='COMPLETE_EVENTS',previous_ms=10,
+  events=[seal(dict(receipt_id='prior-funding',symbol=b['symbol'],source_id='SYNTHETIC_TEST_INPUT',
+   raw_sha256='a'*64,event_ms=1010,observed_ms=1010,rate=.01,mark_price=100.))]);seal(f)
+ left,right=evaluate(a,now_ms=1300),evaluate(b,now_ms=1300)
+ assert left['funding']==right['funding']==0
+ assert left['pnl']==right['pnl']
