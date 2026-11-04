@@ -4,7 +4,7 @@ Receipt hashes bind caller declarations, not authenticity. Funding completeness 
 caller-admitted schedule evidence. SQLite is node-local durability, not consensus.
 """
 from __future__ import annotations
-import hashlib,json,math,os,re,sqlite3,stat
+import hashlib,json,math,os,re,sqlite3,stat,time
 from contextlib import closing
 from pathlib import Path
 from .execution import _adverse
@@ -78,6 +78,14 @@ def _evaluate(p,now):
  need(len(canonical(p))<=262144)
  return dict(schema='stratt.paper.quote.result.v1',mode='PUBLIC_QUOTE_PAPER_RESEARCH',trade_id=p['request_id'],strategy=p['strategy'],strategy_revision=p['strategy_revision'],evidence_class=p['evidence_class'],request_sha256=digest(p),symbol=p['symbol'],units=dict(p['units']),side='BUY' if side=='long' else 'SELL',status='CLOSED',entry_ts_ms=x['event_ms'],exit_ts_ms=y['event_ms'],entry_price=entry,exit_price=exit,raw_entry_price=rawentry,raw_exit_price=rawexit,qty=qty,signed_qty=signed,gross_raw=rawgross,gross_fill=gross,fees=fees,slippage=slip,funding=funding,pnl=pnl,receipt_bindings=[dict(receipt_id=r['receipt_id'],sha256=r['sha256']) for r in receipts],source_authenticity='NOT_EVALUATED',receipt_provenance='CALLER_DECLARED',fill_selection='CALLER_SUPPLIED_CAUSAL_QUOTES_NOT_COMPLETE_MARKET_STREAM',missing_capabilities=['MARKET_DEPTH_LIQUIDITY','ACTUAL_EXCHANGE_FILLS','STREAM_COMPLETENESS_ATTESTATION'],execution_authority=False,trading_authorized=False,training_authorized=False,grid_normal='NOT_QUALIFIED',paper_eligible='NOT_QUALIFIED',h_b='NOT_QUALIFIED',durability='NODE_LOCAL_NOT_DISTRIBUTED_CONSENSUS_OR_FAILOVER')
 
+class PaperSnapshotBlocked(ValueError):
+ """Typed, sanitized export failure; never a partial or corrupt-ledger success."""
+ status='BLOCKED'
+ def __init__(self,code):
+  self.code=code
+  super().__init__(code)
+
+
 class PaperLedger:
  """Node-local receipts under an externally admitted private parent directory.
 
@@ -98,13 +106,13 @@ class PaperLedger:
     need({r[1] for r in c.execute('PRAGMA table_info(trades)')}=={'request_id','signal_id','request_sha256','admitted_ms','result_sha256','result','request'})
   except (OSError,sqlite3.DatabaseError) as exc:raise ValueError('INVALID_PAPER_LEDGER') from exc
   s=self.path.stat();self._identity=(s.st_dev,s.st_ino)
- def _regular(self):
+ def _regular(self,*,check_sidecars=True):
   need(self.path.is_absolute())
   for p in (self.path,*self.path.parents):
    s=p.lstat();need(not stat.S_ISLNK(s.st_mode) and not getattr(s,'st_file_attributes',0)&0x400)
   s=self.path.stat();need(stat.S_ISREG(s.st_mode) and s.st_nlink==1)
   if self._identity is not None:need((s.st_dev,s.st_ino)==self._identity)
-  for suffix in ('-journal','-wal','-shm'):
+  for suffix in (('-journal','-wal','-shm') if check_sidecars else ()):
    side=Path(str(self.path)+suffix)
    if side.exists() or side.is_symlink():
     info=side.lstat();need(stat.S_ISREG(info.st_mode) and info.st_nlink==1 and not stat.S_ISLNK(info.st_mode) and not getattr(info,'st_file_attributes',0)&0x400)
@@ -122,13 +130,14 @@ class PaperLedger:
    c.execute('CREATE TABLE receipts(receipt_id TEXT PRIMARY KEY,sha256 TEXT NOT NULL)')
    c.execute('CREATE TABLE trades(request_id TEXT PRIMARY KEY,signal_id TEXT UNIQUE NOT NULL,request_sha256 TEXT NOT NULL,admitted_ms INTEGER NOT NULL,result_sha256 TEXT NOT NULL,result TEXT NOT NULL,request TEXT NOT NULL)')
   return cls(path)
- def _validate_existing(self,c,request_id):
+ def _validate_existing(self,c,request_id,*,budget=None):
   """Recompute every bounded v2 row before trusting any uniqueness index.
 
   Canonical requests are retained so repaired result checksums cannot conceal
   arithmetic/index corruption. Format v1 is rejected, never auto-migrated.
   Hashes detect inconsistent declarations, not hostile-writer authenticity.
   """
+  if budget is not None:budget()
   need(c.execute('PRAGMA application_id').fetchone()[0]==self.APPLICATION_ID and c.execute('PRAGMA user_version').fetchone()[0]==2)
   count=c.execute('SELECT COUNT(*) FROM trades').fetchone()[0];need(count<=MAX_LEDGER_TRADES)
   receipt_count=c.execute('SELECT COUNT(*) FROM receipts').fetchone()[0];need(receipt_count<=MAX_LEDGER_RECEIPTS)
@@ -148,6 +157,7 @@ class PaperLedger:
   need(bad==0)
   expected_receipts={};requests=set();signals=set();prior=None
   for rid,sid,request_hash,admitted,result_hash,result_text,request_text in c.execute('SELECT request_id,signal_id,request_sha256,admitted_ms,result_sha256,result,request FROM trades'):
+   if budget is not None:budget()
    label(rid);label(sid);clock(admitted)
    need(rid not in requests and sid not in signals);requests.add(rid);signals.add(sid)
    need(type(request_hash) is str and HEX.fullmatch(request_hash) is not None and type(result_hash) is str and HEX.fullmatch(result_hash) is not None)
@@ -164,9 +174,102 @@ class PaperLedger:
    if rid==request_id:prior=(request_hash,stored)
   actual_receipts={}
   for rid,sha in c.execute('SELECT receipt_id,sha256 FROM receipts'):
+   if budget is not None:budget()
    label(rid);need(type(sha) is str and HEX.fullmatch(sha) is not None and rid not in actual_receipts);actual_receipts[rid]=sha
   need(actual_receipts==expected_receipts)
   return prior,count
+ def _export_facts(self):
+  need(self.path.is_absolute() and not str(self.path).replace(chr(92),'/').startswith('//') and '..' not in self.path.parts
+       and not any(':' in part for part in self.path.parts[1:]))
+  self._regular(check_sidecars=False)
+  # This first slice never opens a live WAL or attempts hot-journal recovery.
+  # Private parent / no hostile concurrent writer remains an external premise.
+  for suffix in ('-journal','-wal','-shm'):
+   try:Path(str(self.path)+suffix).lstat()
+   except FileNotFoundError:continue
+   raise PaperSnapshotBlocked('PAPER_SNAPSHOT_SIDECARS_UNSUPPORTED')
+  facts=self.path.stat()
+  need(facts.st_size<=600*1024*1024)
+  return facts.st_dev,facts.st_ino,facts.st_size,facts.st_mtime_ns
+ @classmethod
+ def export(cls,path,*,limit=200,max_bytes=1048576,validation_seconds=2.0):
+  """Read an existing checkpointed ledger without constructor/create/adoption.
+
+  Live WAL and all journal sidecars are explicitly unsupported. No immutable
+  SQLite shortcut: it could silently discard uncheckpointed observations.
+  """
+  reader=cls.__new__(cls)
+  try:reader.path=Path(path)
+  except (TypeError,ValueError):raise PaperSnapshotBlocked('PAPER_SNAPSHOT_ARGUMENT') from None
+  reader._identity=None
+  return reader.snapshot(limit=limit,max_bytes=max_bytes,validation_seconds=validation_seconds)
+ def snapshot(self,*,limit=200,max_bytes=1048576,validation_seconds=2.0):
+  """Bounded, deterministic declared-receipt export, not live account state.
+
+  Every existing row is re-evaluated at its ORIGINAL admission clock before
+  selection. Output carries the full result, never raw request/credentials.
+  Files must be checkpointed, in an externally admitted private parent, with
+  no hostile writer; this API neither grants ownership nor attests a source.
+  """
+  if not (type(limit) is int and 1<=limit<=200 and type(max_bytes) is int and 1<=max_bytes<=4194304
+          and type(validation_seconds) in (int,float) and math.isfinite(validation_seconds) and 0<validation_seconds<=10):
+   raise PaperSnapshotBlocked('PAPER_SNAPSHOT_ARGUMENT')
+  deadline=time.monotonic()+validation_seconds
+  exhausted=False
+  def budget():
+   nonlocal exhausted
+   if time.monotonic()>=deadline:
+    exhausted=True
+    raise PaperSnapshotBlocked('PAPER_SNAPSHOT_BUDGET')
+  def progress():
+   nonlocal exhausted
+   exhausted=time.monotonic()>=deadline
+   return int(exhausted)
+  try:
+   budget();before=self._export_facts()
+   if self._identity is None:self._identity=before[:2]
+   with self.path.open('rb') as stream:header=stream.read(100)
+   need(len(header)==100 and header[:16]==b'SQLite format 3\0' and int.from_bytes(header[68:72],'big')==self.APPLICATION_ID and int.from_bytes(header[60:64],'big')==2)
+   # Even a sidecar-free checkpointed WAL header could create SHM on open.
+   if header[18:20]!=b'\x01\x01':raise PaperSnapshotBlocked('PAPER_SNAPSHOT_WAL_UNSUPPORTED')
+   # mode=ro forbids database creation/recovery; query_only forbids SQL writes.
+   with closing(sqlite3.connect(self.path.as_uri()+'?mode=ro',uri=True,timeout=min(validation_seconds,1.0))) as c:
+    c.execute('PRAGMA query_only=ON')
+    c.setlimit(sqlite3.SQLITE_LIMIT_LENGTH,MAX_CANONICAL_BYTES*2+8192)
+    c.set_progress_handler(progress,1000)
+    c.execute('BEGIN')
+    try:
+     need({r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")}=={'receipts','trades'})
+     need({r[1] for r in c.execute('PRAGMA table_info(receipts)')}=={'receipt_id','sha256'})
+     need({r[1] for r in c.execute('PRAGMA table_info(trades)')}=={'request_id','signal_id','request_sha256','admitted_ms','result_sha256','result','request'})
+     _,count=self._validate_existing(c,None,budget=budget)
+     rows=[];selected_bytes=0
+     for rid,sid,request_hash,result_hash,admitted,result in c.execute('SELECT request_id,signal_id,request_sha256,result_sha256,admitted_ms,result FROM trades ORDER BY admitted_ms DESC,request_id DESC LIMIT ?',(limit,)):
+      budget()
+      row=dict(request_id=rid,signal_receipt_id=sid,request_sha256=request_hash,result_sha256=result_hash,admitted_ms=admitted,result=json.loads(result))
+      selected_bytes+=len(canonical(row))+1
+      if selected_bytes>max_bytes:raise PaperSnapshotBlocked('PAPER_SNAPSHOT_TOO_LARGE')
+      rows.append(row)
+     output=dict(schema='stratt.paper.quote.snapshot.v1',mode='PUBLIC_QUOTE_PAPER_RESEARCH',
+      source_authenticity='NOT_EVALUATED',receipt_provenance='CALLER_DECLARED',
+      durability='NODE_LOCAL_NOT_DISTRIBUTED_CONSENSUS_OR_FAILOVER',execution_authority=False,trading_authorized=False,
+      ledger_scope='CHECKPOINTED_ROLLBACK_JOURNAL_ONLY',live_wal_supported=False,
+      missing_state=['OPEN_POSITIONS','ACCOUNT_EQUITY','BALANCE','UNREALIZED_PNL'],
+      selection_order=['admitted_ms DESC','request_id DESC'],validated_count=count,returned_count=len(rows),has_more=count>len(rows),rows=rows)
+     budget()
+     if len(canonical(output))>max_bytes:raise PaperSnapshotBlocked('PAPER_SNAPSHOT_TOO_LARGE')
+     if self._export_facts()!=before:raise PaperSnapshotBlocked('PAPER_SNAPSHOT_CHANGED')
+    finally:
+     c.rollback()
+   if self._export_facts()!=before:raise PaperSnapshotBlocked('PAPER_SNAPSHOT_CHANGED')
+   budget()
+   return output
+  except PaperSnapshotBlocked:raise
+  except sqlite3.Error as exc:
+   code='PAPER_SNAPSHOT_BUDGET' if exhausted else 'PAPER_SNAPSHOT_INVALID'
+   raise PaperSnapshotBlocked(code) from None
+  except (OSError,TypeError,ValueError,KeyError,OverflowError,RecursionError):
+   raise PaperSnapshotBlocked('PAPER_SNAPSHOT_INVALID') from None
  def append(self,p,*,now_ms):
   self._regular();raw=canonical(p);need(len(raw)<=MAX_CANONICAL_BYTES);request=hashlib.sha256(raw).hexdigest();label(p['request_id'])
   with closing(sqlite3.connect(self.path)) as c,c:
