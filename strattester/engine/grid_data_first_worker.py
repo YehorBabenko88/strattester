@@ -75,8 +75,13 @@ def serve(scheduler,expected_source,*,input_stream=None,output_stream=None):
   ipc=_IPCLease(sys.stdin.buffer if input_stream is None else input_stream,sys.stdout.buffer if output_stream is None else output_stream)
   need(hex_value(expected_source,40),'PROCESS_ADMISSION_REQUIRED')
   from strattester.engine.data_first import DataFirstScheduler
-  from strattester.engine.grid_data_first import execute_assigned
+  from strattester.engine.grid_data_first import execute_assigned,validate_assigned
   need(type(scheduler) is DataFirstScheduler,'PROCESS_ADMISSION_REQUIRED')
+  validate_assigned(scheduler,ipc.job,expected_source=expected_source)
+  prepare=getattr(scheduler,'protected_prepare',None)
+  if prepare is not None:
+   need(callable(prepare) and getattr(scheduler,'protected_expected_source',None)==expected_source,'PROCESS_ADMISSION_REQUIRED')
+   ipc.renew(ipc.job);prepare()
   execute_assigned(scheduler,ipc.job,ipc,expected_source=expected_source)
   ipc.finish();return 0
  except Exception as error:

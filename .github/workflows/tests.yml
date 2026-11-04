@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: YehorBabenko88/unified-system
-          ref: c20e234b5ad310303859875fc4296e19336d45ac
+          ref: e0c2ea20aa4f1bd9476d1046e7e4b41f1b12d8e9
           path: .source/unified-system
           persist-credentials: false
       - name: Record exact source identity
@@ -38,6 +38,7 @@ jobs:
       - name: Run full pytest inventory
         id: pytest
         env:
+          UNIFIED_SOURCE_ROOT: ${{ github.workspace }}/.source/unified-system
           STRATTESTER_TEST_UNIFIED_ROOT: ${{ github.workspace }}/.source/unified-system
         run: python -m pytest -v --junitxml=results/core/pytest.xml
       - name: Annotate bounded pytest failure metadata

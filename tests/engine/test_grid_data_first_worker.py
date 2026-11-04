@@ -1,4 +1,5 @@
 """Fixed child protocol with a preconstructed fixture scheduler; no deployment claim."""
+import pytest
 import copy,hashlib,io,json,subprocess,sys
 from pathlib import Path
 from tests.engine.test_data_first_scheduler import setup,no_actual_network
@@ -74,3 +75,17 @@ def test_private_application_exception_never_becomes_child_diagnostic(tmp_path,m
  assert serve(scheduler,'a'*40,input_stream=pipe,output_stream=pipe)==78
  assert pipe.written[-1]['body']=={'code':'PROCESS_CHILD_FAILED'}
  assert 'SECRET' not in json.dumps(pipe.written)
+
+
+@pytest.mark.parametrize('mutation',[lambda j:j['payload'].update(source_commit='b'*40),lambda j:j['payload']['domain'].update(unexpected=True),lambda j:j['payload']['domain']['instrument'].update(category='inverse'),lambda j:j['payload']['resources'].update(cpu=-1)])
+def test_invalid_assigned_request_has_no_prepare_or_domain_io(tmp_path,mutation,monkeypatch):
+ scheduler,state,calls,*_=setup(tmp_path);job=job_for(scheduler,state);effects=[];mutation(job)
+ scheduler.protected_prepare=lambda:effects.append('DISCOVERY_EFFECT')
+ scheduler.protected_expected_source='a'*40
+ before=len(calls)
+ def forbidden(*a,**kw):raise AssertionError('SQLITE_READ_BEFORE_ADMISSION')
+ monkeypatch.setattr(state,'instruments',forbidden)
+ pipe=Pipe(job)
+ assert serve(scheduler,'a'*40,input_stream=pipe,output_stream=pipe)==78
+ assert effects==[] and len(calls)==before
+ assert all(row['op'] not in ('RENEW','CHECKPOINT') for row in pipe.written)
