@@ -222,6 +222,18 @@ class DataFirstScheduler:
             if client is not None:self._close_client(client)
         return self.state.get(key)
 
+    def process_assigned(self,state,key,deadline,*,owner,cancel):
+        """Consume an already admitted external lease, never the local queue.
+
+        The supplied state is a publication boundary, not a second scheduler.
+        No network/workspace/source admission is created by this method.
+        """
+        import copy
+        worker=copy.copy(self);worker.state=state;worker.owner=owner
+        previous=self.external_cancel
+        worker.external_cancel=lambda:bool(cancel() or previous())
+        return worker._process(key,deadline)
+
     def tick(self):
         if self.external_cancel() or not self.resource_admission():return ()
         active_limit=self.max_concurrency
