@@ -219,3 +219,29 @@ def test_different_timeframes_use_distinct_closed_windows(tmp_path):
     assert {r['timeframe']:r['end_ms'] for r in planned}=={'1m':300000,'5m':0}
     for _ in range(9):scheduler.tick()
     assert state.get(keys[0])['state']=='COMPLETED'
+
+
+def test_selected_same_partition_strategies_progress_without_competing_claims(tmp_path, monkeypatch):
+    # Force the old dispatcher race: the first granted lease remains visible
+    # until a competing selected worker tries it (or the bounded wait expires
+    # when a single partition worker correctly owns the queue).
+    scheduler,state,_,registry,_=setup(tmp_path,empty={'ALPHAUSDT'})
+    registry.register(StrategyDefinition('second-count','1',
+        (DataRequirement('candles',('1m',)),),Count))
+    scheduler.discover();scheduler.plan(start_ms=0,end_ms=180000)
+    original=state.claim;guard=threading.Lock();first=[None];competing=threading.Event()
+    def controlled_claim(key,*args,**kwargs):
+        token=original(key,*args,**kwargs)
+        with guard:
+            lead=token is not None and first[0] is None
+            if lead:first[0]=key
+            elif token is None and first[0] is not None:competing.set()
+        if lead:competing.wait(.5)
+        return token
+    monkeypatch.setattr(state,'claim',controlled_claim)
+    scheduler.tick()
+    jobs=state.jobs()
+    assert len(jobs)==2
+    assert all(job['state']=='PARTIAL' for job in jobs)
+    assert not competing.is_set(), 'same partition must not race its own selected lease'
+    assert all(job['result'] is None and job['lease_until'] is None for job in jobs)

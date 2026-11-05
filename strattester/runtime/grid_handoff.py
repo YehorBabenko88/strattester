@@ -12,6 +12,13 @@ def file_sha256(path):
 def write_handoff(path,science_bundle_path,*,strategy_results_path=None,phase_manifest_path=None):
     science=Path(science_bundle_path)
     if not science.exists():raise FileNotFoundError(science)
+    from strattester.research.scientific_bootstrap import DATASETS
+    bundle=json.loads(science.read_text(encoding='utf-8'))
+    ready=(bundle.get('schema')==1 and bundle.get('status')=='READY' and
+           bundle.get('research_scope')=='HISTORICAL_BOOTSTRAP_ONLY' and
+           bundle.get('live_promotion_allowed') is False and
+           bool(bundle.get('symbols')) and all(row.get('status')=='READY' for row in bundle['symbols']) and
+           all(bundle.get('capabilities',{}).get(dataset) is True for dataset in DATASETS))
     out={
       "schema":1,
       "created_at":time.time(),
@@ -19,7 +26,9 @@ def write_handoff(path,science_bundle_path,*,strategy_results_path=None,phase_ma
       "science_bundle":{"path":str(science),"sha256":file_sha256(science)},
       "strategy_results":None,
       "phase_manifest":None,
-      "ready_for_grid_import":True,
+      "ready_for_grid_import":ready,
+      "research_scope":"HISTORICAL_BOOTSTRAP_ONLY",
+      "live_promotion_allowed":False,
     }
     if strategy_results_path:
         p=Path(strategy_results_path)

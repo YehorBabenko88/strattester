@@ -89,9 +89,12 @@ def main(argv=None):
             if stop.is_set():break
             scheduler.tick()
         jobs=state.jobs()
+        completion=scheduler.finalize_bootstrap(root/'historical-bootstrap') if not stop.is_set() else {}
         print(json.dumps({'jobs':[{'id':j['id'],'state':j['state'],'reason':j['reason']} for j in jobs],
+                          'historical_bootstrap':completion,
                           'physical_g1':'NOT_AUTHORIZED','trading':'NO-GO'},sort_keys=True))
-        return 0 if jobs and all(j['state']=='COMPLETED' for j in jobs) else 2
+        return 0 if jobs and all(j['state']=='COMPLETED' for j in jobs) and completion and all(
+            result['finalized'] for result in completion.values()) else 2
     finally:signal.signal(signal.SIGINT,previous)
 
 if __name__=='__main__':raise SystemExit(main())

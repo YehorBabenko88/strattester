@@ -222,6 +222,18 @@ class DataFirstScheduler:
             if client is not None:self._close_client(client)
         return self.state.get(key)
 
+    def process_assigned(self,state,key,deadline,*,owner,cancel):
+        """Consume an already admitted external lease, never the local queue.
+
+        The supplied state is a publication boundary, not a second scheduler.
+        No network/workspace/source admission is created by this method.
+        """
+        import copy
+        worker=copy.copy(self);worker.state=state;worker.owner=owner
+        previous=self.external_cancel
+        worker.external_cancel=lambda:bool(cancel() or previous())
+        return worker._process(key,deadline)
+
     def tick(self):
         if self.external_cancel() or not self.resource_admission():return ()
         active_limit=self.max_concurrency
@@ -235,8 +247,34 @@ class DataFirstScheduler:
                     and (j['lease_until'] is None or j['lease_until']<=now)]
         candidates.sort(key=lambda j:(j['state']!='READY',j['last_event'],j['id']))
         selected=candidates[:self.max_jobs]
+        # Jobs for one instrument share the existing DB partition lease. Queue
+        # only this tick's bounded selection in priority order, so retries cannot
+        # race an untouched strategy's claim. Other instruments remain parallel.
+        partitions={}
+        for job in selected:partitions.setdefault(job['partition_key'],[]).append(job)
+        def process_partition(jobs):
+            return tuple(self._process(job['id'],deadline) for job in jobs)
         results=[]
         with ThreadPoolExecutor(max_workers=active_limit) as pool:
-            futures=[pool.submit(self._process,j['id'],deadline) for j in selected]
-            for future in as_completed(futures):results.append(future.result())
+            futures=[pool.submit(process_partition,jobs) for jobs in partitions.values()]
+            for future in as_completed(futures):results.extend(future.result())
         return tuple(results)
+
+    def finalize_bootstrap(self,root):
+        """Attempt historical handoff from real durable jobs, per market category.
+
+        Research execution completion and full scientific readiness are separate.
+        Missing event-history contracts remain incomplete, never manufactured.
+        """
+        from pathlib import Path
+        from strattester.runtime.bootstrap_completion import BootstrapCompletionCoordinator
+        reports={}
+        for category in self.categories:
+            symbols=sorted({j['payload']['instrument']['symbol'] for j in self.state.jobs()
+                            if j['payload']['instrument']['category']==category})
+            store=self._open_store(category)
+            try:
+                reports[category]=BootstrapCompletionCoordinator(self.state,store,Path(root)/category,
+                         category=category).finalize_if_ready(symbols)
+            finally:store.close()
+        return reports
