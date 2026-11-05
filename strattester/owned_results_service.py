@@ -32,7 +32,16 @@ def identity():
     return values
 
 
-def check_source():
+def _startup_scope(admission,module,source,commit,executable,digest):
+    if isinstance(admission,dict) or not all(callable(getattr(admission,name,None)) for name in ('require_current','source_scope')):raise ValueError('SOURCE_UNAVAILABLE')
+    if admission.require_current() is not True:raise ValueError('SOURCE_UNAVAILABLE')
+    if not Path(executable).is_absolute() or re.fullmatch('[a-f0-9]{64}',digest) is None or re.fullmatch('[a-f0-9]{40}',commit) is None:raise ValueError('SOURCE_UNAVAILABLE')
+    scoped=admission.source_scope(module,source,commit)
+    if not isinstance(scoped,Path) or not scoped.is_absolute() or '*' in str(scoped) or scoped!=source.resolve(strict=True):raise ValueError('SOURCE_UNAVAILABLE')
+    if Path(admission.git_executable)!=Path(executable) or admission.git_sha256!=digest:raise ValueError('GIT_PIN_UNAVAILABLE')
+    return scoped
+
+def check_source(*,startup_admission=None):
     """Reuse shared externally pinned Root policy; never authorize its own pin."""
     if not (sys.flags.isolated and sys.flags.no_site and sys.flags.dont_write_bytecode and sys.pycache_prefix):
         raise ValueError('OWNED_BOOTSTRAP_REQUIRED')
@@ -43,13 +52,23 @@ def check_source():
     executable=os.environ.get('UNIFIED_GIT_EXECUTABLE','')
     git_digest=os.environ.get('UNIFIED_GIT_SHA256','')
     if not executable or not re.fullmatch('[a-f0-9]{64}',git_digest):raise ValueError('GIT_PIN_UNAVAILABLE')
+    if startup_admission is not None:_startup_scope(startup_admission,'unified-system',root,os.environ['UNIFIED_ROOT_SOURCE_COMMIT'],executable,git_digest)
     sys.path.insert(0,str(root))
     from integration.source_guard import SourceFence
     if Path(sys.modules[SourceFence.__module__].__file__).resolve()!=root/'integration/source_guard.py':
         raise ValueError('SOURCE_UNAVAILABLE')
-    for source,pin in ((root,os.environ['UNIFIED_ROOT_SOURCE_COMMIT']),
-                       (Path(__file__).resolve().parents[1],os.environ['UNIFIED_SOURCE_COMMIT'])):
-        fence=SourceFence(source,pin,isolated_cache=sys.pycache_prefix,git_executable=executable,git_sha256=git_digest);fence.check()
+    for module,source,pin in (('unified-system',root,os.environ['UNIFIED_ROOT_SOURCE_COMMIT']),
+                       ('strattester',Path(__file__).resolve().parents[1],os.environ['UNIFIED_SOURCE_COMMIT'])):
+        fence_type=SourceFence;options={}
+        if startup_admission is not None:
+            admitted=_startup_scope(startup_admission,module,source,pin,executable,git_digest)
+            class AdmittedFence(SourceFence):
+                _module=module;_commit=pin
+                def git(self,*args,**kwargs):
+                    _startup_scope(startup_admission,self._module,self.root,self._commit,executable,git_digest)
+                    return super().git(*args,**kwargs)
+            fence_type=AdmittedFence;options['owner_admitted_root']=admitted
+        fence=fence_type(source,pin,isolated_cache=sys.pycache_prefix,git_executable=executable,git_sha256=git_digest,**options);fence.check()
         if source!=root:fence.file(__file__,python=True)
 
 
@@ -61,11 +80,19 @@ def terminate_windows_tree(pid):
     subprocess.run([executable,'/PID',str(pid),'/T','/F'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=3)
 
 
-def verify_source_bounded():
+def verify_source_bounded(*,startup_admission=None):
     root=Path(os.environ['UNIFIED_SOURCE_ROOT'])
     command=[sys.executable,'-I','-S','-B',str(root/'unified_system/owned_python.py'),
              '--source-root',str(Path(__file__).resolve().parents[1]),'--dependency-root',str(root),
              '--module','strattester.owned_results_service','--','--verify-source']
+    if startup_admission is not None:
+        executable=os.environ.get('UNIFIED_GIT_EXECUTABLE','');digest=os.environ.get('UNIFIED_GIT_SHA256','');commit=os.environ.get('UNIFIED_ROOT_SOURCE_COMMIT','')
+        _startup_scope(startup_admission,'unified-system',root,commit,executable,digest)
+        if not callable(getattr(startup_admission,'verification_launch',None)):raise ValueError('SOURCE_UNAVAILABLE')
+        command=startup_admission.verification_launch('strattester')
+        if type(command) is not list or len(command)!=7 or any(type(part) is not str or len(part)>32768 for part in command):raise ValueError('SOURCE_UNAVAILABLE')
+        if command[1:4]!=['-I','-S','-B'] or command[5:]!=['--verify-module-source','strattester'] or Path(command[4])!=root/'unified_system/service_entry.py' or Path(command[0]).resolve()!=Path(sys.executable).resolve():raise ValueError('SOURCE_UNAVAILABLE')
+        command=list(command);_startup_scope(startup_admission,'unified-system',root,commit,executable,digest)
     kwargs={'start_new_session':True} if os.name!='nt' else {'creationflags':subprocess.CREATE_NEW_PROCESS_GROUP}
     child=subprocess.Popen(command,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,**kwargs)
     try:
@@ -145,18 +172,18 @@ def make_server(app,port):
     return server
 
 
-def main(argv=None):
+def main(argv=None,*,startup_admission=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--serve',action='store_true');parser.add_argument('--verify-source',action='store_true',help=argparse.SUPPRESS)
     parser.add_argument('--store');parser.add_argument('--port',type=int,default=0)
     args=parser.parse_args(argv)
-    if args.verify_source:identity();check_source();return 0
+    if args.verify_source:identity();check_source(startup_admission=startup_admission);return 0
     if not args.serve:
         print(json.dumps({'status':'PREPARE','listening':False,'read_only':True}));return 0
     owned=identity()
     if not args.store or not 1<=args.port<=65535:raise ValueError('SERVICE_CONFIGURATION_UNAVAILABLE')
     if not (sys.flags.isolated and sys.flags.no_site and sys.flags.dont_write_bytecode):raise ValueError('OWNED_BOOTSTRAP_REQUIRED')
-    verify_source_bounded()
+    verify_source_bounded(startup_admission=startup_admission)
     raw=os.environ.get('STRATTESTER_RESULTS_TRUST_JSON','{"sources":[],"receipts":[]}')
     if len(raw)>16384:raise ValueError('TRUST_CONFIGURATION_UNAVAILABLE')
     trust=json.loads(raw)

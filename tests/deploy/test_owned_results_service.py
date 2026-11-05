@@ -285,3 +285,68 @@ def test_windows_cleanup_rejects_noncanonical_system_root(monkeypatch,root):
     service=adapter();monkeypatch.setenv('SystemRoot',root)
     monkeypatch.setattr(subprocess,'run',lambda *args,**kwargs:pytest.fail('unsafe cleanup binary launched'))
     with pytest.raises(ValueError):service.terminate_windows_tree(1234)
+
+
+def test_protected_bounded_source_verifier_uses_only_fixed_raw_entry_and_rechecks_grant(tmp_path,monkeypatch):
+    import hashlib,os,shutil,subprocess,sys
+    from types import SimpleNamespace
+    service=adapter();root=tmp_path/'unified';(root/'unified_system').mkdir(parents=True);entry=root/'unified_system/service_entry.py';entry.write_bytes(b'INERT')
+    executable=str(Path(shutil.which('git')).resolve());pin=hashlib.sha256(Path(executable).read_bytes()).hexdigest()
+    for key,value in dict(UNIFIED_SOURCE_ROOT=str(root),UNIFIED_ROOT_SOURCE_COMMIT='a'*40,UNIFIED_GIT_EXECUTABLE=executable,UNIFIED_GIT_SHA256=pin).items():monkeypatch.setenv(key,value)
+    command=[sys.executable,'-I','-S','-B',str(entry),'--verify-module-source','strattester'];calls=[]
+    class Process:
+        def wait(self,timeout=None):return 0
+    def popen(argv,**kwargs):calls.append(argv);return Process()
+    monkeypatch.setattr(service.subprocess,'Popen',popen)
+    admitted=SimpleNamespace(require_current=lambda:True,source_scope=lambda module,path,commit:root,git_executable=executable,git_sha256=pin,verification_launch=lambda module:list(command))
+    service.verify_source_bounded(startup_admission=admitted);assert calls==[command]
+    for mutation in ('json','revoked','wrong-mode','wrong-entry'):
+        candidate=SimpleNamespace(**vars(admitted))
+        if mutation=='json':candidate={'authorized':True}
+        elif mutation=='revoked':candidate.require_current=lambda:1
+        else:
+            wrong=list(command);wrong[5]='--execute' if mutation=='wrong-mode' else wrong[5]
+            if mutation=='wrong-entry':wrong[4]=str(root/'other.py')
+            candidate.verification_launch=lambda module:wrong
+        with pytest.raises(ValueError):service.verify_source_bounded(startup_admission=candidate)
+    assert calls==[command]
+
+
+def test_protected_main_passes_admission_to_source_check(monkeypatch):
+    service=adapter();seen=[];admitted=object()
+    monkeypatch.setattr(service,'identity',lambda:IDENTITY);monkeypatch.setattr(service,'check_source',lambda **kwargs:seen.append(kwargs))
+    assert service.main(['--verify-source'],startup_admission=admitted)==0
+    assert seen==[{'startup_admission':admitted}]
+
+
+def test_protected_source_checks_actual_forced_foreign_owner_without_repo_configuration_write(tmp_path):
+    import hashlib,os,shutil,subprocess,sys
+    unified=Path(os.environ['STRATTESTER_TEST_UNIFIED_ROOT']);root=tmp_path/'unified';own=tmp_path/'stratt';cache=tmp_path/'cache';root.mkdir();own.mkdir();cache.mkdir()
+    for destination,origin,files in ((root,unified,['integration/source_guard.py']),(own,Path(__file__).resolve().parents[2],['strattester/__init__.py','strattester/owned_results_service.py'])):
+        for name in files:
+            path=destination/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes((origin/name).read_bytes())
+        def git(*args):return subprocess.check_output(['git','-C',str(destination),*args],stderr=subprocess.DEVNULL).decode().strip()
+        git('init','-q');git('config','core.autocrlf','false');git('add','.');git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture')
+    def head(path):return subprocess.check_output(['git','-C',str(path),'rev-parse','HEAD'],stderr=subprocess.DEVNULL).decode().strip()
+    exe=str(Path(shutil.which('git')).resolve());pin=hashlib.sha256(Path(exe).read_bytes()).hexdigest();before=[(p/'.git/config').read_bytes() for p in (root,own)]
+    env={k:v for k,v in os.environ.items() if not k.upper().startswith('GIT_')};env.update(UNIFIED_SOURCE_ROOT=str(root),UNIFIED_ROOT_SOURCE_COMMIT=head(root),UNIFIED_SOURCE_COMMIT=head(own),UNIFIED_GIT_EXECUTABLE=exe,UNIFIED_GIT_SHA256=pin)
+    driver="""import sys,os,subprocess
+from pathlib import Path
+from types import SimpleNamespace
+root=Path(sys.argv[1]);own=Path(sys.argv[2]);sys.path[:0]=[str(root),str(own)];sys.pycache_prefix=sys.argv[3]
+from strattester import owned_results_service as service
+real=subprocess.Popen
+def foreign(*args,**kwargs):
+ kwargs['env']=dict(kwargs.get('env',os.environ),GIT_TEST_ASSUME_DIFFERENT_OWNER='1');return real(*args,**kwargs)
+subprocess.Popen=foreign
+if sys.argv[4]=='legacy':service.check_source()
+else:
+ def scope(module,path,commit):
+  expected=root if module=='unified-system' else own;pin=os.environ['UNIFIED_ROOT_SOURCE_COMMIT' if module=='unified-system' else 'UNIFIED_SOURCE_COMMIT'];assert path==expected and commit==pin;return expected
+ admission=SimpleNamespace(require_current=lambda:True,source_scope=scope,git_executable=os.environ['UNIFIED_GIT_EXECUTABLE'],git_sha256=os.environ['UNIFIED_GIT_SHA256'])
+ service.check_source(startup_admission=admission)
+"""
+    for mode,expected in (('legacy',False),('protected',True)):
+        result=subprocess.run([sys.executable,'-I','-S','-B','-c',driver,str(root),str(own),str(cache),mode],env=env,capture_output=True,timeout=30)
+        assert (result.returncode==0) is expected,result.stderr.decode()
+    assert [(p/'.git/config').read_bytes() for p in (root,own)]==before
