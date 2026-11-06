@@ -1,0 +1,68 @@
+{
+  "schema": "agent7.git-provenance-regressions.v1",
+  "repository": "strat",
+  "base_head": "1722244f42d5d71a29b89bdec0e7211f2b723158",
+  "base_tree": "c484fff43f8b248c87a56af633f2fcd8715a3a0c",
+  "scope": "IsolatedGitobjectcontrols andsourceevidencehardening; no research/trading/native/profile/skip/identitypolicychange",
+  "changed_source_and_tests": [
+    "scripts/financial_gate.py",
+    "tests/research/test_financial_ci_source_replacements.py"
+  ],
+  "test_controls": {
+    "new_tests": 10,
+    "namespaces": [
+      "refs/replace",
+      "refs/agent7-replacements"
+    ],
+    "cases": [
+      "clean",
+      "blob",
+      "tree",
+      "commit"
+    ],
+    "real_dirty_checkout_rejection_cases": 2,
+    "isolated_git": "Independentseed+--no-hardlinksclone, noalternates, Gitpath/configenvironmentcleared beforefixtureGit, rawprimaryrefsuntouched",
+    "witness": "Actualreplacement-awarecat-file returnsvirtualbytes, raw--no-replace lookupreturnsoriginal",
+    "no_skip_when_git_available": true
+  },
+  "classification": "Meta recorderpreviouslymisreportedtreewithunchangedHEAD undercommitreplacement; Strattstatuspreconditionfalse-dirtyfailclosedavailability, notprovenPASSbypass",
+  "red_green": {
+    "red": {
+      "exit_code": 1,
+      "summary": {
+        "passed": 6,
+        "failed": 4,
+        "total": 10,
+        "collected": 10
+      },
+      "json_sha256": "b3ab5ae8a4dcca7bd6d0707fdb7418352734e5cef07f45e125d61303c7d225aa",
+      "log_sha256": "81e9f2a1fc4f3488b30c40b0ed4b2bd6dcf371db479cad3b985dc54ae56983c5"
+    },
+    "green": {
+      "exit_code": 0,
+      "summary": {
+        "passed": 50,
+        "total": 50,
+        "collected": 50
+      },
+      "json_sha256": "48e17a9c397bb935e5e03950ca0f5c33b980b55c199b1d2e5ae9e25942797e29",
+      "log_sha256": "5758ea09f39d830a5a97bee0684a99fa591399abc88debcc6bafa156b5d24bcb"
+    }
+  },
+  "environment": {
+    "python": "3.12.10",
+    "git": "git version 2.55.0.windows.5",
+    "local_scope": "Windows softwareguards only; no nativeMain/broker or endpoint/DB/network execution"
+  },
+  "acceptance_limits": {
+    "old_meta_ci": "3123actualCIidentities retained on88b; notretroactiveadversarialPASS",
+    "meta_source_authenticity": "NOT_EVALUATED",
+    "stratt_strict_aggregate": "UNCHANGED_BLOCKED",
+    "old_pr_refs": "77/71 preserved",
+    "math113": "dbb9 source/activation untouched, no cancel/rerun/relabel",
+    "new_ci": "NOT_YET_RUN",
+    "physical": "NOT_RUN",
+    "overall": "NO-GO"
+  },
+  "exact_final_head_tree": "Containingcommitcannotembedownhash; suppliedinDraftPRandexternalhandoff"
+}
