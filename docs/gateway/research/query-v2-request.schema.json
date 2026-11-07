@@ -285,6 +285,6 @@
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:stratt.gateway.synthetic.research.request.v1-review1",
+  "$id": "urn:stratt.gateway.synthetic.research.request.v2-review1",
   "$comment": "PROPOSAL COMPONENT BOUNDARY ONLY. Exact bytes, duplicate-key parser, semantic cross-field/digest/source checks and actual owner admission are separate. No chart/runtime/shared API ACK from schema validity."
 }
