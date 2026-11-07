@@ -1,0 +1,56 @@
+Slice A — exact proposed LOCAL API, design review pending
+Base aed8a7c8a952f96803c207d5e90b133969a47f04/treeeed3a87.
+Root allocated branch feature/artifact-result-store-successor-20261107 and
+result_store.py/result_persistence.py, two existing persistence tests, new
+tests/research/gateway_artifact_persistence/** and this docs directory.
+
+No actual A2/A4 native commit/receipt ABI exists yet. This slice cannot project
+any positive receipt and must not call a truthy callback or synthesize a handle.
+
+Proposed local method:
+stage_gateway_artifact(stage_id, run_id, symbol, operation_id, operation_revision,
+                       raw_descriptor, *, artifact_sha256, original_intent_sha256)
+Exact strings bounded128 ASCII safe labels; revisions canonical u63 strings;
+two SHA256 fields lowercase64. raw_descriptor exact bytes1..65536, retained
+without reencoding as local opaque bytes, not a semantic admission. Compute and
+retain its exact SHA256. Caller must separately retain actual artifact bytes.
+Return None for both new stage and exact retry. Same stage or logical result
+identity with differing descriptor/intent/artifact bindings => ValueError
+ARTIFACT_STAGE_CONFLICT, no replacement. Idempotency survives reopen.
+
+Use SAME staged_research_results/research_results tables. Add result_kind
+NOT NULL DEFAULT FINANCIAL plus nullable artifact_descriptor BLOB,
+artifact_descriptor_sha256 TEXT, artifact_sha256 TEXT, original_intent_sha256 TEXT,
+publication_receipt BLOB. ARTIFACT rows have metrics='{}' only as an inaccessible
+legacy NOT NULL compatibility placeholder, never as financial data. No new table.
+Existing legacy stage/put must refuse collision with an artifact identity; legacy
+promote/recover/cleanup/discard/latest/latest_fenced exclude ARTIFACT rows. Existing
+financial callers otherwise preserve behavior. No UNKNOWN artifact stage deletion.
+
+Proposed closed local denial surfaces:
+project_gateway_artifact_commit(stage_id, *, actual_receipt_handle, expected_authority)
+read_gateway_artifact(run_id, symbol, operation_id, operation_revision)
+Both ALWAYS raise RuntimeError ARTIFACT_AUTHORITY_ABI_UNAVAILABLE in this slice,
+without inspecting/awaiting/calling caller-supplied objects. No dict-shaped receipt
+or source hash is authority. Shared positive ABI is deliberately not defined here.
+
+Additive result_persistence helper (LOCAL staging only):
+stage_gateway_research_artifact(store, stage_id, run_id, symbol, operation_id,
+  operation_revision, raw_descriptor, artifact_bytes, *, original_intent_sha256)
+Checks exact bytes bounds, duplicate-free JSON descriptor core artifact hash and
+length match actual artifact bytes, expected synthetic result schema, false
+authority flags and unavailable null finance; calls only local stage. No
+COMPLETE_HISTORY, StrategyResult coercion, financial profile or publication.
+This helper's validation is not full provenance/schema/source admission.
+
+Tests: old-schema migration and row preservation; exact raw descriptor retained;
+new/exact retry/reopen; stage and logical identity conflict; cross-kind collision;
+legacy recovery/cleanup/discard cannot delete or publish UNKNOWN artifact stages;
+all positive-looking foreign/dict/callback receipts refused without invocation;
+actual Meta artifact digest/length mismatch refused before staging.
+Use own disposable SQLite only. Existing17 persistence baseline passes. No changes
+to user databases, services, transport, authority, storage engine or physical nodes.
+
+Pending: Root/A4 exact local signature/column ACK before implementation. Actual
+A2/A4 positive receipt/source/closure protocol, current read disclosure and two
+independent failure domains remain separate required successor gates.

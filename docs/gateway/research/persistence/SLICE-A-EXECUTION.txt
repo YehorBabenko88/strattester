@@ -1,0 +1,30 @@
+LOCAL Slice A ledger, 2026-11-07 Europe/Berlin
+Root/A4 exact design SHA c543fdced8e36fdb1ac9821719e5165ab37bdea6e7a8629eebc6a647002d6c21 ACK.
+Separate branch from aed8/treeeed3, not v2 branch. Existing17 baselinePASS.
+Initial6 localstage RED failures solely missing method. Minimal staging GREEN.
+Helper RED:11PASS/1failure (helper absent), then actual descriptor+Meta byte checks.
+Two actual independent SQLite connections cover identical retry, conflicting raw
+descriptor, intent and artifact hash, plus financial put vs artifact stage race.
+No receipt positive path, fake authority, native call or external database.
+
+Concrete cleanup race reproduced RED: after selecting a legacy stage ID, another
+connection removed/reused it for ARTIFACT; old unfiltered DELETE removed UNKNOWN
+stage. Fix acquires writer reservation before selection and filters FINANCIAL on
+DELETE. Same narrow test GREEN; no artifact deletion or legacy fallback permitted.
+SQLite staging/conflict checks hold actual write serialization across both tables.
+
+Combined related regression run:78PASS/3existing skips/exit0 (before final added
+cross-kind test): new artifact tests plus legacy persistence, readonly API,
+control status, owned receipt and owned-results service. Skips: two Windows
+symlink privilege cases and absent separate Grid contract checkout. These are not
+native/two-domain/whole-system passes. Original state/DB migrations use only owned
+temporary paths. Legacy raw metrics row preservation is separately tested.
+
+Production files only result_store.py and result_persistence.py. Descriptor opaque
+staging is not provenance/schema admission; helper only validates byte/core-domain
+joins. Artifact and original input bytes must remain retained separately. Combined
+descriptor/artifact bound <=1MiB is a lower bound, not complete A4 closure admission.
+Publication receipt remains NULL; project/read ALWAYS deny without inspecting a
+foreign object. Native A2/A4 positive ABI, two domains, authority and disclosure
+remain unavailable. Full configured suite/source qualification and independent
+review follow exact commit; no completeness or hosted PASS claimed here.
