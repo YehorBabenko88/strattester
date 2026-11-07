@@ -1,0 +1,54 @@
+V2 local evidence ledger — 2026-11-07 Europe/Berlin
+
+Root approved exact design5cf23f01 plus A3/A4/A5/A6 scoped co-ACK.
+Independent branch from frozen aed8/treeeed3; persistence successor separate.
+Original four missing-callable REDs recorded outside repository; expanded16
+tests against actual frozen v1 source:16failures/0errors/0skips. No implementation
+was added to frozen v1 branch. Original full v1 source prefix remains14058B identical.
+
+Root initially supplied dotted source.identity. Actual pinned unmodified Meta
+rejected it under existing [A-Za-z0-9_-]{1,128} grammar; direct reference reproduced.
+Root explicitly corrected identity to root_synthetic_onebar_query_meta_v2.
+No automatic normalization or regex weakening. Old label refusal is regression.
+Other Root clocks/trace labels unchanged. Source/raw query digests unchanged.
+
+8995709/treebbdd: actual committed workflow block54PASS/0skip,809raw primary
+files checked against their actual Git blobs and unchanged before/after, exit0.
+Fresh Meta source fetched at f3c/treec155, three pins checked before import.
+Actual retained onebar query bytes passed through new callable and real Meta,
+replay byte-identical. Old v1 packet replay artifact/descriptor byte-identical.
+
+Independent whole-diff reviewer found P2: new schema URI identifiers collided
+with frozen v1. Actual referencing.Registry RED reproduced collision, fixed only
+new schema IDs. No additional computation findings. Independent reviewer reran
+34gateway+20financial tests, then30actual schema/registry checks after fix, allPASS.
+
+5b4d9fa/tree92552685: exact workflow54PASS/0skip,810raw primary files before/after
+byte-identical, exit0. AdapterSHA256:
+45657294beed5284f7f08416e70637e9b914907353d0c331c7bff224057dbddb.
+New actual packet copied without reencoding from this source-qualified run into
+evidence/query-v2-onebar. Its receipt pins actual execution HEAD5b4d9fa; later
+documentation commits do not rewrite that provenance. MANIFEST pins exact files.
+Optional actual jsonschema4.26.0/URI validation:30checks/0skip, exit0. Structural
+checks do not replace semantic runtime validation or authenticate query issuance.
+
+Commands (explicit GATEWAY_META_SOURCE_ROOT and fixture source revision required):
+python -I -S -B -m unittest discover -s tests/gateway_adapter -p test_*.py -v
+python -I -S -B -m unittest discover -s contracts/agent7-financial-boundary -p test_adapter.py -v
+python -I -S -B tests/gateway_adapter/generate_query_v2_evidence.py --output NEW_OUTSIDE_CHECKOUT
+python -B tests/gateway_adapter/validate_query_v2_artifacts.py --artifacts GENERATED_DIRECTORY
+Hosted workflow executes exact committed block with primary Git source inventory,
+EXPECTED_HEAD, isolated/no-site/no-bytecode CPython and no dependency installation.
+
+Full pytest exploratory run initially failed collection because support was not
+on module path; exit2/one collection error/5existing skips. Restarted with explicit
+root + tests/gateway_adapter PYTHONPATH, plugin autoload disabled, fresh owned
+--basetemp, no deselection. It is still running and has two observed failures;
+full suite PASS is NOT claimed. Preserve logs and diagnose final named failures.
+
+NO query reissue, signature mock, lease callback, service, store, publication,
+financial profile, real orders or native bootstrap. Root reported actual HTTPS
+query execution on f155; this recipe only recomputes retained bytes. All UNKNOWN,
+UNPROVEN and null financial fields remain. A5 v1 lab-submit does not accept v2
+without a separate admitted profile. Two-domain publication/runtime/physical
+acceptance remain BLOCKED. Hosted CI and exact consumer result ACK pending.
