@@ -59,6 +59,12 @@ JSON-report errors came from disabled plugin autoload inherited by test children
 Correctly configured targeted/full runs require exact CI Unified source e0c2,
 both UNIFIED_SOURCE_ROOT/STRATTESTER_TEST_UNIFIED_ROOT and normal plugin autoload.
 No tests are skipped/deselected to hide these errors. Full suite PASS not yet claimed.
+Configured rerun of all three previously failing modules:48PASS/2existing Windows
+symlink-creation skips, exit0. Production implementation unchanged. Root explicitly
+allocated minimal tests.yml successor: pinned Meta checkout and required two test
+environment variables. Meta checkout alone uses command-scoped LF Git settings;
+no global configuration, source pin changes, dependency expansion or deselection.
+Correctly configured full run on a separate exact checkout follows this commit.
 
 NO query reissue, signature mock, lease callback, service, store, publication,
 financial profile, real orders or native bootstrap. Root reported actual HTTPS
