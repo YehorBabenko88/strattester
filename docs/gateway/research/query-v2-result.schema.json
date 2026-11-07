@@ -1,0 +1,591 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "state",
+    "scope",
+    "experiment",
+    "request_raw_sha256",
+    "artifact",
+    "provenance",
+    "clocks",
+    "series_semantics",
+    "financial",
+    "execution_authority",
+    "trading_authorized",
+    "training_authorized",
+    "production_runtime_admission",
+    "upstream_binding"
+  ],
+  "properties": {
+    "schema": {
+      "const": "stratt.gateway.synthetic.research.result.v2-review1"
+    },
+    "state": {
+      "const": "COMPUTED_TEST_ONLY"
+    },
+    "scope": {
+      "const": "TEST_ONLY_SYNTHETIC"
+    },
+    "experiment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "revision"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]*(?![\\s\\S])"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^(?:0|[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-6]|9223372036854775807)(?![\\s\\S])"
+        }
+      }
+    },
+    "request_raw_sha256": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "encoding",
+        "byte_count",
+        "raw_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "meta.ohlcv.research.result.v1"
+        },
+        "encoding": {
+          "const": "JSON_UTF8_CANONICAL_META_V1_NOT_C3"
+        },
+        "byte_count": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 7,
+          "pattern": "^(?:0|[1-9][0-9]{0,5}|10[0-3][0-9]{4}|104[0-7][0-9]{3}|1048[0-4][0-9]{2}|10485[0-6][0-9]{1}|104857[0-5]|1048576)(?![\\s\\S])"
+        },
+        "raw_sha256": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stratt_base_head",
+        "stratt_base_tree",
+        "meta_head",
+        "meta_tree",
+        "meta_source_sha256",
+        "dataset_id",
+        "meta_request_digest",
+        "dataset_revision",
+        "input_units",
+        "fidelity",
+        "simulation",
+        "source_authenticity",
+        "availability"
+      ],
+      "properties": {
+        "stratt_base_head": {
+          "const": "072d22214136148b47e82d21fec9e269bd7468ac"
+        },
+        "stratt_base_tree": {
+          "const": "ffaff34af5375b23235491d92a250ccb66eb03df"
+        },
+        "meta_head": {
+          "const": "f3c01a23fa5baaeeeb28eb8e9397e72b5ef4d5a1"
+        },
+        "meta_tree": {
+          "const": "c155c935a801fa98b7c78219c9798ce1f1be8848"
+        },
+        "meta_source_sha256": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "__init__.py",
+            "core.py",
+            "ohlcv_research_adapter.py"
+          ],
+          "properties": {
+            "__init__.py": {
+              "const": "70d2201e97a9d8b57973b8328ce7e2938e85096035a867aab8b37b35ee1e1883"
+            },
+            "core.py": {
+              "const": "caa15e51394d3c204ecbcf557cd13ce7a6853b5c8005c4d266971f3f14177170"
+            },
+            "ohlcv_research_adapter.py": {
+              "const": "39b165c945f4d5c00fdf96c460d9bf4e34a32c9cb30483d9be6d88f45403a90f"
+            }
+          }
+        },
+        "dataset_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "meta_request_digest": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "dataset_revision": {
+          "const": "UNAVAILABLE_A4_BINDING_PENDING"
+        },
+        "input_units": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "price",
+            "volume"
+          ],
+          "properties": {
+            "price": {
+              "enum": [
+                "USDT/BTC",
+                "USDT/ETH",
+                "USDT/SOL",
+                "USDT/XRP",
+                "USDT/BNB",
+                "USDT/DOGE",
+                "USDT/ADA",
+                "USDT/AVAX",
+                "USDT/LINK",
+                "USDT/DOT"
+              ]
+            },
+            "volume": {
+              "enum": [
+                "BTC",
+                "ETH",
+                "SOL",
+                "XRP",
+                "BNB",
+                "DOGE",
+                "ADA",
+                "AVAX",
+                "LINK",
+                "DOT"
+              ]
+            }
+          }
+        },
+        "fidelity": {
+          "const": "SYNTHETIC_ENGINEERING_ONLY_NOT_MEASURED"
+        },
+        "simulation": {
+          "const": "NO_ORDERS_NO_LEDGER_NO_EXECUTION_SIGNALS"
+        },
+        "source_authenticity": {
+          "const": "NOT_EVALUATED"
+        },
+        "availability": {
+          "const": "WHOLE_BACKFILL_AT_DECLARED_RETRIEVAL_NOT_HISTORICAL_PIT"
+        }
+      }
+    },
+    "clocks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_ms",
+        "calculated_at_ms",
+        "snapshot_as_of_ms",
+        "window_start_ms",
+        "window_end_ms",
+        "data_available_at_ms"
+      ],
+      "properties": {
+        "decision_ms": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16,
+          "pattern": "^(?:0|[1-9][0-9]{0,14}|[1-8][0-9]{15}|900[0-6][0-9]{12}|90070[0-9]{11}|90071[0-8][0-9]{10}|900719[0-8][0-9]{9}|9007199[0-1][0-9]{8}|90071992[0-4][0-9]{7}|900719925[0-3][0-9]{6}|9007199254[0-6][0-9]{5}|90071992547[0-3][0-9]{4}|9007199254740[0-8][0-9]{2}|90071992547409[0-8][0-9]{1}|9007199254740990|9007199254740991)(?![\\s\\S])"
+        },
+        "calculated_at_ms": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16,
+          "pattern": "^(?:0|[1-9][0-9]{0,14}|[1-8][0-9]{15}|900[0-6][0-9]{12}|90070[0-9]{11}|90071[0-8][0-9]{10}|900719[0-8][0-9]{9}|9007199[0-1][0-9]{8}|90071992[0-4][0-9]{7}|900719925[0-3][0-9]{6}|9007199254[0-6][0-9]{5}|90071992547[0-3][0-9]{4}|9007199254740[0-8][0-9]{2}|90071992547409[0-8][0-9]{1}|9007199254740990|9007199254740991)(?![\\s\\S])"
+        },
+        "snapshot_as_of_ms": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16,
+          "pattern": "^(?:0|[1-9][0-9]{0,14}|[1-8][0-9]{15}|900[0-6][0-9]{12}|90070[0-9]{11}|90071[0-8][0-9]{10}|900719[0-8][0-9]{9}|9007199[0-1][0-9]{8}|90071992[0-4][0-9]{7}|900719925[0-3][0-9]{6}|9007199254[0-6][0-9]{5}|90071992547[0-3][0-9]{4}|9007199254740[0-8][0-9]{2}|90071992547409[0-8][0-9]{1}|9007199254740990|9007199254740991)(?![\\s\\S])"
+        },
+        "window_start_ms": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16,
+          "pattern": "^(?:0|[1-9][0-9]{0,14}|[1-8][0-9]{15}|900[0-6][0-9]{12}|90070[0-9]{11}|90071[0-8][0-9]{10}|900719[0-8][0-9]{9}|9007199[0-1][0-9]{8}|90071992[0-4][0-9]{7}|900719925[0-3][0-9]{6}|9007199254[0-6][0-9]{5}|90071992547[0-3][0-9]{4}|9007199254740[0-8][0-9]{2}|90071992547409[0-8][0-9]{1}|9007199254740990|9007199254740991)(?![\\s\\S])"
+        },
+        "window_end_ms": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16,
+          "pattern": "^(?:0|[1-9][0-9]{0,14}|[1-8][0-9]{15}|900[0-6][0-9]{12}|90070[0-9]{11}|90071[0-8][0-9]{10}|900719[0-8][0-9]{9}|9007199[0-1][0-9]{8}|90071992[0-4][0-9]{7}|900719925[0-3][0-9]{6}|9007199254[0-6][0-9]{5}|90071992547[0-3][0-9]{4}|9007199254740[0-8][0-9]{2}|90071992547409[0-8][0-9]{1}|9007199254740990|9007199254740991)(?![\\s\\S])"
+        },
+        "data_available_at_ms": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16,
+          "pattern": "^(?:0|[1-9][0-9]{0,14}|[1-8][0-9]{15}|900[0-6][0-9]{12}|90070[0-9]{11}|90071[0-8][0-9]{10}|900719[0-8][0-9]{9}|9007199[0-1][0-9]{8}|90071992[0-4][0-9]{7}|900719925[0-3][0-9]{6}|9007199254[0-6][0-9]{5}|90071992547[0-3][0-9]{4}|9007199254740[0-8][0-9]{2}|90071992547409[0-8][0-9]{1}|9007199254740990|9007199254740991)(?![\\s\\S])"
+        }
+      }
+    },
+    "series_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rows",
+        "levels"
+      ],
+      "properties": {
+        "rows": {
+          "const": "INPUT_REPLAY_NOT_DERIVED"
+        },
+        "levels": {
+          "const": "ACTUALLY_COMPUTED_WHOLE_WINDOW_LEVELS_NOT_HISTORICAL_SIGNALS"
+        }
+      }
+    },
+    "financial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "gross_pnl",
+        "net_pnl",
+        "fees",
+        "slippage",
+        "signed_funding",
+        "currency",
+        "scale",
+        "calculation_basis"
+      ],
+      "properties": {
+        "status": {
+          "const": "UNAVAILABLE_NUMERICAL_PROFILE_NONE"
+        },
+        "gross_pnl": {
+          "const": null
+        },
+        "net_pnl": {
+          "const": null
+        },
+        "fees": {
+          "const": null
+        },
+        "slippage": {
+          "const": null
+        },
+        "signed_funding": {
+          "const": null
+        },
+        "currency": {
+          "const": null
+        },
+        "scale": {
+          "const": null
+        },
+        "calculation_basis": {
+          "const": "NOT_CALCULATED"
+        }
+      }
+    },
+    "execution_authority": {
+      "const": false
+    },
+    "trading_authorized": {
+      "const": false
+    },
+    "training_authorized": {
+      "const": false
+    },
+    "production_runtime_admission": {
+      "const": "BLOCKED"
+    },
+    "upstream_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "query_request_sha256",
+        "query_result_sha256",
+        "query_implementation_head",
+        "request",
+        "result_metadata"
+      ],
+      "properties": {
+        "query_request_sha256": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^(?:[0-9a-f]{64})(?![\\s\\S])"
+        },
+        "query_result_sha256": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^(?:[0-9a-f]{64})(?![\\s\\S])"
+        },
+        "query_implementation_head": {
+          "const": "f19f7feee0f63da34a20607a8cae59191180aa7c"
+        },
+        "request": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "request_id",
+            "dataset_id",
+            "dataset_revision",
+            "source_class",
+            "instrument_id",
+            "interval_ms",
+            "data_schema_sha256",
+            "query_profile_sha256",
+            "range",
+            "event_cut_ms",
+            "knowledge_cut",
+            "consumer_context"
+          ],
+          "properties": {
+            "schema": {
+              "const": "grid.gateway.ohlcv-query.v1-review2"
+            },
+            "request_id": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^(?:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})(?![\\s\\S])"
+            },
+            "dataset_id": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^(?:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})(?![\\s\\S])"
+            },
+            "dataset_revision": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^(?:[1-9][0-9]{0,18})(?![\\s\\S])"
+            },
+            "source_class": {
+              "const": "SYNTHETIC"
+            },
+            "instrument_id": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "exchange",
+                "category",
+                "symbol",
+                "instrument_version"
+              ],
+              "properties": {
+                "exchange": {
+                  "const": "bybit"
+                },
+                "category": {
+                  "const": "linear"
+                },
+                "symbol": {
+                  "const": "BTCUSDT"
+                },
+                "instrument_version": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "pattern": "^(?:[1-9][0-9]{0,18})(?![\\s\\S])"
+                }
+              }
+            },
+            "interval_ms": {
+              "const": "60000"
+            },
+            "data_schema_sha256": {
+              "const": "14c9f8e8d5c70584b0ca675c6de676498dafedab442076e71c96d45eb4346a77"
+            },
+            "query_profile_sha256": {
+              "const": "850c67b48936d0dbfb25bc713edd26cdd0646a8b6e7b4a89aaf3fab6787f1277"
+            },
+            "range": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "start_ms",
+                "end_ms"
+              ],
+              "properties": {
+                "start_ms": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "pattern": "^(?:0|[1-9][0-9]{0,18})(?![\\s\\S])"
+                },
+                "end_ms": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "pattern": "^(?:0|[1-9][0-9]{0,18})(?![\\s\\S])"
+                }
+              }
+            },
+            "event_cut_ms": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^(?:0|[1-9][0-9]{0,18})(?![\\s\\S])"
+            },
+            "knowledge_cut": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "manifest_revision",
+                "manifest_sha256"
+              ],
+              "properties": {
+                "manifest_revision": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "pattern": "^(?:[1-9][0-9]{0,18})(?![\\s\\S])"
+                },
+                "manifest_sha256": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "pattern": "^(?:[0-9a-f]{64})(?![\\s\\S])"
+                }
+              }
+            },
+            "consumer_context": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "consumer_id",
+                "view_id",
+                "authorization_contract_sha256"
+              ],
+              "properties": {
+                "consumer_id": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "pattern": "^(?:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})(?![\\s\\S])"
+                },
+                "view_id": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "pattern": "^(?:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})(?![\\s\\S])"
+                },
+                "authorization_contract_sha256": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "pattern": "^(?:[0-9a-f]{64})(?![\\s\\S])"
+                }
+              }
+            }
+          }
+        },
+        "result_metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "status",
+            "source_class",
+            "classification",
+            "session_classification",
+            "native_authenticated",
+            "provider_coverage",
+            "provider_gaps",
+            "publication",
+            "registry",
+            "source_completeness",
+            "integrity",
+            "committed_revision",
+            "request_sha256",
+            "dataset_revision",
+            "manifest_revision",
+            "manifest_sha256"
+          ],
+          "properties": {
+            "schema": {
+              "const": "grid.gateway.synthetic-query-result.v1-review1"
+            },
+            "status": {
+              "const": "SYNTHETIC_QUERY_RESULT"
+            },
+            "source_class": {
+              "const": "SYNTHETIC"
+            },
+            "classification": {
+              "const": "SYNTHETIC_FIXTURE_LOCALLY_CHECKED_ONLY"
+            },
+            "session_classification": {
+              "const": "SYNTHETIC_SESSION_AUTHENTICATED_ONLY"
+            },
+            "native_authenticated": {
+              "const": false
+            },
+            "provider_coverage": {
+              "const": "UNKNOWN"
+            },
+            "provider_gaps": {
+              "const": "UNKNOWN"
+            },
+            "publication": {
+              "const": "UNPROVEN"
+            },
+            "registry": {
+              "const": "UNPROVEN"
+            },
+            "source_completeness": {
+              "const": "UNPROVEN"
+            },
+            "integrity": {
+              "const": "LOCAL_HASH_MATCHED_NOT_REPLICA_VERIFIED"
+            },
+            "committed_revision": {
+              "type": "null"
+            },
+            "request_sha256": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^(?:[0-9a-f]{64})(?![\\s\\S])"
+            },
+            "dataset_revision": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^(?:[1-9][0-9]{0,18})(?![\\s\\S])"
+            },
+            "manifest_revision": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^(?:[1-9][0-9]{0,18})(?![\\s\\S])"
+            },
+            "manifest_sha256": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^(?:[0-9a-f]{64})(?![\\s\\S])"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:stratt.gateway.synthetic.research.result.v2-review1",
+  "$comment": "PROPOSAL COMPONENT BOUNDARY ONLY. Exact bytes, duplicate-key parser, semantic cross-field/digest/source checks and actual owner admission are separate. No chart/runtime/shared API ACK from schema validity."
+}

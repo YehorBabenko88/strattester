@@ -1,0 +1,37 @@
+Query-bound synthetic Meta v2 — implementation plan and decisions
+Base: aed8a7c8a952f96803c207d5e90b133969a47f04 / eed3a87c6e33f0993424f20b49ab5af93bd09b9a.
+Separate branch agent7/query-meta-bridge-v2-20261107, not persistence successor.
+Design: exact proposal SHA5cf23f01adef5aa0f45a1c0aba05092f6dba12016a9a68b8c81341123f1b9c94,
+Root plus A3/A4/A5/A6 scoped local design ACK. No shared job/runtime admission.
+
+Files: append additive callable to gateway_adapter.py; new query-v2 schemas and
+tests/evidence recipe; allocated existing gateway workflow. Entire review1 source
+prefix and old packet/schema bytes unchanged. No second core/store/ledger.
+
+[x] Observe four RED failures against frozen review1 (missing new callable).
+[x] Retain actual Root request004de...917B/resultf68a...1810B, old GAP packet separate.
+[x] Implement strict all-three-input bytes/size preflight before hash/decode.
+[x] Validate closed schemas, raw hashes, typed joins, exact supported A3 profile,
+    requested contiguous PRESENT cells and all six integral financial columns.
+[x] Reconstruct entire Meta payload/content digest, preserve full typed query and
+    upstream result metadata in descriptor; Root retains both raw dependencies.
+[x] Reuse actual pinned Meta pure computation; strict bool cooperative cancel,
+    creator-only coroutine disposal; no authority/network/store/native calls.
+[x] Root explicitly corrected incompatible identity from dotted label to
+    root_synthetic_onebar_query_meta_v2. Original label RED/refusal retained.
+    Meta grammar unchanged; retrieval_id=root-onebar-v2-read-20261107.
+    Logical clocks retrieved120000/decision180000/asof180000/analysis240000.
+[ ] Run full suite, machine schema checks, actual recipe and original packet replay.
+[ ] Pin execution HEAD/tree before publishing computed packet; exact source review.
+[ ] Draft PR, hosted Windows/Linux CI, independent A8 and consumer exact-byte review.
+
+Return remains descriptor+artifact_bytes. New descriptor adds upstream_binding
+containing raw hashes, query implementation HEAD, full original typed request and
+result_metadata (all original fields except rows/cells/request). Root retains the
+two raw original dependencies without invented artifact references. Schema-only
+acceptance cannot prove digest/clock/cell joins, source authenticity or authority.
+The legacy descriptor dataset_revision stays UNAVAILABLE_A4_BINDING_PENDING;
+upstream dataset UUID/revision are separate in upstream_binding.request.
+Whole-window features/input replay/null financial profiles remain explicit.
+This codec does not grant A5 lab-submit v1 acceptance, A4 publication, registry,
+two-copy durability, physical acceptance or native qualification.

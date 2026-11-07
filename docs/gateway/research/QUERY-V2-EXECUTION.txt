@@ -1,0 +1,86 @@
+V2 local evidence ledger — 2026-11-07 Europe/Berlin
+
+Root approved exact design5cf23f01 plus A3/A4/A5/A6 scoped co-ACK.
+Independent branch from frozen aed8/treeeed3; persistence successor separate.
+Original four missing-callable REDs recorded outside repository; expanded16
+tests against actual frozen v1 source:16failures/0errors/0skips. No implementation
+was added to frozen v1 branch. Original full v1 source prefix remains14058B identical.
+
+Root initially supplied dotted source.identity. Actual pinned unmodified Meta
+rejected it under existing [A-Za-z0-9_-]{1,128} grammar; direct reference reproduced.
+Root explicitly corrected identity to root_synthetic_onebar_query_meta_v2.
+No automatic normalization or regex weakening. Old label refusal is regression.
+Other Root clocks/trace labels unchanged. Source/raw query digests unchanged.
+
+8995709/treebbdd: actual committed workflow block54PASS/0skip,809raw primary
+files checked against their actual Git blobs and unchanged before/after, exit0.
+Fresh Meta source fetched at f3c/treec155, three pins checked before import.
+Actual retained onebar query bytes passed through new callable and real Meta,
+replay byte-identical. Old v1 packet replay artifact/descriptor byte-identical.
+
+Independent whole-diff reviewer found P2: new schema URI identifiers collided
+with frozen v1. Actual referencing.Registry RED reproduced collision, fixed only
+new schema IDs. No additional computation findings. Independent reviewer reran
+34gateway+20financial tests, then30actual schema/registry checks after fix, allPASS.
+
+5b4d9fa/tree92552685: exact workflow54PASS/0skip,810raw primary files before/after
+byte-identical, exit0. AdapterSHA256:
+45657294beed5284f7f08416e70637e9b914907353d0c331c7bff224057dbddb.
+New actual packet copied without reencoding from this source-qualified run into
+evidence/query-v2-onebar. Its receipt pins actual execution HEAD5b4d9fa; later
+documentation commits do not rewrite that provenance. MANIFEST pins exact files.
+Optional actual jsonschema4.26.0/URI validation:30checks/0skip, exit0. Structural
+checks do not replace semantic runtime validation or authenticate query issuance.
+
+Commands (explicit GATEWAY_META_SOURCE_ROOT and fixture source revision required):
+python -I -S -B -m unittest discover -s tests/gateway_adapter -p test_*.py -v
+python -I -S -B -m unittest discover -s contracts/agent7-financial-boundary -p test_adapter.py -v
+python -I -S -B tests/gateway_adapter/generate_query_v2_evidence.py --output NEW_OUTSIDE_CHECKOUT
+python -B tests/gateway_adapter/validate_query_v2_artifacts.py --artifacts GENERATED_DIRECTORY
+Hosted workflow executes exact committed block with primary Git source inventory,
+EXPECTED_HEAD, isolated/no-site/no-bytecode CPython and no dependency installation.
+
+Full pytest exploratory run initially failed collection because support was not
+on module path; exit2/one collection error/5existing skips. A narrow collection
+RED reproduced on test_gateway_adapter.py. Additive test-only conftest.py restores
+the same sibling path used by stdlib discovery; narrow collection GREEN18, exit0,
+without the support-path workaround. Production code and packet unchanged.
+Exploratory full run with explicit support path but missing Unified dependency
+environment and disabled plugin autoload finished exit1:2103PASS/36skip/4failures/
+9setup errors/35subtests,475.12seconds. Failed names:
+test_owned_results_service.py::test_raw_bootstrap_real_source_pins_and_dirty_source_rejection
+test_owned_results_service.py::test_protected_source_checks_actual_forced_foreign_owner_without_repo_configuration_write
+test_financial_acceptance.py::test_real_unittest_subtests_have_exact_accounting[False]
+test_financial_acceptance.py::test_real_unittest_subtests_have_exact_accounting[True]
+All nine setup errors were test_grid_data_first_factory.py's explicit missing
+UNIFIED_SOURCE_ROOT admission, including four missing/invalid-permission variants.
+SourceFence mismatch came from the fallback Unified checkout, not pinned CI e0c2.
+JSON-report errors came from disabled plugin autoload inherited by test children.
+Correctly configured targeted/full runs require exact CI Unified source e0c2,
+both UNIFIED_SOURCE_ROOT/STRATTESTER_TEST_UNIFIED_ROOT and normal plugin autoload.
+No tests are skipped/deselected to hide these errors. Full suite PASS not yet claimed.
+Configured rerun of all three previously failing modules:48PASS/2existing Windows
+symlink-creation skips, exit0. Production implementation unchanged. Root explicitly
+allocated minimal tests.yml successor: pinned Meta checkout and required two test
+environment variables. Meta checkout alone uses command-scoped LF Git settings;
+no global configuration, source pin changes, dependency expansion or deselection.
+Correctly configured full run on a separate exact checkout follows this commit.
+Result at6e58eb8/treeda616:2116PASS/36existing skips/35subtestsPASS,0failures/
+errors,exit0,478.89seconds. All819primary bytes unchanged. Strict postfull clean
+capsule guard FAILED two extra own test state files; original clone/files/logs/XML
+preserved untouched. This is functional regression PASS, not clean capsule PASS.
+Narrow RCA: test_service_manager.py::test_manager_targets_only_worker omitted the
+existing root argument; its inert runner prevented actual SCM calls, but actual
+intent writer used cwd. Exact original test in a new empty disposable cwd created
+both files and failed inventory RED with subprocess/socket operations denied.
+Root explicitly allocated only that test file. Fix uses tmp_path/root=tmp_path,
+asserts actual expected intent files there and unchanged cwd state. Narrow GREEN
+1PASS/0skip,exit0. No service runtime or guard changes. Fresh exact-source full
+run required after this correction; the original failed capsule is not cleaned.
+
+NO query reissue, signature mock, lease callback, service, store, publication,
+financial profile, real orders or native bootstrap. Root reported actual HTTPS
+query execution on f155; this recipe only recomputes retained bytes. All UNKNOWN,
+UNPROVEN and null financial fields remain. A5 v1 lab-submit does not accept v2
+without a separate admitted profile. Two-domain publication/runtime/physical
+acceptance remain BLOCKED. Hosted CI and exact consumer result ACK pending.

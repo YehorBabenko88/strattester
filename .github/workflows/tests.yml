@@ -26,6 +26,19 @@ jobs:
           ref: e0c2ea20aa4f1bd9476d1046e7e4b41f1b12d8e9
           path: .source/unified-system
           persist-credentials: false
+      - name: Checkout pinned pure Meta research dependency
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
+        with:
+          repository: YehorBabenko88/meta_analyse
+          ref: f3c01a23fa5baaeeeb28eb8e9397e72b5ef4d5a1
+          path: .source/meta_analyse
+          persist-credentials: false
       - name: Record exact source identity
         run: git show --no-patch --format=fuller HEAD
       - uses: actions/setup-python@v5
@@ -40,6 +53,8 @@ jobs:
         env:
           UNIFIED_SOURCE_ROOT: ${{ github.workspace }}/.source/unified-system
           STRATTESTER_TEST_UNIFIED_ROOT: ${{ github.workspace }}/.source/unified-system
+          GATEWAY_META_SOURCE_ROOT: ${{ github.workspace }}/.source/meta_analyse
+          GATEWAY_FIXTURE_SOURCE_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
         run: python -m pytest -v --junitxml=results/core/pytest.xml
       - name: Annotate bounded pytest failure metadata
         if: always()
