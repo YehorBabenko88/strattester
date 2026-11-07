@@ -18,7 +18,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "agent7.financial-calculation.v1"
+      "const": "agent7.financial-calculation.v2"
     },
     "gross_pnl": {
       "type": "string",
@@ -48,12 +48,14 @@
     "currency": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 64
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]*(?![\\s\\S])"
     },
     "unit": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 64
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]*(?![\\s\\S])"
     },
     "profile_sha256": {
       "type": "string",
@@ -93,12 +95,14 @@
         "strategy_id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 128
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]*(?![\\s\\S])"
         },
         "strategy_version": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 128
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]*(?![\\s\\S])"
         },
         "fidelity": {
           "enum": [
@@ -115,5 +119,6 @@
       }
     }
   },
-  "$comment": "Runtime conversion additionally binds exact fractional scale and currency/unit to caller-admitted profile digest; regex alone is not financial admission."
+  "$comment": "Runtime conversion additionally binds exact fractional scale and currency/unit to caller-admitted profile digest; regex alone is not financial admission.",
+  "$id": "urn:agent7:financial-calculation:v2"
 }

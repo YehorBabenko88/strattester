@@ -22,11 +22,13 @@ def convert(record,profile,admitted_profile_digests):
     No profile is built in and no runtime endpoint is provided.
     """
     closed(record,INPUT_FIELDS,'input');closed(profile,PROFILE_FIELDS,'profile')
-    require(record['schema']=='agent7.financial-input.v1','input version')
-    require(profile['schema']=='agent7.financial-unit-profile.v1','profile version')
-    require(type(profile['profile_id']) is str and 0<len(profile['profile_id'])<=128,'profile identity')
+    require(record['schema']=='agent7.financial-input.v2','input version')
+    require(profile['schema']=='agent7.financial-unit-profile.v2','profile version')
+    def code(value,limit):
+        return type(value) is str and 0<len(value)<=limit and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._:/+-]*',value) is not None
+    require(code(profile['profile_id'],128),'profile identity')
     for key in ('currency','unit'):
-        require(type(profile[key]) is str and 0<len(profile[key])<=64,'profile unit')
+        require(code(profile[key],64),'profile unit')
         require(record[key]==profile[key],'unit binding mismatch')
     scale=profile['decimal_places'];limit=profile['max_digits']
     require(type(scale) is int and 0<=scale<=18,'decimal scale')
@@ -41,7 +43,7 @@ def convert(record,profile,admitted_profile_digests):
     for key,width in (('source_head',40),('source_tree',40),('input_manifest_sha256',64)):
         require(type(provenance[key]) is str and re.fullmatch('[0-9a-f]{'+str(width)+'}',provenance[key]) is not None,'provenance pin')
     for key in ('strategy_id','strategy_version'):
-        require(type(provenance[key]) is str and 0<len(provenance[key])<=128,'strategy identity')
+        require(code(provenance[key],128),'strategy identity')
     require(provenance['fidelity'] in ('PAPER_FIXTURE','PAPER_SIMULATION'),'unsupported fidelity')
     require(provenance['mode'] in ('HISTORICAL','LIVE_PAPER'),'unsupported mode')
     def integer(value):
@@ -66,5 +68,5 @@ def convert(record,profile,admitted_profile_digests):
             digits=digits.zfill(scale+1);digits=digits[:-scale]+'.'+digits[-scale:]
         return ('-' if value<0 else '')+digits
     output=copy.deepcopy(record);del output['raw_pnl']
-    output.update(schema='agent7.financial-calculation.v1',gross_pnl=formatted(gross),net_pnl=formatted(net))
+    output.update(schema='agent7.financial-calculation.v2',gross_pnl=formatted(gross),net_pnl=formatted(net))
     return output

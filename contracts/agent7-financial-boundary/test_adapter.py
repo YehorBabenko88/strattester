@@ -11,9 +11,9 @@ def digest(profile):
 class BoundaryTests(unittest.TestCase):
  def setUp(self):
   self.m=load()
-  self.profile={'schema':'agent7.financial-unit-profile.v1','profile_id':'FIXTURE_ONLY_NOT_PROVIDER','currency':'TEST','unit':'TEST_CURRENCY','decimal_places':2,'max_digits':40}
+  self.profile={'schema':'agent7.financial-unit-profile.v2','profile_id':'FIXTURE_ONLY_NOT_PROVIDER','currency':'TEST','unit':'TEST_CURRENCY','decimal_places':2,'max_digits':40}
   self.pin=digest(self.profile)
-  self.record={'schema':'agent7.financial-input.v1','raw_pnl':'10.00','fees':'1.00','slippage':'0.50','funding':'0.25','currency':'TEST','unit':'TEST_CURRENCY','profile_sha256':self.pin,'calculation_basis':'GROSS_MINUS_SIGNED_COSTS','provenance':{'source_head':'a'*40,'source_tree':'b'*40,'input_manifest_sha256':'c'*64,'strategy_id':'synthetic','strategy_version':'1','fidelity':'PAPER_FIXTURE','mode':'HISTORICAL'}}
+  self.record={'schema':'agent7.financial-input.v2','raw_pnl':'10.00','fees':'1.00','slippage':'0.50','funding':'0.25','currency':'TEST','unit':'TEST_CURRENCY','profile_sha256':self.pin,'calculation_basis':'GROSS_MINUS_SIGNED_COSTS','provenance':{'source_head':'a'*40,'source_tree':'b'*40,'input_manifest_sha256':'c'*64,'strategy_id':'synthetic','strategy_version':'1','fidelity':'PAPER_FIXTURE','mode':'HISTORICAL'}}
  def run_record(self,record=None,profile=None,admitted=None):
   return self.m.convert(self.record if record is None else record,self.profile if profile is None else profile,{self.pin} if admitted is None else admitted)
  def test_gross_costs_once(self):
@@ -73,6 +73,24 @@ class BoundaryTests(unittest.TestCase):
    with self.assertRaises(ValueError):self.run_record(dict(self.record,**change))
  def test_unknown_profile_schema_refused(self):
   profile=dict(self.profile,schema='unknown');pin=digest(profile)
+  with self.assertRaises(ValueError):self.m.convert(dict(self.record,profile_sha256=pin),profile,{pin})
+
+ def test_ascii_code_boundaries(self):
+  for value in ['EUR€','two words','a\n','a\t','/leading','%20','a\\b','a"b','a'*129]:
+   for key in ['strategy_id','strategy_version']:
+    record=copy.deepcopy(self.record);record['provenance'][key]=value
+    with self.assertRaises(ValueError):self.run_record(record)
+   for key in ['currency','unit','profile_id']:
+    profile=dict(self.profile,**{key:value});pin=digest(profile);record=dict(self.record,profile_sha256=pin)
+    if key!='profile_id':record[key]=value
+    with self.assertRaises(ValueError):self.m.convert(record,profile,{pin})
+ def test_explicit_v2_only_and_distinct_profile_case(self):
+  profile=dict(self.profile,profile_id='fixture');pin=digest(profile)
+  self.assertNotEqual(pin,self.pin)
+  with self.assertRaises(ValueError):self.m.convert(dict(self.record,profile_sha256=pin),profile,{self.pin})
+  for change in [{'schema':'agent7.financial-input.v1'}]:
+   with self.assertRaises(ValueError):self.run_record(dict(self.record,**change))
+  profile=dict(self.profile,schema='agent7.financial-unit-profile.v1');pin=digest(profile)
   with self.assertRaises(ValueError):self.m.convert(dict(self.record,profile_sha256=pin),profile,{pin})
 
 if __name__=='__main__':unittest.main()

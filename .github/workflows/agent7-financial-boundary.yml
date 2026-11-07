@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12.10'
-      - name: Exact source and eighteen mandatory DTO regressions
+      - name: Exact source and twenty mandatory DTO regressions
         shell: python -I -S -B {0}
         run: |
           import hashlib,io,json,os,pathlib,subprocess,sys,unittest
@@ -79,12 +79,12 @@ jobs:
                   if isinstance(item,unittest.TestSuite): collect(item)
                   else: ids.append(item.id())
           collect(suite)
-          expected_ids=["test_adapter.BoundaryTests.test_already_net_no_double_cost","test_adapter.BoundaryTests.test_empty_objects_refused","test_adapter.BoundaryTests.test_float_and_nonfinite_refused","test_adapter.BoundaryTests.test_gross_costs_once","test_adapter.BoundaryTests.test_large_exact_arithmetic","test_adapter.BoundaryTests.test_malformed_admission_container_refused","test_adapter.BoundaryTests.test_missing_currency_or_units","test_adapter.BoundaryTests.test_missing_provenance_and_bad_pin_refused","test_adapter.BoundaryTests.test_negative_fees_and_unit_mismatch_refused","test_adapter.BoundaryTests.test_negative_funding_is_credit","test_adapter.BoundaryTests.test_no_mutation_and_determinism","test_adapter.BoundaryTests.test_profile_digest_mismatch","test_adapter.BoundaryTests.test_result_overflow_refused","test_adapter.BoundaryTests.test_scale_endpoints","test_adapter.BoundaryTests.test_unknown_basis_and_fields_refused","test_adapter.BoundaryTests.test_unknown_profile_schema_refused","test_adapter.BoundaryTests.test_unqualified_profile_refused","test_adapter.BoundaryTests.test_wrong_scale_and_negative_slippage_refused"]
-          assert sorted(ids)==expected_ids and len(ids)==len(set(ids))==18
+          expected_ids=["test_adapter.BoundaryTests.test_already_net_no_double_cost","test_adapter.BoundaryTests.test_ascii_code_boundaries","test_adapter.BoundaryTests.test_empty_objects_refused","test_adapter.BoundaryTests.test_explicit_v2_only_and_distinct_profile_case","test_adapter.BoundaryTests.test_float_and_nonfinite_refused","test_adapter.BoundaryTests.test_gross_costs_once","test_adapter.BoundaryTests.test_large_exact_arithmetic","test_adapter.BoundaryTests.test_malformed_admission_container_refused","test_adapter.BoundaryTests.test_missing_currency_or_units","test_adapter.BoundaryTests.test_missing_provenance_and_bad_pin_refused","test_adapter.BoundaryTests.test_negative_fees_and_unit_mismatch_refused","test_adapter.BoundaryTests.test_negative_funding_is_credit","test_adapter.BoundaryTests.test_no_mutation_and_determinism","test_adapter.BoundaryTests.test_profile_digest_mismatch","test_adapter.BoundaryTests.test_result_overflow_refused","test_adapter.BoundaryTests.test_scale_endpoints","test_adapter.BoundaryTests.test_unknown_basis_and_fields_refused","test_adapter.BoundaryTests.test_unknown_profile_schema_refused","test_adapter.BoundaryTests.test_unqualified_profile_refused","test_adapter.BoundaryTests.test_wrong_scale_and_negative_slippage_refused"]
+          assert sorted(ids)==expected_ids and len(ids)==len(set(ids))==20
           assert pathlib.Path(sys.modules['test_adapter'].__file__).resolve()==root/'contracts/agent7-financial-boundary/test_adapter.py'
           assert sys.modules['test_adapter'].ROOT==root/'contracts/agent7-financial-boundary'
           result=unittest.TextTestRunner(verbosity=2).run(suite)
-          assert result.wasSuccessful() and result.testsRun==18 and not result.skipped
+          assert result.wasSuccessful() and result.testsRun==20 and not result.skipped
           assert before==receipt()
           out=pathlib.Path(os.environ['RUNNER_TEMP'])/'financial-boundary-component-evidence.json'
           out.write_text(json.dumps({'head':os.environ['EXPECTED_HEAD'],'tree':g('rev-parse','HEAD^{tree}').decode().strip(),'tests':ids,'skips':0,'source_sha256':before,'qualification':'SYNTHETIC_DTO_COMPONENT_ONLY','source_authenticity':'NOT_EVALUATED','native_admission':False,'physical_admission':False,'strategy_profitability_proven':False},indent=2)+'\n',encoding='utf-8')
