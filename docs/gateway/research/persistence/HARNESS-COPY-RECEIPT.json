@@ -1,0 +1,31 @@
+{
+  "scope": "ROOT_EXPLICIT_THREE_FILE_HARNESS_COPY_ONLY",
+  "source_head": "cddf71fab478f788d7289da9648f8a2f9287d1f8",
+  "base_head": "aed8a7c8a952f96803c207d5e90b133969a47f04",
+  "files": {
+    ".github/workflows/tests.yml": {
+      "source_blob": "16684e3d75af9a9dbfc16093ead96d3e58986db1",
+      "base_blob": "7b4f142ea2e85982e7a456beff0c7c09cc62b26c",
+      "bytes": 3521,
+      "sha256": "4bac46e951d7db37d78b5d0b45101098414f3fe53a6e02b1e18564e081d6abfb",
+      "copied_byte_identical": true
+    },
+    "tests/gateway_adapter/conftest.py": {
+      "source_blob": "3c5f17688cdb1cb28e3071515a76b54af20c9fbc",
+      "base_blob": null,
+      "bytes": 387,
+      "sha256": "3c37bb51487259ce0316ce53aa7aadb66b530db28b17537c227dcc0f0e53ed61",
+      "copied_byte_identical": true
+    },
+    "tests/runtime/test_service_manager.py": {
+      "source_blob": "46c9a7f868d2bd84a97504614abbd74b9586b598",
+      "base_blob": "c73376703b211c9acb4a32c7546d38274ef1afdc",
+      "bytes": 951,
+      "sha256": "b7038adef3fbcf06dbf4ec29a52d2999a11a7a33e203f20863a8f7c99bce4d86",
+      "copied_byte_identical": true
+    }
+  },
+  "v2_runtime_transferred": false,
+  "skips_added": false,
+  "guard_exclusions_added": false
+}
