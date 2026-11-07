@@ -126,4 +126,3 @@ if __name__=='__main__':
  if sys.argv[1:]==['--validate-schema']:
   print(json.dumps({'schema_checks':validate_schema_regressions(),'skips':0}))
  else:unittest.main()
-
