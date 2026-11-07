@@ -1,0 +1,124 @@
+AGENT7 RESEARCH/PAPER REFERENCE REVIEW4 V1 - OFFLINE DOMAIN PROPOSAL
+
+Scope
+This package adds inert reference/projection functions only. It does not replace
+the JS/native research runtime, PaperLedger, replay, provenance, authority,
+scheduler, Storage publication, or Terminan. No orders, networking, filesystem
+writes, database access, endpoint creation, admission, or lease acquisition occur
+in project.mjs. The test harness reads fixtures; project.mjs has only crypto/util
+imports. Neither projection is a complete legacy-schema or ledger validator.
+
+Immutable upstream
+Unified commit 360c5cdc9dae88416d69f8765f3dff5ab8828945
+release/contracts/control-mux-closed-review4/
+PROTOCOL.md SHA256 8737de43f8cd422ea40bf30140f2d5149cd2f978955561c07fb8b3c6a6c604aa
+registry.json SHA256 32f1f699a12ba19014a052b17f0fba572f9eec8ebb118d56154b9e40bdb2049d
+codec-bounds.json SHA256 be9a0eb518ab14683cbb8e002e18f05e03d948b8c5d1537d635736bde8789203
+control-mux-closed.schema.json SHA256 335cda8e5d451fd9ab90586b6f6a4d6fbaf5f52eabb5a11762d9100ed92fefdf
+
+Identity and projection
+raw_sha256 hashes the COMPLETE UNMODIFIED selected legacy artifact bytes,
+including whitespace and original numeric tokens. It is not a C3 root, cursor,
+source authenticity proof, financial exactness proof, or authority receipt.
+The supplied expected digest is independently checked against captured bytes;
+its authenticity is the caller's obligation, not established by this model.
+Do not replace the retained artifact with reconstructed/rounded JSON.
+The reference is a NEW resource, with a NEW schema hash and a NEW C3 byte hash.
+It must never reuse a legacy digest as a new root/cursor. This module issues
+neither roots nor cursors. One explicitly partial resource per source artifact
+is proposed. No hidden row splitting, truncation or stringified-history bypass.
+Original artifacts MUST be retrievable through admitted Storage and independently
+hash-verified by the consumer BEFORE any real data success/admission. This
+package has no Storage client and reports retrieval as REQUIRES_ADMITTED_STORAGE_
+AND_INDEPENDENT_HASH_VERIFICATION. It never asserts successful retrieval.
+All lineage is CALLER_DECLARED_NOT_AUTHORITY_ACK. Fixture UUIDs and hashes are
+synthetic declarations, not registry records or production endpoints.
+
+Research
+Source schema meta.ohlcv.research.result.v1. Complete source budget 16777216
+bytes; rows 1..2000. One explicit selected row index and OHLCV field. All rows,
+levels, units, numeric lexemes and remaining provenance stay in the raw artifact.
+No inline rows. projection_complete=false always. Dataset's legacy 64-hex
+content identity stays separate from registry_dataset_id UUIDv4.
+Six source clock tokens must be exact canonical nonnegative integers <=2^53-1;
+transport is canonical decimal STRING, unit UTC_UNIX_MILLISECONDS, scale 1.
+calculated_at_ms is the analysis clock, never historical observation time.
+Scientific scalar: finite JSON number explicitly decoded as IEEE754 binary64,
+then its exact 64 bits encoded as 16 lowercase network-order hex digits.
+This preserves decoded binary64 including negative zero; it does NOT claim exact
+original decimal rational value. Full original lexeme remains in raw artifact.
+Integer scalar lexemes outside +/- (2^53-1) are rejected rather than rounded.
+Unit copied exactly from source units.price for open/high/low/close, units.volume
+for volume. No rescaling; NO_DECIMAL_RESCALE. This is a scientific observation,
+not an executable price, quantity, money, fee, collateral or account value.
+The binary64 decoder rejects infinities/NaNs. Financial promotion is forbidden.
+
+Paper
+Source schema stratt.paper.quote.snapshot.v1. Complete raw selection <=1048576
+bytes, returned_count 0..200, validated_count 0..1024, returned<=validated.
+Rows length must exactly equal returned_count; has_more exactly validated>returned.
+Selection order and missing_state remain explicit and unchanged.
+BOUNDED_SOURCE_SELECTION_NOT_FULL_HISTORY is mandatory. Zero rows is permitted.
+Full numeric financial lineage remains in raw source bytes. NO monetary or
+price/quantity numbers are copied, rounded or converted to strings by projection.
+financial_values=UNAVAILABLE_A3_A4_UNIT_DECIMAL_PROFILE_PENDING.
+Account/ledger UUID lineage required for paper, null for research.
+Durability remains NODE_LOCAL_NOT_DISTRIBUTED_CONSENSUS_OR_FAILOVER.
+No claim of distributed durability, full balances, equity, open positions,
+unrealized PnL, live WAL support or complete history. No second ledger.
+
+Numeric and identifier grammar
+See numeric-profile.json and exact schemas. ASCII only in C3 payload. Integers
+are decimal strings matching 0|[1-9][0-9]* and bounded explicitly. No plus,
+leading zeros, exponents, whitespace, decimal points, booleans or numeric coercion.
+u63 <=9223372036854775807; clocks <=9007199254740991. Item counts scale1 ITEM,
+byte_count scale1 BYTE; registry_revision/lease_epoch scale1 MONOTONIC_COUNTER.
+IDs are lowercase UUIDv4, commits/trees lowercase 40 hex, SHA256 lowercase 64 hex.
+A UUID does not attest identity or grant authority. Artifact and registry IDs
+are distinct semantic fields even when test fixtures reuse a synthetic UUID.
+
+Lineage and pending interfaces
+Closed fields: cluster_id, recovery_generation, registry_dataset_id,
+registry_revision, source_id, partition_id, job_id, assignment_id, lease_id,
+lease_epoch, worker_id, worker_incarnation, account_id, ledger_id,
+implementation_commit, implementation_tree, implementation_manifest_sha256.
+Artifact: artifact_id, storage_manifest_sha256, raw_sha256, byte_count,
+source_schema, retrieval_status.
+Implementation pins describe the claimed producing implementation, never this
+projection's current Git HEAD automatically. No invented authority or endpoint.
+Actual mappings to Agent2 Authority/Fencing, Agent4 Storage Publication and
+Agent5 Assignment v1 require exact external schema/version, implementation pin,
+and explicit endpoint ACK. A3 market tick/lot/unit profiles, A4 manifests, paper
+exact-decimal policy, A6 view profile/resource identity and all runtime admission
+remain PENDING. These schemas are a PROPOSAL for exact domain ACK only.
+
+Bounds and encoding
+C3 writer: ordinary plain data only; sorted ASCII keys; printable ASCII strings;
+no whitespace/BOM/final newline; quote/backslash escapes only; NO numeric literals.
+Resource-specific arrays <=32, object members<=64, container depth<=12, nodes
+including object keys<=32768, keys1..128, strings<=16384, total<=2097152 bytes.
+These are conjunctive caps, not permission to exceed outer frame/route limits.
+Reject holes, extra array keys, nonordinary/proxy/accessor/hidden/symbol inputs;
+frozen plain data allowed. Source JSON parsing is separate: UTF8 fatal, no BOM,
+duplicate decoded keys rejected, numeric tokens retained, depth<=64, <=250000
+nodes, <=8192 entries per source array, <=65536 UTF16 units per source string.
+Source clocks use token grammar, preventing integer rounding before checks.
+Source data may contain legacy Unicode; it stays only in unchanged raw bytes.
+The C3 output cannot silently admit it as a transport label.
+
+Verification and rollback
+node --test contracts/agent7-review4/projection.test.mjs
+vectors.json includes 10 SYNTHETIC instrument outputs from unchanged MetaAnalyse
+and a real node-local PaperLedger export of 10 synthetic trades, 5 long/5 short.
+Producer pins: Meta f3c01a23fa5baaeeeb28eb8e9397e72b5ef4d5a1 (base88b45c3);
+Stratt 88a180b29afe9c85ddea26ef98cbe0bec8de24a6.
+These are offline computations/fixtures, NOT physical endpoint acceptance.
+Independent schema validation uses Draft2020-12; cross-field counts and source
+digest/clock/scalar relationships are executable semantic checks in project.mjs,
+not all expressible in JSON Schema alone. MANIFEST hashes raw package bytes
+except itself; .gitattributes disables EOL conversion for this allocated prefix.
+Tests/model PASS, hosted Windows CI and physical acceptance are separate statuses.
+Math native remains BLOCKED until separately authorized evidence succeeds.
+Rollback: discard this standalone branch/PR, or remove this entire new prefix.
+No migration, DB write, event commit, live order, source runtime modification or
+production deployment is introduced. No merge is authorized.
