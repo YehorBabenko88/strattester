@@ -1,0 +1,52 @@
+{
+  "schema": "agent7.synthetic.corrected-callable-replay.v1",
+  "scope": "LOCAL_COMPONENT_ONLY_NO_SHARED_RUNTIME_ADMISSION",
+  "corrected_adapter_head": "f11f393ddc1ce1d45e5ec66839fa98e15ee98496",
+  "corrected_adapter_tree": "e79f95df0fa20301089bdb4a1caa749b48a4aa8e",
+  "adapter_file_sha256": "689bd82be39cdc15725fcefbe2cefc248c4feb51c27822f9813558f5587e81dd",
+  "original_packet_computation_head": "6360a75a428c0cb1538085820381324bc4dd9d6f",
+  "original_packet_publication_head": "f3d2877ac5e7af6f89586fcdb184974b494e46ac",
+  "replay": "ARTIFACT_AND_DESCRIPTOR_BYTE_IDENTICAL",
+  "files": [
+    {
+      "path": "evidence/btc-v1/request.json",
+      "bytes": 1126,
+      "sha256": "c548e2ffcd542d5d741682303694b3c6d06507740f158a6e30089b2d5355f648"
+    },
+    {
+      "path": "evidence/btc-v1/meta-result.json",
+      "bytes": 2070,
+      "sha256": "f4997d7d26211676cd8664e53d7999f8b71f203510f3b9a275b439c403e03940"
+    },
+    {
+      "path": "evidence/btc-v1/descriptor.json",
+      "bytes": 2122,
+      "sha256": "664d34f06721b3d62404ea2f05b6b929a59b9e3eeecc281a71d2ca927c802cda"
+    }
+  ],
+  "tests": {
+    "focused": 18,
+    "existing_financial": 20,
+    "total": 38,
+    "skips": 0,
+    "exit_code": 0
+  },
+  "source": {
+    "raw_files": 799,
+    "pre_post": "BYTE_IDENTICAL"
+  },
+  "actual_schema_checks": 78,
+  "schema_validator_version": "4.26.0",
+  "p1_foreign_coroutine": {
+    "red": "17PASS_1FAIL",
+    "green": "18PASS_0SKIP",
+    "disposal": "ACTUAL_CREATOR_ONLY"
+  },
+  "qualification": "DISPOSABLE_SYNTHETIC_RESEARCH_COMPONENT_ONLY",
+  "publication": "NONE",
+  "native": "BLOCKED",
+  "physical": "NOT_RUN",
+  "job_api_coack": "PENDING",
+  "storage_api": "NONE",
+  "a3_bridge": "SEPARATE_REVISION_PENDING"
+}

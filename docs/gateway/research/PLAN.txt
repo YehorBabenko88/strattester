@@ -1,0 +1,39 @@
+# Synthetic Gateway Research Implementation Plan
+
+For agentic workers: use superpowers:executing-plans inline, task by task.
+Goal: return actual existing Meta synthetic OHLCV derived levels as bounded, replay-stable test artifacts.
+Architecture: new Stratt wrapper validates bounded input, verifies three pure Meta source files, calls existing analyze_ohlcv_research and returns descriptor + exact artifact bytes. No science reimplementation, ledger or authority.
+Tech: existing Python3.12 stdlib; existing Meta f3c modules; isolated Windows/Ubuntu CI.
+Spec: DESIGN.txt and api-proposal-review1.json. ROOT direction/ownership/base ACK; shared API coACK pending.
+
+Global constraints: only four allocated new paths; parent072d/treeffaff; Meta f3c/treec155; operation meta.ohlcv.untouched_levels.v1; request128KiB; rows1..256; result1MiB; source/auth/PIT remain unverified; financial fields null/unavailable; no native/headless bootstrap, signature mock, default lease validator, submit/storage or orders.
+
+Review focus: malformed/duplicate/nonfinite JSON; altered or shadowed source/cache; wrong source/time/unit/schema; cancellation race before publication; echoed input vs genuinely computed whole-window levels.
+
+Task1 — focused RED/reference control
+Files: tests/gateway_adapter/support.py and test_gateway_adapter.py.
+- [ ] Verify actual immutable Meta source hashes, execute real pure function on three hand-calculated rows; preserve result bytes/digest outside checkout.
+- [ ] Add wrapper tests for deterministic actual output,10symbols,financial refusal,digest/shape/schema/finite/bounds/non-synthetic/cancel and source mismatch.
+- [ ] Run python -I -S -B -m unittest discover -s tests/gateway_adapter -p test_*.py -v. Expected reference PASS, wrapper missing implementation RED.
+- [ ] Commit tests/proposal only; bind fixture producer revision to actual test commit via explicit test environment.
+
+Task2 — minimal adapter after RED
+File: strattester/research/gateway_adapter.py.
+- [ ] Implement execute_synthetic_research(request_bytes, *, meta_source_root, cancel_check), no default cancel/lease/signature callback.
+- [ ] Local return is dict with descriptor and artifact_bytes; bytes remain existing Meta result JSON; descriptor records exact byte_count/raw_sha256/schema and explicit unavailable finance. This is not an admitted transport wire.
+- [ ] Verify actual pinned pure source bytes before loading and again after call; never import headless/native bootstrap or reuse a shadow module.
+- [ ] Check required cancellation hook before validation/call and after bounded call/before return; cancelled/error => no result.
+- [ ] GREEN focused tests; source inventory pre/post in fresh clone; preserve RED.
+
+Task3 — exact contract/artifact co-review
+Files: docs/gateway/research/** and own tests only.
+- [ ] Freeze exact request/descriptor field schema and actual computed artifact bytes/digest/source recipe for A4/A5/A6/ROOT; no shared integration until explicit coACK.
+- [ ] Confirm dataset digest vs registry revision separation; A5 actual job/attempt/experiment/cancel+commit fencing; A4 actual publication/retrieval or NONE; A6 derived/input series distinction.
+- [ ] Independent reviewer checks API/source loading/cancel/finite/output provenance; resolve concrete defects with RED tests.
+
+Task4 — qualification and Draft PR
+File: .github/workflows/gateway-research.yml plus own docs/tests.
+- [ ] Dedicated pinned Windows/Ubuntu Python3.12.10 workflow; actual Meta f3c dependency, stdlib tests, no native calls or dependency installer.
+- [ ] Exact HEAD/tree/raw-source pre/post/test inventory/commands/counts/skips; caller-owned temp outputs.
+- [ ] Run relevant existing financial20 and explicit actual-schema46; no skip/deselection bypass.
+- [ ] Push separate Draft PR; send exact pins/evidence to ROOT/A8. Hosted/local/native/physical scopes remain distinct, overall NO-GO until actual gates.

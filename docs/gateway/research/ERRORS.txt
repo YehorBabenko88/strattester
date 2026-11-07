@@ -1,0 +1,7 @@
+Local API errors — review1 proposal, no shared A5 wire mapping ACK.
+GatewayResearchError(ValueError).code is one of INVALID_REQUEST, UNSUPPORTED_SCHEMA, UNSUPPORTED_OPERATION, NON_SYNTHETIC, INVALID_OHLCV, SOURCE_UNAVAILABLE, INVALID_CANCEL_CHECK, CANCEL_CHECK_FAILED, RESULT_UNAVAILABLE. GatewayResearchCancelled subclasses it with CANCELLED. No private path or raw callback exception text in code.
+Required cancel_check must return EXACT bool; nonbool/awaitable/exception refuses output. Cooperative only; actual A5 post-return commit fencing remains separate.
+Request bytes digest computed before decode; artifacts are immutable Python bytes, not JSON byte-array/URL or generic fetch envelope. Local return is dict {'descriptor':closed metadata dict,'artifact_bytes':bytes}; descriptor.artifact.byte_count is decimal string. This is not the async ResearchJobs codec or transport wire.
+Meta result price strings preserve existing Decimal rendering including bounded uppercase-E notation. Semantic positivity/finiteness<=1e15 and row/time/price correspondence checked by adapter; no financial decimal/tick claim. A6 must refuse plot overflow/underflow/unsupported times rather than clip or relabel.
+A3 query bridge with integral-only conversion/upstream binding requires NEW revision/coACK; no fields added to current six-field fixture request.
+Foreign awaitable/coroutine refusal never awaits, closes or cancels the foreign object. Only its actual creator owns disposal. Suspended-coroutine finalizer regression covers this boundary.
