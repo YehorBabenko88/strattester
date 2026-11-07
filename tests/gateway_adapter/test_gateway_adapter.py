@@ -72,6 +72,19 @@ class GatewayAdapterTests(unittest.TestCase):
   self.refused(cancel_check=async_hook)
   def raises():raise RuntimeError('caller cancellation check failed')
   self.refused(cancel_check=raises)
+ def test_foreign_suspended_coroutine_not_finalized_by_refusal(self):
+  sentinel=[]
+  class Pause:
+   def __await__(self):yield 'owner-suspended'
+  async def foreign():
+   try:await Pause()
+   finally:sentinel.append('owner-finalized')
+  coroutine=foreign();coroutine.send(None)
+  try:
+   self.refused(cancel_check=lambda:coroutine)
+   self.assertEqual(sentinel,[])
+  finally:coroutine.close() # Only the actual test owner may dispose its object.
+  self.assertEqual(sentinel,['owner-finalized'])
  def test_source_pin_mismatch_refused(self):
   with tempfile.TemporaryDirectory() as directory:
    root=copy_source(directory);p=root/'src/meta_analyse/core.py';p.write_bytes(p.read_bytes()+b'\n# altered source\n');self.refused(root=root)

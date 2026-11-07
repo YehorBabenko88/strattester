@@ -8,3 +8,4 @@ Ruling: ledger lives in allocated docs/gateway/research instead of skill default
 Ruling: no A4 publication/registry binding exists; adapter returns in-memory computation only. No fake signature/lease validator.
 Task3/4: pending exact artifacts/review/CI; shared composition remains pending A4/A5/A6/ROOT ACK.
 Evidence generation first attempt at290cd310: ModuleNotFoundError support before any calculation because isolated Python excludes script directory; dependent validation had no generated files. No Meta/native/storage execution or artifact claimed. Fixed explicit committed sibling path in own helper scripts; original tool failure retained.
+P1 review at f3d2877: A5 foreign suspended coroutine finalizer side effect reproduced:18tests/17pass/1fail. Fix removes foreign coroutine.close; only creator disposes. No await/close/cancel by adapter; preserved original packet/source receipt. New actual replay/source receipt required.

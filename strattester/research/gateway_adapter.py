@@ -54,7 +54,7 @@ def _cancel(check):
     try:value=check()
     except Exception:raise GatewayResearchError('CANCEL_CHECK_FAILED') from None
     if type(value) is not bool:
-        if type(value) is types.CoroutineType:value.close()
+        # The actual creator owns disposal; refusal never awaits/closes/cancels it.
         raise GatewayResearchError('INVALID_CANCEL_CHECK')
     if value:raise GatewayResearchCancelled()
 
