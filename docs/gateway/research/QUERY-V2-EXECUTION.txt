@@ -65,6 +65,18 @@ allocated minimal tests.yml successor: pinned Meta checkout and required two tes
 environment variables. Meta checkout alone uses command-scoped LF Git settings;
 no global configuration, source pin changes, dependency expansion or deselection.
 Correctly configured full run on a separate exact checkout follows this commit.
+Result at6e58eb8/treeda616:2116PASS/36existing skips/35subtestsPASS,0failures/
+errors,exit0,478.89seconds. All819primary bytes unchanged. Strict postfull clean
+capsule guard FAILED two extra own test state files; original clone/files/logs/XML
+preserved untouched. This is functional regression PASS, not clean capsule PASS.
+Narrow RCA: test_service_manager.py::test_manager_targets_only_worker omitted the
+existing root argument; its inert runner prevented actual SCM calls, but actual
+intent writer used cwd. Exact original test in a new empty disposable cwd created
+both files and failed inventory RED with subprocess/socket operations denied.
+Root explicitly allocated only that test file. Fix uses tmp_path/root=tmp_path,
+asserts actual expected intent files there and unchanged cwd state. Narrow GREEN
+1PASS/0skip,exit0. No service runtime or guard changes. Fresh exact-source full
+run required after this correction; the original failed capsule is not cleaned.
 
 NO query reissue, signature mock, lease callback, service, store, publication,
 financial profile, real orders or native bootstrap. Root reported actual HTTPS
