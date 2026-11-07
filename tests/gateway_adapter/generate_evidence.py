@@ -1,5 +1,7 @@
 """Explicit disposable evidence generation, never A4 publication/receipt."""
 import argparse,hashlib,json,pathlib,subprocess,sys
+# -I excludes script directory; load only this committed sibling support.
+sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent))
 from support import ROOT,canonical,sha,request,reference,load_adapter,source_root,source_revision
 
 def generate(output):

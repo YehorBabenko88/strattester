@@ -1,6 +1,8 @@
 """Separate actual JSONSchema target; not part of stdlib-only unit suite."""
 import argparse,copy,json,pathlib,sys
 import jsonschema
+# -I excludes script directory; load only this committed sibling support.
+sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent))
 from support import ROOT,sha,canonical
 
 def unique(pairs):
