@@ -219,3 +219,46 @@ def test_simultaneous_first_upgrade_of_prior_wal_schema(tmp_path):
    try:return store.latest('BTCUSDT','A')['metrics']
    finally:store.close()
   with ThreadPoolExecutor(max_workers=2) as pool:assert list(pool.map(worker,(0,1)))==[{'net_pnl':7},{'net_pnl':7}]
+
+def test_failed_incompatible_migration_releases_writer_while_traceback_retained(tmp_path):
+ path=tmp_path/'incompatible.sqlite';con=sqlite3.connect(path)
+ con.execute('CREATE TABLE research_results(run_id TEXT)');con.commit();con.close()
+ retained=[]
+ try:ResultStore.open(path)
+ except sqlite3.OperationalError as exc:retained.append(exc)
+ assert len(retained)==1 and 'no such column: symbol' in str(retained[0])
+ writer=sqlite3.connect(path,timeout=0)
+ try:
+  writer.execute('BEGIN IMMEDIATE')
+  assert [r[1] for r in writer.execute('PRAGMA table_info(research_results)')]==['run_id']
+ finally:writer.rollback();writer.close()
+ assert retained[0].__traceback__ is not None
+
+def test_baseexception_during_initialization_rolls_back_actual_writer(tmp_path):
+ class Stop(BaseException):pass
+ interrupted=Stop('test-owner interrupt')
+ class InterruptedStore(ResultStore):
+  @classmethod
+  def _initialize(cls,path,con):
+   con.execute('BEGIN IMMEDIATE');con.execute('CREATE TABLE not_committed(x)')
+   raise interrupted
+ path=tmp_path/'interrupted.sqlite';retained=[]
+ try:InterruptedStore.open(path)
+ except Stop as exc:retained.append(exc)
+ assert retained==[interrupted]
+ con=sqlite3.connect(path,timeout=0)
+ try:
+  con.execute('BEGIN IMMEDIATE')
+  assert con.execute("SELECT name FROM sqlite_master WHERE name='not_committed'").fetchall()==[]
+ finally:con.rollback();con.close()
+
+def test_cleanup_error_does_not_replace_original_baseexception(tmp_path):
+ class Stop(BaseException):pass
+ original=Stop('preserve original')
+ class ClosedDuringInitialization(ResultStore):
+  @classmethod
+  def _initialize(cls,path,con):con.close();raise original
+ retained=[]
+ try:ClosedDuringInitialization.open(tmp_path/'closed.sqlite')
+ except Stop as exc:retained.append(exc)
+ assert retained==[original]

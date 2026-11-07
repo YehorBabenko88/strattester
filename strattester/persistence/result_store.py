@@ -10,6 +10,17 @@ class ResultStore:
     def open(cls,path):
         p=Path(path); p.parent.mkdir(parents=True,exist_ok=True)
         con=sqlite3.connect(p,timeout=30)
+        try:return cls._initialize(p,con)
+        except BaseException:
+            # Tracebacks can retain this connection. Release it now, while keeping
+            # the original failure even if rollback/close also fail.
+            try:con.rollback()
+            except BaseException:pass
+            try:con.close()
+            except BaseException:pass
+            raise
+    @classmethod
+    def _initialize(cls,p,con):
         con.execute('PRAGMA journal_mode=WAL'); con.execute('PRAGMA busy_timeout=30000'); con.execute('PRAGMA synchronous=FULL'); con.execute('PRAGMA wal_autocheckpoint=1000')
         # Serialize first-upgrade introspection and DDL across independent openers.
         con.execute('BEGIN IMMEDIATE')

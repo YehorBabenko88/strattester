@@ -34,3 +34,14 @@ column. Own16-trial regression reproduced RED on trial0 (publication_receipt).
 Fix acquires BEGIN IMMEDIATE before ANY migration introspection/DDL and holds it
 through commit. Regression plus all local/legacy persistence41PASS/0skip,exit0.
 Only own disposable old WAL schemas used; actual existing row bytes preserved.
+A4 found further P2: failed initialization retained writer connection through the
+original exception traceback. Own incompatible schema RED reproduced immediate
+second writer 'database is locked'. Failure evidence retained; schema not accepted
+or repaired. open now wraps initialization and rolls back/closes on BaseException,
+preserving original exception even if cleanup also fails. Actual SQLite tests
+retain the failure traceback while a fresh writer succeeds, verify schema unchanged,
+inject BaseException with an actual open write transaction, and exercise rollback
+failure on an already closed actual connection without replacing the original.
+Local tests now45PASS/0skip including legacy17 and originalservicefixture1.
+Earlier2f98 sourceguard42PASS/806primary files clean is historical bounded evidence,
+not qualification of this newly corrected successor or authority/native admission.
