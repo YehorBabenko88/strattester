@@ -1,0 +1,101 @@
+{
+  "status": "PROPOSAL_REVIEW1_NOT_SHARED_API_ACK",
+  "scope": "DISPOSABLE_SYNTHETIC_COMPUTATION_ONLY",
+  "operation": "meta.ohlcv.untouched_levels.v1",
+  "local_api": {
+    "module": "strattester.research.gateway_adapter",
+    "callable": "execute_synthetic_research(request_bytes, *, meta_source_root, cancel_check)",
+    "request_bytes": "Immutable UTF-8 JSON bytes, max131072; duplicate keys/nonfinite values refused",
+    "meta_source_root": "Existing owner-pinned Meta source root; only __init__.py/core.py/ohlcv_research_adapter.py bytes loaded after exact hash verification; no native/headless bootstrap",
+    "cancel_check": "Required explicit callable supplied by A5 worker; true or exception refuses result. Checked before validation, before/after actual bounded calculation and before return. No default lease/signature validator.",
+    "returns": "Computation metadata + exact canonical existing Meta result bytes; no persistence, submit, registry or paper event"
+  },
+  "request": {
+    "schema": "stratt.gateway.synthetic.research.request.v1-review1",
+    "required": [
+      "schema",
+      "operation",
+      "experiment",
+      "payload",
+      "decision_ms",
+      "analysis_now_ms"
+    ],
+    "experiment": {
+      "id": "Caller-declared ASCII code1..128; actual A5 identity binding external",
+      "revision": "Canonical decimal u63 string; not dataset/domain/native revision"
+    },
+    "payload": "Unmodified meta.ohlcv.research.request.v1; evidence_class must be SYNTHETIC; 1..256 closed contiguous minute bars; no provider/authority claim",
+    "decision_ms": "JSON integer0..2^53-1 per existing Meta contract",
+    "analysis_now_ms": "Explicit synthetic analysis clock JSON integer0..2^53-1; replay-stable, not trusted UTC or lease clock"
+  },
+  "result": {
+    "schema": "stratt.gateway.synthetic.research.result.v1-review1",
+    "state": "COMPUTED_TEST_ONLY",
+    "experiment": "Exact echoed declaration; A5 binds actual job/attempt/experiment authority outside adapter",
+    "request_raw_sha256": "Hash of exact incoming request bytes, distinct from parsed canonical/Meta request digest",
+    "artifact": {
+      "schema": "meta.ohlcv.research.result.v1",
+      "encoding": "JSON_UTF8_CANONICAL_META_V1_NOT_C3",
+      "bytes": "Exact computed result serialization; max1048576",
+      "raw_sha256": "SHA256 of exact bytes; not storage publication receipt or registry identity"
+    },
+    "provenance": {
+      "stratt_base_head": "072d22214136148b47e82d21fec9e269bd7468ac",
+      "stratt_base_tree": "ffaff34af5375b23235491d92a250ccb66eb03df",
+      "meta_head": "f3c01a23fa5baaeeeb28eb8e9397e72b5ef4d5a1",
+      "meta_tree": "c155c935a801fa98b7c78219c9798ce1f1be8848",
+      "dataset_id": "Existing Meta content digest, not A4 registry UUID",
+      "dataset_revision": "UNAVAILABLE_A4_BINDING_PENDING",
+      "input_units": "Existing declared Meta price USDT/base and volume base; scientific observation units only",
+      "fidelity": "SYNTHETIC_ENGINEERING_ONLY_NOT_MEASURED",
+      "simulation": "NO_ORDERS_NO_LEDGER_NO_EXECUTION_SIGNALS",
+      "source_authenticity": "NOT_EVALUATED",
+      "availability": "WHOLE_BACKFILL_AT_DECLARED_RETRIEVAL_NOT_HISTORICAL_PIT"
+    },
+    "series_semantics": {
+      "rows": "INPUT_REPLAY_NOT_DERIVED",
+      "levels": "ACTUALLY_COMPUTED_WHOLE_WINDOW_LEVELS_NOT_HISTORICAL_SIGNALS"
+    },
+    "financial": {
+      "status": "UNAVAILABLE_NUMERICAL_PROFILE_NONE",
+      "gross_pnl": null,
+      "net_pnl": null,
+      "fees": null,
+      "slippage": null,
+      "signed_funding": null,
+      "currency": null,
+      "scale": null,
+      "calculation_basis": "NOT_CALCULATED"
+    },
+    "execution_authority": false,
+    "trading_authorized": false,
+    "training_authorized": false,
+    "production_runtime_admission": "BLOCKED"
+  },
+  "cancellation_and_publication": [
+    "Bounded Meta call has no internal cancellation hook; max256 rows bounds its O(n^2) work. Cancellation discards result after call",
+    "Cancellation after return is handled by actual A5 commit-time fencing; a local callback is not commit authority",
+    "No default lease validator; no signature callback mock; no publish_result/persist_report calls in adapter",
+    "Existing persist_report_fenced is candidate seam only and needs actual A4 store.promote and real A2/A5 lease verifier; NONE currently ACKed",
+    "No checkpoint/resume implementation inside adapter; A5 retry recomputes same explicit-clock immutable request and artifact bytes"
+  ],
+  "source_pins": {
+    "src/meta_analyse/__init__.py": "5a2d4cc5464a036a82852ddb0ab78f349608cc03",
+    "src/meta_analyse/core.py": "d75c40244f5a486f87d710e818c2194212a74f67",
+    "src/meta_analyse/ohlcv_research_adapter.py": "e1e4c28e28039a61a69a311ed65f1e102c2f2db5"
+  },
+  "owner_questions": {
+    "A5": "ACK exact callable/required cancel_check semantics and external job/attempt/experiment binding; provide actual ResearchJobs review1 full pin/schema",
+    "A4": "ACK raw artifact boundary and content digest vs dataset revision/registry distinction; provide actual publication/retrieval seam or NONE",
+    "A6": "ACK existing Meta raw artifact + derived/input distinction and explicit unavailable finance; no chart until exact consumer schema ACK",
+    "ROOT": "Approve exact review1 API/design and resolve cross-owner binding before composition"
+  },
+  "initial_tests": [
+    "Actual pinned existing Meta analysis positive control on hand-calculated synthetic rows",
+    "Digest mismatch, duplicate JSON keys, unknown fields/schema/operation, nonfinite/bounds, non-synthetic refusal",
+    "Explicit cancellation before/after actual call discards result; no authority/signature mocks",
+    "10 synthetic instruments preserve declared original units",
+    "Exact computed result bytes/digest and deterministic explicit-clock replay; input unchanged",
+    "No network/native bootstrap/ledger/storage/submit paths invoked"
+  ]
+}

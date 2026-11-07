@@ -1,0 +1,17 @@
+Gateway synthetic research adapter — review1 proposal
+
+Owner allocation: only new gateway_adapter.py, tests/gateway_adapter/**, docs/gateway/research/** and gateway-research.yml. Base072d/treeffaff; existing runtime/PaperLedger/native gates unchanged.
+
+ROOT selected approach A: wrap actual existing Meta OHLCV calculation. Alternative Math bootstrap needs separate b9 fix pin; PaperLedger requires separately agreed synthetic monetary policy. Neither is silently substituted. No new research core, ledger, authority, publication engine or shared API.
+
+Exact local API, input/output fields, artifact/source pins, cancellation limits and owner questions are in api-proposal-review1.json. This is not an admitted shared wire. Initial execution is disposable synthetic only. Existing Meta function computes levels; echoed OHLCV rows are not newly calculated features. All historical-PIT/source-authenticity limits remain visible. Financial values stay null/unavailable because profile NONE.
+
+Adapter parses bounded bytes, verifies actual pure Meta source bytes, calls real analyze_ohlcv_research with explicit decision/logical analysis time, validates bounded output and returns raw canonical artifact bytes with digests. It performs no network, job submit, persistence, strategy/paper execution, native bootstrap or signature verification. It cannot grant native/production runtime admission.
+
+A5 owns async lifecycle/cancel/commit fencing and actual experiment identity. A4 owns immutable dataset revisions/publication/retrieval. A6 owns typed verified artifact rendering. Root owns composition/registry/supervisor. Unknown bindings stay UNAVAILABLE, never inferred. No default lease-validator or mocked signature callback.
+
+Cancellation is cooperative before/after the bounded Meta function (which has no internal cancellation seam); a cancellation arriving before commit must still be checked by actual A5 fencing. No checkpoint engine in adapter; deterministic replay recomputes immutable explicit-clock request.
+
+Tests use actual pinned Meta pure modules and disposable source/input bundles. Positive control has independently hand-calculated levels; negatives target digest/shape/finite limits/source/type/cancellation. Local TEST_ONLY PASS is separate from native, hosted CI, authenticated endpoints and physical acceptance.
+
+Rollback: revert/delete only newly allocated files; no database, ledger, shared schema or service migration. Parent PR73/74 and protected Math diagnostic remain untouched.
