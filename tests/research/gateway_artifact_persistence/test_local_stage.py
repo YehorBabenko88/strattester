@@ -205,3 +205,17 @@ def test_cross_kind_collisions_cover_both_tables_and_legacy_paths(tmp_path):
   for call in (lambda:s.put('financial','BTCUSDT','A','1',{}),lambda:s.stage('new','financial','BTCUSDT','A','1',{})):
    with pytest.raises(ValueError,match='ARTIFACT_STAGE_CONFLICT'):call()
  finally:s.close()
+
+def test_simultaneous_first_upgrade_of_prior_wal_schema(tmp_path):
+ for trial in range(16):
+  path=tmp_path/('legacy-'+str(trial)+'.sqlite');con=sqlite3.connect(path)
+  con.execute('PRAGMA journal_mode=WAL')
+  con.execute('CREATE TABLE research_results(run_id TEXT NOT NULL,symbol TEXT NOT NULL,strategy_id TEXT NOT NULL,strategy_version TEXT NOT NULL,created_at REAL NOT NULL,metrics TEXT NOT NULL,job_id TEXT,lease_token INTEGER NOT NULL DEFAULT 0,node_generation INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(run_id,symbol,strategy_id,strategy_version))')
+  con.execute('CREATE TABLE staged_research_results(stage_id TEXT PRIMARY KEY,run_id TEXT NOT NULL,symbol TEXT NOT NULL,strategy_id TEXT NOT NULL,strategy_version TEXT NOT NULL,created_at REAL NOT NULL,metrics TEXT NOT NULL,job_id TEXT,lease_token INTEGER NOT NULL DEFAULT 0,node_generation INTEGER NOT NULL DEFAULT 0)')
+  con.execute("INSERT INTO research_results VALUES('old','BTCUSDT','A','1',1,' {\"net_pnl\": 7} ',NULL,0,0)")
+  con.commit();con.close();barrier=Barrier(2)
+  def worker(_):
+   barrier.wait(timeout=10);store=ResultStore.open(path)
+   try:return store.latest('BTCUSDT','A')['metrics']
+   finally:store.close()
+  with ThreadPoolExecutor(max_workers=2) as pool:assert list(pool.map(worker,(0,1)))==[{'net_pnl':7},{'net_pnl':7}]

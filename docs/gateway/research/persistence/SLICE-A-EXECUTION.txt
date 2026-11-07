@@ -28,3 +28,9 @@ Publication receipt remains NULL; project/read ALWAYS deny without inspecting a
 foreign object. Native A2/A4 positive ABI, two domains, authority and disclosure
 remain unavailable. Full configured suite/source qualification and independent
 review follow exact commit; no completeness or hosted PASS claimed here.
+Independent whole-diff reviewer verified40PASS and found P2 concurrent first
+upgrade: two openers could cache missing columns then one ALTER failed duplicate
+column. Own16-trial regression reproduced RED on trial0 (publication_receipt).
+Fix acquires BEGIN IMMEDIATE before ANY migration introspection/DDL and holds it
+through commit. Regression plus all local/legacy persistence41PASS/0skip,exit0.
+Only own disposable old WAL schemas used; actual existing row bytes preserved.
