@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proposed explicit financial calculation DTO; not endpoint admission",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "gross_pnl",
+    "net_pnl",
+    "fees",
+    "slippage",
+    "funding",
+    "currency",
+    "unit",
+    "profile_sha256",
+    "calculation_basis",
+    "provenance"
+  ],
+  "properties": {
+    "schema": {
+      "const": "agent7.financial-calculation.v1"
+    },
+    "gross_pnl": {
+      "type": "string",
+      "maxLength": 80,
+      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "net_pnl": {
+      "type": "string",
+      "maxLength": 80,
+      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "fees": {
+      "type": "string",
+      "maxLength": 80,
+      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "slippage": {
+      "type": "string",
+      "maxLength": 80,
+      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "funding": {
+      "type": "string",
+      "maxLength": 80,
+      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "profile_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "calculation_basis": {
+      "enum": [
+        "GROSS_MINUS_SIGNED_COSTS",
+        "NET_INCLUDES_SIGNED_COSTS"
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_head",
+        "source_tree",
+        "input_manifest_sha256",
+        "strategy_id",
+        "strategy_version",
+        "fidelity",
+        "mode"
+      ],
+      "properties": {
+        "source_head": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "source_tree": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "input_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "strategy_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "strategy_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "fidelity": {
+          "enum": [
+            "PAPER_FIXTURE",
+            "PAPER_SIMULATION"
+          ]
+        },
+        "mode": {
+          "enum": [
+            "HISTORICAL",
+            "LIVE_PAPER"
+          ]
+        }
+      }
+    }
+  },
+  "$comment": "Runtime conversion additionally binds exact fractional scale and currency/unit to caller-admitted profile digest; regex alone is not financial admission."
+}
