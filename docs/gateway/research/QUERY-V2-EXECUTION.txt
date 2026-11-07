@@ -41,10 +41,24 @@ Hosted workflow executes exact committed block with primary Git source inventory
 EXPECTED_HEAD, isolated/no-site/no-bytecode CPython and no dependency installation.
 
 Full pytest exploratory run initially failed collection because support was not
-on module path; exit2/one collection error/5existing skips. Restarted with explicit
-root + tests/gateway_adapter PYTHONPATH, plugin autoload disabled, fresh owned
---basetemp, no deselection. It is still running and has two observed failures;
-full suite PASS is NOT claimed. Preserve logs and diagnose final named failures.
+on module path; exit2/one collection error/5existing skips. A narrow collection
+RED reproduced on test_gateway_adapter.py. Additive test-only conftest.py restores
+the same sibling path used by stdlib discovery; narrow collection GREEN18, exit0,
+without the support-path workaround. Production code and packet unchanged.
+Exploratory full run with explicit support path but missing Unified dependency
+environment and disabled plugin autoload finished exit1:2103PASS/36skip/4failures/
+9setup errors/35subtests,475.12seconds. Failed names:
+test_owned_results_service.py::test_raw_bootstrap_real_source_pins_and_dirty_source_rejection
+test_owned_results_service.py::test_protected_source_checks_actual_forced_foreign_owner_without_repo_configuration_write
+test_financial_acceptance.py::test_real_unittest_subtests_have_exact_accounting[False]
+test_financial_acceptance.py::test_real_unittest_subtests_have_exact_accounting[True]
+All nine setup errors were test_grid_data_first_factory.py's explicit missing
+UNIFIED_SOURCE_ROOT admission, including four missing/invalid-permission variants.
+SourceFence mismatch came from the fallback Unified checkout, not pinned CI e0c2.
+JSON-report errors came from disabled plugin autoload inherited by test children.
+Correctly configured targeted/full runs require exact CI Unified source e0c2,
+both UNIFIED_SOURCE_ROOT/STRATTESTER_TEST_UNIFIED_ROOT and normal plugin autoload.
+No tests are skipped/deselected to hide these errors. Full suite PASS not yet claimed.
 
 NO query reissue, signature mock, lease callback, service, store, publication,
 financial profile, real orders or native bootstrap. Root reported actual HTTPS
