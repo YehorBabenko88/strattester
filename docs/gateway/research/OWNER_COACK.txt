@@ -1,0 +1,10 @@
+Review state (component v1; not shared runtime composition)
+ROOT: exact f5df API/design and actual Meta implementation direction ACK, isolated focused implementation authorized.
+A4: exact f5df raw-artifact design ACK only. Actual publication/retrieval/store.promote/experiment registry NONE. SHA of exact computed bytes before consumer decode; numeric Meta JSON is NOT C3.
+A5: design compatibility only; cancel_check exact bool, nonbool/awaitable/error refuses; no preemption/commit proof. Actual persist_report_fenced binding NONE. A5 PR47 dd24a27816832354a20fc76e90f9a0cbeca71219/tree9bbc44f4ca6cca3e4e9f7ff35058ac3e8840b15f is a separate codec, no implicit wire ACK.
+A6: semantic ACK only. Needs exact closed schemas and owner-computed immutable request/result/descriptor pair, source pin, hashes/length, deterministic replay; no chart/runtime admission yet.
+A3: separate gateway-query-meta-bridge-review1.md raw3ac62f2e551b4e5e415585e2629e69c73f58f77f6a1daa50ea1bbda38406da99. Integral-only lossless subset and explicit upstream context/cut binding require NEW adapter request revision/coACK. Current v1 fixture API is not that bridge.
+
+Formal local return: dict with exactly descriptor(dict) and artifact_bytes(bytes). Descriptor fields are defined by result.schema.json; raw Meta body by meta-result.schema.json; request by request.schema.json. These are concrete producer/consumer boundary PROPOSALS, not new shared transport APIs.
+Exact price label grammar preserves actual Meta Decimal rendering including uppercase E notation (max64chars). Semantic finite/positive<=1e15 and row/time correspondence checked by wrapper. All exposed times retain declared synthetic clock meaning, no historical signal or trusted UTC/admission claim. UI must refuse unsupported plot/time conversion rather than clip.
+Adapter implementation HEAD is recorded in the external immutable computation receipt, separately from fixture producer source_revision and Stratt base. None of those is A4/A5 authoritative identity.

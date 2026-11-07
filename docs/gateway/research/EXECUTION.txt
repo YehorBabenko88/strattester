@@ -1,0 +1,9 @@
+# SDD ledger — plan: docs/gateway/research/PLAN.txt
+Task1: complete — cca37e1 tests-only source, focusedRED17 tests/2actualMetaPASS/15missingwrappererrors; exit1, skips0. Base20 financialPASS.
+Task2: in progress — actualMeta wrapper implemented; focused17PASS0skip. Source/shape/cancel/tamper guards exercised; exact schemas now frozen for co-review.
+Ruling: use only three pinned pure Meta files under unique namespace; never headless/native bootstrap — Root explicit requirement; no wholeMeta/native qualification inferred.
+Ruling: direct synthetic v1 fixture API remains separate from A3 upstream query bridge — no silent field/schema extension; future revision/coACK required.
+Ruling: preserve actual raw/canonical Meta numeric JSON artifact separately from C3 metadata — A4 design ACK; no invented publication/retrieval/store API.
+Ruling: ledger lives in allocated docs/gateway/research instead of skill default .superpowers path — user file ownership takes precedence; no unrelated root file edits.
+Ruling: no A4 publication/registry binding exists; adapter returns in-memory computation only. No fake signature/lease validator.
+Task3/4: pending exact artifacts/review/CI; shared composition remains pending A4/A5/A6/ROOT ACK.

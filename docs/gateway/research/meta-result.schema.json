@@ -1,0 +1,347 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "mode",
+    "venue",
+    "market_type",
+    "symbol",
+    "timeframe",
+    "units",
+    "evidence_class",
+    "source",
+    "dataset_id",
+    "request_digest",
+    "decision_ms",
+    "snapshot_as_of_ms",
+    "window_start_ms",
+    "window_end_ms",
+    "data_available_at_ms",
+    "calculated_at_ms",
+    "rows",
+    "levels",
+    "quality_status",
+    "coverage_status",
+    "source_authenticity",
+    "clock_assumptions",
+    "missing_capabilities",
+    "execution_authority",
+    "trading_authorized",
+    "training_authorized",
+    "h_b_eligible"
+  ],
+  "properties": {
+    "schema": {
+      "const": "meta.ohlcv.research.result.v1"
+    },
+    "mode": {
+      "const": "HISTORICAL_RESEARCH"
+    },
+    "venue": {
+      "const": "bybit"
+    },
+    "market_type": {
+      "const": "linear"
+    },
+    "symbol": {
+      "enum": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "SOLUSDT",
+        "XRPUSDT",
+        "BNBUSDT",
+        "DOGEUSDT",
+        "ADAUSDT",
+        "AVAXUSDT",
+        "LINKUSDT",
+        "DOTUSDT"
+      ]
+    },
+    "timeframe": {
+      "const": "1m"
+    },
+    "units": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "price",
+        "volume"
+      ],
+      "properties": {
+        "price": {
+          "enum": [
+            "USDT/BTC",
+            "USDT/ETH",
+            "USDT/SOL",
+            "USDT/XRP",
+            "USDT/BNB",
+            "USDT/DOGE",
+            "USDT/ADA",
+            "USDT/AVAX",
+            "USDT/LINK",
+            "USDT/DOT"
+          ]
+        },
+        "volume": {
+          "enum": [
+            "BTC",
+            "ETH",
+            "SOL",
+            "XRP",
+            "BNB",
+            "DOGE",
+            "ADA",
+            "AVAX",
+            "LINK",
+            "DOT"
+          ]
+        }
+      }
+    },
+    "evidence_class": {
+      "const": "SYNTHETIC"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "identity",
+        "source_revision",
+        "retrieval_id",
+        "retrieved_at_ms",
+        "raw_sha256"
+      ],
+      "properties": {
+        "kind": {
+          "const": "HISTORICAL_BACKFILL"
+        },
+        "identity": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-]{1,128}(?![\\s\\S])"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "pattern": "^[0-9a-f]{40}(?![\\s\\S])"
+        },
+        "retrieval_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-]{1,128}(?![\\s\\S])"
+        },
+        "retrieved_at_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "raw_sha256": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+        }
+      }
+    },
+    "dataset_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+    },
+    "request_digest": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+    },
+    "decision_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "snapshot_as_of_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "window_start_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "window_end_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "data_available_at_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "calculated_at_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_start_ms",
+          "event_end_ms",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume"
+        ],
+        "properties": {
+          "event_start_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "event_end_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "open": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000000
+          },
+          "high": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000000
+          },
+          "low": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000000
+          },
+          "close": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000000
+          },
+          "volume": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000000000
+          }
+        }
+      }
+    },
+    "levels": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "price",
+          "kind",
+          "timeframe",
+          "source_start_ms"
+        ],
+        "properties": {
+          "price": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:E[+-]?[0-9]{1,3})?(?![\\s\\S])"
+          },
+          "kind": {
+            "enum": [
+              "high",
+              "low"
+            ]
+          },
+          "timeframe": {
+            "const": "1m"
+          },
+          "source_start_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        }
+      }
+    },
+    "quality_status": {
+      "const": "UNKNOWN"
+    },
+    "coverage_status": {
+      "const": "DECLARED_COMPLETE_UNVERIFIED"
+    },
+    "source_authenticity": {
+      "const": "NOT_EVALUATED"
+    },
+    "clock_assumptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "availability_policy",
+        "historical_observation_times",
+        "bar_clock",
+        "analysis_clock"
+      ],
+      "properties": {
+        "availability_policy": {
+          "const": "WHOLE_BACKFILL_AVAILABLE_AT_DECLARED_RETRIEVAL"
+        },
+        "historical_observation_times": {
+          "const": "NOT_PROVIDED"
+        },
+        "bar_clock": {
+          "const": "DECLARED_UTC_MINUTE_BOUNDARIES"
+        },
+        "analysis_clock": {
+          "const": "CALCULATED_NOW_NOT_HISTORICAL_OBSERVATION"
+        }
+      }
+    },
+    "missing_capabilities": {
+      "const": [
+        "HISTORICAL_POINT_IN_TIME_AVAILABILITY",
+        "RAW_SOURCE_EVENT_BOUNDS",
+        "AGGRESSOR_VOLUME",
+        "PUBLIC_TRADE_AGGREGATES",
+        "OPEN_INTEREST",
+        "FUNDING",
+        "ORDERBOOK_L2",
+        "GRID_V1_1_RECEIPTS",
+        "H_B_ELIGIBILITY"
+      ]
+    },
+    "execution_authority": {
+      "const": false
+    },
+    "trading_authorized": {
+      "const": false
+    },
+    "training_authorized": {
+      "const": false
+    },
+    "h_b_eligible": {
+      "const": false
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:stratt.gateway.meta-result.boundary.v1-review1",
+  "$comment": "PROPOSAL COMPONENT BOUNDARY ONLY. Exact bytes, duplicate-key parser, semantic cross-field/digest/source checks and actual owner admission are separate. No chart/runtime/shared API ACK from schema validity."
+}
