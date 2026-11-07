@@ -208,3 +208,106 @@ def execute_synthetic_research(request_bytes,*,meta_source_root,cancel_check):
         'execution_authority':False,'trading_authorized':False,'training_authorized':False,'production_runtime_admission':'BLOCKED'}
     _cancel(cancel_check)
     return {'descriptor':descriptor,'artifact_bytes':raw}
+
+# Additive query-bound codec. Review1 above retains its original closed API.
+QUERY_HEAD='f19f7feee0f63da34a20607a8cae59191180aa7c'
+QUERY_DATA_SCHEMA='14c9f8e8d5c70584b0ca675c6de676498dafedab442076e71c96d45eb4346a77'
+QUERY_PROFILE='850c67b48936d0dbfb25bc713edd26cdd0646a8b6e7b4a89aaf3fab6787f1277'
+QUERY_FLAGS={'schema':'grid.gateway.synthetic-query-result.v1-review1','status':'SYNTHETIC_QUERY_RESULT','source_class':'SYNTHETIC','classification':'SYNTHETIC_FIXTURE_LOCALLY_CHECKED_ONLY','session_classification':'SYNTHETIC_SESSION_AUTHENTICATED_ONLY','native_authenticated':False,'provider_coverage':'UNKNOWN','provider_gaps':'UNKNOWN','publication':'UNPROVEN','registry':'UNPROVEN','source_completeness':'UNPROVEN','integrity':'LOCAL_HASH_MATCHED_NOT_REPLICA_VERIFIED','committed_revision':None}
+
+def _query_json(raw,*,c3=False):
+    try:
+        value=json.loads(raw.decode('ascii' if c3 else 'utf-8'),object_pairs_hook=_unique,parse_constant=_json_constant)
+        _bounded_tree(value)
+        _need(_canonical(value)==raw,'INVALID_REQUEST')
+        return value
+    except GatewayResearchError:raise
+    except (ValueError,TypeError,UnicodeError,RecursionError,OverflowError):raise GatewayResearchError('INVALID_REQUEST') from None
+
+def _query_text(value,pattern):
+    _need(type(value) is str and re.fullmatch(pattern,value) is not None,'INVALID_REQUEST')
+
+def _query_uint(value,*,positive=False,maximum=2**63-1):
+    _query_text(value,r'0|[1-9][0-9]{0,18}')
+    number=int(value)
+    _need(number<=maximum and (not positive or number>0),'INVALID_REQUEST')
+    return number
+
+def _query_input(a,b):
+    request=_query_json(a,c3=True);result=_query_json(b,c3=True)
+    _closed(request,('schema','request_id','dataset_id','dataset_revision','source_class','instrument_id','interval_ms','data_schema_sha256','query_profile_sha256','range','event_cut_ms','knowledge_cut','consumer_context'),'INVALID_REQUEST')
+    _need(request['schema']=='grid.gateway.ohlcv-query.v1-review2' and request['source_class']=='SYNTHETIC' and request['interval_ms']=='60000' and request['data_schema_sha256']==QUERY_DATA_SCHEMA and request['query_profile_sha256']==QUERY_PROFILE,'INVALID_REQUEST')
+    uuid_pattern=r'[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'
+    for key in ('request_id','dataset_id'):_query_text(request[key],uuid_pattern)
+    _query_uint(request['dataset_revision'],positive=True)
+    instrument=request['instrument_id']
+    _closed(instrument,('exchange','category','symbol','instrument_version'),'INVALID_REQUEST')
+    _need((instrument['exchange'],instrument['category'],instrument['symbol'])==('bybit','linear','BTCUSDT'),'INVALID_REQUEST')
+    _query_uint(instrument['instrument_version'],positive=True)
+    _closed(request['range'],('start_ms','end_ms'),'INVALID_REQUEST')
+    start=_query_uint(request['range']['start_ms'],maximum=MAX_CLOCK)
+    end=_query_uint(request['range']['end_ms'],maximum=MAX_CLOCK)
+    cutoff=_query_uint(request['event_cut_ms'],maximum=253402300799999)
+    _need(start<end<=cutoff and start%60000==0 and end%60000==0 and 1<=(end-start)//60000<=MAX_ROWS,'INVALID_REQUEST')
+    knowledge=request['knowledge_cut'];_closed(knowledge,('manifest_revision','manifest_sha256'),'INVALID_REQUEST')
+    _query_uint(knowledge['manifest_revision'],positive=True);_query_text(knowledge['manifest_sha256'],r'[0-9a-f]{64}')
+    context=request['consumer_context'];_closed(context,('consumer_id','view_id','authorization_contract_sha256'),'INVALID_REQUEST')
+    for key in ('consumer_id','view_id'):_query_text(context[key],uuid_pattern)
+    _query_text(context['authorization_contract_sha256'],r'[0-9a-f]{64}')
+    _closed(result,set(QUERY_FLAGS)|{'request','request_sha256','dataset_revision','manifest_revision','manifest_sha256','rows','cells'},'INVALID_REQUEST')
+    for key,expected in QUERY_FLAGS.items():
+        _need(type(result[key]) is type(expected) and result[key]==expected,'INVALID_REQUEST')
+    _need(result['request']==request and result['request_sha256']==_sha(a),'INVALID_REQUEST')
+    for key,expected in (('dataset_revision',request['dataset_revision']),('manifest_revision',knowledge['manifest_revision']),('manifest_sha256',knowledge['manifest_sha256'])):_need(result[key]==expected,'INVALID_REQUEST')
+    rows=result['rows'];cells=result['cells'];count=(end-start)//60000
+    _need(type(rows) is list and type(cells) is list and len(rows)==len(cells)==count,'INVALID_OHLCV')
+    mapped=[]
+    for i,(row,cell) in enumerate(zip(rows,cells)):
+        t=start+i*60000
+        _need(type(row) is list and len(row)==7,'INVALID_OHLCV')
+        _need(cell=={'start_ms':str(t),'end_ms':str(t+60000),'disposition':'PRESENT','reason':'FIXTURE_GENERATED','recoverability':'NOT_APPLICABLE'},'INVALID_OHLCV')
+        _need(_query_uint(row[0],maximum=MAX_CLOCK)==t,'INVALID_OHLCV')
+        o,h,l,c,v,turnover=(_query_uint(x,maximum=10**15) for x in row[1:])
+        _need(0<l<=min(o,c)<=max(o,c)<=h,'INVALID_OHLCV')
+        mapped.append(dict(event_start_ms=t,event_end_ms=t+60000,open=o,high=h,low=l,close=c,volume=v))
+    return request,result,mapped,start,end,cutoff
+
+def execute_query_synthetic_research(request_bytes,*,upstream_query_request_bytes,upstream_query_result_bytes,meta_source_root,cancel_check):
+    """Pure v2 transformation. Byte agreement never authenticates query issuance.
+
+    Root retains both raw upstream dependencies and owns actual A2/A3/A4 query
+    admission. No query, submission, store, publication or lease check occurs here.
+    """
+    # All three inputs preflight BEFORE any hashing or parsing; foreign byte
+    # subclasses cannot execute caller protocols through length/decoding hooks.
+    for raw,limit in ((request_bytes,MAX_REQUEST_BYTES),(upstream_query_request_bytes,16384),(upstream_query_result_bytes,MAX_RESULT_BYTES)):
+        _need(type(raw) is bytes and 0<len(raw)<=limit,'INVALID_REQUEST')
+    _cancel(cancel_check)
+    q=_query_json(request_bytes)
+    _closed(q,('schema','operation','experiment','payload','decision_ms','analysis_now_ms','upstream_binding'),'INVALID_REQUEST')
+    _need(q['schema']=='stratt.gateway.synthetic.research.request.v2-review1','UNSUPPORTED_SCHEMA')
+    binding=q['upstream_binding']
+    _closed(binding,('query_request_sha256','query_result_sha256','query_implementation_head'),'INVALID_REQUEST')
+    _need(binding=={'query_request_sha256':_sha(upstream_query_request_bytes),'query_result_sha256':_sha(upstream_query_result_bytes),'query_implementation_head':QUERY_HEAD},'INVALID_REQUEST')
+    upstream,result,rows,start,end,cutoff=_query_input(upstream_query_request_bytes,upstream_query_result_bytes)
+    p=q['payload'];_need(type(p) is dict and type(p.get('source')) is dict,'INVALID_REQUEST')
+    source=p['source'];_closed(source,('kind','identity','source_revision','retrieval_id','retrieved_at_ms','raw_sha256'),'INVALID_REQUEST')
+    for key in ('identity','retrieval_id'):
+        _query_text(source[key],r'[A-Za-z0-9][A-Za-z0-9._:/+-]{0,127}')
+        _need(source[key] not in (upstream['dataset_id'],upstream['request_id']),'INVALID_REQUEST')
+    _need(source['kind']=='HISTORICAL_BACKFILL' and source['source_revision']==QUERY_HEAD and source['raw_sha256']==binding['query_result_sha256'],'INVALID_REQUEST')
+    for clock in (source['retrieved_at_ms'],q['decision_ms'],p.get('as_of_ms'),q['analysis_now_ms']):_clock(clock)
+    _need(end<=cutoff<=source['retrieved_at_ms']<=q['decision_ms']<=p['as_of_ms']<=q['analysis_now_ms'],'INVALID_REQUEST')
+    expected=dict(schema='meta.ohlcv.research.request.v1',venue='bybit',market_type='linear',symbol='BTCUSDT',timeframe='1m',units={'price':'USDT/BTC','volume':'BTC'},start_ms=start,end_ms=end,as_of_ms=p['as_of_ms'],evidence_class='SYNTHETIC',source=copy.deepcopy(source),rows=rows)
+    fields=('venue','market_type','symbol','timeframe','units','start_ms','end_ms','source','evidence_class','rows')
+    expected['dataset_id']=_sha(_canonical(dict(schema='meta.ohlcv.dataset.v1',**{k:expected[k] for k in fields})))
+    # Compare canonical bytes too: Python equality would equate bool/float/int.
+    _need(_canonical(p)==_canonical(expected),'INVALID_OHLCV')
+    inner={k:copy.deepcopy(v) for k,v in q.items() if k!='upstream_binding'};inner['schema']=REQUEST_SCHEMA
+    out=execute_synthetic_research(_canonical(inner),meta_source_root=meta_source_root,cancel_check=cancel_check)
+    descriptor=out['descriptor'];descriptor['schema']='stratt.gateway.synthetic.research.result.v2-review1'
+    descriptor['request_raw_sha256']=_sha(request_bytes)
+    descriptor['upstream_binding']={**copy.deepcopy(binding),'request':copy.deepcopy(upstream),'result_metadata':{k:copy.deepcopy(v) for k,v in result.items() if k not in ('rows','cells','request')}}
+    _need(len(_canonical(descriptor))<=MAX_RESULT_BYTES,'RESULT_UNAVAILABLE')
+    _cancel(cancel_check)
+    return out
