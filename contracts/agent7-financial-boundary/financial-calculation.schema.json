@@ -23,27 +23,27 @@
     "gross_pnl": {
       "type": "string",
       "maxLength": 80,
-      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?(?![\\s\\S])"
     },
     "net_pnl": {
       "type": "string",
       "maxLength": 80,
-      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?(?![\\s\\S])"
     },
     "fees": {
       "type": "string",
       "maxLength": 80,
-      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?(?![\\s\\S])"
     },
     "slippage": {
       "type": "string",
       "maxLength": 80,
-      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?(?![\\s\\S])"
     },
     "funding": {
       "type": "string",
       "maxLength": 80,
-      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?(?![\\s\\S])"
     },
     "currency": {
       "type": "string",
@@ -59,7 +59,7 @@
     },
     "profile_sha256": {
       "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
     },
     "calculation_basis": {
       "enum": [
@@ -82,15 +82,15 @@
       "properties": {
         "source_head": {
           "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
+          "pattern": "^[0-9a-f]{40}(?![\\s\\S])"
         },
         "source_tree": {
           "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
+          "pattern": "^[0-9a-f]{40}(?![\\s\\S])"
         },
         "input_manifest_sha256": {
           "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
+          "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
         },
         "strategy_id": {
           "type": "string",

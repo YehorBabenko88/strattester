@@ -93,4 +93,37 @@ class BoundaryTests(unittest.TestCase):
   profile=dict(self.profile,schema='agent7.financial-unit-profile.v1');pin=digest(profile)
   with self.assertRaises(ValueError):self.m.convert(dict(self.record,profile_sha256=pin),profile,{pin})
 
-if __name__=='__main__':unittest.main()
+def validate_schema_regressions():
+ # Separate actual-validator target; stdlib component suite needs no third party.
+ import jsonschema
+ schema=json.loads((ROOT/'financial-calculation.schema.json').read_text())
+ jsonschema.Draft202012Validator.check_schema(schema)
+ validator=jsonschema.Draft202012Validator(schema)
+ case=BoundaryTests();case.setUp();output=case.run_record();validator.validate(output)
+ checks=1
+ for key in output:
+  bad=copy.deepcopy(output);del bad[key]
+  assert list(validator.iter_errors(bad)),key
+  checks+=1
+ bad=dict(output,unexpected=True);assert list(validator.iter_errors(bad));checks+=1
+ for key in ['currency','unit','strategy_id','strategy_version']:
+  for value in ['EUR€','a\n','a\r','bad value','/lead','%20']:
+   bad=copy.deepcopy(output)
+   target=bad if key in ('currency','unit') else bad['provenance']
+   target[key]=value;assert list(validator.iter_errors(bad)),key
+   checks+=1
+ for key in ['gross_pnl','net_pnl','fees','slippage','funding','profile_sha256','source_head','source_tree','input_manifest_sha256']:
+  bad=copy.deepcopy(output)
+  target=bad['provenance'] if key in ('source_head','source_tree','input_manifest_sha256') else bad
+  target[key]+='\n'
+  assert list(validator.iter_errors(bad)),key+' trailing LF accepted'
+  checks+=1
+ assert checks==46,checks
+ return checks
+
+if __name__=='__main__':
+ import sys
+ if sys.argv[1:]==['--validate-schema']:
+  print(json.dumps({'schema_checks':validate_schema_regressions(),'skips':0}))
+ else:unittest.main()
+
