@@ -1,0 +1,89 @@
+Committed artifact projection/recovery — next A7 slice
+
+Base reverified local/remote887e3eeaf23ef8d9d1429435bc88bbac8099c6e6
+tree954f3364cb70369705f658e89fcc6ae8ce547eec. PR77 remains immutable.
+Separate branch agent7/committed-artifact-projection-20261109.
+
+Ownership: strattester/persistence/result_store.py and
+strattester/research/result_persistence.py; existing allocated persistence tests,
+new tests/research/gateway_artifact_persistence/** and
+docs/gateway/research/persistence/**. No Root/A2/A4 code, second registry, ledger,
+transport, scheduler, UI, production DB or physical deployment changes.
+
+Goal: project an ACTUAL A2 committed publication into the SAME existing ResultStore
+durably and idempotently, retaining exact original identity and failure uncertainty.
+Native publication is the sole authority linearization. SQLite is only a replayable
+projection and never creates proof of native commitment, replicas or permission.
+
+Current positive ABI availability
+project_gateway_artifact_commit(stage_id, *, actual_receipt_handle,
+expected_authority) and read_gateway_artifact(ids) ALWAYS DENY at the base.
+No actual committed-receipt issuer/closure/access type has been supplied to this
+slice. These denials stay until A2/A4 exact ABI, implementation pin and explicit ACK.
+No callback, JSON receipt, caller-selected method/type/module or boolean grant can
+substitute. A future signature change must be reviewed, not silently appended.
+
+Steps and gates
+[x] Reverify887e remote/local/tree and clean PR77; create separate worktree.
+[ ] Run existing45 local baseline in new worktree with own external temp directory.
+[ ] Add independent actual-own-process SQLite crash tests: after artifact INSERT
+    before COMMIT, and after durable stage return. Reopen, revalidate unchanged
+    raw descriptor/input/artifact identities, exact retry and conflicting intent.
+    No target recompute or native publication; no new key/profile/hold release.
+[ ] Verify projection/read denial after both restart boundaries and preservation
+    of UNKNOWN stages/no publication receipt. Do not invent a positive A2 result.
+[ ] A2/A4 provide exact fixed-owner issuer/validation/access calls, concrete types,
+    source pins, receipt codec/raw bytes/native ModifyIndex and closure binding.
+    Freeze together BEFORE positive implementation or positive tests.
+[ ] After that gate only, add actual-owner positive RED tests and implement minimal
+    existing-table immutable insert/CAS projection. Same receipt+identity/content
+    exact retry is idempotent; any conflicting original/result/receipt refuses.
+[ ] Inject crash after actual native commit but before/after local commit using
+    actual committed receipt, then recover SAME authoritative historical decision
+    with current history-read rights; never issue a fresh native publication.
+[ ] Qualify exact source, meaningful local/required CI tests, Draft PR and A8 review.
+
+Exact identity/byte mapping must be frozen, without aliases
+- H: entire target-native20 request; S: commissioned profile; D: native lab13 submit.
+- c548: original A7 research request;33d5: local payload label; Meta dataset digest
+  is separate. MetaF3, actual A7aed8, f499 artifact/664d descriptor remain unchanged.
+- Q: actual publication original intent (not assumed equal to H, S, D or c548).
+- C: actual A4 full retained/protected closure, independently eligible replica
+  evidence/current holds. Local copies or local observations are not two domains.
+- R: exact ACTUAL A2 immutable receipt bytes hash plus its actual native index,
+  authority/source incarnation, result/job/attempt/original intent and closure joins.
+Existing original_intent_sha256 has no new native meaning assigned by this plan;
+A2/A4/A7 must explicitly choose/bind Q/D and other identities before a successor.
+Never reencode receipt JSON and call that original raw Value bytes. Closure must
+not recursively include its future final publication receipt/self hash.
+
+Store/projection semantics
+Reuse current staged/result tables and allocated columns. Whether additional
+nullable binding/index columns are necessary depends on the actual frozen ABI;
+do not invent a table or undocumented migration now. Preserve legacy FINANCIAL
+domain isolation, immutable ARTIFACT identities and UNKNOWN stage retention.
+Known native COMMITTED and local projection PENDING/FAILED/UNKNOWN are independent.
+An interrupted/failed SQLite projection cannot erase a known native commitment.
+Recovery reobserves the same native receipt under current read rights; an expired
+original worker lease does not rewrite history or authorize a new commit.
+Disclosure/readback also needs actual current A2/A4 access and exact readable
+artifact/descriptor/source/unit/digest checks. Digest matching alone is not access.
+
+Reuse existing stage_gateway_research_artifact byte/domain checks; do not rewrite
+scientific algorithms, original artifact bytes, null finance or false inner flags.
+Actual full payload/closure/source validation remains an owner gate, not a claim
+made by the current local staging helper. A7 positive read/projection is not
+implemented merely by receiving a receipt-shaped dictionary.
+
+Native observation6f1d85 is metadata-only/admission-only: projection fixed
+NOT_AVAILABLE, publication NOT_AUTHORIZED, completion NOT_ESTABLISHED. It cannot
+be silently extended or used as a committed publication/projection receipt.
+A future positive response requires separate exact Root/A2/A4/A5/A6/A7 codec ACK.
+
+Limits of pre-ABI tests
+Owned temporary SQLite files/processes only. Process exit tests do not establish
+power-loss durability, Windows/native containment, current native authority,
+quorum, actual committed receipt or two independently admitted failure domains.
+No fake positive grant, native/provider/office/public submit or real-order call.
+If issuer/closure unavailable, report POSITIVE_ABI_BLOCKED with independent local
+recovery evidence, keeping positive DENY rather than claiming end-to-end PASS.
