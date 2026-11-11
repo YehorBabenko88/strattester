@@ -1,6 +1,6 @@
 """Focused actual-Meta synthetic calculation; no signature/authority mocks."""
 import copy,json,pathlib,sys,tempfile,types,unittest
-from support import canonical,sha,request,reference,source_root,load_adapter,copy_source,copied_source_admission_diagnostics
+from support import canonical,sha,request,reference,source_root,load_adapter,copy_source,copy_source_record,copied_source_admission_diagnostics
 EXPECTED=[('low','8',0),('low','9',60000),('high','12',120000),('low','10',120000)]
 
 class ExistingMetaReferenceTests(unittest.TestCase):
@@ -101,6 +101,8 @@ class GatewayAdapterTests(unittest.TestCase):
  def test_source_changed_after_calculation_refused(self):
   with tempfile.TemporaryDirectory() as directory:
    root=copy_source(directory)
+   self.assertEqual(copy_source_record(root),{'schema':'gateway.test.owned-copy.v1','ordinary_ancestry':True,'same_physical_directory':True,'canonical_identity_equal':True,'empty_before_copy':True,'source_pins_verified':True})
+   self.assertEqual(root.resolve(strict=True),root.absolute())
    facts=copied_source_admission_diagnostics(root)
    # The SAME copy must calculate successfully before testing its later mutation.
    # Do not resolve/rewrite this path to bypass a production admission refusal.
