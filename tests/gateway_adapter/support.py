@@ -39,10 +39,44 @@ def load_adapter():
  spec=importlib.util.spec_from_file_location('_gateway_adapter_under_test',ROOT/'strattester/research/gateway_adapter.py')
  module=importlib.util.module_from_spec(spec);sys.modules[spec.name]=module;spec.loader.exec_module(module);return module
 
+_COPY_RECORDS={}
+
+def _ordinary_copy_directory(path):
+ info=None
+ for current in (*reversed(path.parents),path):
+  info=current.lstat()
+  if not stat.S_ISDIR(info.st_mode) or stat.S_ISLNK(info.st_mode) or (getattr(info,'st_file_attributes',0)&1024):raise ValueError('FIXTURE_COPY_UNSAFE_DIRECTORY')
+ return info
+
+def _known_directory_identity(info):
+ if type(info.st_dev) is not int or type(info.st_ino) is not int or info.st_dev<=0 or info.st_ino<=0:raise ValueError('FIXTURE_COPY_UNKNOWN_IDENTITY')
+ return info.st_dev,info.st_ino
+
 def copy_source(target):
- folder=pathlib.Path(target)/'src/meta_analyse';folder.mkdir(parents=True)
- for name in PINS:(folder/name).write_bytes((source_root()/'src/meta_analyse'/name).read_bytes())
- return pathlib.Path(target)
+ """Construct only an empty, test-owned copy before any application call."""
+ lexical=pathlib.Path(target)
+ if not lexical.is_absolute() or '..' in lexical.parts:raise ValueError('FIXTURE_COPY_ABSOLUTE_REQUIRED')
+ original=_known_directory_identity(_ordinary_copy_directory(lexical))
+ if any(lexical.iterdir()):raise ValueError('FIXTURE_COPY_NOT_EMPTY')
+ # Resolve only after root-first checks. This selects a fixture spelling before
+ # any app call; never retry a rejected app path using a different spelling.
+ canonical=lexical.resolve(strict=True)
+ actual=_known_directory_identity(_ordinary_copy_directory(canonical))
+ if actual!=original or _known_directory_identity(_ordinary_copy_directory(lexical))!=original:raise ValueError('FIXTURE_COPY_DIRECTORY_CHANGED')
+ if canonical.resolve(strict=True)!=canonical.absolute():raise ValueError('FIXTURE_COPY_NONCANONICAL')
+ if any(canonical.iterdir()):raise ValueError('FIXTURE_COPY_NOT_EMPTY')
+ # Exclusive creation: do not overwrite or move existing fixture/data paths.
+ src=canonical/'src';src.mkdir();_ordinary_copy_directory(src)
+ folder=src/'meta_analyse';folder.mkdir();_ordinary_copy_directory(folder)
+ for name,pin in PINS.items():
+  raw=(source_root()/'src/meta_analyse'/name).read_bytes()
+  if sha(raw)!=pin:raise ValueError('FIXTURE_COPY_SOURCE_PIN')
+  with (folder/name).open('xb') as output:output.write(raw)
+ _COPY_RECORDS[str(canonical)]={'schema':'gateway.test.owned-copy.v1','ordinary_ancestry':True,'same_physical_directory':True,'canonical_identity_equal':True,'empty_before_copy':True,'source_pins_verified':True}
+ return canonical
+
+def copy_source_record(root):
+ return dict(_COPY_RECORDS[str(root)])
 
 def copied_source_admission_diagnostics(root):
  """Closed facts only: never include paths, source bytes or exception messages."""
