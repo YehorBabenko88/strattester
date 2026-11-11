@@ -1,0 +1,198 @@
+name: Artifact staging recovery 47 unit tests
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/projection-recovery-47.yml'
+      - 'docs/gateway/research/persistence/qualification47/qualify.py'
+      - 'docs/gateway/research/persistence/qualification47/expected47.json'
+      - 'docs/gateway/research/persistence/qualification47/requirements.lock'
+      - 'docs/gateway/research/persistence/qualification47/README.md'
+      - 'docs/gateway/research/persistence/qualification47/test_qualifier_controls.py'
+      - 'strattester/persistence/result_store.py'
+      - 'strattester/research/result_persistence.py'
+      - 'tests/persistence/test_result_store.py'
+      - 'tests/persistence/test_result_store_recovery.py'
+      - 'tests/research/gateway_artifact_persistence/test_local_stage.py'
+      - 'tests/research/gateway_artifact_persistence/test_projection_recovery_without_issuer.py'
+      - 'tests/research/gateway_artifact_persistence/crash_projection_stage_child.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: projection47-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  sqlite47:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent7/projection-recovery-hosted47-20261110'
+    runs-on: windows-latest
+    timeout-minutes: 10
+    env:
+      TOOL_HEAD: ${{ github.event.pull_request.head.sha }}
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+      GIT_NO_REPLACE_OBJECTS: '1'
+      GIT_CONFIG_COUNT: '2'
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: 'false'
+      GIT_CONFIG_KEY_1: core.eol
+      GIT_CONFIG_VALUE_1: lf
+    steps:
+      - name: Checkout separate exact qualifier source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: qualifier-code
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Checkout frozen 809-file test source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: de6620eb5577e97db1af11b6807e22a9b61d1090
+          path: target
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12.10'
+      - name: Bootstrap raw Git source before qualifier or test imports
+        shell: python -I -S -B {0}
+        run: |
+          import hashlib,io,json,os,pathlib,stat,subprocess,sys
+          workspace=pathlib.Path(os.environ['GITHUB_WORKSPACE']).absolute()
+          tools=workspace/'qualifier-code';target=workspace/'target'
+          runner_temp=pathlib.Path(os.environ['RUNNER_TEMP']).absolute()
+          ns=runner_temp/('agent7-sqlite47-'+os.environ['GITHUB_RUN_ID']+'-'+os.environ['GITHUB_RUN_ATTEMPT'])
+          evidence=ns/'evidence'
+          git=pathlib.Path('C:/Program Files/Git/bin/git.exe')
+          env={k:v for k,v in os.environ.items() if not k.upper().startswith('GIT_')}
+          env.update(GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL=os.devnull)
+          def ordinary(path,kind='directory'):
+              assert path.is_absolute() and '..' not in path.parts
+              chain=[*reversed(path.parents),path]
+              for index,part in enumerate(chain):
+                  info=part.lstat()
+                  assert not stat.S_ISLNK(info.st_mode) and not (getattr(info,'st_file_attributes',0)&1024)
+                  final=index==len(chain)-1
+                  if final and kind=='file':assert stat.S_ISREG(info.st_mode) and info.st_nlink==1
+                  elif final and kind=='either':assert stat.S_ISDIR(info.st_mode) or (stat.S_ISREG(info.st_mode) and info.st_nlink==1)
+                  else:assert stat.S_ISDIR(info.st_mode)
+              return info
+          def checked_files(root):
+              ordinary(root)
+              pending=[root]
+              while pending:
+                  directory=pending.pop();ordinary(directory)
+                  for p in sorted(directory.iterdir(),key=str):
+                      rel=p.relative_to(root)
+                      if rel.parts[0]=='.git':continue
+                      info=ordinary(p,'either')
+                      if stat.S_ISDIR(info.st_mode):pending.append(p)
+                      else:yield p
+          def g(root,*args,data=None):
+              ordinary(root)
+              ordinary(root/'.git','either')
+              ordinary(git,'file')
+              return subprocess.check_output([str(git),'--no-replace-objects','--no-optional-locks','-c','core.fsmonitor=false','-c','core.hooksPath='+os.devnull,*args],cwd=root,env=env,input=data,timeout=30)
+          def ledger(root,head,count):
+              ordinary(root)
+              assert g(root,'rev-parse','HEAD').decode().strip()==head
+              assert not g(root,'for-each-ref','refs/replace','--format=%(refname)').strip()
+              tree=g(root,'rev-parse','HEAD^{tree}').decode().strip()
+              rows=[]
+              for row in g(root,'ls-tree','-rz','--full-tree','HEAD').split(b'\0'):
+                  if not row:continue
+                  info,name=row.split(b'\t',1);mode,kind,oid=info.split()
+                  assert mode in (b'100644',b'100755') and kind==b'blob'
+                  rel=name.decode();relative=pathlib.PurePosixPath(rel)
+                  assert not relative.is_absolute() and '..' not in relative.parts and rel==relative.as_posix() and '\\' not in rel and ':' not in rel
+                  ordinary(root/rel,'file')
+                  rows.append((rel,oid))
+              assert len(rows)==count
+              data=g(root,'cat-file','--batch',data=b''.join(oid+b'\n' for _,oid in rows))
+              assert len(data)<=128*1024*1024
+              stream=io.BytesIO(data);result={}
+              for rel,oid in rows:
+                  p=root/rel;ordinary(p,'file')
+                  actual,kind,size=stream.readline().split();raw=stream.read(int(size))
+                  assert actual==oid and kind==b'blob' and stream.read(1)==b'\n'
+                  assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest().encode()==oid
+                  assert p.read_bytes()==raw and p.suffix not in ('.pyc','.pyo')
+                  result[rel]={'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+              actual=set()
+              for p in checked_files(root):actual.add(p.relative_to(root).as_posix())
+              assert actual==set(result)
+              return tree,result
+          test_head='de6620eb5577e97db1af11b6807e22a9b61d1090'
+          failure={'bootstrap_ok':False,'source_verified':False,'tool_files':None,'test_files':None,'tool_source_sha256':None,'test_source_sha256':None,'git_sha256':None}
+          own_evidence=False
+          try:
+              ordinary(runner_temp)
+              try:ns.lstat()
+              except FileNotFoundError:pass
+              else:raise RuntimeError('Attempt namespace already exists')
+              ns.mkdir();ordinary(ns);evidence.mkdir();ordinary(evidence);own_evidence=True
+              envfile=pathlib.Path(os.environ['GITHUB_ENV']).absolute();ordinary(envfile,'file')
+              with envfile.open('a',encoding='utf-8') as out:out.write('A7_NAMESPACE='+str(ns)+'\n')
+              ordinary(workspace)
+              assert sys.platform=='win32' and sys.version_info[:3]==(3,12,10)
+              assert sys.flags.isolated and sys.flags.no_site and sys.dont_write_bytecode
+              python=pathlib.Path(sys.executable).absolute();ordinary(python,'file')
+              tool_tree,tool_files=ledger(tools,os.environ['TOOL_HEAD'],815)
+              test_tree,test_files=ledger(target,test_head,809)
+              assert test_tree=='01e9e95f593e74d0b0a27afca771f37034aef977'
+              ordinary(git,'file')
+              ordinary(python,'file')
+              record={'bootstrap_ok':True,'source_verified':True,'tool_head':os.environ['TOOL_HEAD'],'tool_tree':tool_tree,'tool_root':str(tools),'tool_files':tool_files,'test_head':test_head,'test_tree':test_tree,'test_files':test_files,'bootstrap':'WORKFLOW_INLINE_BEFORE_QUALIFIER_IMPORT','git_primary':str(git),'git_sha256':hashlib.sha256(git.read_bytes()).hexdigest(),'python':{'executable':str(python),'version':sys.version,'sha256':hashlib.sha256(python.read_bytes()).hexdigest()}}
+              ordinary(evidence)
+              with (evidence/'bootstrap.json').open('x',encoding='utf-8') as out:json.dump(record,out,sort_keys=True,indent=2)
+              ordinary(envfile,'file')
+              with envfile.open('a',encoding='utf-8') as out:out.write('A7_BOOTSTRAP_OK=1\n')
+          except BaseException as error:
+              failure['error_type']=type(error).__name__
+              print(json.dumps(failure,sort_keys=True))
+              if own_evidence:
+                  ordinary(evidence)
+                  with (evidence/'bootstrap-failure.json').open('x',encoding='utf-8') as out:json.dump(failure,out,sort_keys=True,indent=2)
+              raise
+      - name: Mandatory separate modeled28 controls before dependency acquisition
+        shell: pwsh
+        run: |
+          $deps=Join-Path $env:A7_NAMESPACE 'deps'
+          $evidence=Join-Path $env:A7_NAMESPACE 'evidence'
+          python -I -S -B qualifier-code/docs/gateway/research/persistence/qualification47/qualify.py controls --target target --deps $deps --evidence $evidence
+          exit $LASTEXITCODE
+      - name: Acquire only six hash-locked wheels in owned hosted state
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $deps=Join-Path $env:A7_NAMESPACE 'deps'
+          $report=Join-Path $env:A7_NAMESPACE 'evidence/pip-install.json'
+          python -m pip --version
+          python -m pip --isolated install --disable-pip-version-check --no-input --only-binary=:all: --no-deps --no-compile --require-hashes --retries 0 --timeout 30 --index-url https://pypi.org/simple --target $deps --report $report -r qualifier-code/docs/gateway/research/persistence/qualification47/requirements.lock
+          if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+      - name: Run exact 47 cases once on frozen test checkout
+        shell: pwsh
+        run: |
+          $deps=Join-Path $env:A7_NAMESPACE 'deps'
+          $evidence=Join-Path $env:A7_NAMESPACE 'evidence'
+          python -I -S -B qualifier-code/docs/gateway/research/persistence/qualification47/qualify.py run --target target --deps $deps --evidence $evidence
+          exit $LASTEXITCODE
+      - name: Separately read closed candidate and validate JUnit and retirement
+        if: always() && env.A7_BOOTSTRAP_OK == '1'
+        shell: pwsh
+        run: |
+          $deps=Join-Path $env:A7_NAMESPACE 'deps'
+          $evidence=Join-Path $env:A7_NAMESPACE 'evidence'
+          python -I -S -B qualifier-code/docs/gateway/research/persistence/qualification47/qualify.py verify --target target --deps $deps --evidence $evidence
+          exit $LASTEXITCODE
+      - name: Retain evidence only, never SQLite state or dependency trees
+        if: always() && env.A7_NAMESPACE != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: projection47-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.A7_NAMESPACE }}/evidence/
+          if-no-files-found: error
+          retention-days: 7
