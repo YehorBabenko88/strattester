@@ -1,6 +1,6 @@
 """Focused actual-Meta synthetic calculation; no signature/authority mocks."""
 import copy,json,pathlib,sys,tempfile,types,unittest
-from support import canonical,sha,request,reference,source_root,load_adapter,copy_source
+from support import canonical,sha,request,reference,source_root,load_adapter,copy_source,copied_source_admission_diagnostics
 EXPECTED=[('low','8',0),('low','9',60000),('high','12',120000),('low','10',120000)]
 
 class ExistingMetaReferenceTests(unittest.TestCase):
@@ -100,13 +100,31 @@ class GatewayAdapterTests(unittest.TestCase):
    else:sys.modules[name]=previous
  def test_source_changed_after_calculation_refused(self):
   with tempfile.TemporaryDirectory() as directory:
-   root=copy_source(directory);state={'changed':False};old=sys.getprofile()
+   root=copy_source(directory)
+   facts=copied_source_admission_diagnostics(root)
+   # The SAME copy must calculate successfully before testing its later mutation.
+   # Do not resolve/rewrite this path to bypass a production admission refusal.
+   try:calibration=self.execute(root=root)
+   except self.m.GatewayResearchError as exc:
+    code=exc.code if exc.code in ('SOURCE_UNAVAILABLE','INVALID_REQUEST','INVALID_OHLCV','RESULT_UNAVAILABLE') else 'OTHER_CLOSED_CODE'
+    raise self.failureException(json.dumps({'phase':'COPY_POSITIVE_CALIBRATION','code':code,'facts':facts},sort_keys=True)) from None
+   except Exception:
+    raise self.failureException(json.dumps({'phase':'COPY_POSITIVE_CALIBRATION','code':'UNEXPECTED_CLOSED_ERROR','facts':facts},sort_keys=True)) from None
+   self.assertEqual(calibration['artifact_bytes'],canonical(reference(request())))
+   self.assertFalse(calibration['descriptor']['execution_authority'])
+   state={'changed':False,'entered_meta':False};old=sys.getprofile()
    def observer(frame,event,arg):
-    if event=='return' and frame.f_code.co_name=='analyze_ohlcv_research' and not state['changed']:
+    actual=frame.f_code.co_name=='analyze_ohlcv_research' and frame.f_code.co_filename==str(root/'src/meta_analyse/ohlcv_research_adapter.py')
+    if actual and event=='call':state['entered_meta']=True
+    if actual and event=='return' and not state['changed']:
      p=root/'src/meta_analyse/core.py';p.write_bytes(p.read_bytes()+b'\n# changed during calculation\n');state['changed']=True
    try:
-    sys.setprofile(observer);self.refused(root=root)
+    sys.setprofile(observer)
+    with self.assertRaises(self.m.GatewayResearchError) as refused:self.execute(root=root)
    finally:sys.setprofile(old)
-   self.assertTrue(state['changed'])
+   diagnostic=json.dumps({'phase':'MUTATION_REFUSAL','entered_meta':state['entered_meta'],
+                          'changed':state['changed'],'facts':facts},sort_keys=True)
+   self.assertTrue(state['changed'],diagnostic)
+   self.assertEqual(refused.exception.code,'SOURCE_UNAVAILABLE',diagnostic)
 
 if __name__=='__main__':unittest.main()

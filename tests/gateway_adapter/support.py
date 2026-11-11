@@ -1,5 +1,5 @@
 """Disposable test support; invokes real pinned Meta pure code, no native service."""
-import copy,hashlib,importlib.util,json,os,pathlib,sys,types
+import copy,hashlib,importlib.util,json,os,pathlib,stat,sys,types
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 PINS={'__init__.py':'70d2201e97a9d8b57973b8328ce7e2938e85096035a867aab8b37b35ee1e1883','core.py':'caa15e51394d3c204ecbcf557cd13ce7a6853b5c8005c4d266971f3f14177170','ohlcv_research_adapter.py':'39b165c945f4d5c00fdf96c460d9bf4e34a32c9cb30483d9be6d88f45403a90f'}
 def canonical(value):return json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
@@ -43,3 +43,36 @@ def copy_source(target):
  folder=pathlib.Path(target)/'src/meta_analyse';folder.mkdir(parents=True)
  for name in PINS:(folder/name).write_bytes((source_root()/'src/meta_analyse'/name).read_bytes())
  return pathlib.Path(target)
+
+def copied_source_admission_diagnostics(root):
+ """Closed facts only: never include paths, source bytes or exception messages."""
+ result={'schema':'gateway.copied-source-admission.v1','stage':'START',
+         'absolute':False,'canonical_identity_equal':False,'pins_match':False,
+         'ordinary_single_link_files':False,'ordinary_ancestry':False,'error_class':'NONE'}
+ try:
+  result['stage']='ROOT_IDENTITY';result['absolute']=root.is_absolute()
+  result['stage']='ANCESTRY';package=root/'src/meta_analyse'
+  for p in (*reversed(root.parents),root,root/'src',package):
+   info=p.lstat()
+   if not stat.S_ISDIR(info.st_mode) or stat.S_ISLNK(info.st_mode) or (getattr(info,'st_file_attributes',0)&1024):return result
+  result['ordinary_ancestry']=True
+  result['stage']='CANONICAL_IDENTITY'
+  result['canonical_identity_equal']=root.resolve()==root.absolute()
+  result['stage']='PINNED_FILES'
+  checks=[];ordinary=[]
+  for name,pin in PINS.items():
+   p=package/name;info=p.lstat()
+   safe=stat.S_ISREG(info.st_mode) and not stat.S_ISLNK(info.st_mode) and info.st_nlink==1 and not (getattr(info,'st_file_attributes',0)&1024) and info.st_size<=1048576
+   ordinary.append(safe)
+   if not safe:return result
+   with p.open('rb') as stream:
+    opened=os.fstat(stream.fileno())
+    if (opened.st_dev,opened.st_ino)!=(info.st_dev,info.st_ino) or opened.st_nlink!=1:return result
+    raw=stream.read(1048577)
+   checks.append(sha(raw)==pin)
+  result['pins_match']=all(checks);result['ordinary_single_link_files']=all(ordinary)
+  result['stage']='COMPLETE'
+ except (OSError,ValueError,RuntimeError) as exc:
+  result['error_class']=type(exc).__name__ if type(exc).__name__ in (
+   'OSError','FileNotFoundError','PermissionError','ValueError','RuntimeError') else 'OTHER_CLOSED_ERROR'
+ return result
