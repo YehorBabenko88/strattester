@@ -7,8 +7,9 @@ test_interrupted_multifile_save_refuses_orphan_instead_of_adopting (__main__.Che
 test_interruption_retained_and_resume_completes (__main__.Checks.test_interruption_retained_and_resume_completes) ... ok
 test_removed_result_pin_cannot_bypass_resume (__main__.Checks.test_removed_result_pin_cannot_bypass_resume) ... ok
 test_tamper_and_wrong_source_resume_refused (__main__.Checks.test_tamper_and_wrong_source_resume_refused) ... ok
+test_total_bar_budget_rejects_before_output_creation (__main__.Checks.test_total_bar_budget_rejects_before_output_creation) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 5.476s
+Ran 10 tests in 5.320s
 
 OK

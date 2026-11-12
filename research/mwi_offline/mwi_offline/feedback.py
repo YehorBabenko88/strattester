@@ -10,7 +10,7 @@ from .evaluation import digest,fit,calibrated,probabilities,split_at,metrics
 from .features import build_examples
 from .strategy import candidates,next_version
 from .simulation_adapter import simulate_candidate
-from .adapter import _read,_json
+from .adapter import _read,_json,_bars
 from .synthetic import generate
 
 
@@ -69,6 +69,8 @@ def publish_checkpoint(root,value):
 
 
 def run_cycle(directory,bars,binding,source_head,resume=False):
+    if type(bars) is not list or not 1<=len(bars)<8200:raise ValueError('TOTAL_INPUT_BAR_BUDGET')
+    _bars(bars)
     start=time.monotonic();root=Path(directory)
     if type(source_head) is not str or re.fullmatch('[0-9a-f]{40}',source_head) is None:raise ValueError('SOURCE_CONTEXT')
     module_root=Path(__file__).parent

@@ -95,5 +95,10 @@ class Checks(unittest.TestCase):
             self.assertEqual(result['policy_holdout']['seed'],20261113)
             self.assertGreater(result['policy_holdout']['start_ms'],max(b['end_ms'] for b in self.bars))
             self.assertNotEqual(result['policy_holdout']['dataset_id'],result['config']['dataset_id'])
+    def test_total_bar_budget_rejects_before_output_creation(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)/'cycle'
+            with self.assertRaisesRegex(ValueError,'TOTAL_INPUT_BAR_BUDGET'):run_cycle(root,[None]*8200,fake_binding(),'a'*40)
+            self.assertFalse(root.exists())
 
 if __name__=='__main__':unittest.main(verbosity=2)
