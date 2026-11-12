@@ -1,0 +1,15 @@
+test_atomic_checkpoint_publication_preserves_previous_on_replace_failure (__main__.Checks.test_atomic_checkpoint_publication_preserves_previous_on_replace_failure) ... ok
+test_development_models_do_not_consume_original_final_oos (__main__.Checks.test_development_models_do_not_consume_original_final_oos) ... ok
+test_frozen_policy_evaluated_on_new_synthetic_realization (__main__.Checks.test_frozen_policy_evaluated_on_new_synthetic_realization) ... ok
+test_full_future_raw_mutation_does_not_change_development_fit (__main__.Checks.test_full_future_raw_mutation_does_not_change_development_fit) ... ok
+test_immutable_results_resume_and_negative_preservation (__main__.Checks.test_immutable_results_resume_and_negative_preservation) ... ok
+test_interrupted_multifile_save_refuses_orphan_instead_of_adopting (__main__.Checks.test_interrupted_multifile_save_refuses_orphan_instead_of_adopting) ... ok
+test_interruption_retained_and_resume_completes (__main__.Checks.test_interruption_retained_and_resume_completes) ... ok
+test_removed_result_pin_cannot_bypass_resume (__main__.Checks.test_removed_result_pin_cannot_bypass_resume) ... ok
+test_tamper_and_wrong_source_resume_refused (__main__.Checks.test_tamper_and_wrong_source_resume_refused) ... ok
+test_total_bar_budget_rejects_before_output_creation (__main__.Checks.test_total_bar_budget_rejects_before_output_creation) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 5.320s
+
+OK

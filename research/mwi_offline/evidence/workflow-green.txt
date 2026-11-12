@@ -1,0 +1,6 @@
+test_contained_suite_has_pinned_read_only_hosted_lane (__main__.Checks.test_contained_suite_has_pinned_read_only_hosted_lane) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.007s
+
+OK

@@ -1,0 +1,42 @@
+{
+  "status": "SOURCE_ONLY_CONDITIONAL_ACK",
+  "commit": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+  "execution_sha256": "99c1a3a7907b0481c0f2a4f239fb6808f137834b39fffaf7885ef60f66246832",
+  "execution_git_blob": "da3d4f66d8debcd770392ab36c4e123f310fc2db",
+  "review_method": "raw git show, SHA256, AST and manual source inspection; no target imports or execution",
+  "imports": [
+    "__future__.annotations",
+    "dataclasses.dataclass",
+    "dataclasses.field"
+  ],
+  "package_initializers": {
+    "strattester/__init__.py": "version assignment only",
+    "strattester/research/__init__.py": "empty"
+  },
+  "api": "simulate_trade(Signal, bars, ExecutionPolicy, metadata=None) -> ResearchTrade",
+  "required_bars": [
+    "t",
+    "open",
+    "high",
+    "low",
+    "close"
+  ],
+  "source_findings": [
+    "No ResearchRunner, sync, storage, network, provider, process, clock, random or file APIs in inspected project import closure.",
+    "For fixed plain input values and ordered bars the function uses deterministic local arithmetic and returns an in-memory ResearchTrade.",
+    "Market entry uses first bar t >= decision_time. Limit entry requires t >= decision_time + bar_ms. SL_FIRST chooses stop when both levels touched. Fees and adverse entry/exit slippage are included.",
+    "No funding, durable ledger, idempotency, authority, checkpoint, resource enforcement or worker recovery in this function. No trade/order publication."
+  ],
+  "conditions": [
+    "Use pinned checkout/package roots and trusted pinned stdlib; source review does not attest ambient import resolution.",
+    "Allow only validated built-in dictionaries/lists and plain finite scalar values; arbitrary iterators, mappings, metadata and numeric objects can execute user-defined methods.",
+    "Validate ordered unique timestamps, finite positive OHLC, coherent high/low, side-specific stop/target, positive position/bar_ms, nonnegative bounded fee/slippage, enumerated ambiguity policy and limit entry price before calling. Function itself validates only side and entry_kind.",
+    "Bound bars <10000 and episodes <=256, serial profile <=60s externally; these are declarative limits, not native CPU quotas.",
+    "Catch entry-not-filled and malformed input as explicit candidate rejection; no fabricated successful trade.",
+    "Keep metadata plain and owned: output metadata copy is shallow.",
+    "No Math transforms, core edits, runtime/export/provider/native/physical admission."
+  ],
+  "runtime": "NOT_RUN",
+  "tests": "NOT_RUN",
+  "physical_acceptance": "NOT_GRANTED"
+}

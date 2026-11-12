@@ -1,0 +1,30 @@
+test_atomic_checkpoint_publication_preserves_previous_on_replace_failure (__main__.Checks.test_atomic_checkpoint_publication_preserves_previous_on_replace_failure) ... ok
+test_development_models_do_not_consume_original_final_oos (__main__.Checks.test_development_models_do_not_consume_original_final_oos) ... ok
+test_frozen_policy_evaluated_on_new_synthetic_realization (__main__.Checks.test_frozen_policy_evaluated_on_new_synthetic_realization) ... ok
+test_full_future_raw_mutation_does_not_change_development_fit (__main__.Checks.test_full_future_raw_mutation_does_not_change_development_fit) ... ok
+test_immutable_results_resume_and_negative_preservation (__main__.Checks.test_immutable_results_resume_and_negative_preservation) ... ok
+test_interrupted_multifile_save_refuses_orphan_instead_of_adopting (__main__.Checks.test_interrupted_multifile_save_refuses_orphan_instead_of_adopting) ... ok
+test_interruption_retained_and_resume_completes (__main__.Checks.test_interruption_retained_and_resume_completes) ... ok
+test_removed_result_pin_cannot_bypass_resume (__main__.Checks.test_removed_result_pin_cannot_bypass_resume) ... ok
+test_tamper_and_wrong_source_resume_refused (__main__.Checks.test_tamper_and_wrong_source_resume_refused) ... ok
+test_total_bar_budget_rejects_before_output_creation (__main__.Checks.test_total_bar_budget_rejects_before_output_creation) ... ERROR
+
+======================================================================
+ERROR: test_total_bar_budget_rejects_before_output_creation (__main__.Checks.test_total_bar_budget_rejects_before_output_creation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\.codex\worktrees\mwi-research-engine-stage2-20261112\strattester\research\mwi_offline\tests\test_feedback.py", line 101, in test_total_bar_budget_rejects_before_output_creation
+    with self.assertRaisesRegex(ValueError,'TOTAL_INPUT_BAR_BUDGET'):run_cycle(root,[None]*8200,fake_binding(),'a'*40)
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LS-5\.codex\worktrees\mwi-research-engine-stage2-20261112\strattester\research\mwi_offline\mwi_offline\feedback.py", line 80, in run_cycle
+    'policy_holdout_start_ms':max(b['end_ms'] for b in bars)+13*60000}
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LS-5\.codex\worktrees\mwi-research-engine-stage2-20261112\strattester\research\mwi_offline\mwi_offline\feedback.py", line 80, in <genexpr>
+    'policy_holdout_start_ms':max(b['end_ms'] for b in bars)+13*60000}
+                                  ~^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+
+----------------------------------------------------------------------
+Ran 10 tests in 5.040s
+
+FAILED (errors=1)

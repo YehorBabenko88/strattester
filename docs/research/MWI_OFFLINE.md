@@ -1,6 +1,6 @@
 # MWI offline research harness
 
-Standalone research module for synthetic level breakout/bounce/timeout probabilities. It imports no Grid, Strattester runtime, database, provider, scheduler or ledger. It does not submit jobs, export data, place orders, promote models or deploy anything.
+Standalone research module for synthetic level breakout/bounce/timeout probabilities. The baseline imports no Grid, Strattester runtime, database, provider, scheduler or ledger. The separate stage2 finite-cycle CLI binds only the explicitly approved, exact-byte-pinned existing Strattester pure OHLC simulator in a new private namespace. It does not submit runtime jobs, export data, place orders, promote models or deploy anything.
 
 `MWI_OFFLINE_RESEARCH_READY` means the bounded synthetic protocol and local file interfaces work reproducibly. Real market predictive value, historical source authenticity and native training admission remain blocked. Graph features are deterministic summaries; no GNN, Transformer, RL or MuZero implementation is claimed.
 
@@ -50,3 +50,26 @@ Limits:10000 bars,256 examples,64 features maximum, fixed100 fit epochs, serial 
 RED/GREEN evidence, independent review/fixes and final verification are under evidence/. One Windows symlink test may skip when privileges prohibit fixture creation; report it rather than treating it as exercised. No native/physical/hosted-CI qualification follows.
 
 Proposed owner scope: Strattester research/mwi_offline/** plus docs/research/MWI_OFFLINE.md. ROOT and A7 explicitly approved this new source-only namespace on base37ff7e9d12a4d2dccd788fc493c28557dbe8bcea; all75 open PR file lists were checked for path overlap. No shared contract or runtime file changes are included, and no merge/deployment is authorized.
+
+## Stage2 finite synthetic strategy feedback
+
+Root/A7 additionally approved a new isolated branch fromPR81 and the NEW contained CI workflow only. Existing workflows/core/package/config/ResearchRunner/sync/store remain unchanged. This stage is not MWI_RESEARCH_ENGINE_COMPLETE.
+
+```
+python -I -S -B run_engine_guarded.py --output NEW_CYCLE_DIRECTORY --source-head EXACT_CODE_CONTEXT
+python -I -S -B run_engine_guarded.py --output SAME_CYCLE_DIRECTORY --source-head SAME_CODE_CONTEXT --resume
+```
+
+The guard launches one fixed isolated child and stops it on a60-second timeout (parent+research child, no CPU hard-quota claim). Source4200 plus fresh synthetic policy holdout1800 bars, at most10000 total bars/256 total examples,6 evaluated declarative candidates and2 versions. A finite invocation is not a scheduler, recurring controller, storage service, model registry service or replacement ML backend.
+
+Strategy objects have exact versioned schemas, dataset/model-bundle hashes, required features, confidence thresholds, explicit stops/targets/horizon, fixed virtualcapital/position/risk/drawdown limits and frozen cost assumptions. No arbitrary code, live mode or promotion is accepted. WAIT and bounce-rule controls precede baseline-probability and graph-probability candidates. Only development profit can request prespecified stricter threshold versions. All negative/rejected/cost-stressed results remain immutable artifacts. Existing final OOS is not accessed for selection. The selected strategy is frozen before a separate fixed-seed20261113 synthetic realization begins after the source calendar window. This is a prospective synthetic policy test, not empirical market OOS; no statistical economic edge is claimed.
+
+Development split boundaries come from the source calendar, not outcome eligibility. A future-value mutation test verifies earlier fitted models/IDs remain identical. Models/scalers/calibration parameters and all candidate/result IDs are serialized as immutable local artifacts. Production Grid registry/lifecycle and Math transformations are NOT connected; local artifacts do not inherit their authority.
+
+The simulator source closure is exactly3 files at the reviewed original Git blobs: version-only package init, empty research init, execution.py. Exact RAW SHA256 execution99c1a3a7907b0481c0f2a4f239fb6808f137834b39fffaf7885ef60f66246832 is required; Windows CRLF423aa0... is explicitly rejected, even if normalization would match. A NEW private capsule is populated from Git HEAD raw blob bytes and verified before any import. Existing checkout files and Git configuration are never rewritten. Module/package origins, isolated stdlib profile and all3 raw pins are checked, including before/after each call. Inputs are owned builtins; callbacks/arbitrary iterables/nonfinite data/invalid OHLC or policies are rejected. Metadata is frozen/copied. The existing simulator alone determines fills/exits/PnL.
+
+Scenarios use conservative SL_FIRST, explicit5.5bps fee and2bps adverse slippage, one-bar latency, fixed100 notional/1000 initialcapital. Stress uses10bps fee/8bps slippage. Funding is explicitly a synthetic-zero assumption, not observed absence. Depth/queue/actual fills/partial fills/MFE-MAE intrabar paths are unavailable. Drawdown is closed-trade equity, not an intrabar loss guarantee. Ex-ante risk bounds cannot eliminate gap loss. No financial/live/trusted/native runtime qualification follows.
+
+Checkpoint updates use same-directory tempfile+fsync+atomic replace. Resume checks source/config/dataset identity, closed artifact membership, every bounded byte hash, required model/selection/holdout/result artifacts and result identity. A removed pin cannot bypass checking. Ordinary interrupted simulation is retained and reproducibly resumed. A crash between artifact write and checkpoint publication leaves an orphan and **refuses resume**; no automatic orphan adoption, full power-loss transaction recovery, distributed fencing or hostile coordinated tamper resistance is claimed. Checkpoints are unsigned local stage receipts, never source authenticity or execution admission.
+
+Contained hosted CI uses pinned checkout/setup-python commits, Python3.12 Ubuntu/Windows, contents:read and the fixed isolated test CLI. Process-scoped Git config requests exact LF checkout; existing mandatory workflows are unchanged. Local/hosted/native/real-data qualifications remain separate. Full engine completion is blocked on admitted historical datasets, Math/Unified/Terminan owner contracts, Grid registry/training integration, execution fidelity, independent market OOS and A8 acceptance. Self-supervised/temporal/boosted/GNN/RL task readiness must not be inferred from this synthetic loop.

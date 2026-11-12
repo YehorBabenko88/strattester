@@ -1,0 +1,46 @@
+{
+  "schema": "mwi.engine.acceptance.checkpoint.v1",
+  "target": "MWI_RESEARCH_ENGINE_COMPLETE",
+  "target_status": "NO_GO_NOT_COMPLETE",
+  "qualification": "SOURCE_AND_SYNTHETIC_DEVELOPER_ONLY",
+  "forecast_tasks": [
+    {"task": "breakout_probability", "status": "TESTED_SYNTHETIC", "source": "PR81 causal near-zone multinomial model", "real_data": "BLOCKED"},
+    {"task": "bounce_probability", "status": "TESTED_SYNTHETIC", "source": "same matched three-class cohort", "real_data": "BLOCKED"},
+    {"task": "level_retest", "status": "MISSING", "blocker": "Versioned retest label and owner Math/research contract"},
+    {"task": "liquidity_zone_reach", "status": "BLOCKED", "blocker": "Actual price-level liquidity/tape/book provenance; no OHLC substitution"},
+    {"task": "time_to_event", "status": "MISSING", "blocker": "Censoring/competing-risk target; first-passage classification is not time forecast"},
+    {"task": "regime_transition", "status": "BLOCKED", "blocker": "Math-owned transform/availability adapter; current toy regimes are generation labels"},
+    {"task": "conditional_volatility", "status": "BLOCKED", "blocker": "Math transform API/source admission; existing source does not imply connected model"},
+    {"task": "continuation_reversal", "status": "MISSING", "blocker": "Distinct registered causal target and independent OOS"},
+    {"task": "expected_execution_cost", "status": "PARTIAL_SCENARIO_ONLY", "blocker": "Existing OHLC fees/slippage assumptions; no fitted real cost/queue/impact model"}
+  ],
+  "model_families": {
+    "frequency_prior": "TESTED_SYNTHETIC",
+    "linear_multinomial_baseline": "TESTED_SYNTHETIC",
+    "node_and_graph_feature_ablation": "TESTED_SYNTHETIC",
+    "existing_grid_boosted_backend": "EXISTING_SOURCE_NOT_CONNECTED_OR_ADMITTED",
+    "temporal_math_models": "EXISTING_SOURCE_OWNER_ADAPTER_PENDING",
+    "self_supervised": "MISSING_QUALIFIED_PIPELINE",
+    "gnn": "NOT_JUSTIFIED_OR_IMPLEMENTED",
+    "rl_policy": "BLOCKED_DATA_AND_SIMULATOR_FIDELITY"
+  },
+  "definition_of_complete": [
+    {"item": 1, "requirement": "existing training stack audit", "status": "SOURCE_REFRESHED_RUNTIME_UNKNOWN"},
+    {"item": 2, "requirement": "full data readiness", "status": "48_MODALITY_REQUIREMENTS_ACTUAL_DATA_UNKNOWN"},
+    {"item": 3, "requirement": "Math feature layer", "status": "BLOCKED_MATH_OWNER_ADAPTER"},
+    {"item": 4, "requirement": "forecasting layer", "status": "PARTIAL_SYNTHETIC_LEVEL_OUTCOME_ONLY"},
+    {"item": 5, "requirement": "training lifecycle", "status": "SYNTHETIC_LOCAL_ONLY_GRID_LIFECYCLE_NOT_CONNECTED"},
+    {"item": 6, "requirement": "versioned strategy generation", "status": "IMPLEMENTED_BOUNDED_SYNTHETIC"},
+    {"item": 7, "requirement": "existing simulator integration", "status": "PINNED_PURE_OHLC_SYNTHETIC_SOURCE_ONLY"},
+    {"item": 8, "requirement": "research feedback", "status": "IMPLEMENTED_FINITE_DEVELOPMENT_LOOP"},
+    {"item": 9, "requirement": "model registry/checkpoint", "status": "MODEL_ARTIFACTS_LOCAL_STAGE_CHECKPOINT_ONLY_NO_NATIVE_REGISTRY_OR_ORPHAN_RECOVERY"},
+    {"item": 10, "requirement": "independent OOS/negative controls", "status": "SYNTHETIC_ONLY_MARKET_OOS_MULTIPLE_TESTING_ACCEPTANCE_MISSING"},
+    {"item": 11, "requirement": "read-only integration API", "status": "FILE_INSPECTION_READY_AUTHENTICATED_NATIVE_API_BLOCKED"},
+    {"item": 12, "requirement": "Terminan Learning Lab", "status": "BLOCKED_TERM_OWNER_API_UI_CONTRACT"},
+    {"item": 13, "requirement": "resource containment", "status": "LOCAL_FIXED_CHILD_WALL_TIMEOUT_AND_DATA_CAPS_NOT_NATIVE_CPU_QUOTA"},
+    {"item": 14, "requirement": "CI and A8", "status": "STAGE2_HOSTED_CI_PENDING_A8_ACCEPTANCE_PENDING"},
+    {"item": 15, "requirement": "admitted historical run", "status": "BLOCKED_NO_AUTHORIZED_IMMUTABLE_EXPORT"}
+  ],
+  "blocking_dependencies": ["ROOT-authorized immutable historical export and real availability/provenance", "Math-owned typed transforms", "Grid candidate registry/training lifecycle source-owner admission", "Unified native publication/disclosure identity", "Terminan owner-approved Learning Lab API/UI", "Independent market OOS and simulator fidelity", "A8 independent acceptance", "Qualified orphan recovery for interrupted multi-file publication"],
+  "prohibited": ["real trading", "automatic strategy promotion", "production DB connection in this chat", "provider sends", "physical deployment", "automatic merge", "new Scheduler/Storage/Authority/ML Orchestrator/ledger"]
+}

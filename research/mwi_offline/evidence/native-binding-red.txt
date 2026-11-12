@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "C:\Users\LS-5\.codex\worktrees\mwi-research-engine-stage2-20261112\strattester\research\mwi_offline\tests\test_native_simulator_binding.py", line 7, in <module>
+    from mwi_offline.simulation_adapter import materialize_binding,bind_existing,inspect_binding
+ImportError: cannot import name 'materialize_binding' from 'mwi_offline.simulation_adapter' (C:\Users\LS-5\.codex\worktrees\mwi-research-engine-stage2-20261112\strattester\research\mwi_offline\mwi_offline\simulation_adapter.py)

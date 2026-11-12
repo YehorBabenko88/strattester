@@ -1,0 +1,14 @@
+test_candidates_have_immutable_lineage_and_no_promotion (__main__.Checks.test_candidates_have_immutable_lineage_and_no_promotion) ... ok
+test_code_unknown_and_live_refused (__main__.Checks.test_code_unknown_and_live_refused) ... ok
+test_future_labels_cannot_change_decision (__main__.Checks.test_future_labels_cannot_change_decision) ... ok
+test_invalid_probability_refused (__main__.Checks.test_invalid_probability_refused) ... ok
+test_next_version_changes_lineage_not_parent (__main__.Checks.test_next_version_changes_lineage_not_parent) ... ok
+test_risk_and_resource_caps (__main__.Checks.test_risk_and_resource_caps) ... ok
+test_strategy_fingerprint_covers_parameters (__main__.Checks.test_strategy_fingerprint_covers_parameters) ... ok
+test_support_reverses_direction (__main__.Checks.test_support_reverses_direction) ... ok
+test_timeout_low_confidence_wait (__main__.Checks.test_timeout_low_confidence_wait) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.006s
+
+OK
