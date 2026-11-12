@@ -1,0 +1,9 @@
+{
+  "wall_seconds": 3.110000000000582,
+  "cpu_seconds": 1.140625,
+  "processes": 1,
+  "gpu": 0,
+  "hard_cpu_quota": false,
+  "runtime_scope": "DEVELOPER_SYNTHETIC_PURE_FUNCTION_ONLY",
+  "no_provider_or_database": true
+}
