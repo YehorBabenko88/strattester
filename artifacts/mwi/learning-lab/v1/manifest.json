@@ -1,0 +1,37 @@
+{
+  "adoption": "PROPOSED_NOT_ADOPTED",
+  "authenticity": "LOCAL_UNATTESTED",
+  "clock_policy": "NO_NEW_CLOCKS_NO_EXECUTION_REPLAY_PRESERVED_PRODUCER_TIMES",
+  "evidence_class": "SYNTHETIC",
+  "fixture": {
+    "bytes": 15757,
+    "file": "synthetic-result.preview.json",
+    "sha256": "31c017e83cab5e0d4124643fca8f51fef80c3f23df42ed09e8b357836798f2df"
+  },
+  "fixture_schema": {
+    "bytes": 80779,
+    "file": "synthetic-result.schema.json",
+    "sha256": "c3eb33eb07e22f0b96358e266644db8aae17cde2d6d2d164c364716f78bb7c9f"
+  },
+  "input_result": {
+    "bytes": 28249,
+    "raw_sha256": "764517c2910065ca50c51c1c39f526a72ea4e584556051f45883b504ecdc9f17",
+    "source_head": "c7a137bb59fe49edab36218eb012564251e0f317"
+  },
+  "limits": {
+    "candidate_count": 6,
+    "graph_edges": 0,
+    "graph_nodes": 0,
+    "input_bytes": 1048576,
+    "members_per_object": 64,
+    "preview_bytes": 65536,
+    "result_depth": 20,
+    "result_nodes": 60000,
+    "rows_per_array": 256,
+    "string_characters": 4096
+  },
+  "projection_module_sha256": "283c19f2ecc229aed04e4587c23b2b313657bdc248acf261cbab9dc8868639fd",
+  "schema": "mwi.learning-lab.fixture-manifest.PROPOSAL.v1",
+  "seed_policy": "PRESERVED_POLICY_HOLDOUT_SEED_20261113_NO_NEW_SELECTION",
+  "viewer_compatibility": "NOT_EVALUATED_REQUIRES_A6_EXACT_FIXTURE_REVIEW"
+}

@@ -1,0 +1,2204 @@
+{
+  "$id": "urn:mwi:learning-lab:synthetic-fixture:proposal:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "adoption_status": {
+      "const": "PROPOSED_NOT_ADOPTED"
+    },
+    "artifact_hash_verification": {
+      "const": "EXACT_INPUT_RAW_SHA256_MATCH_NOT_AUTHENTICATION"
+    },
+    "authenticated": {
+      "const": false
+    },
+    "domains": {
+      "additionalProperties": false,
+      "properties": {
+        "dataset_readiness": {
+          "additionalProperties": false,
+          "properties": {
+            "coverage": {
+              "additionalProperties": false,
+              "properties": {
+                "completeness": {
+                  "const": "NOT_EVALUATED"
+                },
+                "count": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "has_more": {
+                  "type": "null"
+                },
+                "scope": {
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
+                }
+              },
+              "required": [
+                "completeness",
+                "count",
+                "has_more",
+                "scope"
+              ],
+              "type": "object"
+            },
+            "data": {
+              "additionalProperties": false,
+              "properties": {
+                "gaps": {
+                  "type": "null"
+                },
+                "local_dataset_id": {
+                  "const": "ccf0eedb5f83b742b66e7bbd5376ab4af56eb887ce6ff388110103fe8cf1c442"
+                },
+                "observed_coverage": {
+                  "type": "null"
+                },
+                "readiness": {
+                  "const": "UNKNOWN"
+                },
+                "reason": {
+                  "const": "RESULT_FILE_HAS_NO_PRIMARY_DATA_READINESS_EVIDENCE"
+                },
+                "requested_coverage": {
+                  "type": "null"
+                },
+                "revision": {
+                  "type": "null"
+                },
+                "training_eligible": {
+                  "const": false
+                }
+              },
+              "required": [
+                "gaps",
+                "local_dataset_id",
+                "observed_coverage",
+                "readiness",
+                "reason",
+                "requested_coverage",
+                "revision",
+                "training_eligible"
+              ],
+              "type": "object"
+            },
+            "missingness": {
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
+            },
+            "status": {
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
+            }
+          },
+          "required": [
+            "coverage",
+            "data",
+            "missingness",
+            "status"
+          ],
+          "type": "object"
+        },
+        "experiment_lineage": {
+          "additionalProperties": false,
+          "properties": {
+            "coverage": {
+              "additionalProperties": false,
+              "properties": {
+                "completeness": {
+                  "const": "NOT_EVALUATED"
+                },
+                "count": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "has_more": {
+                  "type": "null"
+                },
+                "scope": {
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
+                }
+              },
+              "required": [
+                "completeness",
+                "count",
+                "has_more",
+                "scope"
+              ],
+              "type": "object"
+            },
+            "data": {
+              "additionalProperties": false,
+              "properties": {
+                "dataset_id": {
+                  "const": "ccf0eedb5f83b742b66e7bbd5376ab4af56eb887ce6ff388110103fe8cf1c442"
+                },
+                "development_errors": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "baseline": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "accuracy": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "brier_sum": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "class_counts": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "BOUNCE": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "BREAKOUT": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "TIMEOUT": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "BOUNCE",
+                            "BREAKOUT",
+                            "TIMEOUT"
+                          ],
+                          "type": "object"
+                        },
+                        "ece_top_label": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "log_loss": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "n": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "accuracy",
+                        "brier_sum",
+                        "class_counts",
+                        "ece_top_label",
+                        "log_loss",
+                        "n"
+                      ],
+                      "type": "object"
+                    },
+                    "graph": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "accuracy": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "brier_sum": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "class_counts": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "BOUNCE": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "BREAKOUT": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "TIMEOUT": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "BOUNCE",
+                            "BREAKOUT",
+                            "TIMEOUT"
+                          ],
+                          "type": "object"
+                        },
+                        "ece_top_label": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "log_loss": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "n": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "accuracy",
+                        "brier_sum",
+                        "class_counts",
+                        "ece_top_label",
+                        "log_loss",
+                        "n"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "baseline",
+                    "graph"
+                  ],
+                  "type": "object"
+                },
+                "input_result_bytes": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "input_result_raw_sha256": {
+                  "const": "764517c2910065ca50c51c1c39f526a72ea4e584556051f45883b504ecdc9f17"
+                },
+                "model_set_hash": {
+                  "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                },
+                "owner_experiment_id": {
+                  "type": "null"
+                },
+                "owner_job_id": {
+                  "type": "null"
+                },
+                "owner_registry": {
+                  "const": "NOT_CONNECTED"
+                },
+                "selected_strategy_id": {
+                  "const": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a"
+                },
+                "source_hash_context": {
+                  "const": "e74952bff83c00815248a917d9316b03d4494d0968722dc310c197ae0b7c7874"
+                },
+                "source_head": {
+                  "const": "c7a137bb59fe49edab36218eb012564251e0f317"
+                }
+              },
+              "required": [
+                "dataset_id",
+                "development_errors",
+                "input_result_bytes",
+                "input_result_raw_sha256",
+                "model_set_hash",
+                "owner_experiment_id",
+                "owner_job_id",
+                "owner_registry",
+                "selected_strategy_id",
+                "source_hash_context",
+                "source_head"
+              ],
+              "type": "object"
+            },
+            "missingness": {
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
+            },
+            "status": {
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
+            }
+          },
+          "required": [
+            "coverage",
+            "data",
+            "missingness",
+            "status"
+          ],
+          "type": "object"
+        },
+        "forecast_probabilities": {
+          "additionalProperties": false,
+          "properties": {
+            "coverage": {
+              "additionalProperties": false,
+              "properties": {
+                "completeness": {
+                  "const": "UNKNOWN"
+                },
+                "count": {
+                  "type": "null"
+                },
+                "has_more": {
+                  "type": "null"
+                },
+                "scope": {
+                  "const": "INPUT_RESULT_ONLY"
+                }
+              },
+              "required": [
+                "completeness",
+                "count",
+                "has_more",
+                "scope"
+              ],
+              "type": "object"
+            },
+            "data": {
+              "type": "null"
+            },
+            "missingness": {
+              "const": "AGGREGATE_ERRORS_ARE_NOT_DECISION_PROBABILITIES"
+            },
+            "status": {
+              "const": "UNKNOWN"
+            }
+          },
+          "required": [
+            "coverage",
+            "data",
+            "missingness",
+            "status"
+          ],
+          "type": "object"
+        },
+        "model_versions": {
+          "additionalProperties": false,
+          "properties": {
+            "coverage": {
+              "additionalProperties": false,
+              "properties": {
+                "completeness": {
+                  "const": "NOT_EVALUATED"
+                },
+                "count": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "has_more": {
+                  "type": "null"
+                },
+                "scope": {
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
+                }
+              },
+              "required": [
+                "completeness",
+                "count",
+                "has_more",
+                "scope"
+              ],
+              "type": "object"
+            },
+            "data": {
+              "items": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "algorithm_version": {
+                        "type": "null"
+                      },
+                      "limitation": {
+                        "const": "FITTED_MODEL_ARTIFACT_NOT_READ"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "source_hash_context": {
+                        "const": "e74952bff83c00815248a917d9316b03d4494d0968722dc310c197ae0b7c7874"
+                      },
+                      "state": {
+                        "const": "LOCAL_CANDIDATE_NOT_ADOPTED"
+                      }
+                    },
+                    "required": [
+                      "algorithm_version",
+                      "limitation",
+                      "model_set_hash",
+                      "source_hash_context",
+                      "state"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "maxItems": 1,
+              "minItems": 1,
+              "type": "array"
+            },
+            "missingness": {
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
+            },
+            "status": {
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
+            }
+          },
+          "required": [
+            "coverage",
+            "data",
+            "missingness",
+            "status"
+          ],
+          "type": "object"
+        },
+        "mwi_graph_visualizations": {
+          "additionalProperties": false,
+          "properties": {
+            "coverage": {
+              "additionalProperties": false,
+              "properties": {
+                "completeness": {
+                  "const": "UNKNOWN"
+                },
+                "count": {
+                  "type": "null"
+                },
+                "has_more": {
+                  "type": "null"
+                },
+                "scope": {
+                  "const": "INPUT_RESULT_ONLY"
+                }
+              },
+              "required": [
+                "completeness",
+                "count",
+                "has_more",
+                "scope"
+              ],
+              "type": "object"
+            },
+            "data": {
+              "type": "null"
+            },
+            "missingness": {
+              "const": "NO_GRAPH_NODES_EDGES_OR_TYPED_PORTS_IN_RESULT"
+            },
+            "status": {
+              "const": "UNKNOWN"
+            }
+          },
+          "required": [
+            "coverage",
+            "data",
+            "missingness",
+            "status"
+          ],
+          "type": "object"
+        },
+        "oos_results": {
+          "additionalProperties": false,
+          "properties": {
+            "coverage": {
+              "additionalProperties": false,
+              "properties": {
+                "completeness": {
+                  "const": "NOT_EVALUATED"
+                },
+                "count": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "has_more": {
+                  "type": "null"
+                },
+                "scope": {
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
+                }
+              },
+              "required": [
+                "completeness",
+                "count",
+                "has_more",
+                "scope"
+              ],
+              "type": "object"
+            },
+            "data": {
+              "additionalProperties": false,
+              "properties": {
+                "base": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "closed_trade_drawdown": {
+                      "maximum": 1000000000000.0,
+                      "minimum": -1000000000000.0,
+                      "type": "number"
+                    },
+                    "expectancy": {
+                      "type": "null"
+                    },
+                    "fees": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    "net_pnl": {
+                      "maximum": 1000000000000.0,
+                      "minimum": -1000000000000.0,
+                      "type": "number"
+                    },
+                    "profit_factor": {
+                      "type": "null"
+                    },
+                    "reason_counts": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "BASELINE_WAIT": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "BASELINE_WAIT"
+                      ],
+                      "type": "object"
+                    },
+                    "refused": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    "trades": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    "wait": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "closed_trade_drawdown",
+                    "expectancy",
+                    "fees",
+                    "net_pnl",
+                    "profit_factor",
+                    "reason_counts",
+                    "refused",
+                    "trades",
+                    "wait"
+                  ],
+                  "type": "object"
+                },
+                "caveat": {
+                  "const": "NO_EMPIRICAL_MARKET_OOS_OR_PER_DECISION_CLOCK_EVIDENCE"
+                },
+                "clock_unit": {
+                  "const": "UTC_EPOCH_MS"
+                },
+                "dataset_id": {
+                  "const": "593b4893e7df365e98bedc057ae9c0dbbc0a8a1701c10ebf947b9f4214b71530"
+                },
+                "decision_feature_availability_clocks": {
+                  "type": "null"
+                },
+                "end_ms": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "evaluation_as_of_ms": {
+                  "type": "null"
+                },
+                "frozen_strategy_id": {
+                  "const": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a"
+                },
+                "metric_definitions": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "accuracy": {
+                      "const": "FRACTION"
+                    },
+                    "brier_sum": {
+                      "const": "SUM_SQUARED_CLASS_ERRORS_UNITLESS"
+                    },
+                    "ece_top_label": {
+                      "const": "FRACTION"
+                    },
+                    "log_loss": {
+                      "const": "NATURAL_LOG_LOSS"
+                    }
+                  },
+                  "required": [
+                    "accuracy",
+                    "brier_sum",
+                    "ece_top_label",
+                    "log_loss"
+                  ],
+                  "type": "object"
+                },
+                "metrics": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "baseline": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "accuracy": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "brier_sum": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "class_counts": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "BOUNCE": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "BREAKOUT": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "TIMEOUT": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "BOUNCE",
+                            "BREAKOUT",
+                            "TIMEOUT"
+                          ],
+                          "type": "object"
+                        },
+                        "ece_top_label": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "log_loss": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "n": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "accuracy",
+                        "brier_sum",
+                        "class_counts",
+                        "ece_top_label",
+                        "log_loss",
+                        "n"
+                      ],
+                      "type": "object"
+                    },
+                    "graph": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "accuracy": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "brier_sum": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "class_counts": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "BOUNCE": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "BREAKOUT": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "TIMEOUT": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "BOUNCE",
+                            "BREAKOUT",
+                            "TIMEOUT"
+                          ],
+                          "type": "object"
+                        },
+                        "ece_top_label": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "log_loss": {
+                          "maximum": 1000000000000.0,
+                          "minimum": -1000000000000.0,
+                          "type": "number"
+                        },
+                        "n": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "accuracy",
+                        "brier_sum",
+                        "class_counts",
+                        "ece_top_label",
+                        "log_loss",
+                        "n"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "baseline",
+                    "graph"
+                  ],
+                  "type": "object"
+                },
+                "scope": {
+                  "const": "FRESH_SYNTHETIC_REALIZATION_NOT_EMPIRICAL_MARKET_OOS"
+                },
+                "seed": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "selection_used_holdout": {
+                  "const": false
+                },
+                "split_ref_kind": {
+                  "const": "PRODUCER_DECLARED_FRESH_SYNTHETIC_POLICY_HOLDOUT"
+                },
+                "start_ms": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "stress": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "closed_trade_drawdown": {
+                      "maximum": 1000000000000.0,
+                      "minimum": -1000000000000.0,
+                      "type": "number"
+                    },
+                    "expectancy": {
+                      "type": "null"
+                    },
+                    "fees": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    "net_pnl": {
+                      "maximum": 1000000000000.0,
+                      "minimum": -1000000000000.0,
+                      "type": "number"
+                    },
+                    "profit_factor": {
+                      "type": "null"
+                    },
+                    "reason_counts": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "BASELINE_WAIT": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "BASELINE_WAIT"
+                      ],
+                      "type": "object"
+                    },
+                    "refused": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    "trades": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    "wait": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "closed_trade_drawdown",
+                    "expectancy",
+                    "fees",
+                    "net_pnl",
+                    "profit_factor",
+                    "reason_counts",
+                    "refused",
+                    "trades",
+                    "wait"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "base",
+                "caveat",
+                "clock_unit",
+                "dataset_id",
+                "decision_feature_availability_clocks",
+                "end_ms",
+                "evaluation_as_of_ms",
+                "frozen_strategy_id",
+                "metric_definitions",
+                "metrics",
+                "scope",
+                "seed",
+                "selection_used_holdout",
+                "split_ref_kind",
+                "start_ms",
+                "stress"
+              ],
+              "type": "object"
+            },
+            "missingness": {
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
+            },
+            "status": {
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
+            }
+          },
+          "required": [
+            "coverage",
+            "data",
+            "missingness",
+            "status"
+          ],
+          "type": "object"
+        },
+        "simulated_pnl_and_risk": {
+          "additionalProperties": false,
+          "properties": {
+            "coverage": {
+              "additionalProperties": false,
+              "properties": {
+                "completeness": {
+                  "const": "NOT_EVALUATED"
+                },
+                "count": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "has_more": {
+                  "type": "null"
+                },
+                "scope": {
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
+                }
+              },
+              "required": [
+                "completeness",
+                "count",
+                "has_more",
+                "scope"
+              ],
+              "type": "object"
+            },
+            "data": {
+              "items": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "base": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "closed_trade_drawdown": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "expectancy": {
+                            "type": "null"
+                          },
+                          "fees": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "net_pnl": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "profit_factor": {
+                            "type": "null"
+                          },
+                          "reason_counts": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "BASELINE_WAIT": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "BASELINE_WAIT"
+                            ],
+                            "type": "object"
+                          },
+                          "refused": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "trades": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "wait": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "closed_trade_drawdown",
+                          "expectancy",
+                          "fees",
+                          "net_pnl",
+                          "profit_factor",
+                          "reason_counts",
+                          "refused",
+                          "trades",
+                          "wait"
+                        ],
+                        "type": "object"
+                      },
+                      "family": {
+                        "const": "wait"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "stress": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "closed_trade_drawdown": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "expectancy": {
+                            "type": "null"
+                          },
+                          "fees": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "net_pnl": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "profit_factor": {
+                            "type": "null"
+                          },
+                          "reason_counts": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "BASELINE_WAIT": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "BASELINE_WAIT"
+                            ],
+                            "type": "object"
+                          },
+                          "refused": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "trades": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "wait": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "closed_trade_drawdown",
+                          "expectancy",
+                          "fees",
+                          "net_pnl",
+                          "profit_factor",
+                          "reason_counts",
+                          "refused",
+                          "trades",
+                          "wait"
+                        ],
+                        "type": "object"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "base",
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "stress",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "base": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "closed_trade_drawdown": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "expectancy": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "fees": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "net_pnl": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "profit_factor": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "reason_counts": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "EX_ANTE_VIRTUAL_RISK": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "EX_ANTE_VIRTUAL_RISK"
+                            ],
+                            "type": "object"
+                          },
+                          "refused": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "trades": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "wait": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "closed_trade_drawdown",
+                          "expectancy",
+                          "fees",
+                          "net_pnl",
+                          "profit_factor",
+                          "reason_counts",
+                          "refused",
+                          "trades",
+                          "wait"
+                        ],
+                        "type": "object"
+                      },
+                      "family": {
+                        "const": "bounce_rule"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "68464fbcbcbe783ef3ec1e943008ab5f37bb51129377fc6387e3279c19b832c0"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "stress": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "closed_trade_drawdown": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "expectancy": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "fees": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "net_pnl": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "profit_factor": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "reason_counts": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "EX_ANTE_VIRTUAL_RISK": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "EX_ANTE_VIRTUAL_RISK"
+                            ],
+                            "type": "object"
+                          },
+                          "refused": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "trades": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "wait": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "closed_trade_drawdown",
+                          "expectancy",
+                          "fees",
+                          "net_pnl",
+                          "profit_factor",
+                          "reason_counts",
+                          "refused",
+                          "trades",
+                          "wait"
+                        ],
+                        "type": "object"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "base",
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "stress",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "base": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "closed_trade_drawdown": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "expectancy": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "fees": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "net_pnl": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "profit_factor": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "reason_counts": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "CONFIDENCE_OR_TIMEOUT": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "EX_ANTE_VIRTUAL_RISK": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "CONFIDENCE_OR_TIMEOUT",
+                              "EX_ANTE_VIRTUAL_RISK"
+                            ],
+                            "type": "object"
+                          },
+                          "refused": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "trades": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "wait": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "closed_trade_drawdown",
+                          "expectancy",
+                          "fees",
+                          "net_pnl",
+                          "profit_factor",
+                          "reason_counts",
+                          "refused",
+                          "trades",
+                          "wait"
+                        ],
+                        "type": "object"
+                      },
+                      "family": {
+                        "const": "baseline_probability"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "73cd51f158b72597b080180f03d42bee8b951146bf8dcd352eb99457f315b7f4"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "stress": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "closed_trade_drawdown": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "expectancy": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "fees": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "net_pnl": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "profit_factor": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "reason_counts": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "CONFIDENCE_OR_TIMEOUT": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "EX_ANTE_VIRTUAL_RISK": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "CONFIDENCE_OR_TIMEOUT",
+                              "EX_ANTE_VIRTUAL_RISK"
+                            ],
+                            "type": "object"
+                          },
+                          "refused": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "trades": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "wait": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "closed_trade_drawdown",
+                          "expectancy",
+                          "fees",
+                          "net_pnl",
+                          "profit_factor",
+                          "reason_counts",
+                          "refused",
+                          "trades",
+                          "wait"
+                        ],
+                        "type": "object"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "base",
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "stress",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "base": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "closed_trade_drawdown": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "expectancy": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "fees": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "net_pnl": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "profit_factor": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "reason_counts": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "CONFIDENCE_OR_TIMEOUT": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "EX_ANTE_VIRTUAL_RISK": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "CONFIDENCE_OR_TIMEOUT",
+                              "EX_ANTE_VIRTUAL_RISK"
+                            ],
+                            "type": "object"
+                          },
+                          "refused": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "trades": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "wait": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "closed_trade_drawdown",
+                          "expectancy",
+                          "fees",
+                          "net_pnl",
+                          "profit_factor",
+                          "reason_counts",
+                          "refused",
+                          "trades",
+                          "wait"
+                        ],
+                        "type": "object"
+                      },
+                      "family": {
+                        "const": "graph_probability"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "f9c48257cf91d61df9c4a11ded71372147fb7da4ba839ee885e9189940413198"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "stress": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "closed_trade_drawdown": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "expectancy": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "fees": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "net_pnl": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "profit_factor": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "reason_counts": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "CONFIDENCE_OR_TIMEOUT": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "EX_ANTE_VIRTUAL_RISK": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "CONFIDENCE_OR_TIMEOUT",
+                              "EX_ANTE_VIRTUAL_RISK"
+                            ],
+                            "type": "object"
+                          },
+                          "refused": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "trades": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "wait": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "closed_trade_drawdown",
+                          "expectancy",
+                          "fees",
+                          "net_pnl",
+                          "profit_factor",
+                          "reason_counts",
+                          "refused",
+                          "trades",
+                          "wait"
+                        ],
+                        "type": "object"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "base",
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "stress",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "maxItems": 4,
+              "minItems": 4,
+              "type": "array"
+            },
+            "missingness": {
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
+            },
+            "semantics": {
+              "additionalProperties": false,
+              "properties": {
+                "currency": {
+                  "const": "USD_NOTIONAL_AS_DECLARED_BY_STRATEGY"
+                },
+                "drawdown": {
+                  "const": "CLOSED_TRADE_EQUITY_ONLY"
+                },
+                "fees": {
+                  "const": "NATIVE_MODEL_FEE_RATE"
+                },
+                "funding": {
+                  "const": "SYNTHETIC_ZERO_ASSUMPTION"
+                },
+                "mfe_mae": {
+                  "const": "UNAVAILABLE"
+                },
+                "partial_fills": {
+                  "const": "UNSUPPORTED"
+                },
+                "scope": {
+                  "const": "MODELED_SYNTHETIC_OHLC_NOT_LEDGER_OR_REALIZED_BALANCE"
+                },
+                "slippage": {
+                  "const": "BASE_2_STRESS_8_BPS"
+                }
+              },
+              "required": [
+                "currency",
+                "drawdown",
+                "fees",
+                "funding",
+                "mfe_mae",
+                "partial_fills",
+                "scope",
+                "slippage"
+              ],
+              "type": "object"
+            },
+            "status": {
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
+            }
+          },
+          "required": [
+            "coverage",
+            "data",
+            "missingness",
+            "semantics",
+            "status"
+          ],
+          "type": "object"
+        },
+        "strategy_candidates": {
+          "additionalProperties": false,
+          "properties": {
+            "coverage": {
+              "additionalProperties": false,
+              "properties": {
+                "completeness": {
+                  "const": "NOT_EVALUATED"
+                },
+                "count": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "has_more": {
+                  "type": "null"
+                },
+                "scope": {
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
+                }
+              },
+              "required": [
+                "completeness",
+                "count",
+                "has_more",
+                "scope"
+              ],
+              "type": "object"
+            },
+            "data": {
+              "items": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "family": {
+                        "const": "wait"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "family": {
+                        "const": "bounce_rule"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "68464fbcbcbe783ef3ec1e943008ab5f37bb51129377fc6387e3279c19b832c0"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "family": {
+                        "const": "baseline_probability"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "73cd51f158b72597b080180f03d42bee8b951146bf8dcd352eb99457f315b7f4"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "family": {
+                        "const": "graph_probability"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "f9c48257cf91d61df9c4a11ded71372147fb7da4ba839ee885e9189940413198"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "maxItems": 4,
+              "minItems": 4,
+              "type": "array"
+            },
+            "missingness": {
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
+            },
+            "status": {
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
+            }
+          },
+          "required": [
+            "coverage",
+            "data",
+            "missingness",
+            "status"
+          ],
+          "type": "object"
+        },
+        "training_progress": {
+          "additionalProperties": false,
+          "properties": {
+            "coverage": {
+              "additionalProperties": false,
+              "properties": {
+                "completeness": {
+                  "const": "UNKNOWN"
+                },
+                "count": {
+                  "type": "null"
+                },
+                "has_more": {
+                  "type": "null"
+                },
+                "scope": {
+                  "const": "INPUT_RESULT_ONLY"
+                }
+              },
+              "required": [
+                "completeness",
+                "count",
+                "has_more",
+                "scope"
+              ],
+              "type": "object"
+            },
+            "data": {
+              "type": "null"
+            },
+            "missingness": {
+              "const": "NO_JOB_BINDING_OR_OBSERVATION_CLOCK_IN_RESULT"
+            },
+            "status": {
+              "const": "UNKNOWN"
+            }
+          },
+          "required": [
+            "coverage",
+            "data",
+            "missingness",
+            "status"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "dataset_readiness",
+        "experiment_lineage",
+        "forecast_probabilities",
+        "model_versions",
+        "mwi_graph_visualizations",
+        "oos_results",
+        "simulated_pnl_and_risk",
+        "strategy_candidates",
+        "training_progress"
+      ],
+      "type": "object"
+    },
+    "endpoint": {
+      "type": "null"
+    },
+    "evidence_class": {
+      "const": "SYNTHETIC"
+    },
+    "execution_authority": {
+      "const": false
+    },
+    "input_result": {
+      "additionalProperties": false,
+      "properties": {
+        "byte_count": {
+          "maximum": 9007199254740991,
+          "minimum": -9007199254740991,
+          "type": "integer"
+        },
+        "producer_schema": {
+          "const": "mwi.synthetic.finite-cycle.v1"
+        },
+        "raw_sha256": {
+          "const": "764517c2910065ca50c51c1c39f526a72ea4e584556051f45883b504ecdc9f17"
+        },
+        "source_head": {
+          "const": "c7a137bb59fe49edab36218eb012564251e0f317"
+        }
+      },
+      "required": [
+        "byte_count",
+        "producer_schema",
+        "raw_sha256",
+        "source_head"
+      ],
+      "type": "object"
+    },
+    "limitations": {
+      "items": {
+        "anyOf": [
+          {
+            "const": "INERT_PROPOSAL_NOT_OWNER_LAB_SCHEMA"
+          },
+          {
+            "const": "NO_UI_OR_API_PUBLICATION"
+          },
+          {
+            "const": "NO_MEASURED_QUEUE_RESOURCES_FORECASTS_OR_SIMULATION"
+          },
+          {
+            "const": "PHYSICAL_AND_REAL_DATA_STATUS_UNKNOWN"
+          },
+          {
+            "const": "STRICT_RESULT_INTEGRITY_NOT_SEMANTIC_REEXECUTION_OR_OWNER_ADOPTION"
+          }
+        ]
+      },
+      "maxItems": 5,
+      "minItems": 5,
+      "type": "array"
+    },
+    "live": {
+      "const": false
+    },
+    "local_artifact_sha256": {
+      "const": "764517c2910065ca50c51c1c39f526a72ea4e584556051f45883b504ecdc9f17"
+    },
+    "local_dataset_id": {
+      "const": "ccf0eedb5f83b742b66e7bbd5376ab4af56eb887ce6ff388110103fe8cf1c442"
+    },
+    "owner_experiment_id": {
+      "type": "null"
+    },
+    "owner_field_ack": {
+      "const": "PENDING"
+    },
+    "owner_job_id": {
+      "type": "null"
+    },
+    "preview_content_sha256": {
+      "const": "3ac074d90d38e972f9f75f6a0070998cb8b284dbfe8dcaddbd9fd910e014dc77"
+    },
+    "publication_status": {
+      "const": "LOCAL_UNATTESTED"
+    },
+    "schema": {
+      "const": "mwi.local.learning-lab-result-inspection.v1"
+    },
+    "source_admitted": {
+      "const": false
+    },
+    "source_context": {
+      "const": "CALLER_SUPPLIED_NOT_AUTHENTICATED"
+    },
+    "source_head": {
+      "const": "c7a137bb59fe49edab36218eb012564251e0f317"
+    },
+    "submitted": {
+      "const": false
+    },
+    "terminan_source_context": {
+      "additionalProperties": false,
+      "properties": {
+        "commit": {
+          "const": "2a8e2647700dad4f661057235e13f76dc52f091f"
+        },
+        "role": {
+          "const": "OWNER_REPORTED_SOURCE_CONTEXT_NOT_ADOPTION"
+        },
+        "tree": {
+          "const": "718fed81b980e01b338ab21fdf093da4e3363121"
+        }
+      },
+      "required": [
+        "commit",
+        "role",
+        "tree"
+      ],
+      "type": "object"
+    },
+    "trading_authorized": {
+      "const": false
+    },
+    "training_authorized": {
+      "const": false
+    }
+  },
+  "required": [
+    "adoption_status",
+    "artifact_hash_verification",
+    "authenticated",
+    "domains",
+    "endpoint",
+    "evidence_class",
+    "execution_authority",
+    "input_result",
+    "limitations",
+    "live",
+    "local_artifact_sha256",
+    "local_dataset_id",
+    "owner_experiment_id",
+    "owner_field_ack",
+    "owner_job_id",
+    "preview_content_sha256",
+    "publication_status",
+    "schema",
+    "source_admitted",
+    "source_context",
+    "source_head",
+    "submitted",
+    "terminan_source_context",
+    "trading_authorized",
+    "training_authorized"
+  ],
+  "title": "Closed profile of one preserved synthetic result, not a generic Terminan API",
+  "type": "object"
+}

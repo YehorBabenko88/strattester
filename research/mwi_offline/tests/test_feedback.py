@@ -23,6 +23,21 @@ class Checks(unittest.TestCase):
         x=development_fit(self.bars)
         self.assertLess(x['development_end'],x['reserved_original_oos_start'])
         self.assertTrue(all(r['cutoff']<x['development_end'] for r in x['examples']))
+    def test_cycle_admits_unique_candidates_and_retains_search_decisions(self):
+        import json
+        from unittest.mock import patch
+        from mwi_offline.strategy import candidates
+        def duplicate(dataset_id, model_hash):
+            rows=candidates(dataset_id,model_hash);rows[1]=rows[0]
+            return rows
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)/'cycle'
+            with patch('mwi_offline.feedback.candidates',side_effect=duplicate):
+                result=run_cycle(root,self.bars,fake_binding(),'a'*40)
+            self.assertEqual(result['evaluated_candidates'],3)
+            admission=json.loads((root/'artifacts/search-initial.json').read_text())
+            self.assertEqual(admission['records'][1]['status'],'DUPLICATE')
+            self.assertEqual(result,run_cycle(root,self.bars,fake_binding(),'a'*40,resume=True))
     def test_immutable_results_resume_and_negative_preservation(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d)/'cycle'
@@ -66,6 +81,50 @@ class Checks(unittest.TestCase):
             (root/'checkpoint.json').write_text(json.dumps(cp))
             (root/'artifacts/result.json').write_text('{}')
             with self.assertRaises(ValueError):run_cycle(root,self.bars,fake_binding(),'a'*40,resume=True)
+    def test_search_evidence_required_for_completed_resume(self):
+        import json
+        from unittest.mock import patch
+        def positive_probability(c,*args,**kwargs):
+            return {'net_pnl':2. if c['family']=='baseline_probability' else 0.}
+        for name in ('search-initial.json','search-next-version.json'):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as d:
+                root=Path(d)/'cycle'
+                with patch('mwi_offline.feedback.evaluate_candidate',side_effect=positive_probability):
+                    result=run_cycle(root,self.bars,fake_binding(),'a'*40)
+                self.assertEqual(result['iterations'],2)
+                cp=json.loads((root/'checkpoint.json').read_text());cp['artifacts'].pop(name)
+                (root/'checkpoint.json').write_text(json.dumps(cp));(root/'artifacts'/name).unlink()
+                with self.assertRaisesRegex(ValueError,'RESUME_REQUIRED_SEARCH'):
+                    run_cycle(root,self.bars,fake_binding(),'a'*40,resume=True)
+    def test_frozen_control_permutation_does_not_select_or_retrain(self):
+        from unittest.mock import patch
+        import copy
+        from mwi_offline.feedback import frozen_policy_controls
+        from mwi_offline.strategy import candidates
+        strategy=candidates('a'*64,'b'*64)[2]
+        dev={'examples':[{'id':'one'},{'id':'two'}],
+             'predictions':{'baseline':[[.9,.05,.05],[.05,.9,.05]]}}
+        before=copy.deepcopy(dev);seen=[]
+        def observe(c,development,*args,**kwargs):
+            seen.append(copy.deepcopy(development['predictions']['baseline']))
+            return {'net_pnl':-.1}
+        with patch('mwi_offline.feedback.evaluate_candidate',side_effect=observe):
+            result=frozen_policy_controls(strategy,dev,[],None)
+        self.assertEqual(seen,[list(reversed(dev['predictions']['baseline']))]*2)
+        self.assertEqual(dev,before);self.assertFalse(result['used_for_selection'])
+        self.assertEqual(result['max_control_policies'],1)
+        strategy=candidates('a'*64,'b'*64)[0]
+        self.assertEqual(frozen_policy_controls(strategy,dev,[],None)['status'],'CONTROL_UNINFORMATIVE')
+    def test_control_failure_retained_after_selection_without_holdout(self):
+        from unittest.mock import patch
+        def fail(*args,**kwargs):raise RuntimeError('injected control interruption')
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)/'cycle'
+            with patch('mwi_offline.feedback.frozen_policy_controls',side_effect=fail):
+                with self.assertRaises(RuntimeError):run_cycle(root,self.bars,fake_binding(),'a'*40)
+            self.assertTrue((root/'artifacts/selection.json').exists())
+            self.assertTrue((root/'artifacts/failure-control.json').exists())
+            self.assertFalse((root/'artifacts/policy-holdout.json').exists())
     def test_atomic_checkpoint_publication_preserves_previous_on_replace_failure(self):
         from unittest.mock import patch
         from mwi_offline.feedback import publish_checkpoint
