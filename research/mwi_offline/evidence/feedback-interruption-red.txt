@@ -1,0 +1,17 @@
+test_development_models_do_not_consume_original_final_oos (__main__.Checks.test_development_models_do_not_consume_original_final_oos) ... ok
+test_immutable_results_resume_and_negative_preservation (__main__.Checks.test_immutable_results_resume_and_negative_preservation) ... ok
+test_interruption_retained_and_resume_completes (__main__.Checks.test_interruption_retained_and_resume_completes) ... FAIL
+test_tamper_and_wrong_source_resume_refused (__main__.Checks.test_tamper_and_wrong_source_resume_refused) ... ok
+
+======================================================================
+FAIL: test_interruption_retained_and_resume_completes (__main__.Checks.test_interruption_retained_and_resume_completes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\.codex\worktrees\mwi-research-engine-stage2-20261112\strattester\research\mwi_offline\tests\test_feedback.py", line 48, in test_interruption_retained_and_resume_completes
+    self.assertTrue(list((root/'artifacts').glob('failure-*.json')))
+AssertionError: [] is not true
+
+----------------------------------------------------------------------
+Ran 4 tests in 2.284s
+
+FAILED (failures=1)

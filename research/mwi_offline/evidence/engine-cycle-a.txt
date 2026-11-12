@@ -1,0 +1,78 @@
+{
+  "status": "SYNTHETIC_FINITE_FEEDBACK_COMPLETE",
+  "evaluated_candidates": 6,
+  "iterations": 2,
+  "candidates": [
+    {
+      "id": "31acb1976c0671becfc36f7d0e0454d796031222638e311d272018bb592e971f",
+      "family": "wait",
+      "version": 1,
+      "threshold": 0.6,
+      "net_pnl": 0.0,
+      "stress_net_pnl": 0.0,
+      "trades": 0,
+      "drawdown": 0.0
+    },
+    {
+      "id": "edda51c49f61b26f1cac2fad8151cfcd41ab5e670e756a87b9503deb2114e18a",
+      "family": "bounce_rule",
+      "version": 1,
+      "threshold": 0.6,
+      "net_pnl": 4.301673144985898,
+      "stress_net_pnl": 0.30703904879703714,
+      "trades": 19,
+      "drawdown": 0.0005006885683670997
+    },
+    {
+      "id": "d9bc4ff4b5230a4ba8b43e1cd063d60320b427e92c6c01f65deaf4d95145ebb2",
+      "family": "baseline_probability",
+      "version": 1,
+      "threshold": 0.6,
+      "net_pnl": 4.301673144985898,
+      "stress_net_pnl": 0.30703904879703714,
+      "trades": 19,
+      "drawdown": 0.0005006885683670997
+    },
+    {
+      "id": "bb8a9c63b88579d44244dd05058d003537acd1f754927aa9c0f1e89028f327e0",
+      "family": "graph_probability",
+      "version": 1,
+      "threshold": 0.6,
+      "net_pnl": 4.4710306823593555,
+      "stress_net_pnl": 0.6866867207648966,
+      "trades": 18,
+      "drawdown": 0.0003321408635121952
+    },
+    {
+      "id": "d8099f1dad6043dc10f1d597f0dec525d94d7c1b550b23818dc7d24896e790eb",
+      "family": "graph_probability",
+      "version": 2,
+      "threshold": 0.7,
+      "net_pnl": 3.8350747062007713,
+      "stress_net_pnl": 0.6823698765024346,
+      "trades": 15,
+      "drawdown": 0.00018909567907210214
+    },
+    {
+      "id": "b0562ef86301544f26aca2ebbfa85d8236d2ca4dfdd6d2af5d7b13d184f2dc5a",
+      "family": "graph_probability",
+      "version": 2,
+      "threshold": 0.8,
+      "net_pnl": 3.021937117678931,
+      "stress_net_pnl": 0.29055218833991603,
+      "trades": 13,
+      "drawdown": 0.00018924895344665004
+    }
+  ],
+  "original_final_oos": "NOT_USED_FOR_SELECTION",
+  "resources": {
+    "wall_seconds": 1.3279999999940628,
+    "cpu_seconds": 1.09375,
+    "processes": 1,
+    "gpu": 0,
+    "hard_cpu_quota": false,
+    "runtime_scope": "DEVELOPER_SYNTHETIC_PURE_FUNCTION_ONLY",
+    "no_provider_or_database": true
+  },
+  "real_data": "NOT_ADMITTED"
+}

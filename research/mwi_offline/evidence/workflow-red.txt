@@ -1,0 +1,21 @@
+test_contained_suite_has_pinned_read_only_hosted_lane (__main__.Checks.test_contained_suite_has_pinned_read_only_hosted_lane) ... ERROR
+
+======================================================================
+ERROR: test_contained_suite_has_pinned_read_only_hosted_lane (__main__.Checks.test_contained_suite_has_pinned_read_only_hosted_lane)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\.codex\worktrees\mwi-research-engine-stage2-20261112\strattester\research\mwi_offline\tests\test_hosted_workflow.py", line 8, in test_contained_suite_has_pinned_read_only_hosted_lane
+    w=json.loads((root/'.github/workflows/mwi-offline-research.yml').read_text())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LS-5\AppData\Local\Python\pythoncore-3.12-64\Lib\pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LS-5\AppData\Local\Python\pythoncore-3.12-64\Lib\pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\LS-5\\.codex\\worktrees\\mwi-research-engine-stage2-20261112\\strattester\\.github\\workflows\\mwi-offline-research.yml'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.013s
+
+FAILED (errors=1)

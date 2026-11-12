@@ -1,0 +1,84 @@
+test_bad_bars (test_adapter.AdapterTests.test_bad_bars) ... ok
+test_extra_file_bad_source (test_adapter.AdapterTests.test_extra_file_bad_source) ... ok
+test_historical_traversal_schema_count_extra (test_adapter.AdapterTests.test_historical_traversal_schema_count_extra) ... ok
+test_json_bounds (test_adapter.AdapterTests.test_json_bounds) ... ok
+test_links (test_adapter.AdapterTests.test_links) ... skipped 'OS symlink privilege unavailable'
+test_mutated_content (test_adapter.AdapterTests.test_mutated_content) ... ok
+test_order_duplicate_overlap (test_adapter.AdapterTests.test_order_duplicate_overlap) ... ok
+test_overwrite (test_adapter.AdapterTests.test_overwrite) ... ok
+test_roundtrip_permission_pin_source (test_adapter.AdapterTests.test_roundtrip_permission_pin_source) ... ok
+test_coverage_dataset_and_gaps (test_adapter.CoverageTests.test_coverage_dataset_and_gaps) ... ok
+test_expected_window (test_adapter.CoverageTests.test_expected_window) ... ok
+test_mixed_intervals (test_adapter.CoverageTests.test_mixed_intervals) ... ok
+test_rehashed_wrong_coverage (test_adapter.CoverageTests.test_rehashed_wrong_coverage) ... ok
+test_hardlinked_content (test_adapter.RehashedInputTests.test_hardlinked_content) ... ok
+test_invalid_bar_with_matching_integrity_hashes (test_adapter.RehashedInputTests.test_invalid_bar_with_matching_integrity_hashes) ... ok
+test_only_fixed_isolated_child_with_timeout (test_engine_guard.Checks.test_only_fixed_isolated_child_with_timeout) ... ok
+test_timeout_reports_stopped_child (test_engine_guard.Checks.test_timeout_reports_stopped_child) ... RESEARCH_WALL_TIMEOUT: child stopped; preserve checkpoint and inspect before resume
+ok
+test_block_control_preserves_label_counts (test_evaluation.Checks.test_block_control_preserves_label_counts) ... ok
+test_cross_split_group_rejected (test_evaluation.Checks.test_cross_split_group_rejected) ... ok
+test_edge_control_preserves_node_summaries (test_evaluation.Checks.test_edge_control_preserves_node_summaries) ... ok
+test_evaluation_asof_excludes_unmatured_labels (test_evaluation.Checks.test_evaluation_asof_excludes_unmatured_labels) ... ok
+test_metrics_guard_shape_and_probability (test_evaluation.Checks.test_metrics_guard_shape_and_probability) ... ok
+test_paired_block_uncertainty_preserves_constant_difference (test_evaluation.Checks.test_paired_block_uncertainty_preserves_constant_difference) ... ok
+test_periodic_control_is_not_identity (test_evaluation.Checks.test_periodic_control_is_not_identity) ... ok
+test_probability_normalized_finite (test_evaluation.Checks.test_probability_normalized_finite) ... ok
+test_purge_maturity_embargo (test_evaluation.Checks.test_purge_maturity_embargo) ... ok
+test_reproducible_full_report (test_evaluation.Checks.test_reproducible_full_report) ... ok
+test_test_values_cannot_change_fit (test_evaluation.Checks.test_test_values_cannot_change_fit) ... ok
+test_train_only_scaler (test_evaluation.Checks.test_train_only_scaler) ... ok
+test_uninformative_constant_control_rejected (test_evaluation.Checks.test_uninformative_constant_control_rejected) ... ok
+test_continuous_deterministic_synthetic (test_features.FeatureChecks.test_continuous_deterministic_synthetic) ... ok
+test_enough_nonoverlapping_equal_cohort (test_features.FeatureChecks.test_enough_nonoverlapping_equal_cohort) ... ok
+test_full_run_class_support (test_features.FeatureChecks.test_full_run_class_support) ... ok
+test_future_raw_mutation_cannot_change_snapshot (test_features.FeatureChecks.test_future_raw_mutation_cannot_change_snapshot) ... ok
+test_input_not_mutated (test_features.FeatureChecks.test_input_not_mutated) ... ok
+test_invalid_observations_refused (test_features.FeatureChecks.test_invalid_observations_refused) ... ok
+test_label_maturity_preserves_delayed_availability (test_features.FeatureChecks.test_label_maturity_preserves_delayed_availability) ... ok
+test_late_prior_bar_is_not_used (test_features.FeatureChecks.test_late_prior_bar_is_not_used) ... ok
+test_orientation_both_support_and_resistance (test_features.FeatureChecks.test_orientation_both_support_and_resistance) ... ok
+test_timeout_ambiguous_pending_and_unobservable (test_features.FeatureChecks.test_timeout_ambiguous_pending_and_unobservable) ... ok
+test_atomic_checkpoint_publication_preserves_previous_on_replace_failure (test_feedback.Checks.test_atomic_checkpoint_publication_preserves_previous_on_replace_failure) ... ok
+test_development_models_do_not_consume_original_final_oos (test_feedback.Checks.test_development_models_do_not_consume_original_final_oos) ... ok
+test_frozen_policy_evaluated_on_new_synthetic_realization (test_feedback.Checks.test_frozen_policy_evaluated_on_new_synthetic_realization) ... ok
+test_full_future_raw_mutation_does_not_change_development_fit (test_feedback.Checks.test_full_future_raw_mutation_does_not_change_development_fit) ... ok
+test_immutable_results_resume_and_negative_preservation (test_feedback.Checks.test_immutable_results_resume_and_negative_preservation) ... ok
+test_interrupted_multifile_save_refuses_orphan_instead_of_adopting (test_feedback.Checks.test_interrupted_multifile_save_refuses_orphan_instead_of_adopting) ... ok
+test_interruption_retained_and_resume_completes (test_feedback.Checks.test_interruption_retained_and_resume_completes) ... ok
+test_removed_result_pin_cannot_bypass_resume (test_feedback.Checks.test_removed_result_pin_cannot_bypass_resume) ... ok
+test_tamper_and_wrong_source_resume_refused (test_feedback.Checks.test_tamper_and_wrong_source_resume_refused) ... ok
+test_contained_suite_has_pinned_read_only_hosted_lane (test_hosted_workflow.Checks.test_contained_suite_has_pinned_read_only_hosted_lane) ... ok
+test_content_hashes (test_native_inspect.Checks.test_content_hashes) ... ok
+test_duplicate_keys_nesting_size_nonfinite (test_native_inspect.Checks.test_duplicate_keys_nesting_size_nonfinite) ... ok
+test_external_pin (test_native_inspect.Checks.test_external_pin) ... ok
+test_inspection_preserves_bytes_and_has_no_trainable_bars (test_native_inspect.Checks.test_inspection_preserves_bytes_and_has_no_trainable_bars) ... ok
+test_integrity_only_and_historical_blocker (test_native_inspect.Checks.test_integrity_only_and_historical_blocker) ... ok
+test_resealed_invalid_fields (test_native_inspect.Checks.test_resealed_invalid_fields) ... ok
+test_schema_provenance_identity (test_native_inspect.Checks.test_schema_provenance_identity) ... ok
+test_callbacks_bad_metadata_and_unfilled_entry_refused (test_native_simulator_binding.Checks.test_callbacks_bad_metadata_and_unfilled_entry_refused) ... ok
+test_crlf_normalization_is_not_source_admission (test_native_simulator_binding.Checks.test_crlf_normalization_is_not_source_admission) ... ok
+test_exact_git_bytes_bind_in_fresh_namespace_and_preserve_source (test_native_simulator_binding.Checks.test_exact_git_bytes_bind_in_fresh_namespace_and_preserve_source) ... ok
+test_input_snapshot_reuses_pinned_bytes (test_run.Checks.test_input_snapshot_reuses_pinned_bytes) ... ok
+test_replay_and_checkpoint (test_run.Checks.test_replay_and_checkpoint) ... ok
+test_calls_existing_interface_with_explicit_costs_and_latency (test_simulation_adapter.Checks.test_calls_existing_interface_with_explicit_costs_and_latency) ... ok
+test_missing_future_bar_refuses (test_simulation_adapter.Checks.test_missing_future_bar_refuses) ... ok
+test_risk_and_capital_cannot_be_overridden (test_simulation_adapter.Checks.test_risk_and_capital_cannot_be_overridden) ... ok
+test_source_binding_inspection_is_read_only (test_simulation_adapter.Checks.test_source_binding_inspection_is_read_only) ... ok
+test_unknown_instrument_and_nonfinite_capital_refused (test_simulation_adapter.Checks.test_unknown_instrument_and_nonfinite_capital_refused) ... ok
+test_wait_never_calls_simulator (test_simulation_adapter.Checks.test_wait_never_calls_simulator) ... ok
+test_window_is_bounded_before_allocation (test_simulation_adapter.Checks.test_window_is_bounded_before_allocation) ... ok
+test_candidates_have_immutable_lineage_and_no_promotion (test_strategy.Checks.test_candidates_have_immutable_lineage_and_no_promotion) ... ok
+test_code_unknown_and_live_refused (test_strategy.Checks.test_code_unknown_and_live_refused) ... ok
+test_future_labels_cannot_change_decision (test_strategy.Checks.test_future_labels_cannot_change_decision) ... ok
+test_invalid_probability_refused (test_strategy.Checks.test_invalid_probability_refused) ... ok
+test_next_version_changes_lineage_not_parent (test_strategy.Checks.test_next_version_changes_lineage_not_parent) ... ok
+test_risk_and_resource_caps (test_strategy.Checks.test_risk_and_resource_caps) ... ok
+test_strategy_fingerprint_covers_parameters (test_strategy.Checks.test_strategy_fingerprint_covers_parameters) ... ok
+test_support_reverses_direction (test_strategy.Checks.test_support_reverses_direction) ... ok
+test_timeout_low_confidence_wait (test_strategy.Checks.test_timeout_low_confidence_wait) ... ok
+
+----------------------------------------------------------------------
+Ran 78 tests in 25.012s
+
+OK (skipped=1)

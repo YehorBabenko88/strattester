@@ -1,0 +1,58 @@
+{
+  "status": "SYNTHETIC_FINITE_FEEDBACK_COMPLETE",
+  "evaluated_candidates": 4,
+  "iterations": 1,
+  "candidates": [
+    {
+      "id": "83482bd5dcc05f74f8572488d7e8751dcb81f2f54f0c69b1b2cc911022c6d959",
+      "family": "wait",
+      "version": 1,
+      "threshold": 0.6,
+      "net_pnl": 0.0,
+      "stress_net_pnl": 0.0,
+      "trades": 0,
+      "drawdown": 0.0
+    },
+    {
+      "id": "165fad42724477aea91aa71c7c0b6ab76894cd49a5cd81bf7f25aa8fe1af37b8",
+      "family": "bounce_rule",
+      "version": 1,
+      "threshold": 0.6,
+      "net_pnl": -0.4672464033012602,
+      "stress_net_pnl": -0.6780283563715557,
+      "trades": 1,
+      "drawdown": 0.0004672464033012602
+    },
+    {
+      "id": "4ef15ca544c6aadc32b99b3e05071d54e9bbb27a575277211d2d4a5d434f4939",
+      "family": "baseline_probability",
+      "version": 1,
+      "threshold": 0.6,
+      "net_pnl": -0.4672464033012602,
+      "stress_net_pnl": -0.6780283563715557,
+      "trades": 1,
+      "drawdown": 0.0004672464033012602
+    },
+    {
+      "id": "0a0be02c6472a962b659b9a34581b0ae8bf2f39f29e221a73ed2e6c4b6a50937",
+      "family": "graph_probability",
+      "version": 1,
+      "threshold": 0.6,
+      "net_pnl": -0.4672464033012602,
+      "stress_net_pnl": -0.6780283563715557,
+      "trades": 1,
+      "drawdown": 0.0004672464033012602
+    }
+  ],
+  "original_final_oos": "NOT_USED_FOR_SELECTION",
+  "resources": {
+    "wall_seconds": 1.8280000000086147,
+    "cpu_seconds": 1.609375,
+    "processes": 1,
+    "gpu": 0,
+    "hard_cpu_quota": false,
+    "runtime_scope": "DEVELOPER_SYNTHETIC_PURE_FUNCTION_ONLY",
+    "no_provider_or_database": true
+  },
+  "real_data": "NOT_ADMITTED"
+}

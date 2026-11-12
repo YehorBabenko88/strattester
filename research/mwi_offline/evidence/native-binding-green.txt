@@ -1,0 +1,8 @@
+test_callbacks_bad_metadata_and_unfilled_entry_refused (__main__.Checks.test_callbacks_bad_metadata_and_unfilled_entry_refused) ... ok
+test_crlf_normalization_is_not_source_admission (__main__.Checks.test_crlf_normalization_is_not_source_admission) ... ok
+test_exact_git_bytes_bind_in_fresh_namespace_and_preserve_source (__main__.Checks.test_exact_git_bytes_bind_in_fresh_namespace_and_preserve_source) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.702s
+
+OK

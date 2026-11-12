@@ -1,0 +1,20 @@
+{
+  "name": "MWI contained offline research",
+  "on": {
+    "push": {"paths": ["research/mwi_offline/**", "docs/research/MWI_OFFLINE.md", ".github/workflows/mwi-offline-research.yml"]},
+    "pull_request": {"paths": ["research/mwi_offline/**", "docs/research/MWI_OFFLINE.md", ".github/workflows/mwi-offline-research.yml"]}
+  },
+  "permissions": {"contents": "read"},
+  "jobs": {
+    "offline": {
+      "runs-on": "${{ matrix.os }}",
+      "timeout-minutes": 10,
+      "strategy": {"fail-fast": false, "matrix": {"os": ["ubuntu-latest", "windows-latest"]}},
+      "steps": [
+        {"uses": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262", "env": {"GIT_CONFIG_COUNT": "2", "GIT_CONFIG_KEY_0": "core.autocrlf", "GIT_CONFIG_VALUE_0": "false", "GIT_CONFIG_KEY_1": "core.eol", "GIT_CONFIG_VALUE_1": "lf"}, "with": {"ref": "${{ github.event.pull_request.head.sha || github.sha }}", "persist-credentials": false}},
+        {"uses": "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065", "with": {"python-version": "3.12"}},
+        {"name": "Run contained offline tests", "run": "python -I -S -B research/mwi_offline/run_tests.py"}
+      ]
+    }
+  }
+}
