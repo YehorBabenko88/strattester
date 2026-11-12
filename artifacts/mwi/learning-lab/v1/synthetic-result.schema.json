@@ -22,8 +22,7 @@
               "additionalProperties": false,
               "properties": {
                 "completeness": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "NOT_EVALUATED"
                 },
                 "count": {
                   "maximum": 9007199254740991,
@@ -34,8 +33,7 @@
                   "type": "null"
                 },
                 "scope": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
                 }
               },
               "required": [
@@ -53,19 +51,16 @@
                   "type": "null"
                 },
                 "local_dataset_id": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "ccf0eedb5f83b742b66e7bbd5376ab4af56eb887ce6ff388110103fe8cf1c442"
                 },
                 "observed_coverage": {
                   "type": "null"
                 },
                 "readiness": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "UNKNOWN"
                 },
                 "reason": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "RESULT_FILE_HAS_NO_PRIMARY_DATA_READINESS_EVIDENCE"
                 },
                 "requested_coverage": {
                   "type": "null"
@@ -90,12 +85,10 @@
               "type": "object"
             },
             "missingness": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
             },
             "status": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
             }
           },
           "required": [
@@ -113,8 +106,7 @@
               "additionalProperties": false,
               "properties": {
                 "completeness": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "NOT_EVALUATED"
                 },
                 "count": {
                   "maximum": 9007199254740991,
@@ -125,8 +117,7 @@
                   "type": "null"
                 },
                 "scope": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
                 }
               },
               "required": [
@@ -141,8 +132,7 @@
               "additionalProperties": false,
               "properties": {
                 "dataset_id": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "ccf0eedb5f83b742b66e7bbd5376ab4af56eb887ce6ff388110103fe8cf1c442"
                 },
                 "development_errors": {
                   "additionalProperties": false,
@@ -290,12 +280,10 @@
                   "type": "integer"
                 },
                 "input_result_raw_sha256": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "764517c2910065ca50c51c1c39f526a72ea4e584556051f45883b504ecdc9f17"
                 },
                 "model_set_hash": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
                 },
                 "owner_experiment_id": {
                   "type": "null"
@@ -304,20 +292,16 @@
                   "type": "null"
                 },
                 "owner_registry": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "NOT_CONNECTED"
                 },
                 "selected_strategy_id": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a"
                 },
                 "source_hash_context": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "e74952bff83c00815248a917d9316b03d4494d0968722dc310c197ae0b7c7874"
                 },
                 "source_head": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "c7a137bb59fe49edab36218eb012564251e0f317"
                 }
               },
               "required": [
@@ -336,12 +320,10 @@
               "type": "object"
             },
             "missingness": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
             },
             "status": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
             }
           },
           "required": [
@@ -359,8 +341,7 @@
               "additionalProperties": false,
               "properties": {
                 "completeness": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "UNKNOWN"
                 },
                 "count": {
                   "type": "null"
@@ -369,8 +350,7 @@
                   "type": "null"
                 },
                 "scope": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "INPUT_RESULT_ONLY"
                 }
               },
               "required": [
@@ -385,12 +365,10 @@
               "type": "null"
             },
             "missingness": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "AGGREGATE_ERRORS_ARE_NOT_DECISION_PROBABILITIES"
             },
             "status": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "UNKNOWN"
             }
           },
           "required": [
@@ -408,8 +386,7 @@
               "additionalProperties": false,
               "properties": {
                 "completeness": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "NOT_EVALUATED"
                 },
                 "count": {
                   "maximum": 9007199254740991,
@@ -420,8 +397,7 @@
                   "type": "null"
                 },
                 "scope": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
                 }
               },
               "required": [
@@ -442,20 +418,16 @@
                         "type": "null"
                       },
                       "limitation": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "FITTED_MODEL_ARTIFACT_NOT_READ"
                       },
                       "model_set_hash": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
                       },
                       "source_hash_context": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "e74952bff83c00815248a917d9316b03d4494d0968722dc310c197ae0b7c7874"
                       },
                       "state": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "LOCAL_CANDIDATE_NOT_ADOPTED"
                       }
                     },
                     "required": [
@@ -474,12 +446,10 @@
               "type": "array"
             },
             "missingness": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
             },
             "status": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
             }
           },
           "required": [
@@ -497,8 +467,7 @@
               "additionalProperties": false,
               "properties": {
                 "completeness": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "UNKNOWN"
                 },
                 "count": {
                   "type": "null"
@@ -507,8 +476,7 @@
                   "type": "null"
                 },
                 "scope": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "INPUT_RESULT_ONLY"
                 }
               },
               "required": [
@@ -523,12 +491,10 @@
               "type": "null"
             },
             "missingness": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "NO_GRAPH_NODES_EDGES_OR_TYPED_PORTS_IN_RESULT"
             },
             "status": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "UNKNOWN"
             }
           },
           "required": [
@@ -546,8 +512,7 @@
               "additionalProperties": false,
               "properties": {
                 "completeness": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "NOT_EVALUATED"
                 },
                 "count": {
                   "maximum": 9007199254740991,
@@ -558,8 +523,7 @@
                   "type": "null"
                 },
                 "scope": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
                 }
               },
               "required": [
@@ -641,16 +605,13 @@
                   "type": "object"
                 },
                 "caveat": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "NO_EMPIRICAL_MARKET_OOS_OR_PER_DECISION_CLOCK_EVIDENCE"
                 },
                 "clock_unit": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "UTC_EPOCH_MS"
                 },
                 "dataset_id": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "593b4893e7df365e98bedc057ae9c0dbbc0a8a1701c10ebf947b9f4214b71530"
                 },
                 "decision_feature_availability_clocks": {
                   "type": "null"
@@ -664,27 +625,22 @@
                   "type": "null"
                 },
                 "frozen_strategy_id": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a"
                 },
                 "metric_definitions": {
                   "additionalProperties": false,
                   "properties": {
                     "accuracy": {
-                      "maxLength": 4096,
-                      "type": "string"
+                      "const": "FRACTION"
                     },
                     "brier_sum": {
-                      "maxLength": 4096,
-                      "type": "string"
+                      "const": "SUM_SQUARED_CLASS_ERRORS_UNITLESS"
                     },
                     "ece_top_label": {
-                      "maxLength": 4096,
-                      "type": "string"
+                      "const": "FRACTION"
                     },
                     "log_loss": {
-                      "maxLength": 4096,
-                      "type": "string"
+                      "const": "NATURAL_LOG_LOSS"
                     }
                   },
                   "required": [
@@ -836,8 +792,7 @@
                   "type": "object"
                 },
                 "scope": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "FRESH_SYNTHETIC_REALIZATION_NOT_EMPIRICAL_MARKET_OOS"
                 },
                 "seed": {
                   "maximum": 9007199254740991,
@@ -848,8 +803,7 @@
                   "const": false
                 },
                 "split_ref_kind": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "PRODUCER_DECLARED_FRESH_SYNTHETIC_POLICY_HOLDOUT"
                 },
                 "start_ms": {
                   "maximum": 9007199254740991,
@@ -945,12 +899,10 @@
               "type": "object"
             },
             "missingness": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
             },
             "status": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
             }
           },
           "required": [
@@ -968,8 +920,7 @@
               "additionalProperties": false,
               "properties": {
                 "completeness": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "NOT_EVALUATED"
                 },
                 "count": {
                   "maximum": 9007199254740991,
@@ -980,8 +931,7 @@
                   "type": "null"
                 },
                 "scope": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
                 }
               },
               "required": [
@@ -1066,8 +1016,7 @@
                         "type": "object"
                       },
                       "family": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "wait"
                       },
                       "horizon_bars": {
                         "maximum": 9007199254740991,
@@ -1075,12 +1024,10 @@
                         "type": "integer"
                       },
                       "local_candidate_id": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a"
                       },
                       "model_set_hash": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
                       },
                       "parent_id": {
                         "type": "null"
@@ -1251,8 +1198,7 @@
                         "type": "object"
                       },
                       "family": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "bounce_rule"
                       },
                       "horizon_bars": {
                         "maximum": 9007199254740991,
@@ -1260,12 +1206,10 @@
                         "type": "integer"
                       },
                       "local_candidate_id": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "68464fbcbcbe783ef3ec1e943008ab5f37bb51129377fc6387e3279c19b832c0"
                       },
                       "model_set_hash": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
                       },
                       "parent_id": {
                         "type": "null"
@@ -1446,8 +1390,7 @@
                         "type": "object"
                       },
                       "family": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "baseline_probability"
                       },
                       "horizon_bars": {
                         "maximum": 9007199254740991,
@@ -1455,12 +1398,208 @@
                         "type": "integer"
                       },
                       "local_candidate_id": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "73cd51f158b72597b080180f03d42bee8b951146bf8dcd352eb99457f315b7f4"
                       },
                       "model_set_hash": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "stress": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "closed_trade_drawdown": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "expectancy": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "fees": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "net_pnl": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "profit_factor": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "reason_counts": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "CONFIDENCE_OR_TIMEOUT": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "EX_ANTE_VIRTUAL_RISK": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "CONFIDENCE_OR_TIMEOUT",
+                              "EX_ANTE_VIRTUAL_RISK"
+                            ],
+                            "type": "object"
+                          },
+                          "refused": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "trades": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "wait": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "closed_trade_drawdown",
+                          "expectancy",
+                          "fees",
+                          "net_pnl",
+                          "profit_factor",
+                          "reason_counts",
+                          "refused",
+                          "trades",
+                          "wait"
+                        ],
+                        "type": "object"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "base",
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "stress",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "base": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "closed_trade_drawdown": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "expectancy": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "fees": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "net_pnl": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "profit_factor": {
+                            "maximum": 1000000000000.0,
+                            "minimum": -1000000000000.0,
+                            "type": "number"
+                          },
+                          "reason_counts": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "CONFIDENCE_OR_TIMEOUT": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "EX_ANTE_VIRTUAL_RISK": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "CONFIDENCE_OR_TIMEOUT",
+                              "EX_ANTE_VIRTUAL_RISK"
+                            ],
+                            "type": "object"
+                          },
+                          "refused": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "trades": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "wait": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "closed_trade_drawdown",
+                          "expectancy",
+                          "fees",
+                          "net_pnl",
+                          "profit_factor",
+                          "reason_counts",
+                          "refused",
+                          "trades",
+                          "wait"
+                        ],
+                        "type": "object"
+                      },
+                      "family": {
+                        "const": "graph_probability"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "f9c48257cf91d61df9c4a11ded71372147fb7da4ba839ee885e9189940413198"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
                       },
                       "parent_id": {
                         "type": "null"
@@ -1573,43 +1712,34 @@
               "type": "array"
             },
             "missingness": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
             },
             "semantics": {
               "additionalProperties": false,
               "properties": {
                 "currency": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "USD_NOTIONAL_AS_DECLARED_BY_STRATEGY"
                 },
                 "drawdown": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "CLOSED_TRADE_EQUITY_ONLY"
                 },
                 "fees": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "NATIVE_MODEL_FEE_RATE"
                 },
                 "funding": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "SYNTHETIC_ZERO_ASSUMPTION"
                 },
                 "mfe_mae": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "UNAVAILABLE"
                 },
                 "partial_fills": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "UNSUPPORTED"
                 },
                 "scope": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "MODELED_SYNTHETIC_OHLC_NOT_LEDGER_OR_REALIZED_BALANCE"
                 },
                 "slippage": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "BASE_2_STRESS_8_BPS"
                 }
               },
               "required": [
@@ -1625,8 +1755,7 @@
               "type": "object"
             },
             "status": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
             }
           },
           "required": [
@@ -1645,8 +1774,7 @@
               "additionalProperties": false,
               "properties": {
                 "completeness": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "NOT_EVALUATED"
                 },
                 "count": {
                   "maximum": 9007199254740991,
@@ -1657,8 +1785,7 @@
                   "type": "null"
                 },
                 "scope": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "BOUNDED_EXISTING_RESULT_FILE"
                 }
               },
               "required": [
@@ -1676,8 +1803,7 @@
                     "additionalProperties": false,
                     "properties": {
                       "family": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "wait"
                       },
                       "horizon_bars": {
                         "maximum": 9007199254740991,
@@ -1685,12 +1811,136 @@
                         "type": "integer"
                       },
                       "local_candidate_id": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a"
                       },
                       "model_set_hash": {
-                        "maxLength": 4096,
-                        "type": "string"
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "family": {
+                        "const": "bounce_rule"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "68464fbcbcbe783ef3ec1e943008ab5f37bb51129377fc6387e3279c19b832c0"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "family": {
+                        "const": "baseline_probability"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "73cd51f158b72597b080180f03d42bee8b951146bf8dcd352eb99457f315b7f4"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
+                      },
+                      "parent_id": {
+                        "type": "null"
+                      },
+                      "threshold": {
+                        "maximum": 1000000000000.0,
+                        "minimum": -1000000000000.0,
+                        "type": "number"
+                      },
+                      "version": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "family",
+                      "horizon_bars",
+                      "local_candidate_id",
+                      "model_set_hash",
+                      "parent_id",
+                      "threshold",
+                      "version"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "family": {
+                        "const": "graph_probability"
+                      },
+                      "horizon_bars": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      "local_candidate_id": {
+                        "const": "f9c48257cf91d61df9c4a11ded71372147fb7da4ba839ee885e9189940413198"
+                      },
+                      "model_set_hash": {
+                        "const": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b"
                       },
                       "parent_id": {
                         "type": "null"
@@ -1724,12 +1974,10 @@
               "type": "array"
             },
             "missingness": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "PARTIAL_LOCAL_RESULT_ONLY"
             },
             "status": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "REPORTED_SYNTHETIC_UNATTESTED"
             }
           },
           "required": [
@@ -1747,8 +1995,7 @@
               "additionalProperties": false,
               "properties": {
                 "completeness": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "UNKNOWN"
                 },
                 "count": {
                   "type": "null"
@@ -1757,8 +2004,7 @@
                   "type": "null"
                 },
                 "scope": {
-                  "maxLength": 4096,
-                  "type": "string"
+                  "const": "INPUT_RESULT_ONLY"
                 }
               },
               "required": [
@@ -1773,12 +2019,10 @@
               "type": "null"
             },
             "missingness": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "NO_JOB_BINDING_OR_OBSERVATION_CLOCK_IN_RESULT"
             },
             "status": {
-              "maxLength": 4096,
-              "type": "string"
+              "const": "UNKNOWN"
             }
           },
           "required": [
@@ -1821,16 +2065,13 @@
           "type": "integer"
         },
         "producer_schema": {
-          "maxLength": 4096,
-          "type": "string"
+          "const": "mwi.synthetic.finite-cycle.v1"
         },
         "raw_sha256": {
-          "maxLength": 4096,
-          "type": "string"
+          "const": "764517c2910065ca50c51c1c39f526a72ea4e584556051f45883b504ecdc9f17"
         },
         "source_head": {
-          "maxLength": 4096,
-          "type": "string"
+          "const": "c7a137bb59fe49edab36218eb012564251e0f317"
         }
       },
       "required": [
@@ -1845,8 +2086,19 @@
       "items": {
         "anyOf": [
           {
-            "maxLength": 4096,
-            "type": "string"
+            "const": "INERT_PROPOSAL_NOT_OWNER_LAB_SCHEMA"
+          },
+          {
+            "const": "NO_UI_OR_API_PUBLICATION"
+          },
+          {
+            "const": "NO_MEASURED_QUEUE_RESOURCES_FORECASTS_OR_SIMULATION"
+          },
+          {
+            "const": "PHYSICAL_AND_REAL_DATA_STATUS_UNKNOWN"
+          },
+          {
+            "const": "STRICT_RESULT_INTEGRITY_NOT_SEMANTIC_REEXECUTION_OR_OWNER_ADOPTION"
           }
         ]
       },
@@ -1858,12 +2110,10 @@
       "const": false
     },
     "local_artifact_sha256": {
-      "maxLength": 4096,
-      "type": "string"
+      "const": "764517c2910065ca50c51c1c39f526a72ea4e584556051f45883b504ecdc9f17"
     },
     "local_dataset_id": {
-      "maxLength": 4096,
-      "type": "string"
+      "const": "ccf0eedb5f83b742b66e7bbd5376ab4af56eb887ce6ff388110103fe8cf1c442"
     },
     "owner_experiment_id": {
       "type": "null"
@@ -1875,8 +2125,7 @@
       "type": "null"
     },
     "preview_content_sha256": {
-      "maxLength": 4096,
-      "type": "string"
+      "const": "3ac074d90d38e972f9f75f6a0070998cb8b284dbfe8dcaddbd9fd910e014dc77"
     },
     "publication_status": {
       "const": "LOCAL_UNATTESTED"
@@ -1888,12 +2137,10 @@
       "const": false
     },
     "source_context": {
-      "maxLength": 4096,
-      "type": "string"
+      "const": "CALLER_SUPPLIED_NOT_AUTHENTICATED"
     },
     "source_head": {
-      "maxLength": 4096,
-      "type": "string"
+      "const": "c7a137bb59fe49edab36218eb012564251e0f317"
     },
     "submitted": {
       "const": false
@@ -1902,16 +2149,13 @@
       "additionalProperties": false,
       "properties": {
         "commit": {
-          "maxLength": 4096,
-          "type": "string"
+          "const": "2a8e2647700dad4f661057235e13f76dc52f091f"
         },
         "role": {
-          "maxLength": 4096,
-          "type": "string"
+          "const": "OWNER_REPORTED_SOURCE_CONTEXT_NOT_ADOPTION"
         },
         "tree": {
-          "maxLength": 4096,
-          "type": "string"
+          "const": "718fed81b980e01b338ab21fdf093da4e3363121"
         }
       },
       "required": [

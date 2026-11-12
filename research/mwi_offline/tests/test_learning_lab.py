@@ -127,6 +127,22 @@ class EngineReadbackChecks(unittest.TestCase):
         with self.assertRaises(ValueError):self.readback(r)
 
 class CommittedFixtureTests(unittest.TestCase):
+    def test_closed_fixture_profile_freezes_semantic_status_and_coverage(self):
+        import json
+        root=Path(__file__).resolve().parents[3]/'artifacts/mwi/learning-lab/v1'
+        fixture=json.loads((root/'synthetic-result.preview.json').read_bytes())
+        schema=json.loads((root/'synthetic-result.schema.json').read_bytes())
+        profiles=schema['properties']['domains']['properties']
+        for name,domain in fixture['domains'].items():
+            profile=profiles[name]['properties']
+            for key in ('status','missingness'):
+                self.assertEqual(profile[key],{'const':domain[key]},(name,key))
+            for key in ('scope','completeness'):
+                self.assertEqual(profile['coverage']['properties'][key],
+                                 {'const':domain['coverage'][key]},(name,key))
+        # In particular LIVE cannot be substituted for an UNKNOWN forecast.
+        self.assertEqual(profiles['forecast_probabilities']['properties']['status'],{'const':'UNKNOWN'})
+
     def test_raw_pins_and_projection_module_match_committed_fixture(self):
         import hashlib
         import json

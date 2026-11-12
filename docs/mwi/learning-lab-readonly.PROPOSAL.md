@@ -10,7 +10,7 @@ A6 semantic review: FIELD-REVIEW.md SHA256 `7c51f7c2403fa0b46c8bb143d5ba7e45b738
 
 The fixture under `artifacts/mwi/learning-lab/v1/` projects the preserved Stage2 result from producer HEAD `c7a137bb59fe49edab36218eb012564251e0f317`, raw SHA256 `764517c2910065ca50c51c1c39f526a72ea4e584556051f45883b504ecdc9f17`, 28249 bytes. It does not rerun training or select a different winner. `manifest.json` separately pins the fixture, schema, input and exact projection module bytes. No artifact embeds its own raw file digest. Canonical preview content digests are labelled separately from raw file digests.
 
-`synthetic-result.schema.json` is a closed JSON Schema 2020-12 profile of this one bounded fixture, not a generic future real-data or Terminan schema. Its observed collection cardinalities are intentionally fixed; later profiles need versioned review. It is 67404 bytes, bounded below 128 KiB. Preview is bounded to 64 KiB. Reader input limit is 1 MiB, depth20, total60000 values, 64 object members, 256 rows per array, strings4096 characters, safe integer magnitude <=2^53-1. No graph nodes/edges or executable values are supplied.
+`synthetic-result.schema.json` is a closed JSON Schema 2020-12 profile of this one bounded fixture, not a generic future real-data or Terminan schema. Its observed collection cardinalities and all string values (including status, missingness, coverage and identity) are intentionally fixed; later profiles need versioned review. It is 80779 bytes, bounded below 128 KiB. Preview is bounded to 64 KiB. Reader input limit is 1 MiB, depth20, total60000 values, 64 object members, 256 rows per array, strings4096 characters, safe integer magnitude <=2^53-1. No graph nodes/edges or executable values are supplied. Profile validation alone does not establish numerical consistency, joins, authenticity or viewer adoption; the source result reader performs its separate checks before projection.
 
 ## Nine domains
 
@@ -31,3 +31,5 @@ Collections explicitly state bounded selection, count, has_more UNKNOWN and comp
 ## Integration boundary
 
 No conversion to existing closed `lab_view` or `history_overlay` receipt schemas. A6 must review exact HEAD/tree, schema and fixture hashes/lengths before proposing a new viewer adapter. ROOT must separately approve any shared contract/runtime admission. Byte integrity, source ACK and fixture validation cannot authorize physical reads, live data, training, trading or model promotion.
+
+A6's exact review of parent9e581c reported NEEDS_NEW_ADAPTER: existing viewers refuse this carrier by source contract, with no viewer execution. Its P2 about permissive domain status/coverage strings was reproduced by the new profile regression and corrected here with exact string constants; the original schema remains in parent Git history and the readiness packet. The P1 owner allocation for a new viewer adapter/read route remains blocked. No relabeling as an existing native receipt is permitted.

@@ -9,9 +9,9 @@
     "sha256": "31c017e83cab5e0d4124643fca8f51fef80c3f23df42ed09e8b357836798f2df"
   },
   "fixture_schema": {
-    "bytes": 67404,
+    "bytes": 80779,
     "file": "synthetic-result.schema.json",
-    "sha256": "8c6f56c4b9e040434ed855b887aa294dad676d6b74e12891b1a1ab5a92f00e5c"
+    "sha256": "c3eb33eb07e22f0b96358e266644db8aae17cde2d6d2d164c364716f78bb7c9f"
   },
   "input_result": {
     "bytes": 28249,
