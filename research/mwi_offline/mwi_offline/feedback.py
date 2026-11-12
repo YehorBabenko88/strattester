@@ -1,5 +1,6 @@
 """Finite synthetic experiment procedure; no scheduler, registry service or ledger."""
 import hashlib
+import copy
 import json
 import os
 import tempfile
@@ -8,7 +9,8 @@ from pathlib import Path
 import time
 from .evaluation import digest,fit,calibrated,probabilities,split_at,metrics
 from .features import build_examples
-from .strategy import candidates,next_version
+from .strategy import candidates,next_version,validate
+from .controlled_search import prepare_search
 from .simulation_adapter import simulate_candidate
 from .adapter import _read,_json,_bars
 from .synthetic import generate
@@ -59,6 +61,33 @@ def evaluate_candidate(c,development,bars,binding,stress=False):
 def _bytes(v):return json.dumps(v,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
 
 
+def frozen_policy_controls(strategy,development,bars,binding):
+    """One prespecified development-only forecast reassignment diagnostic.
+
+    No fitting/selection/holdout access. Base and stress reuse the same existing
+    simulator binding. A WAIT/rule or unchanged reassignment is uninformative.
+    This is an exploratory alignment control, not a significance test.
+    """
+    validate(strategy)
+    key='graph' if strategy['family']=='graph_probability' else 'baseline'
+    rows=development['examples'];ps=development['predictions'][key]
+    if type(rows) is not list or type(ps) is not list or not 1<=len(rows)==len(ps)<=256:raise ValueError('CONTROL_BUDGET')
+    shifted=ps[1:]+ps[:1]
+    result=dict(schema='mwi.frozen-policy-control.v1',strategy_id=strategy['strategy_id'],
+                status='CONTROL_UNINFORMATIVE',scope='DEVELOPMENT_ONLY_NOT_HOLDOUT',
+                kind='CIRCULAR_FORECAST_REASSIGNMENT_OFFSET1',max_control_policies=1,
+                max_cost_scenarios=2,used_for_selection=False,refit=False,promotion_allowed=False,
+                original_predictions_hash=digest(ps),reassigned_predictions_hash=digest(shifted),
+                example_ids_hash=digest([r['id'] for r in rows]))
+    if strategy['family'] in ('wait','bounce_rule') or shifted==ps:
+        return dict(result,reason='POLICY_IGNORES_PROBABILITIES_OR_REASSIGNMENT_UNCHANGED',base=None,stress=None)
+    altered=copy.deepcopy(development)
+    altered['predictions'][key]=copy.deepcopy(shifted)
+    return dict(result,status='EXPLORATORY_CONTROL_REPORTED',reason='FROZEN_POLICY_DIAGNOSTIC_ONLY',
+                base=evaluate_candidate(strategy,altered,bars,binding),
+                stress=evaluate_candidate(strategy,altered,bars,binding,True))
+
+
 def publish_checkpoint(root,value):
     """Atomic local stage receipt, not a distributed journal or authenticated seal."""
     with tempfile.NamedTemporaryFile(dir=root,prefix='.checkpoint-',suffix='.tmp',delete=False) as f:
@@ -92,6 +121,7 @@ def run_cycle(directory,bars,binding,source_head,resume=False):
             if not {'config.json','development-models.json','selection.json','policy-holdout.json','result.json'}<=set(inventory) or checkpoint['result_sha256']!=inventory['result.json']:raise ValueError('RESUME_REQUIRED_RESULT')
             result=_json(_read(root/'artifacts'/'result.json'))
             if result['config']!=config:raise ValueError('RESULT_IDENTITY')
+            if not {'search-initial.json','frozen-policy-control.json'}<=set(inventory) or (result['iterations']==2 and 'search-next-version.json' not in inventory):raise ValueError('RESUME_REQUIRED_SEARCH')
             return result
     else:
         root.mkdir();(root/'artifacts').mkdir();checkpoint={'config':config,'status':'IN_PROGRESS','artifacts':{},'result_sha256':None}
@@ -106,7 +136,9 @@ def run_cycle(directory,bars,binding,source_head,resume=False):
     save('config.json',config)
     dev=development_fit(bars);save('development-models.json',dev)
     generated=candidates(config['dataset_id'],digest(dev['models']))
-    batch=[generated[i] for i in (0,1,2,4)];results=[]
+    admission=prepare_search([generated[i] for i in (0,1,2,4)],4)
+    save('search-initial.json',admission)
+    batch=admission['candidates'];results=[]
     def measure(c):
         if len(results)>=6 or time.monotonic()-start>60:raise ValueError('FINITE_RESEARCH_BUDGET')
         try:
@@ -119,11 +151,21 @@ def run_cycle(directory,bars,binding,source_head,resume=False):
     for c in batch:measure(c)
     best=max(results,key=lambda c:(c['base']['net_pnl'],c['strategy']['strategy_id']))
     if best['base']['net_pnl']>0 and best['strategy']['family'] in ('baseline_probability','graph_probability'):
-        for threshold in (.70,.80):measure(next_version(best['strategy'],threshold))
+        searched=prepare_search(batch+[next_version(best['strategy'],t) for t in (.70,.80)],6)
+        save('search-next-version.json',searched)
+        existing={c['strategy_id'] for c in batch}
+        for c in searched['candidates']:
+            if c['strategy_id'] not in existing:measure(c)
     winner=max(results,key=lambda c:(c['base']['net_pnl'],c['strategy']['strategy_id']))['strategy']
     save('selection.json',{'strategy_id':winner['strategy_id'],'criterion':'MAX_DEVELOPMENT_NET_PNL_TIE_ID',
                            'created_after_label_ms':max(r['label_available'] for r in dev['examples']),
                            'used_original_final_oos':False,'used_policy_holdout':False})
+    try:control=frozen_policy_controls(winner,dev,bars,binding)
+    except Exception as exc:
+        save('failure-control.json',{'strategy_id':winner['strategy_id'],'error_type':type(exc).__name__,
+                                    'stage':'FROZEN_DEVELOPMENT_CONTROL','promotion_allowed':False})
+        raise
+    save('frozen-policy-control.json',control)
     fresh=generate(seed=20261113,n=1800)
     for row in fresh:
         for clock in ('open_ms','end_ms','available_ms'):row[clock]+=config['policy_holdout_start_ms']

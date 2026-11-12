@@ -1,0 +1,459 @@
+{
+  "adoption_status": "PROPOSED_NOT_ADOPTED",
+  "artifact_hash_verification": "EXACT_INPUT_RAW_SHA256_MATCH_NOT_AUTHENTICATION",
+  "authenticated": false,
+  "domains": {
+    "dataset_readiness": {
+      "coverage": {
+        "completeness": "NOT_EVALUATED",
+        "count": 1,
+        "has_more": null,
+        "scope": "BOUNDED_EXISTING_RESULT_FILE"
+      },
+      "data": {
+        "gaps": null,
+        "local_dataset_id": "ccf0eedb5f83b742b66e7bbd5376ab4af56eb887ce6ff388110103fe8cf1c442",
+        "observed_coverage": null,
+        "readiness": "UNKNOWN",
+        "reason": "RESULT_FILE_HAS_NO_PRIMARY_DATA_READINESS_EVIDENCE",
+        "requested_coverage": null,
+        "revision": null,
+        "training_eligible": false
+      },
+      "missingness": "PARTIAL_LOCAL_RESULT_ONLY",
+      "status": "REPORTED_SYNTHETIC_UNATTESTED"
+    },
+    "experiment_lineage": {
+      "coverage": {
+        "completeness": "NOT_EVALUATED",
+        "count": 1,
+        "has_more": null,
+        "scope": "BOUNDED_EXISTING_RESULT_FILE"
+      },
+      "data": {
+        "dataset_id": "ccf0eedb5f83b742b66e7bbd5376ab4af56eb887ce6ff388110103fe8cf1c442",
+        "development_errors": {
+          "baseline": {
+            "accuracy": 0.875,
+            "brier_sum": 0.16103979221280912,
+            "class_counts": {
+              "BOUNCE": 13,
+              "BREAKOUT": 3,
+              "TIMEOUT": 0
+            },
+            "ece_top_label": 0.12658384404160317,
+            "log_loss": 0.3290901573456389,
+            "n": 16
+          },
+          "graph": {
+            "accuracy": 0.875,
+            "brier_sum": 0.17489324605546214,
+            "class_counts": {
+              "BOUNCE": 13,
+              "BREAKOUT": 3,
+              "TIMEOUT": 0
+            },
+            "ece_top_label": 0.13381010255745085,
+            "log_loss": 0.34438468011563783,
+            "n": 16
+          }
+        },
+        "input_result_bytes": 28249,
+        "input_result_raw_sha256": "764517c2910065ca50c51c1c39f526a72ea4e584556051f45883b504ecdc9f17",
+        "model_set_hash": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b",
+        "owner_experiment_id": null,
+        "owner_job_id": null,
+        "owner_registry": "NOT_CONNECTED",
+        "selected_strategy_id": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a",
+        "source_hash_context": "e74952bff83c00815248a917d9316b03d4494d0968722dc310c197ae0b7c7874",
+        "source_head": "c7a137bb59fe49edab36218eb012564251e0f317"
+      },
+      "missingness": "PARTIAL_LOCAL_RESULT_ONLY",
+      "status": "REPORTED_SYNTHETIC_UNATTESTED"
+    },
+    "forecast_probabilities": {
+      "coverage": {
+        "completeness": "UNKNOWN",
+        "count": null,
+        "has_more": null,
+        "scope": "INPUT_RESULT_ONLY"
+      },
+      "data": null,
+      "missingness": "AGGREGATE_ERRORS_ARE_NOT_DECISION_PROBABILITIES",
+      "status": "UNKNOWN"
+    },
+    "model_versions": {
+      "coverage": {
+        "completeness": "NOT_EVALUATED",
+        "count": 1,
+        "has_more": null,
+        "scope": "BOUNDED_EXISTING_RESULT_FILE"
+      },
+      "data": [
+        {
+          "algorithm_version": null,
+          "limitation": "FITTED_MODEL_ARTIFACT_NOT_READ",
+          "model_set_hash": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b",
+          "source_hash_context": "e74952bff83c00815248a917d9316b03d4494d0968722dc310c197ae0b7c7874",
+          "state": "LOCAL_CANDIDATE_NOT_ADOPTED"
+        }
+      ],
+      "missingness": "PARTIAL_LOCAL_RESULT_ONLY",
+      "status": "REPORTED_SYNTHETIC_UNATTESTED"
+    },
+    "mwi_graph_visualizations": {
+      "coverage": {
+        "completeness": "UNKNOWN",
+        "count": null,
+        "has_more": null,
+        "scope": "INPUT_RESULT_ONLY"
+      },
+      "data": null,
+      "missingness": "NO_GRAPH_NODES_EDGES_OR_TYPED_PORTS_IN_RESULT",
+      "status": "UNKNOWN"
+    },
+    "oos_results": {
+      "coverage": {
+        "completeness": "NOT_EVALUATED",
+        "count": 1,
+        "has_more": null,
+        "scope": "BOUNDED_EXISTING_RESULT_FILE"
+      },
+      "data": {
+        "base": {
+          "closed_trade_drawdown": 0.0,
+          "expectancy": null,
+          "fees": 0,
+          "net_pnl": 0.0,
+          "profit_factor": null,
+          "reason_counts": {
+            "BASELINE_WAIT": 73
+          },
+          "refused": 0,
+          "trades": 0,
+          "wait": 73
+        },
+        "caveat": "NO_EMPIRICAL_MARKET_OOS_OR_PER_DECISION_CLOCK_EVIDENCE",
+        "clock_unit": "UTC_EPOCH_MS",
+        "dataset_id": "593b4893e7df365e98bedc057ae9c0dbbc0a8a1701c10ebf947b9f4214b71530",
+        "decision_feature_availability_clocks": null,
+        "end_ms": 360780000,
+        "evaluation_as_of_ms": null,
+        "frozen_strategy_id": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a",
+        "metric_definitions": {
+          "accuracy": "FRACTION",
+          "brier_sum": "SUM_SQUARED_CLASS_ERRORS_UNITLESS",
+          "ece_top_label": "FRACTION",
+          "log_loss": "NATURAL_LOG_LOSS"
+        },
+        "metrics": {
+          "baseline": {
+            "accuracy": 0.8767123287671232,
+            "brier_sum": 0.22924960555037227,
+            "class_counts": {
+              "BOUNCE": 60,
+              "BREAKOUT": 6,
+              "TIMEOUT": 7
+            },
+            "ece_top_label": 0.08606015900709162,
+            "log_loss": 0.4613324442790279,
+            "n": 73
+          },
+          "graph": {
+            "accuracy": 0.8767123287671232,
+            "brier_sum": 0.19204494421630217,
+            "class_counts": {
+              "BOUNCE": 60,
+              "BREAKOUT": 6,
+              "TIMEOUT": 7
+            },
+            "ece_top_label": 0.08161157227388378,
+            "log_loss": 0.3721959505975788,
+            "n": 73
+          }
+        },
+        "scope": "FRESH_SYNTHETIC_REALIZATION_NOT_EMPIRICAL_MARKET_OOS",
+        "seed": 20261113,
+        "selection_used_holdout": false,
+        "split_ref_kind": "PRODUCER_DECLARED_FRESH_SYNTHETIC_POLICY_HOLDOUT",
+        "start_ms": 252780000,
+        "stress": {
+          "closed_trade_drawdown": 0.0,
+          "expectancy": null,
+          "fees": 0,
+          "net_pnl": 0.0,
+          "profit_factor": null,
+          "reason_counts": {
+            "BASELINE_WAIT": 73
+          },
+          "refused": 0,
+          "trades": 0,
+          "wait": 73
+        }
+      },
+      "missingness": "PARTIAL_LOCAL_RESULT_ONLY",
+      "status": "REPORTED_SYNTHETIC_UNATTESTED"
+    },
+    "simulated_pnl_and_risk": {
+      "coverage": {
+        "completeness": "NOT_EVALUATED",
+        "count": 4,
+        "has_more": null,
+        "scope": "BOUNDED_EXISTING_RESULT_FILE"
+      },
+      "data": [
+        {
+          "base": {
+            "closed_trade_drawdown": 0.0,
+            "expectancy": null,
+            "fees": 0,
+            "net_pnl": 0.0,
+            "profit_factor": null,
+            "reason_counts": {
+              "BASELINE_WAIT": 16
+            },
+            "refused": 0,
+            "trades": 0,
+            "wait": 16
+          },
+          "family": "wait",
+          "horizon_bars": 12,
+          "local_candidate_id": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a",
+          "model_set_hash": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b",
+          "parent_id": null,
+          "stress": {
+            "closed_trade_drawdown": 0.0,
+            "expectancy": null,
+            "fees": 0,
+            "net_pnl": 0.0,
+            "profit_factor": null,
+            "reason_counts": {
+              "BASELINE_WAIT": 16
+            },
+            "refused": 0,
+            "trades": 0,
+            "wait": 16
+          },
+          "threshold": 0.6,
+          "version": 1
+        },
+        {
+          "base": {
+            "closed_trade_drawdown": 0.00024264254551246723,
+            "expectancy": -0.24264254551250758,
+            "fees": 0.10992700645351756,
+            "net_pnl": -0.24264254551246722,
+            "profit_factor": 0.0,
+            "reason_counts": {
+              "EX_ANTE_VIRTUAL_RISK": 15
+            },
+            "refused": 15,
+            "trades": 1,
+            "wait": 0
+          },
+          "family": "bounce_rule",
+          "horizon_bars": 12,
+          "local_candidate_id": "68464fbcbcbe783ef3ec1e943008ab5f37bb51129377fc6387e3279c19b832c0",
+          "model_set_hash": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b",
+          "parent_id": null,
+          "stress": {
+            "closed_trade_drawdown": 0.00045223195379742265,
+            "expectancy": -0.4522319537974099,
+            "fees": 0.19974751556176434,
+            "net_pnl": -0.45223195379742265,
+            "profit_factor": 0.0,
+            "reason_counts": {
+              "EX_ANTE_VIRTUAL_RISK": 15
+            },
+            "refused": 15,
+            "trades": 1,
+            "wait": 0
+          },
+          "threshold": 0.6,
+          "version": 1
+        },
+        {
+          "base": {
+            "closed_trade_drawdown": 5.7181221271207507e-05,
+            "expectancy": -0.05718122127118004,
+            "fees": 0.10997096564059683,
+            "net_pnl": -0.057181221271207505,
+            "profit_factor": 0.0,
+            "reason_counts": {
+              "CONFIDENCE_OR_TIMEOUT": 1,
+              "EX_ANTE_VIRTUAL_RISK": 14
+            },
+            "refused": 14,
+            "trades": 1,
+            "wait": 1
+          },
+          "family": "baseline_probability",
+          "horizon_bars": 12,
+          "local_candidate_id": "73cd51f158b72597b080180f03d42bee8b951146bf8dcd352eb99457f315b7f4",
+          "model_set_hash": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b",
+          "parent_id": null,
+          "stress": {
+            "closed_trade_drawdown": 0.00026728615127706237,
+            "expectancy": -0.2672861512770952,
+            "fees": 0.20006721893234472,
+            "net_pnl": -0.26728615127706234,
+            "profit_factor": 0.0,
+            "reason_counts": {
+              "CONFIDENCE_OR_TIMEOUT": 1,
+              "EX_ANTE_VIRTUAL_RISK": 14
+            },
+            "refused": 14,
+            "trades": 1,
+            "wait": 1
+          },
+          "threshold": 0.6,
+          "version": 1
+        },
+        {
+          "base": {
+            "closed_trade_drawdown": 5.7181221271207507e-05,
+            "expectancy": -0.05718122127118004,
+            "fees": 0.10997096564059683,
+            "net_pnl": -0.057181221271207505,
+            "profit_factor": 0.0,
+            "reason_counts": {
+              "CONFIDENCE_OR_TIMEOUT": 2,
+              "EX_ANTE_VIRTUAL_RISK": 13
+            },
+            "refused": 13,
+            "trades": 1,
+            "wait": 2
+          },
+          "family": "graph_probability",
+          "horizon_bars": 12,
+          "local_candidate_id": "f9c48257cf91d61df9c4a11ded71372147fb7da4ba839ee885e9189940413198",
+          "model_set_hash": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b",
+          "parent_id": null,
+          "stress": {
+            "closed_trade_drawdown": 0.00026728615127706237,
+            "expectancy": -0.2672861512770952,
+            "fees": 0.20006721893234472,
+            "net_pnl": -0.26728615127706234,
+            "profit_factor": 0.0,
+            "reason_counts": {
+              "CONFIDENCE_OR_TIMEOUT": 2,
+              "EX_ANTE_VIRTUAL_RISK": 13
+            },
+            "refused": 13,
+            "trades": 1,
+            "wait": 2
+          },
+          "threshold": 0.6,
+          "version": 1
+        }
+      ],
+      "missingness": "PARTIAL_LOCAL_RESULT_ONLY",
+      "semantics": {
+        "currency": "USD_NOTIONAL_AS_DECLARED_BY_STRATEGY",
+        "drawdown": "CLOSED_TRADE_EQUITY_ONLY",
+        "fees": "NATIVE_MODEL_FEE_RATE",
+        "funding": "SYNTHETIC_ZERO_ASSUMPTION",
+        "mfe_mae": "UNAVAILABLE",
+        "partial_fills": "UNSUPPORTED",
+        "scope": "MODELED_SYNTHETIC_OHLC_NOT_LEDGER_OR_REALIZED_BALANCE",
+        "slippage": "BASE_2_STRESS_8_BPS"
+      },
+      "status": "REPORTED_SYNTHETIC_UNATTESTED"
+    },
+    "strategy_candidates": {
+      "coverage": {
+        "completeness": "NOT_EVALUATED",
+        "count": 4,
+        "has_more": null,
+        "scope": "BOUNDED_EXISTING_RESULT_FILE"
+      },
+      "data": [
+        {
+          "family": "wait",
+          "horizon_bars": 12,
+          "local_candidate_id": "3223a7f9ad672c0ca4fd275e1489aff79763f2c3d3ea126f6cba297fa984f00a",
+          "model_set_hash": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b",
+          "parent_id": null,
+          "threshold": 0.6,
+          "version": 1
+        },
+        {
+          "family": "bounce_rule",
+          "horizon_bars": 12,
+          "local_candidate_id": "68464fbcbcbe783ef3ec1e943008ab5f37bb51129377fc6387e3279c19b832c0",
+          "model_set_hash": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b",
+          "parent_id": null,
+          "threshold": 0.6,
+          "version": 1
+        },
+        {
+          "family": "baseline_probability",
+          "horizon_bars": 12,
+          "local_candidate_id": "73cd51f158b72597b080180f03d42bee8b951146bf8dcd352eb99457f315b7f4",
+          "model_set_hash": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b",
+          "parent_id": null,
+          "threshold": 0.6,
+          "version": 1
+        },
+        {
+          "family": "graph_probability",
+          "horizon_bars": 12,
+          "local_candidate_id": "f9c48257cf91d61df9c4a11ded71372147fb7da4ba839ee885e9189940413198",
+          "model_set_hash": "74101f6bae8a9a1f35b682917f1ab0f1f8baf1914ca69aef35abe4178f8dbe8b",
+          "parent_id": null,
+          "threshold": 0.6,
+          "version": 1
+        }
+      ],
+      "missingness": "PARTIAL_LOCAL_RESULT_ONLY",
+      "status": "REPORTED_SYNTHETIC_UNATTESTED"
+    },
+    "training_progress": {
+      "coverage": {
+        "completeness": "UNKNOWN",
+        "count": null,
+        "has_more": null,
+        "scope": "INPUT_RESULT_ONLY"
+      },
+      "data": null,
+      "missingness": "NO_JOB_BINDING_OR_OBSERVATION_CLOCK_IN_RESULT",
+      "status": "UNKNOWN"
+    }
+  },
+  "endpoint": null,
+  "evidence_class": "SYNTHETIC",
+  "execution_authority": false,
+  "input_result": {
+    "byte_count": 28249,
+    "producer_schema": "mwi.synthetic.finite-cycle.v1",
+    "raw_sha256": "764517c2910065ca50c51c1c39f526a72ea4e584556051f45883b504ecdc9f17",
+    "source_head": "c7a137bb59fe49edab36218eb012564251e0f317"
+  },
+  "limitations": [
+    "INERT_PROPOSAL_NOT_OWNER_LAB_SCHEMA",
+    "NO_UI_OR_API_PUBLICATION",
+    "NO_MEASURED_QUEUE_RESOURCES_FORECASTS_OR_SIMULATION",
+    "PHYSICAL_AND_REAL_DATA_STATUS_UNKNOWN",
+    "STRICT_RESULT_INTEGRITY_NOT_SEMANTIC_REEXECUTION_OR_OWNER_ADOPTION"
+  ],
+  "live": false,
+  "local_artifact_sha256": "764517c2910065ca50c51c1c39f526a72ea4e584556051f45883b504ecdc9f17",
+  "local_dataset_id": "ccf0eedb5f83b742b66e7bbd5376ab4af56eb887ce6ff388110103fe8cf1c442",
+  "owner_experiment_id": null,
+  "owner_field_ack": "PENDING",
+  "owner_job_id": null,
+  "preview_content_sha256": "3ac074d90d38e972f9f75f6a0070998cb8b284dbfe8dcaddbd9fd910e014dc77",
+  "publication_status": "LOCAL_UNATTESTED",
+  "schema": "mwi.local.learning-lab-result-inspection.v1",
+  "source_admitted": false,
+  "source_context": "CALLER_SUPPLIED_NOT_AUTHENTICATED",
+  "source_head": "c7a137bb59fe49edab36218eb012564251e0f317",
+  "submitted": false,
+  "terminan_source_context": {
+    "commit": "2a8e2647700dad4f661057235e13f76dc52f091f",
+    "role": "OWNER_REPORTED_SOURCE_CONTEXT_NOT_ADOPTION",
+    "tree": "718fed81b980e01b338ab21fdf093da4e3363121"
+  },
+  "trading_authorized": false,
+  "training_authorized": false
+}
