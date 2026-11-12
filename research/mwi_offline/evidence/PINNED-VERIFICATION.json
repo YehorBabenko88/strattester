@@ -1,0 +1,15 @@
+{
+  "tested_code_commit": "f90a7410f26b2cce2c88fd42afe6a52b927c9d51",
+  "base": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+  "status": "MWI_OFFLINE_RESEARCH_READY_SYNTHETIC_ONLY",
+  "tests": 47,
+  "passed": 46,
+  "skipped": 1,
+  "result_sha256": "93e978531f7b98669d50ef0022e29498bc3bcbb1ed4c513664f83c1f8576994e",
+  "independent_process_replay": "BYTE_IDENTICAL",
+  "ownership": "ROOT_AND_A7_EXPLICIT_SOURCE_ONLY_ACK",
+  "export": "NOT_AUTHORIZED_NOT_RUN",
+  "production_db": "NEVER_CONNECTED",
+  "market_training": "BLOCKED_PROVENANCE_AND_NATIVE_ADMISSION",
+  "note": "This commit adds evidence only; tested source remains identical to tested_code_commit."
+}

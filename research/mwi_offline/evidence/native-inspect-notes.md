@@ -1,0 +1,9 @@
+# Native inspect-only bridge evidence
+
+Owned implementation: mwi_offline/native_inspect.py, tests/test_native_inspect.py. Observed RED missing-module failure then GREEN in native-inspect-red.txt / native-inspect-green.txt. Final 7 unique tests pass with no skips.
+
+This local bridge reads one explicit offline file only, verifies external byte pin and source HEAD, reproduces Grid v1.1 dataset_content and envelope canonical hashes, validates native exact schemas, continuous one-minute exclusive event boundaries, source event ranges, receipt-hash bindings, watermark/availability/as-of clocks, OHLCV and identity/units. Reads <=8MiB and <=2000 rows; shared stdlib-only local adapter helpers reject path links/reparse ancestors, hardlinks, duplicate JSON keys and excess nesting. No external repository imports, DB/provider/export calls or writes to input.
+
+Report supplies local inspection schema, dataset hashes, identity, source, row count and coverage only: no bars/rows suitable for training and no normalized accepted snapshot. HISTORICAL reports HISTORICAL_UNATTESTED; SYNTHETIC remains SYNTHETIC; training_eligible=false always. Receipt hashes do not provide actual receipt contents, source authentication, availability truth, completeness evidence, or native admission. Blockers always retain RECEIPT_AUTHENTICITY_NOT_PROVISIONED and NATIVE_TRAINING_ADMISSION_NOT_IMPLEMENTED. Continuous rows/gaps=0 means shape within the requested exported minute interval, not exchange completeness. File remains byte-for-byte untouched.
+
+Input directory must remain stable/private during inspection; path checks are not a guarantee against hostile concurrent filesystem replacement. Grid raw inclusive minute end is not accepted as exported exclusive event_end. No historical conversion or training permission is implied by passing integrity checks.

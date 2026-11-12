@@ -1,0 +1,40 @@
+....s.....EE...sF...E.......s....
+======================================================================
+ERROR: test_coverage_dataset_and_gaps (test_adapter.CoverageTests.test_coverage_dataset_and_gaps)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_adapter.py", line 72, in test_coverage_dataset_and_gaps
+    self.assertEqual(m['missingness'],'GAPS_PRESENT')
+                     ~^^^^^^^^^^^^^^^
+KeyError: 'missingness'
+
+======================================================================
+ERROR: test_expected_window (test_adapter.CoverageTests.test_expected_window)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_adapter.py", line 82, in test_expected_window
+    from mwi_offline.adapter import validate_window
+ImportError: cannot import name 'validate_window' from 'mwi_offline.adapter' (C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\adapter.py)
+
+======================================================================
+ERROR: test_rehashed_wrong_coverage (test_adapter.CoverageTests.test_rehashed_wrong_coverage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_adapter.py", line 76, in test_rehashed_wrong_coverage
+    self.make();m=json.loads((self.root/'manifest.json').read_bytes());m['coverage'][0]['end_ms']+=1
+                                                                       ~^^^^^^^^^^^^
+KeyError: 'coverage'
+
+======================================================================
+FAIL: test_mixed_intervals (test_adapter.CoverageTests.test_mixed_intervals)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_adapter.py", line 80, in test_mixed_intervals
+    with self.assertRaises(ValueError):write_snapshot(self.root,rows,HEAD)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 33 tests in 0.311s
+
+FAILED (failures=1, errors=3, skipped=3)

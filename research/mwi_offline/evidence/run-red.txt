@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_run.py", line 6, in <module>
+    from mwi_offline.run import run_research
+ModuleNotFoundError: No module named 'mwi_offline.run'

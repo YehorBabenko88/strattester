@@ -1,0 +1,75 @@
+{
+  "generator_version": "TOY_OSCILLATION_PLATEAU_V2",
+  "protocol": "TOY_NEAR_ZONE_V2",
+  "n": 6000,
+  "counts": {
+    "BREAKOUT": 21,
+    "BOUNCE": 217,
+    "TIMEOUT": 16,
+    "AMBIGUOUS": 21,
+    "UNOBSERVABLE": 0,
+    "PENDING": 0,
+    "SUPPRESSED": 3300,
+    "NO_CAUSAL_HISTORY": 0,
+    "ALREADY_RESOLVED": 5,
+    "ELIGIBLE": 254,
+    "BARS": 6000
+  },
+  "feature_names": {
+    "baseline": [
+      "side",
+      "signed_distance_atr",
+      "return_1",
+      "return_6",
+      "atr_fraction",
+      "volume_ratio",
+      "range_atr",
+      "level_width_atr"
+    ],
+    "node_only": [
+      "side",
+      "signed_distance_atr",
+      "return_1",
+      "return_6",
+      "atr_fraction",
+      "volume_ratio",
+      "range_atr",
+      "level_width_atr",
+      "nearest_other_level_atr",
+      "confluence_fraction",
+      "node_count_scaled"
+    ],
+    "graph": [
+      "side",
+      "signed_distance_atr",
+      "return_1",
+      "return_6",
+      "atr_fraction",
+      "volume_ratio",
+      "range_atr",
+      "level_width_atr",
+      "nearest_other_level_atr",
+      "confluence_fraction",
+      "mean_degree",
+      "mean_edge_distance_atr",
+      "node_count_scaled"
+    ]
+  },
+  "cohort_60_20_20_class_support": [
+    {
+      "BOUNCE": 128,
+      "BREAKOUT": 14,
+      "TIMEOUT": 10
+    },
+    {
+      "BREAKOUT": 4,
+      "BOUNCE": 46,
+      "TIMEOUT": 1
+    },
+    {
+      "BREAKOUT": 3,
+      "BOUNCE": 43,
+      "TIMEOUT": 5
+    }
+  ]
+}

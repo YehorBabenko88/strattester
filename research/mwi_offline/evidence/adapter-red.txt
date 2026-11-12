@@ -1,0 +1,20 @@
+E
+======================================================================
+ERROR: test_adapter (unittest.loader._FailedTest.test_adapter)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_adapter
+Traceback (most recent call last):
+  File "C:\Python315\Lib\unittest\loader.py", line 433, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "C:\Python315\Lib\unittest\loader.py", line 374, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_adapter.py", line 3, in <module>
+    from mwi_offline.adapter import load_snapshot,write_snapshot
+ModuleNotFoundError: No module named 'mwi_offline.adapter'. Did you mean: 'mwi_offline.__init__'?
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (errors=1)

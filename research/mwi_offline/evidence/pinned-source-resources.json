@@ -1,0 +1,10 @@
+{
+  "cpu_seconds": 2.5,
+  "gpu": 0,
+  "max_examples": 256,
+  "max_input_bars": 10000,
+  "physical_hard_quota": "NOT_CLAIMED",
+  "processes": 1,
+  "wall_postcondition_seconds": 60,
+  "wall_seconds": 2.563177399992128
+}

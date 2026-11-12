@@ -1,0 +1,37 @@
+{
+  "schema": "root.mwi.ownership.base.ack.v1",
+  "at_utc": "2026-11-12T16:06:19.7780960Z",
+  "request_id": "MWI-P0-EXPORT-REQUEST-20261112-v1",
+  "repository": "YehorBabenko88/strattester",
+  "base": "37ff7e9d12a4d2dccd788fc493c28557dbe8bcea",
+  "tree": "7f41758d353fe92a2e3d251cb7bd8901c364cc84",
+  "branch": "codex/mwi-offline-research-20261112",
+  "a7_explicit_source_ownership_ack": true,
+  "root_scope_ack": "APPROVED_NEW_SOURCE_ONLY_DRAFT_PR",
+  "owned_new_paths": [
+    "research/mwi_offline/**",
+    "docs/research/MWI_OFFLINE.md"
+  ],
+  "forbidden": [
+    "research/__init__.py",
+    "existing core and ResearchRunner/sync",
+    "shared contracts",
+    "DB/provider/runtime/export",
+    "Scheduler/Authority/orchestrator",
+    "workflow/config/package edits",
+    "replacement research core"
+  ],
+  "conditions": [
+    "separate worktree and branch",
+    "preserve negative/uncertain OOS evidence",
+    "synthetic data remains synthetic",
+    "FILE_ONLY immutable reader does not verify unavailable provenance or availability",
+    "no broad integration or runtime adoption"
+  ],
+  "actual_export": "NOT_AUTHORIZED",
+  "provider": "BLOCKED",
+  "runtime": "NOT_AUTHORIZED",
+  "physical": "NOT_AUTHORIZED",
+  "main_merge": "NOT_AUTHORIZED",
+  "overall": "IN_PROGRESS_NO_GO"
+}
