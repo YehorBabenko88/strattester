@@ -1,0 +1,101 @@
+test_continuous_deterministic_synthetic (test_features.FeatureChecks.test_continuous_deterministic_synthetic) ... ok
+test_enough_nonoverlapping_equal_cohort (test_features.FeatureChecks.test_enough_nonoverlapping_equal_cohort) ... ok
+test_future_raw_mutation_cannot_change_snapshot (test_features.FeatureChecks.test_future_raw_mutation_cannot_change_snapshot) ... ERROR
+test_input_not_mutated (test_features.FeatureChecks.test_input_not_mutated) ... ERROR
+test_invalid_observations_refused (test_features.FeatureChecks.test_invalid_observations_refused) ... ok
+test_label_maturity_preserves_delayed_availability (test_features.FeatureChecks.test_label_maturity_preserves_delayed_availability) ... ERROR
+test_late_prior_bar_is_not_used (test_features.FeatureChecks.test_late_prior_bar_is_not_used) ... ERROR
+test_orientation_both_support_and_resistance (test_features.FeatureChecks.test_orientation_both_support_and_resistance) ... ERROR
+test_timeout_ambiguous_pending_and_unobservable (test_features.FeatureChecks.test_timeout_ambiguous_pending_and_unobservable) ... FAIL
+
+======================================================================
+ERROR: test_future_raw_mutation_cannot_change_snapshot (test_features.FeatureChecks.test_future_raw_mutation_cannot_change_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_features.py", line 63, in test_future_raw_mutation_cannot_change_snapshot
+    x=build_examples(a)["examples"][0];y=build_examples(b)["examples"][0]
+      ~~~~~~~~~~~~~~^^^
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\features.py", line 69, in build_examples
+    _validate(bars)
+    ~~~~~~~~~^^^^^^
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\features.py", line 34, in _validate
+    if not 0<b["low"]<=min(b["open"],b["close"])<=max(b["open"],b["close"])<=b["high"] or b["volume"]<0:raise ValueError("OHLCV")
+                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: OHLCV
+
+======================================================================
+ERROR: test_input_not_mutated (test_features.FeatureChecks.test_input_not_mutated)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_features.py", line 82, in test_input_not_mutated
+    a=fixture();before=copy.deepcopy(a);build_examples(a);self.assertEqual(a,before)
+                                        ~~~~~~~~~~~~~~^^^
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\features.py", line 69, in build_examples
+    _validate(bars)
+    ~~~~~~~~~^^^^^^
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\features.py", line 34, in _validate
+    if not 0<b["low"]<=min(b["open"],b["close"])<=max(b["open"],b["close"])<=b["high"] or b["volume"]<0:raise ValueError("OHLCV")
+                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: OHLCV
+
+======================================================================
+ERROR: test_label_maturity_preserves_delayed_availability (test_features.FeatureChecks.test_label_maturity_preserves_delayed_availability)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_features.py", line 73, in test_label_maturity_preserves_delayed_availability
+    row=build_examples(bars)["examples"][0]
+        ~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\features.py", line 69, in build_examples
+    _validate(bars)
+    ~~~~~~~~~^^^^^^
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\features.py", line 34, in _validate
+    if not 0<b["low"]<=min(b["open"],b["close"])<=max(b["open"],b["close"])<=b["high"] or b["volume"]<0:raise ValueError("OHLCV")
+                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: OHLCV
+
+======================================================================
+ERROR: test_late_prior_bar_is_not_used (test_features.FeatureChecks.test_late_prior_bar_is_not_used)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_features.py", line 69, in test_late_prior_bar_is_not_used
+    self.assertFalse(build_examples(bars)["examples"])
+                     ~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\features.py", line 69, in build_examples
+    _validate(bars)
+    ~~~~~~~~~^^^^^^
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\features.py", line 34, in _validate
+    if not 0<b["low"]<=min(b["open"],b["close"])<=max(b["open"],b["close"])<=b["high"] or b["volume"]<0:raise ValueError("OHLCV")
+                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: OHLCV
+
+======================================================================
+ERROR: test_orientation_both_support_and_resistance (test_features.FeatureChecks.test_orientation_both_support_and_resistance)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_features.py", line 47, in test_orientation_both_support_and_resistance
+    first=build_examples(fixture(side,kind))["examples"][0]
+          ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\features.py", line 69, in build_examples
+    _validate(bars)
+    ~~~~~~~~~^^^^^^
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\features.py", line 34, in _validate
+    if not 0<b["low"]<=min(b["open"],b["close"])<=max(b["open"],b["close"])<=b["high"] or b["volume"]<0:raise ValueError("OHLCV")
+                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: OHLCV
+
+======================================================================
+FAIL: test_timeout_ambiguous_pending_and_unobservable (test_features.FeatureChecks.test_timeout_ambiguous_pending_and_unobservable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_features.py", line 54, in test_timeout_ambiguous_pending_and_unobservable
+    if kind=="TIMEOUT":self.assertEqual(out["examples"][0]["label"],kind)
+                       ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'BOUNCE' != 'TIMEOUT'
+- BOUNCE
++ TIMEOUT
+
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.087s
+
+FAILED (failures=1, errors=5)

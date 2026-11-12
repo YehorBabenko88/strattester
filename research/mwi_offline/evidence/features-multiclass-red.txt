@@ -1,0 +1,23 @@
+test_continuous_deterministic_synthetic (test_features.FeatureChecks.test_continuous_deterministic_synthetic) ... ok
+test_enough_nonoverlapping_equal_cohort (test_features.FeatureChecks.test_enough_nonoverlapping_equal_cohort) ... FAIL
+test_future_raw_mutation_cannot_change_snapshot (test_features.FeatureChecks.test_future_raw_mutation_cannot_change_snapshot) ... ok
+test_input_not_mutated (test_features.FeatureChecks.test_input_not_mutated) ... ok
+test_invalid_observations_refused (test_features.FeatureChecks.test_invalid_observations_refused) ... ok
+test_label_maturity_preserves_delayed_availability (test_features.FeatureChecks.test_label_maturity_preserves_delayed_availability) ... ok
+test_late_prior_bar_is_not_used (test_features.FeatureChecks.test_late_prior_bar_is_not_used) ... ok
+test_orientation_both_support_and_resistance (test_features.FeatureChecks.test_orientation_both_support_and_resistance) ... ok
+test_timeout_ambiguous_pending_and_unobservable (test_features.FeatureChecks.test_timeout_ambiguous_pending_and_unobservable) ... ok
+
+======================================================================
+FAIL: test_enough_nonoverlapping_equal_cohort (test_features.FeatureChecks.test_enough_nonoverlapping_equal_cohort)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_features.py", line 34, in test_enough_nonoverlapping_equal_cohort
+    self.assertTrue(all(result["counts"][label]>0 for label in ("BREAKOUT","BOUNCE","TIMEOUT")))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.093s
+
+FAILED (failures=1)

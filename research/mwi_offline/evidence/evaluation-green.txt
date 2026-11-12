@@ -1,0 +1,18 @@
+test_block_control_preserves_label_counts (__main__.Checks.test_block_control_preserves_label_counts) ... ok
+test_cross_split_group_rejected (__main__.Checks.test_cross_split_group_rejected) ... ok
+test_edge_control_preserves_node_summaries (__main__.Checks.test_edge_control_preserves_node_summaries) ... ok
+test_evaluation_asof_excludes_unmatured_labels (__main__.Checks.test_evaluation_asof_excludes_unmatured_labels) ... ok
+test_metrics_guard_shape_and_probability (__main__.Checks.test_metrics_guard_shape_and_probability) ... ok
+test_paired_block_uncertainty_preserves_constant_difference (__main__.Checks.test_paired_block_uncertainty_preserves_constant_difference) ... ok
+test_periodic_control_is_not_identity (__main__.Checks.test_periodic_control_is_not_identity) ... ok
+test_probability_normalized_finite (__main__.Checks.test_probability_normalized_finite) ... ok
+test_purge_maturity_embargo (__main__.Checks.test_purge_maturity_embargo) ... ok
+test_reproducible_full_report (__main__.Checks.test_reproducible_full_report) ... ok
+test_test_values_cannot_change_fit (__main__.Checks.test_test_values_cannot_change_fit) ... ok
+test_train_only_scaler (__main__.Checks.test_train_only_scaler) ... ok
+test_uninformative_constant_control_rejected (__main__.Checks.test_uninformative_constant_control_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 1.999s
+
+OK

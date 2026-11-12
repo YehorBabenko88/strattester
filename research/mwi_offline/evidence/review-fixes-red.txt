@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\tests\test_evaluation.py", line 7, in <module>
+    from mwi_offline.evaluation import fit, probabilities, metrics, split_at, run_evaluation, digest, block_permute, paired_block_interval, permute_edge_summaries
+ImportError: cannot import name 'permute_edge_summaries' from 'mwi_offline.evaluation' (C:\Users\LS-5\Documents\Codex\2026-11-12\codex-market-web-intelligence-independent-research\outputs\MWI-OFFLINE-RESEARCH\mwi_offline\evaluation.py)
