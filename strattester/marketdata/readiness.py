@@ -13,10 +13,13 @@ class OpenedMarketStore:
 
 def open_market_store(root:Path,legacy_paths=()):
     b=bootstrap(root,legacy_paths=legacy_paths)
-    path=b.market_db or b.config.market_db
+    # Legacy research files are migration sources, not a second Grid writer.
+    # If no recognized database exists, never create an independent market DB.
+    if b.market_db is None:
+        raise RuntimeError('GRID_MARKET_STORE_REQUIRED')
+    path=b.market_db
     store=SQLiteMarketStore.open(path)
-    mode=b.mode if b.market_db is not None else 'created'
-    return OpenedMarketStore(Path(path),store,mode)
+    return OpenedMarketStore(Path(path),store,b.mode)
 
 def ensure_history(store,client,requirements,clock_ms=None):
     """Never create a second market-data writer or unverified Grid snapshot.
