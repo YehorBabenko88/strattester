@@ -1,7 +1,9 @@
-"""Legacy universe reconciliation from an independently qualified Grid snapshot.
+"""Legacy Strattester universe synchronizer is disabled pending Grid attestation.
 
-Never fetch symbols directly from Bybit in this transitional Strattester path.
-A partial/unattested snapshot must never delist or mutate persisted identity.
+Grid's current instrument-state/backfill-state v1 endpoints are INFORMATIONAL
+and source_provenance/history_coverage are NOT_ATTESTED. A plain caller-supplied
+dict, even one claiming source_qualified=True, cannot prove an authenticated,
+complete market universe. Never mutate the old registry from that assertion.
 """
 class UniverseSnapshotError(RuntimeError):
     pass
@@ -14,36 +16,10 @@ class UniverseSynchronizer:
         if not 0 < self.minimum_snapshot_ratio <= 1:
             raise ValueError("invalid minimum_snapshot_ratio")
         if client is not None:
-            raise UniverseSnapshotError("GRID_SNAPSHOT_REQUIRED: direct client forbidden")
+            raise UniverseSnapshotError("DIRECT_EXCHANGE_CLIENT_FORBIDDEN")
 
     def sync(self, observed_at: int, *, snapshot=None):
-        # Snapshot must be provided by the owner after independent source
-        # qualification. There is deliberately no fallback REST/WS client.
-        if type(snapshot) is not dict:
-            raise UniverseSnapshotError("GRID_SNAPSHOT_REQUIRED")
-        if snapshot.get("api_version") != "grid.instrument.snapshot.v1":
-            raise UniverseSnapshotError("GRID_SNAPSHOT_VERSION_REQUIRED")
-        if snapshot.get("source_qualified") is not True:
-            raise UniverseSnapshotError("GRID_SNAPSHOT_NOT_QUALIFIED")
-        if snapshot.get("complete") is not True:
-            raise UniverseSnapshotError("GRID_UNIVERSE_INCOMPLETE")
-        if type(observed_at) is not int or observed_at < 0:
-            raise UniverseSnapshotError("INVALID_OBSERVATION_TIME")
-        if snapshot.get("observed_at_ms") != observed_at:
-            raise UniverseSnapshotError("GRID_SNAPSHOT_TIME_MISMATCH")
-        raw = snapshot.get("symbols")
-        if type(raw) not in (tuple, list) or any(
-            type(symbol) is not str or not symbol.strip() for symbol in raw
-        ):
-            raise UniverseSnapshotError("GRID_SNAPSHOT_SYMBOLS_INVALID")
-        symbols = set(raw)
-        active = set(self.registry.active_symbols())
-        if active:
-            if not symbols:
-                raise UniverseSnapshotError(
-                    "empty complete snapshot would mass delist instruments"
-                )
-            if len(symbols) / len(active) < self.minimum_snapshot_ratio:
-                raise UniverseSnapshotError("suspicious Grid universe contraction")
-        self.registry.reconcile(symbols, observed_at)
-        return symbols
+        # No verified, authenticated full-universe Grid API is admitted yet.
+        # Do not trust arbitrary booleans/provenance labels in an input dict.
+        # This compatibility entrypoint cannot fetch Bybit or write SQL.
+        raise UniverseSnapshotError("GRID_VERIFIED_UNIVERSE_API_UNAVAILABLE")
