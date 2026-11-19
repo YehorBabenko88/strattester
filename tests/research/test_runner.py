@@ -1,4 +1,6 @@
 """Read-only Strattester consumer tests; Grid is the only market producer."""
+from hashlib import sha256
+
 import pytest
 from strattester.research.runner import ResearchRunner
 from strattester.marketdata.sqlite_store import SQLiteMarketStore, Candle
@@ -43,11 +45,13 @@ def test_runner_requires_terminan_engine_after_readiness_without_mutation(tmp_pa
             ["60000", "100", "101", "99", "100"],
         ], "1m").accepted == 2
         before = s.connection.total_changes
+        before_digest = sha256("\n".join(s.connection.iterdump()).encode()).digest()
         for _ in range(2):
             with pytest.raises(RuntimeError, match="TERMINAN_EXECUTION_API_REQUIRED"):
                 runner.run(d, {"symbol": "BTCUSDT", "launchTime": "0"},
                            start_ms=0, end_ms=60_000)
             assert s.connection.total_changes == before
+            assert sha256("\n".join(s.connection.iterdump()).encode()).digest() == before_digest
     finally:
         s.close()
 
