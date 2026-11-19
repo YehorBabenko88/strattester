@@ -15,7 +15,7 @@ class RetryPolicy:
 
 class BybitClient:
     def __init__(self,base_url='https://api.bybit.com',session=None,sleep=time.sleep,retry=RetryPolicy()):
-        if session is None:
+        if session is None or isinstance(session, requests.sessions.Session):
             raise BybitAccessError('GRID_PROVIDER_ONLY: legacy live Bybit sessions disabled')
         self.base_url=base_url.rstrip('/'); self.session=session; self.sleep=sleep; self.retry=retry
 
