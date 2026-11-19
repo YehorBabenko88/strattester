@@ -27,13 +27,11 @@ $venv=Join-Path $InstallDir ".venv"
 if(-not(Test-Path $venv)){ & $PythonExe -m venv $venv }
 & (Join-Path $venv "Scripts\python.exe") -m pip install --upgrade pip
 & (Join-Path $venv "Scripts\python.exe") -m pip install .
-& (Join-Path $venv "Scripts\python.exe") -m strattester.preflight_cli --root $InstallDir --network
+& (Join-Path $venv "Scripts\python.exe") -m strattester.preflight_cli --root $InstallDir
 if($LASTEXITCODE -ne 0){ throw "Installed environment preflight failed; services were not touched." }
 Step "Running isolated one-shot worker smoke test"
 & (Join-Path $venv "Scripts\python.exe") -m strattester.smoke_cli --root $InstallDir
 if($LASTEXITCODE -ne 0){ throw "Worker smoke test failed; services were not touched." }
-Step "Running isolated BTCUSDT market-data smoke test"
-& (Join-Path $venv "Scripts\python.exe") -m strattester.marketdata.download_smoke_cli --root (Join-Path $InstallDir "state") --minutes 10
-if($LASTEXITCODE -ne 0){ throw "Market-data smoke test failed; services were not touched." }
+Step "Market-data readiness is managed by Grid."
 if($NssmExe){ & "$PSScriptRoot\service\install_windows.ps1" -InstallDir $InstallDir -NssmExe $NssmExe }
 Step "Installation complete"

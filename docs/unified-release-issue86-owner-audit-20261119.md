@@ -134,3 +134,10 @@ Scope is **read-only symbol comparison**, not complete audit of all 784 Meta PR 
 **Release snapshot:** Strattester Draft #87 includes no Meta runtime consumer switch and no Meta source deletion. Existing old data, settings and SHA-pinned tests retained. CI from previous Strattester HEAD `f32487c397ee2f29f30800b97ff0d8a19a8c2ed6` **FAIL** due to literal escaped newlines in `download_smoke.py` (2 test failures, other tests mostly passed). Corrected in same PR at `5ee403537e70a7b1ae9614c121612af39bba4c41`; exact-head CI must be verified independently. No physical machine/provider/restart/rollback tests.
 
 **Archive decision:** Meta Analyse and Strattester are both **NOT_READY** for archive/delete. Required: last-consumer graph, canonical Grid full dataset and Math numerical APIs, Terminan paper/UI parity, Unified owner-only DB/orchestrator, real-source E2E #116, historical secret scan #112, full data/settings export and restore, explicit user approval for named repositories.
+
+## Stage 10: offline installer entrypoint
+
+- KEEP the local preflight, worker smoke, and historical data/results. The downloaded-history CLI remains a guarded compatibility entrypoint for direct callers.
+- MOVE market-source qualification to Grid and service deployment to Unified. The Strattester installer no longer invokes its direct Bybit connectivity probe or disabled downloader, which always returned exit 2.
+- MERGE acceptance through the owner-published contracts. Terminan's current bounded paper replay does not accept the Strattester multi-dataset strategy context and checkpoint, so `ResearchRunner` still refuses execution. The regression compares a SHA-256 digest of the SQLite logical dump around repeated refusals.
+- DELETE the two installer invocations. Keep legacy files pending external consumer verification and rollback.
