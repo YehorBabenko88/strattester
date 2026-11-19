@@ -57,3 +57,13 @@ def test_legacy_default_client_cannot_create_direct_bybit_session(monkeypatch):
     monkeypatch.setattr(requests, "Session", forbidden_session)
     with pytest.raises(BybitAccessError, match="GRID_PROVIDER_ONLY"):
         BybitClient()
+
+
+def test_legacy_explicit_requests_session_is_refused_without_request():
+    import requests
+    session = requests.Session()
+    try:
+        with pytest.raises(BybitAccessError, match="GRID_PROVIDER_ONLY"):
+            BybitClient(session=session)
+    finally:
+        session.close()
