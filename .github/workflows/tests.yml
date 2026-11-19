@@ -33,3 +33,26 @@ jobs:
             }
           }
           if ($failed) { exit 1 }
+  frozen-results:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: YehorBabenko88/Terminan
+          ref: 0f3b1408ada9a2cdea20e66ec56840d5bb196bac
+          path: .source/terminan
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pip install --no-deps ./.source/terminan
+      - run: python -m pytest -q integration_tests/test_frozen_results.py
