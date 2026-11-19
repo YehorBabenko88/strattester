@@ -20,68 +20,66 @@ def test_bybit_discovers_only_trading_usdt_linear_perpetuals():
     c=BybitClient(session=PayloadSession(payload))
     assert c.fetch_linear_symbols()=={'BTCUSDT'}
 
-def grid_snapshot(symbols, observed_at, **overrides):
-    return {
-        "api_version": "grid.instrument.snapshot.v1",
-        "source_qualified": True,
-        "complete": True,
-        "observed_at_ms": observed_at,
-        "symbols": sorted(symbols),
-        **overrides,
-    }
-
-
-def test_universe_sync_retains_disappeared_instrument(tmp_path):
-    reg = InstrumentRegistry.open(tmp_path / 'i.db')
-    try:
-        u = UniverseSynchronizer(reg)
-        u.sync(1000, snapshot=grid_snapshot({'AUSDT', 'BUSDT'}, 1000))
-        u.sync(2000, snapshot=grid_snapshot({'BUSDT'}, 2000))
-        assert reg.get('AUSDT').status is InstrumentStatus.MISSING
-        u.sync(3000, snapshot=grid_snapshot({'BUSDT'}, 3000))
-        assert reg.get('AUSDT').status is InstrumentStatus.DELISTED
-        assert reg.eligible_at('AUSDT', 1500)
-    finally:
-        reg.close()
-
-
-def test_unqualified_snapshot_and_client_have_no_mutation(tmp_path):
-    from strattester.marketdata.universe_sync import UniverseSnapshotError
+def test_unverified_grid_universe_cannot_mutate_legacy_registry(tmp_path):
     import pytest
-    reg = InstrumentRegistry.open(tmp_path / 'i.db')
+    from strattester.marketdata.universe_sync import UniverseSnapshotError
+
+    db = tmp_path / "i.db"
+    reg = InstrumentRegistry.open(db)
     try:
-        u = UniverseSynchronizer(reg)
-        u.sync(1000, snapshot=grid_snapshot({'AUSDT', 'BUSDT'}, 1000))
+        # Preserve previously persisted history and two active instruments.
+        reg.reconcile({"AUSDT", "BUSDT"}, 1000)
         before = list(reg.conn.iterdump())
-        for invalid in (
-            None,
-            grid_snapshot({'AUSDT'}, 2000, source_qualified=False),
-            grid_snapshot({'AUSDT'}, 2000, complete=False),
-            grid_snapshot({'AUSDT'}, 2000, api_version="unverified"),
-            grid_snapshot({'AUSDT'}, 3000),
-            grid_snapshot(set(), 2000),
-            grid_snapshot({'AUSDT'}, 2000, symbols=[None]),
-        ):
-            with pytest.raises(UniverseSnapshotError):
-                u.sync(2000, snapshot=invalid)
+        sync = UniverseSynchronizer(reg)
+        forged = {
+            "api_version": "grid.instrument.snapshot.v1",
+            "producer": "bybit-cluster-grid",
+            "source_qualified": True,  # A caller-controlled boolean is NOT proof.
+            "complete": True,
+            "history_coverage": "ATTESTED",
+            "source_provenance": "ATTESTED",
+            "observed_at_ms": 2000,
+            "symbols": ["BUSDT"],  # Would mark AUSDT missing if trusted.
+        }
+        for candidate in (None, forged, {"symbols": []}, {
+            "api_version": {"major": 1, "minor": 0},
+            "producer": "bybit-cluster-grid",
+            "source_provenance": "NOT_ATTESTED",
+            "history_coverage": "NOT_ATTESTED",
+            "status": "INFORMATIONAL",
+        }):
+            with pytest.raises(UniverseSnapshotError,
+                               match="GRID_VERIFIED_UNIVERSE_API_UNAVAILABLE"):
+                sync.sync(2000, snapshot=candidate)
             assert list(reg.conn.iterdump()) == before
-        with pytest.raises(UniverseSnapshotError, match="GRID_SNAPSHOT_REQUIRED"):
-            UniverseSynchronizer(reg, client=object())
-        assert list(reg.conn.iterdump()) == before
+        assert reg.active_symbols() == {"AUSDT", "BUSDT"}
+        assert reg.get("AUSDT").status is InstrumentStatus.ACTIVE
     finally:
         reg.close()
 
-
-def test_empty_exchange_snapshot_does_not_mass_delist(tmp_path):
-    from strattester.marketdata.universe_sync import UniverseSnapshotError
-    import pytest
-    reg = InstrumentRegistry.open(tmp_path / 'i.db')
+    reopened = InstrumentRegistry.open(db)
     try:
-        u = UniverseSynchronizer(reg)
-        u.sync(1000, snapshot=grid_snapshot({'AUSDT', 'BUSDT'}, 1000))
-        with pytest.raises(UniverseSnapshotError):
-            u.sync(2000, snapshot=grid_snapshot(set(), 2000))
-        assert reg.active_symbols() == {'AUSDT', 'BUSDT'}
+        assert reopened.active_symbols() == {"AUSDT", "BUSDT"}
+        assert reopened.eligible_at("AUSDT", 1500)
+    finally:
+        reopened.close()
+
+
+def test_legacy_client_is_refused_without_network_or_mutation(tmp_path):
+    import pytest
+    from strattester.marketdata.universe_sync import UniverseSnapshotError
+
+    class ForbiddenClient:
+        def fetch_linear_symbols(self):
+            raise AssertionError("Strattester may not contact Bybit")
+
+    reg = InstrumentRegistry.open(tmp_path / "i.db")
+    try:
+        before = list(reg.conn.iterdump())
+        with pytest.raises(UniverseSnapshotError,
+                           match="DIRECT_EXCHANGE_CLIENT_FORBIDDEN"):
+            UniverseSynchronizer(reg, client=ForbiddenClient())
+        assert list(reg.conn.iterdump()) == before
     finally:
         reg.close()
 
