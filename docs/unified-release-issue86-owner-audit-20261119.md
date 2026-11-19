@@ -58,3 +58,31 @@ Terminan Draft PR #88 modifies **two existing files**, `terminan/contracts.py` a
 6. **P1**: Enumerate all open branch heads/PR dependencies, exact import/call graph, before/after lines of code, long-lived storage ownership and impact of native code.
 
 Previous Strattester strategy-owner guidance is **withdrawn**. Do not merge PR #87/#88 or remove source while status is **NO_GO**.
+
+## Stage 3 reconciliation — single Terminan strategy owner (2026-11-19)
+
+**CRITICAL correction to all earlier Stage-2 rows above:** Terminan owner PR #87 had already migrated `DataRequirement`, `StrategyDefinition`, `StrategyRegistry`, `strategy_fingerprint` into `terminan/strategies.py` at SHA `08f3c12fdc2d989d8f13f757f73ecc298631089f`. My separate PR #88 duplicated these classes in `terminan/contracts.py`. This duplicate was detected and corrected **within the existing PR #88**, not by creating a third registry. Exact PR #88 target HEAD now `603ae1d9a05087a2640564885b0b47388980e9ff`: includes the exact canonical `terminan/strategies.py` blob + owner tests and makes `terminan/contracts.py` import those four symbols. Unique `HypothesisSpec/executable_hypotheses` stay as declarative SPEC_ONLY gating in contracts. Prior Stage-2 descriptions of `contracts.py` as primary registry owner are superseded.
+
+### KEEP / MOVE / MERGE / DELETE actual ledger
+
+| Source / target | Action | Verified now | Blocking evidence for deletion |
+|---|---|---|---|
+| `strattester/strategies/base.py:{DataRequirement,StrategyDefinition,strategy_fingerprint}` -> `terminan/strategies.py` | MOVE; KEEP source temporarily | Target source copied; canonical owner PR #87; PR #88 imports it | Live consumer call graph and provenance/parity on pinned source |
+| `strattester/strategies/registry.py:StrategyRegistry` -> `terminan/strategies.py` | MOVE; MERGE duplicate | One canonical implementation **inside PR #88**; second definition in `terminan/contracts.py` removed | Cross-repo consumers, release/rollback acceptance |
+| `strattester/strategies/builtin/research_common.py:{HypothesisSpec,executable_hypotheses}` -> `terminan/contracts.py` | MOVE; KEEP source temporarily | Target exists with SPEC_ONLY negative test | Caller migration, run admission evidence |
+| `strattester/research/execution.py:{simulate_trade,simulate_scale_trade}` | MOVE candidate to Terminan | NOT MOVED | OHLC bar fill/SL/TP parity, no-lookahead, policy/Math boundary |
+| `strattester/research/statistics.py:evaluate_trades` | MOVE candidate to Math | NOT MOVED | Numeric finite/precision/CI parity |
+| `strattester/marketdata/bybit_client.py:BybitClient`, `marketdata/sync_engine.py:SyncEngine` | MERGE candidate into Grid | Grid PR #292 only moved unique public bounded kline *dataset route selection* | Grid snapshot v1.1 covers 1m historical_aggregate, NOT all candles, mark, OI etc; no switch safe |
+| `strattester/persistence/result_store.py:ResultStore` | KEEP until owner decision | Unmodified | Fenced readback/experiment ledger and rollback |
+| Strattester independent Windows service/repo | DELETE/ARCHIVE candidate only | No deletion and no branch cleanup | #114 import manifest, #115 archive proof, #116 real physical E2E, full-history security |
+
+### Cross-workstream coordination
+
+- Source owner: Strattester #86; actual target work: Terminan PR #88 + canonical Terminan PR #87.
+- `unified-system#114`: register old import paths, canonical `terminan.strategies`, `terminan.contracts` (hypothesis-only) and pending Grid/Math consumers.
+- `unified-system#115`: no retirement before every active source consumer and recovery/secret scan passes.
+- `unified-system#116`: CI unit results alone cannot claim real Bybit, Windows, installer, restart or recovery acceptance.
+- **Diff observation:** integrated PR #88 touched 4 files, +280/-1 vs Terminan main; internal duplicate implementation removed from its prior candidate; net system LOC reduction **not yet demonstrated**.
+- **CI:** previous PR #87 and PR #88 isolated heads PASS; stage3 combined HEAD `603ae1d9a05087a2640564885b0b47388980e9ff` queued at last check. No exact-head PASS assumed.
+
+**NO_GO** — source code and historical data remain intact. Never mass-delete branches or archive without independent sign-off and explicit user permission.
