@@ -6,6 +6,9 @@ param(
 )
 $ErrorActionPreference="Stop"
 function Step([string]$m){ Write-Host "[Strattester] $m" }
+if($NssmExe -and -not $DryRun){
+ throw "UNIFIED_SERVICE_INSTALL_REQUIRED: Unified System owns Windows service registration."
+}
 if(-not $PythonExe){
  $cmd=Get-Command python -ErrorAction SilentlyContinue
  if(-not $cmd){ throw "Python 3.11+ not found. Install Python or pass -PythonExe." }
@@ -33,5 +36,4 @@ Step "Running isolated one-shot worker smoke test"
 & (Join-Path $venv "Scripts\python.exe") -m strattester.smoke_cli --root $InstallDir
 if($LASTEXITCODE -ne 0){ throw "Worker smoke test failed; services were not touched." }
 Step "Market-data readiness is managed by Grid."
-if($NssmExe){ & "$PSScriptRoot\service\install_windows.ps1" -InstallDir $InstallDir -NssmExe $NssmExe }
 Step "Installation complete"

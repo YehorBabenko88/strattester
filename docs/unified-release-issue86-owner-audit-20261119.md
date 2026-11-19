@@ -140,4 +140,4 @@ Scope is **read-only symbol comparison**, not complete audit of all 784 Meta PR 
 - KEEP the local preflight, worker smoke, and historical data/results. The downloaded-history CLI remains a guarded compatibility entrypoint for direct callers.
 - MOVE market-source qualification to Grid and service deployment to Unified. The Strattester installer no longer invokes its direct Bybit connectivity probe or disabled downloader, which always returned exit 2.
 - MERGE acceptance through the owner-published contracts. Terminan's current bounded paper replay does not accept the Strattester multi-dataset strategy context and checkpoint, so `ResearchRunner` still refuses execution. The regression compares a SHA-256 digest of the SQLite logical dump around repeated refusals.
-- DELETE the two installer invocations. Keep legacy files pending external consumer verification and rollback.
+- DELETE the Bybit checks and the NSSM service installer invocation from `install.ps1`. The legacy `-NssmExe` argument now refuses service registration before filesystem changes. Keep legacy files pending external consumer verification and rollback.

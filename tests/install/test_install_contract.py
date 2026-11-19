@@ -15,3 +15,9 @@ def test_legacy_installer_starts_only_offline_smoke_checks():
     assert '-m strattester.smoke_cli' in script
     assert 'download_smoke_cli' not in script
     assert '--network' not in script
+
+
+def test_legacy_installer_leaves_service_registration_to_unified():
+    script = Path('install.ps1').read_text(encoding='utf-8')
+    assert 'service\\install_windows.ps1' not in script
+    assert script.index('UNIFIED_SERVICE_INSTALL_REQUIRED') < script.index('New-Item')
