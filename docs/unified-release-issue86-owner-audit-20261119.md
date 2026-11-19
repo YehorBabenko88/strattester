@@ -154,7 +154,7 @@ Installation still runs the package preflight and can initialize local preflight
 
 ## Stage 17: frozen research results into Terminan
 
-Install the source-pinned Terminan #91 candidate 4035647edb332260859850ad2a3ffc1044a4c818
+Install the source-pinned Terminan #91 candidate 0f3b1408ada9a2cdea20e66ec56840d5bb196bac
 in the migration environment. Run:
 
     python -m strattester.persistence.frozen_results BACKUP_SQLITE EXPECTED_SHA256 SOURCE_ID TERM_LEDGER

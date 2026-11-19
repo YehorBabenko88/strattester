@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: YehorBabenko88/Terminan
-          ref: 4035647edb332260859850ad2a3ffc1044a4c818
+          ref: 0f3b1408ada9a2cdea20e66ec56840d5bb196bac
           path: .source/terminan
           persist-credentials: false
       - uses: actions/setup-python@v5
