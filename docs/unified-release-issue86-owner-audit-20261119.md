@@ -154,7 +154,7 @@ Installation still runs the package preflight and can initialize local preflight
 
 ## Stage 17: frozen research results into Terminan
 
-Install the source-pinned Terminan #91 candidate 5a3a752ae680b948979010101db2d5698ffa0aef
+Install the source-pinned Terminan #91 candidate 4035647edb332260859850ad2a3ffc1044a4c818
 in the migration environment. Run:
 
     python -m strattester.persistence.frozen_results BACKUP_SQLITE EXPECTED_SHA256 SOURCE_ID TERM_LEDGER
@@ -175,3 +175,14 @@ operator-approved native reimport. Terminan owns per-table digest checks, atomic
 and verified readback. The CLI emits receipts with no raw rows. No historical
 ResultStore.open or legacy writer is invoked. Rollback is source-only and
 requires keeping the original backup and Terminan archive intact.
+
+## Stage 19: require a known SQLite schema
+
+The exporter checks SQLite table kind and table_xinfo before reading rows or
+opening the Terminan ledger. It admits the original six-column DDL from
+tests/persistence/test_result_store.py and the completed nine/ten-column ResultStore
+migration. The field order, declared types, NOT NULL, defaults, primary-key ordinals
+and hidden flags must match. The staged stage_id follows the original rowid schema:
+TEXT PRIMARY KEY with SQLite's implicit nullable metadata. Published keys have explicit
+NOT NULL constraints. Partial upgrades and other shapes require a separately reviewed
+source contract. They are not altered in place.

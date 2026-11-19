@@ -10,9 +10,26 @@ from tempfile import TemporaryDirectory
 from strattester.marketdata.integrity import connect_read_only
 
 
-_LEGACY = ("run_id", "symbol", "strategy_id", "strategy_version", "created_at", "metrics")
-_PUBLISHED = (*_LEGACY, "job_id", "lease_token", "node_generation")
-_STAGED = ("stage_id", *_PUBLISHED)
+# name, declared type, NOT NULL, default, primary-key ordinal, hidden flag
+_LEGACY = (
+    ("run_id", "TEXT", 1, None, 1, 0),
+    ("symbol", "TEXT", 1, None, 2, 0),
+    ("strategy_id", "TEXT", 1, None, 3, 0),
+    ("strategy_version", "TEXT", 1, None, 4, 0),
+    ("created_at", "REAL", 1, None, 0, 0),
+    ("metrics", "TEXT", 1, None, 0, 0),
+)
+_PUBLISHED = (
+    *_LEGACY,
+    ("job_id", "TEXT", 0, None, 0, 0),
+    ("lease_token", "INTEGER", 1, "0", 0, 0),
+    ("node_generation", "INTEGER", 1, "0", 0, 0),
+)
+_STAGED = (
+    ("stage_id", "TEXT", 0, None, 1, 0),
+    *((name, declared, required, default, 0, hidden)
+      for name, declared, required, default, _, hidden in _PUBLISHED),
+)
 _MAX_BACKUP_BYTES = 4 * 1024**3
 _SIDECAR_SUFFIXES = ("-wal", "-shm", "-journal")
 
@@ -41,13 +58,17 @@ def _copy_verified(source, private_copy, expected_sha256):
 def _columns(connection, table):
     # Only inspect real tables, never views that could synthesize rows.
     found = connection.execute(
-        "SELECT type FROM sqlite_schema WHERE name=?", (table,)
+        "SELECT type FROM pragma_table_list WHERE schema = 'main' AND name = ?", (table,)
     ).fetchone()
     if found is None:
         return ()
     if found != ("table",):
         raise ValueError("expected Strattester result table")
-    return tuple(row[1] for row in connection.execute(f"PRAGMA table_info({table})"))
+    return tuple(
+        (name, declared.upper(), required, default, key, hidden)
+        for _, name, declared, required, default, key, hidden
+        in connection.execute(f"PRAGMA main.table_xinfo({table})")
+    )
 
 
 def import_frozen_results(source, expected_sha256, source_id, ledger_path):
@@ -76,7 +97,7 @@ def import_frozen_results(source, expected_sha256, source_id, ledger_path):
             if not legacy and staged_columns != _STAGED:
                 raise ValueError("unrecognized or missing staged result schema")
 
-            projection = ", ".join(published_columns)
+            projection = ", ".join(column[0] for column in published_columns)
 
             def tables():
                 published = connection.execute(
@@ -87,7 +108,7 @@ def import_frozen_results(source, expected_sha256, source_id, ledger_path):
                 if legacy:
                     return {"research_results": published}
                 staged = connection.execute(
-                    f"SELECT {', '.join(_STAGED)} FROM staged_research_results "
+                    f"SELECT {', '.join(column[0] for column in _STAGED)} FROM staged_research_results "
                     "ORDER BY stage_id COLLATE BINARY"
                 )
                 return {"research_results": published, "staged_research_results": staged}

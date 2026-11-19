@@ -9,12 +9,18 @@ from terminan.research_archive import ResearchArchive
 from strattester.persistence.frozen_results import import_frozen_results
 
 
+LEGACY_FIELDS = (
+    "run_id TEXT NOT NULL, symbol TEXT NOT NULL, strategy_id TEXT NOT NULL, "
+    "strategy_version TEXT NOT NULL, created_at REAL NOT NULL, metrics TEXT NOT NULL"
+)
+LEGACY_KEY = ", PRIMARY KEY(run_id, symbol, strategy_id, strategy_version)"
+
+
 def make_backup(path):
     row = ("run", "BTCUSDT", "legacy", "1", 123.125, '{"fold":2,"score":NaN}')
     with closing(sqlite3.connect(path)) as connection, connection:
         connection.execute(
-            "CREATE TABLE research_results(run_id TEXT, symbol TEXT, strategy_id TEXT, "
-            "strategy_version TEXT, created_at REAL, metrics TEXT)"
+            f"CREATE TABLE research_results({LEGACY_FIELDS}{LEGACY_KEY})"
         )
         connection.execute("INSERT INTO research_results VALUES (?,?,?,?,?,?)", row)
     return row
@@ -87,9 +93,9 @@ def test_legacy_with_present_empty_staged_table_is_not_treated_as_absent(tmp_pat
     make_backup(source)
     with closing(sqlite3.connect(source)) as connection, connection:
         connection.execute(
-            "CREATE TABLE staged_research_results(stage_id TEXT, run_id TEXT, symbol TEXT, "
-            "strategy_id TEXT, strategy_version TEXT, created_at REAL, metrics TEXT, "
-            "job_id TEXT, lease_token INTEGER, node_generation INTEGER)"
+            f"CREATE TABLE staged_research_results(stage_id TEXT PRIMARY KEY, {LEGACY_FIELDS}, "
+            "job_id TEXT, lease_token INTEGER NOT NULL DEFAULT 0, "
+            "node_generation INTEGER NOT NULL DEFAULT 0)"
         )
     raw = source.read_bytes()
     destination = tmp_path / "terminan.sqlite"
@@ -121,6 +127,47 @@ def test_native_legacy_receipt_preserves_zero_and_infinite_rows(tmp_path, timest
     assert actual == expected
     assert [row[4].hex() for row in actual] == [row[4].hex() for row in expected]
     assert source.read_bytes() == original
+
+
+@pytest.mark.parametrize("definition", [
+    LEGACY_FIELDS,
+    LEGACY_FIELDS + ", PRIMARY KEY(symbol, run_id, strategy_id, strategy_version)",
+    LEGACY_FIELDS.replace("created_at REAL", "created_at NUMERIC") + LEGACY_KEY,
+    LEGACY_FIELDS.replace("run_id TEXT NOT NULL", "run_id TEXT") + LEGACY_KEY,
+    LEGACY_FIELDS.replace("metrics TEXT NOT NULL", "metrics TEXT") + LEGACY_KEY,
+    LEGACY_FIELDS + ", hidden_copy TEXT GENERATED ALWAYS AS (metrics) VIRTUAL" + LEGACY_KEY,
+])
+def test_noncanonical_legacy_schema_refused_without_destination(tmp_path, definition):
+    source = tmp_path / "old.sqlite"
+    with closing(sqlite3.connect(source)) as connection, connection:
+        connection.execute(f"CREATE TABLE research_results({definition})")
+    original = source.read_bytes()
+    ledger = tmp_path / "terminan.sqlite"
+    with pytest.raises(ValueError, match="unrecognized published result schema"):
+        import_frozen_results(source, sha256(original).hexdigest(), "invalid", ledger)
+    assert source.read_bytes() == original
+    assert not ledger.exists()
+    assert list(tmp_path.iterdir()) == [source]
+
+
+def test_modern_published_schema_refuses_malformed_staging(tmp_path):
+    from strattester.persistence.result_store import ResultStore
+
+    source = tmp_path / "current.sqlite"
+    store = ResultStore.open(source)
+    with closing(store.con), store.con:
+        store.con.execute("DROP TABLE staged_research_results")
+        store.con.execute(
+            f"CREATE TABLE staged_research_results(stage_id TEXT, {LEGACY_FIELDS}, "
+            "job_id TEXT, lease_token INTEGER NOT NULL DEFAULT 0, "
+            "node_generation INTEGER NOT NULL DEFAULT 0)"
+        )
+    original = source.read_bytes()
+    ledger = tmp_path / "terminan.sqlite"
+    with pytest.raises(ValueError, match="unrecognized or missing staged result schema"):
+        import_frozen_results(source, sha256(original).hexdigest(), "invalid", ledger)
+    assert source.read_bytes() == original
+    assert not ledger.exists()
 
 
 def test_wal_database_refused_without_touching_sidecars(tmp_path):
