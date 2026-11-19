@@ -6,7 +6,7 @@ Callers must provide a pre-qualified, already populated snapshot/read store.
 """
 from __future__ import annotations
 
-from strattester.engine.executor import execute_strategy, requirements_ready
+from strattester.engine.executor import requirements_ready
 
 
 class ResearchRunner:
@@ -30,7 +30,7 @@ class ResearchRunner:
         if not requirements_ready(definition, self.store, symbol,
                                   start_ms=start, end_ms=end_ms):
             raise RuntimeError("GRID_HISTORY_NOT_READY")
-        return execute_strategy(
-            definition, self.store, symbol, checkpoint=checkpoint,
-            start_ms=start, end_ms=end_ms,
-        )
+        # A historical Strattester strategy executor is not an admitted
+        # Terminan strategy engine. Keep the readiness check read-only and
+        # reject execution until the Terminan consumer/receipt is qualified.
+        raise RuntimeError("TERMINAN_EXECUTION_API_REQUIRED")
