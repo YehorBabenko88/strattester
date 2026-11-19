@@ -47,3 +47,13 @@ def test_invalid_retry_policy_fails_before_network():
     s=Session([200]);c=BybitClient(session=s,retry=RetryPolicy(0,1,1))
     with pytest.raises(ValueError):c.get('/x')
     assert s.calls==0
+
+
+def test_legacy_default_client_cannot_create_direct_bybit_session(monkeypatch):
+    import requests
+
+    def forbidden_session(*args, **kwargs):
+        raise AssertionError("Strattester must never create requests.Session")
+    monkeypatch.setattr(requests, "Session", forbidden_session)
+    with pytest.raises(BybitAccessError, match="GRID_PROVIDER_ONLY"):
+        BybitClient()
