@@ -145,3 +145,9 @@ Scope is **read-only symbol comparison**, not complete audit of all 784 Meta PR 
 ## Stage 11: legacy network preflight refusal
 
 The compatibility `preflight_cli --network` path now returns structured JSON with exit 2 and `GRID_SOURCE_REQUIRED` instead of throwing from the old Bybit client constructor. It retains the required check identity and makes neither the disabled Bybit call nor a Telegram probe. Explicit offline callers of `check_bybit(client)` retain their old interface. Revert the Stage 11 commit to restore the Stage 10 package behavior. No data, services or schema require rollback.
+
+## Stage 14: preserve historical SQLite and isolate worker smoke
+
+Historical readiness, integrity and discovery use SQLite URI mode=ro. The historical store does not bootstrap tables, update schema metadata or checkpoint WAL on close. Absent auxiliary tables are treated as absent data. Explicit writer paths remain for the legacy fixtures and are outside the historical reader. The Windows/Linux fixture checks main/WAL/SHM bytes and ordered row digest while committed rows are still in WAL. SQLite may manage WAL shared-memory bookkeeping when opening a live file, so a verified backup remains required for migration acceptance.
+
+Installation still runs the package preflight and can initialize local preflight state. It does not launch WorkerRuntime or create smoke state. To opt in after installation, run `python -m strattester.smoke_cli` from the installed environment. Optional `--root` selects an existing parent for a clean temporary subdirectory, which is removed when the smoke exits. Reverting the Stage 14 commit would restore the historical write-capable opener and automatic smoke, so keep that revision out of the migration path.

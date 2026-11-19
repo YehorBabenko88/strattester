@@ -18,7 +18,7 @@ def open_market_store(root:Path,legacy_paths=()):
     if b.market_db is None:
         raise RuntimeError('GRID_MARKET_STORE_REQUIRED')
     path=b.market_db
-    store=SQLiteMarketStore.open(path)
+    store=SQLiteMarketStore.open_read_only(path)
     return OpenedMarketStore(Path(path),store,b.mode)
 
 def ensure_history(store,client,requirements,clock_ms=None):
