@@ -151,3 +151,24 @@ The compatibility `preflight_cli --network` path now returns structured JSON wit
 Historical readiness, integrity and discovery use SQLite URI mode=ro. The historical store does not bootstrap tables, update schema metadata or checkpoint WAL on close. Absent auxiliary tables are treated as absent data. Explicit writer paths remain for the legacy fixtures and are outside the historical reader. The Windows/Linux fixture checks main/WAL/SHM bytes and ordered row digest while committed rows are still in WAL. SQLite may manage WAL shared-memory bookkeeping when opening a live file, so a verified backup remains required for migration acceptance.
 
 Installation still runs the package preflight and can initialize local preflight state. It does not launch WorkerRuntime or create smoke state. To opt in after installation, run `python -m strattester.smoke_cli` from the installed environment. Optional `--root` selects an existing parent for a clean temporary subdirectory, which is removed when the smoke exits. Reverting the Stage 14 commit would restore the historical write-capable opener and automatic smoke, so keep that revision out of the migration path.
+
+## Stage 17: frozen research results into Terminan
+
+Install the source-pinned Terminan #91 candidate de40247d7d0d5f8829a12583aff607234bd1fc8e
+in the migration environment. Run:
+
+    python -m strattester.persistence.frozen_results BACKUP_SQLITE EXPECTED_SHA256 SOURCE_ID TERM_LEDGER
+
+Use an operator-approved, standalone SQLite backup (maximum 4 GiB) with its
+independently recorded SHA-256. The source must not have WAL, SHM or rollback
+journal sidecars. The command copies and verifies the bytes before examining
+schema or streaming rows from a temporary read-only connection. Retain the
+original backup and digest. Repeat with the same source ID for idempotent retry.
+
+Six-column results preserve all six values and map absent authority to
+job_id=NULL, lease_token=0, node_generation=0. Only this historical shape may
+lack the staged table. The current nine/ten-column pair preserves staged data
+without promoting it. Terminan owns per-table digest checks, atomic commit
+and verified readback. The CLI emits receipts with no raw rows. No historical
+ResultStore.open or legacy writer is invoked. Rollback is source-only and
+requires keeping the original backup and Terminan archive intact.
