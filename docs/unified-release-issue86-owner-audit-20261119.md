@@ -86,3 +86,13 @@ Previous Strattester strategy-owner guidance is **withdrawn**. Do not merge PR #
 - **CI:** previous PR #87 and PR #88 isolated heads PASS; stage3 combined HEAD `603ae1d9a05087a2640564885b0b47388980e9ff` queued at last check. No exact-head PASS assumed.
 
 **NO_GO** — source code and historical data remain intact. Never mass-delete branches or archive without independent sign-off and explicit user permission.
+
+## Stage 4: critical Terminan PR #87/#88 final-tree reconciliation
+
+- Terminan canonical owner PR #87 HEAD: `c19085cee84539855c51d492772bf7e0124e46dc`.
+- Existing Strattester-side Terminan PR #88 was reconciled **without a new branch or registry**. New exact HEAD: `66217c11f6fb046deba91d10dacaf1871e8b6ee7`.
+- PR #88 tree now matches PR #87 canonical tree SHA `c1e7c6db648787c378bbcc40e68dd3424478528f`; `terminan/contracts.py` blob `1cd11250594faa5d80d1c8ee5f9244afa9097bba` and `tests/test_contracts.py` blob `9eb61b86c6780b69c16bd35d9cbf05103f94b277` match the owner source exactly.
+- Neither tree contains `terminan/strategies.py` or `tests/test_strategies.py`. Exactly one strategy registry class remains within `terminan/contracts.py` (owner tree); the obsolete `from .strategies` reference introduced in older PR #88 was eliminated from the final tree.
+- Original `strattester/strategies/registry.py` and `strattester/strategies/base.py` are still present in Strattester, as external callsite migration and rollback proof remain incomplete. No user data or original Git history was modified.
+- PR #88 new HEAD has different commit ancestry from #87, but same source tree. **Never merge both independently**; owner selects canonical merge route and review. Stage4 exact-head CI queued at the first check; independently green *older* heads do not establish a PASS.
+- Source imports/entrypoints in other repositories, semantic execution parity, real source Grid/Math/Terminan E2E, Windows installer/rollback, all Git refs secret scan remain blockers under #114/#115/#116.
