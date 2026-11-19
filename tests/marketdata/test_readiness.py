@@ -17,16 +17,21 @@ def test_open_market_store_prefers_existing_local_legacy_data(tmp_path):
     assert opened.store.coverage('BTCUSDT','candles','1m').count==1
     opened.store.close()
 
-def test_open_market_store_creates_canonical_db_only_when_nothing_exists(tmp_path):
+def test_open_market_store_refuses_creation_without_existing_history(tmp_path):
+    import pytest
     root=tmp_path/'app'; root.mkdir()
-    opened=open_market_store(root,legacy_paths=())
-    assert opened.path==root/'data'/'bybit_1m.sqlite3'
-    assert opened.path.exists()
-    opened.store.close()
+    with pytest.raises(RuntimeError,match='GRID_MARKET_STORE_REQUIRED'):
+        open_market_store(root,legacy_paths=())
+    assert not (root/'data'/'bybit_1m.sqlite3').exists()
 
 def test_ensure_history_refuses_legacy_writer_without_fetch_or_mutation(tmp_path):
     root = tmp_path / 'app'
     root.mkdir()
+    # Existing historical fixture is deliberately created by the TEST only.
+    # Runtime open_market_store must not create any market table or new DB.
+    from strattester.marketdata.sqlite_store import SQLiteMarketStore
+    market_file = root/'data'/'bybit_1m.sqlite3'
+    SQLiteMarketStore.open(market_file).close()
     opened = open_market_store(root, legacy_paths=())
     try:
         class ForbiddenClient:
@@ -48,6 +53,11 @@ def test_existing_candles_not_promoted_to_source_attested(tmp_path):
     from strattester.marketdata.sqlite_store import Candle
     root = tmp_path / 'app'
     root.mkdir()
+    # Existing historical fixture is deliberately created by the TEST only.
+    # Runtime open_market_store must not create any market table or new DB.
+    from strattester.marketdata.sqlite_store import SQLiteMarketStore
+    market_file = root/'data'/'bybit_1m.sqlite3'
+    SQLiteMarketStore.open(market_file).close()
     opened = open_market_store(root, legacy_paths=())
     try:
         opened.store.upsert_candles([
