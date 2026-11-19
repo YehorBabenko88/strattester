@@ -20,32 +20,71 @@ def test_bybit_discovers_only_trading_usdt_linear_perpetuals():
     c=BybitClient(session=PayloadSession(payload))
     assert c.fetch_linear_symbols()=={'BTCUSDT'}
 
+def grid_snapshot(symbols, observed_at, **overrides):
+    return {
+        "api_version": "grid.instrument.snapshot.v1",
+        "source_qualified": True,
+        "complete": True,
+        "observed_at_ms": observed_at,
+        "symbols": sorted(symbols),
+        **overrides,
+    }
+
+
 def test_universe_sync_retains_disappeared_instrument(tmp_path):
-    class C:
-        def __init__(self): self.symbols={'AUSDT','BUSDT'}
-        def fetch_linear_symbols(self): return set(self.symbols)
-    c=C(); reg=InstrumentRegistry.open(tmp_path/'i.db'); u=UniverseSynchronizer(reg,c)
-    u.sync(1000); c.symbols={'BUSDT'}; u.sync(2000)
-    assert reg.get('AUSDT').status is InstrumentStatus.MISSING
-    u.sync(3000)
-    assert reg.get('AUSDT').status is InstrumentStatus.DELISTED
-    assert reg.eligible_at('AUSDT',1500)
-    reg.close()
+    reg = InstrumentRegistry.open(tmp_path / 'i.db')
+    try:
+        u = UniverseSynchronizer(reg)
+        u.sync(1000, snapshot=grid_snapshot({'AUSDT', 'BUSDT'}, 1000))
+        u.sync(2000, snapshot=grid_snapshot({'BUSDT'}, 2000))
+        assert reg.get('AUSDT').status is InstrumentStatus.MISSING
+        u.sync(3000, snapshot=grid_snapshot({'BUSDT'}, 3000))
+        assert reg.get('AUSDT').status is InstrumentStatus.DELISTED
+        assert reg.eligible_at('AUSDT', 1500)
+    finally:
+        reg.close()
+
+
+def test_unqualified_snapshot_and_client_have_no_mutation(tmp_path):
+    from strattester.marketdata.universe_sync import UniverseSnapshotError
+    import pytest
+    reg = InstrumentRegistry.open(tmp_path / 'i.db')
+    try:
+        u = UniverseSynchronizer(reg)
+        u.sync(1000, snapshot=grid_snapshot({'AUSDT', 'BUSDT'}, 1000))
+        before = list(reg.conn.iterdump())
+        for invalid in (
+            None,
+            grid_snapshot({'AUSDT'}, 2000, source_qualified=False),
+            grid_snapshot({'AUSDT'}, 2000, complete=False),
+            grid_snapshot({'AUSDT'}, 2000, api_version="unverified"),
+            grid_snapshot({'AUSDT'}, 3000),
+            grid_snapshot(set(), 2000),
+            grid_snapshot({'AUSDT'}, 2000, symbols=[None]),
+        ):
+            with pytest.raises(UniverseSnapshotError):
+                u.sync(2000, snapshot=invalid)
+            assert list(reg.conn.iterdump()) == before
+        with pytest.raises(UniverseSnapshotError, match="GRID_SNAPSHOT_REQUIRED"):
+            UniverseSynchronizer(reg, client=object())
+        assert list(reg.conn.iterdump()) == before
+    finally:
+        reg.close()
+
 
 def test_empty_exchange_snapshot_does_not_mass_delist(tmp_path):
     from strattester.marketdata.universe_sync import UniverseSnapshotError
-    class C:
-        def __init__(self): self.symbols={'AUSDT','BUSDT'}
-        def fetch_linear_symbols(self): return set(self.symbols)
-    c=C(); reg=InstrumentRegistry.open(tmp_path/'i.db'); u=UniverseSynchronizer(reg,c)
-    u.sync(1000); c.symbols=set()
+    import pytest
+    reg = InstrumentRegistry.open(tmp_path / 'i.db')
     try:
-        u.sync(2000)
-        assert False, 'expected suspicious snapshot rejection'
-    except UniverseSnapshotError:
-        pass
-    assert reg.active_symbols()=={'AUSDT','BUSDT'}
-    reg.close()
+        u = UniverseSynchronizer(reg)
+        u.sync(1000, snapshot=grid_snapshot({'AUSDT', 'BUSDT'}, 1000))
+        with pytest.raises(UniverseSnapshotError):
+            u.sync(2000, snapshot=grid_snapshot(set(), 2000))
+        assert reg.active_symbols() == {'AUSDT', 'BUSDT'}
+    finally:
+        reg.close()
+
 
 def test_reverse_chronological_pages_do_not_skip_middle(tmp_path):
     def row(t): return [str(t),'1','1.1','.9','1','10','100']
