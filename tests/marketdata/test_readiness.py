@@ -24,24 +24,43 @@ def test_open_market_store_creates_canonical_db_only_when_nothing_exists(tmp_pat
     assert opened.path.exists()
     opened.store.close()
 
-def test_ensure_history_downloads_only_missing_ranges(tmp_path):
-    root=tmp_path/'app'; root.mkdir()
-    opened=open_market_store(root,legacy_paths=())
-    class C:
-        calls=[]
-        def fetch_klines(self,symbol,start,end,interval='1'):
-            self.calls.append((symbol,start,end,interval))
-            rows=[['0','100','101','99','100','1','100'],['60000','100','102','99','101','1','101']]
-            return [r for r in reversed(rows) if start<=int(r[0])<=end]
-    client=C()
-    req=DataRequirement('BTCUSDT','candles','1m',0,60_000)
-    first=ensure_history(opened.store,client,(req,),clock_ms=lambda:999_999)
-    assert first[0].state is SyncState.READY
-    calls_after_first=len(client.calls)
-    second=ensure_history(opened.store,client,(req,),clock_ms=lambda:999_999)
-    assert second[0].state is SyncState.READY
-    assert len(client.calls)==calls_after_first
-    opened.store.close()
+def test_ensure_history_refuses_legacy_writer_without_fetch_or_mutation(tmp_path):
+    root = tmp_path / 'app'
+    root.mkdir()
+    opened = open_market_store(root, legacy_paths=())
+    try:
+        class ForbiddenClient:
+            def fetch_klines(self, *args, **kwargs):
+                raise AssertionError('Strattester must not call Bybit')
+        req = DataRequirement('BTCUSDT', 'candles', '1m', 0, 60_000)
+        before = opened.store.connection.total_changes
+        result = ensure_history(opened.store, ForbiddenClient(), (req,))
+        assert len(result) == 1
+        assert result[0].state is SyncState.REPAIR_REQUIRED
+        assert result[0].message == 'GRID_ATTESTED_HISTORY_API_REQUIRED'
+        assert opened.store.connection.total_changes == before
+        assert opened.store.coverage('BTCUSDT', 'candles', '1m').count == 0
+    finally:
+        opened.store.close()
+
+
+def test_existing_candles_not_promoted_to_source_attested(tmp_path):
+    from strattester.marketdata.sqlite_store import Candle
+    root = tmp_path / 'app'
+    root.mkdir()
+    opened = open_market_store(root, legacy_paths=())
+    try:
+        opened.store.upsert_candles([
+            Candle('BTCUSDT', '1m', 0, 100, 101, 99, 100, 1, 100, True),
+        ])
+        before = opened.store.connection.total_changes
+        req = DataRequirement('BTCUSDT', 'candles', '1m', 0, 0)
+        result = ensure_history(opened.store, None, (req,))
+        assert result[0].state is SyncState.REPAIR_REQUIRED
+        assert opened.store.connection.total_changes == before
+        assert opened.store.coverage('BTCUSDT', 'candles', '1m').count == 1
+    finally:
+        opened.store.close()
 
 
 def test_requirements_skip_explicitly_unsupported_optional_datasets():
