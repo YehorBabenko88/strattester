@@ -1,14 +1,14 @@
 from __future__ import annotations
 from dataclasses import dataclass
 import requests
-from .marketdata.bybit_client import BybitClient
 
 @dataclass(frozen=True)
 class ConnectivityResult:
     ok:bool; detail:str
 
 def check_bybit(client=None):
-    client=client or BybitClient()
+    if client is None:
+        return ConnectivityResult(False, 'GRID_SOURCE_REQUIRED')
     try:
         rows=client.fetch_linear_instruments()
         return ConnectivityResult(bool(rows),f'{len(rows)} instrument(s) visible')

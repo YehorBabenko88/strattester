@@ -141,3 +141,7 @@ Scope is **read-only symbol comparison**, not complete audit of all 784 Meta PR 
 - MOVE market-source qualification to Grid and service deployment to Unified. The Strattester installer no longer invokes its direct Bybit connectivity probe or disabled downloader, which always returned exit 2.
 - MERGE acceptance through the owner-published contracts. Terminan's current bounded paper replay does not accept the Strattester multi-dataset strategy context and checkpoint, so `ResearchRunner` still refuses execution. The regression compares a SHA-256 digest of the SQLite logical dump around repeated refusals.
 - DELETE the Bybit checks and the NSSM service installer invocation from `install.ps1`. The legacy `-NssmExe` argument now refuses service registration before filesystem changes. Keep legacy files pending external consumer verification and rollback.
+
+## Stage 11: legacy network preflight refusal
+
+The compatibility `preflight_cli --network` path now returns structured JSON with exit 2 and `GRID_SOURCE_REQUIRED` instead of throwing from the old Bybit client constructor. It retains the required check identity and makes neither the disabled Bybit call nor a Telegram probe. Explicit offline callers of `check_bybit(client)` retain their old interface. Revert the Stage 11 commit to restore the Stage 10 package behavior. No data, services or schema require rollback.
