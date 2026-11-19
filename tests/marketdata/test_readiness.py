@@ -1,5 +1,7 @@
 from pathlib import Path
+from hashlib import sha256
 import sqlite3
+import pytest
 from strattester.marketdata.readiness import open_market_store,ensure_history,requirements_for_instrument,dataset_capabilities
 from strattester.marketdata.sync_engine import DataRequirement,SyncState
 
@@ -12,36 +14,110 @@ def _legacy(path):
 def test_open_market_store_prefers_existing_local_legacy_data(tmp_path):
     root=tmp_path/'app'; root.mkdir()
     legacy=tmp_path/'legacy.db'; _legacy(legacy)
+    before=legacy.read_bytes()
     opened=open_market_store(root,legacy_paths=(legacy,))
-    assert opened.path==legacy
-    assert opened.store.coverage('BTCUSDT','candles','1m').count==1
-    opened.store.close()
+    try:
+        assert opened.path==legacy
+        assert opened.store.coverage('BTCUSDT','candles','1m').count==1
+        assert opened.store.coverage('BTCUSDT','mark_price','1m').count==0
+        assert list(opened.store.iter_public_trade_aggregates('BTCUSDT')) == []
+        with pytest.raises(sqlite3.OperationalError, match='readonly'):
+            opened.store.checkpoint_wal()
+        with pytest.raises(sqlite3.OperationalError, match='readonly'):
+            opened.store.connection.execute('DELETE FROM candles')
+    finally:
+        opened.store.close()
+    assert legacy.read_bytes()==before
 
-def test_open_market_store_creates_canonical_db_only_when_nothing_exists(tmp_path):
-    root=tmp_path/'app'; root.mkdir()
-    opened=open_market_store(root,legacy_paths=())
-    assert opened.path==root/'data'/'bybit_1m.sqlite3'
-    assert opened.path.exists()
-    opened.store.close()
 
-def test_ensure_history_downloads_only_missing_ranges(tmp_path):
+def test_historical_reader_sees_committed_wal_rows_without_checkpoint(tmp_path):
+    root = tmp_path / 'app'
+    root.mkdir()
+    legacy = tmp_path / 'legacy #1.sqlite3'
+    writer = sqlite3.connect(legacy)
+    try:
+        assert writer.execute('PRAGMA journal_mode=WAL').fetchone()[0] == 'wal'
+        writer.execute('PRAGMA wal_autocheckpoint=0')
+        writer.execute('CREATE TABLE candles(symbol, ts, open, high, low, close, volume, turnover)')
+        writer.execute("INSERT INTO candles VALUES('BTCUSDT',0,100,101,99,100,1,100)")
+        writer.commit()
+
+        def row_digest(connection):
+            rows = connection.execute('SELECT * FROM candles ORDER BY symbol, ts').fetchall()
+            return sha256(repr(rows).encode()).digest()
+
+        # Initialize SQLite's reader bookkeeping before comparing file bytes.
+        from strattester.marketdata.integrity import quick_check
+        assert quick_check(legacy).ok
+        files = [legacy, Path(f'{legacy}-wal'), Path(f'{legacy}-shm')]
+        before = [path.read_bytes() for path in files]
+        opened = open_market_store(root, legacy_paths=(legacy,))
+        try:
+            assert opened.store.coverage('BTCUSDT').count == 1
+            assert row_digest(opened.store.connection) == row_digest(writer)
+        finally:
+            opened.store.close()
+        assert [path.read_bytes() for path in files] == before
+    finally:
+        writer.close()
+
+def test_open_market_store_refuses_creation_without_existing_history(tmp_path):
+    import pytest
     root=tmp_path/'app'; root.mkdir()
-    opened=open_market_store(root,legacy_paths=())
-    class C:
-        calls=[]
-        def fetch_klines(self,symbol,start,end,interval='1'):
-            self.calls.append((symbol,start,end,interval))
-            rows=[['0','100','101','99','100','1','100'],['60000','100','102','99','101','1','101']]
-            return [r for r in reversed(rows) if start<=int(r[0])<=end]
-    client=C()
-    req=DataRequirement('BTCUSDT','candles','1m',0,60_000)
-    first=ensure_history(opened.store,client,(req,),clock_ms=lambda:999_999)
-    assert first[0].state is SyncState.READY
-    calls_after_first=len(client.calls)
-    second=ensure_history(opened.store,client,(req,),clock_ms=lambda:999_999)
-    assert second[0].state is SyncState.READY
-    assert len(client.calls)==calls_after_first
-    opened.store.close()
+    with pytest.raises(RuntimeError,match='GRID_MARKET_STORE_REQUIRED'):
+        open_market_store(root,legacy_paths=())
+    assert not (root/'data'/'bybit_1m.sqlite3').exists()
+
+def test_ensure_history_refuses_legacy_writer_without_fetch_or_mutation(tmp_path):
+    root = tmp_path / 'app'
+    root.mkdir()
+    # Existing historical fixture is deliberately created by the TEST only.
+    # Runtime open_market_store must not create any market table or new DB.
+    from strattester.marketdata.sqlite_store import SQLiteMarketStore
+    market_file = root/'data'/'bybit_1m.sqlite3'
+    SQLiteMarketStore.open(market_file).close()
+    opened = open_market_store(root, legacy_paths=())
+    try:
+        class ForbiddenClient:
+            def fetch_klines(self, *args, **kwargs):
+                raise AssertionError('Strattester must not call Bybit')
+        req = DataRequirement('BTCUSDT', 'candles', '1m', 0, 60_000)
+        before = opened.store.connection.total_changes
+        result = ensure_history(opened.store, ForbiddenClient(), (req,))
+        assert len(result) == 1
+        assert result[0].state is SyncState.REPAIR_REQUIRED
+        assert result[0].message == 'GRID_ATTESTED_HISTORY_API_REQUIRED'
+        assert opened.store.connection.total_changes == before
+        assert opened.store.coverage('BTCUSDT', 'candles', '1m').count == 0
+    finally:
+        opened.store.close()
+
+
+def test_existing_candles_not_promoted_to_source_attested(tmp_path):
+    from strattester.marketdata.sqlite_store import Candle
+    root = tmp_path / 'app'
+    root.mkdir()
+    # Existing historical fixture is deliberately created by the TEST only.
+    # Runtime open_market_store must not create any market table or new DB.
+    from strattester.marketdata.sqlite_store import SQLiteMarketStore
+    market_file = root/'data'/'bybit_1m.sqlite3'
+    with_market = SQLiteMarketStore.open(market_file)
+    try:
+        with_market.upsert_candles([
+            Candle('BTCUSDT', '1m', 0, 100, 101, 99, 100, 1, 100, True),
+        ])
+    finally:
+        with_market.close()
+    opened = open_market_store(root, legacy_paths=())
+    try:
+        before = opened.store.connection.total_changes
+        req = DataRequirement('BTCUSDT', 'candles', '1m', 0, 0)
+        result = ensure_history(opened.store, None, (req,))
+        assert result[0].state is SyncState.REPAIR_REQUIRED
+        assert opened.store.connection.total_changes == before
+        assert opened.store.coverage('BTCUSDT', 'candles', '1m').count == 1
+    finally:
+        opened.store.close()
 
 
 def test_requirements_skip_explicitly_unsupported_optional_datasets():

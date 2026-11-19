@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from strattester.bootstrap import bootstrap
 from strattester.marketdata.sqlite_store import SQLiteMarketStore
-from strattester.marketdata.sync_engine import SyncEngine
+from strattester.marketdata.sync_engine import SyncResult,SyncState
 
 @dataclass(frozen=True)
 class OpenedMarketStore:
@@ -13,14 +13,28 @@ class OpenedMarketStore:
 
 def open_market_store(root:Path,legacy_paths=()):
     b=bootstrap(root,legacy_paths=legacy_paths)
-    path=b.market_db or b.config.market_db
-    store=SQLiteMarketStore.open(path)
-    mode=b.mode if b.market_db is not None else 'created'
-    return OpenedMarketStore(Path(path),store,mode)
+    # Legacy research files are migration sources, not a second Grid writer.
+    # If no recognized database exists, never create an independent market DB.
+    if b.market_db is None:
+        raise RuntimeError('GRID_MARKET_STORE_REQUIRED')
+    path=b.market_db
+    store=SQLiteMarketStore.open_read_only(path)
+    return OpenedMarketStore(Path(path),store,b.mode)
 
 def ensure_history(store,client,requirements,clock_ms=None):
-    engine=SyncEngine(store,client,clock_ms=clock_ms)
-    return tuple(engine.sync_requirement(req) for req in requirements)
+    """Never create a second market-data writer or unverified Grid snapshot.
+
+    Grid must first provide an authenticated dataset-specific history API
+    covering candle, mark, index, premium, OI and funding provenance. Preserve
+    the legacy SyncResult return shape while refusing implicit network/SQL.
+    """
+    return tuple(
+        SyncResult(
+            SyncState.REPAIR_REQUIRED,
+            message='GRID_ATTESTED_HISTORY_API_REQUIRED',
+        )
+        for _ in requirements
+    )
 
 
 def dataset_capabilities(instrument:dict):
