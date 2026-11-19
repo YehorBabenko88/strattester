@@ -70,13 +70,13 @@ def import_frozen_results(source, expected_sha256, source_id, ledger_path):
             staged_columns = _columns(connection, "staged_research_results")
             if published_columns not in (_LEGACY, _PUBLISHED):
                 raise ValueError("unrecognized published result schema")
-            if staged_columns != _STAGED and not (published_columns == _LEGACY and not staged_columns):
+            legacy = published_columns == _LEGACY
+            if legacy and staged_columns:
+                raise ValueError("mixed legacy and staged result schema")
+            if not legacy and staged_columns != _STAGED:
                 raise ValueError("unrecognized or missing staged result schema")
 
-            projection = ", ".join(_PUBLISHED)
-            if published_columns == _LEGACY:
-                # Preserve the original six fields; synthetic defaults grant no lease.
-                projection = ", ".join(_LEGACY) + ", NULL, 0, 0"
+            projection = ", ".join(published_columns)
 
             def tables():
                 published = connection.execute(
@@ -84,10 +84,12 @@ def import_frozen_results(source, expected_sha256, source_id, ledger_path):
                     "ORDER BY run_id COLLATE BINARY, symbol COLLATE BINARY, "
                     "strategy_id COLLATE BINARY, strategy_version COLLATE BINARY"
                 )
+                if legacy:
+                    return {"research_results": published}
                 staged = connection.execute(
                     f"SELECT {', '.join(_STAGED)} FROM staged_research_results "
                     "ORDER BY stage_id COLLATE BINARY"
-                ) if staged_columns else ()
+                )
                 return {"research_results": published, "staged_research_results": staged}
 
             receipt = research_result_receipt(expected_sha256, tables())
