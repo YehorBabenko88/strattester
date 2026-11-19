@@ -20,7 +20,7 @@ def definition():
     ), NeedsMark)
 
 
-def test_runner_reads_preloaded_history_without_network_or_writes(tmp_path):
+def test_runner_requires_terminan_engine_after_readiness_without_mutation(tmp_path):
     s = SQLiteMarketStore.open(tmp_path / "m.db")
     try:
         runner = ResearchRunner(s)
@@ -31,8 +31,8 @@ def test_runner_reads_preloaded_history_without_network_or_writes(tmp_path):
                        start_ms=0, end_ms=60_000)
         assert s.connection.total_changes == changes
 
-        # This fixture is prepopulated independently, just as a Grid-owned
-        # snapshot reader would be; ResearchRunner must NOT repair history.
+        # Preloaded source rows are historical fixtures, not source-attested
+        # Grid evidence; they cannot authorize an independent strategy engine.
         rows = [
             Candle("BTCUSDT", "1m", 0, 100, 101, 99, 100, 1, 100, True),
             Candle("BTCUSDT", "1m", 60_000, 100, 101, 99, 100, 1, 100, True),
@@ -43,13 +43,11 @@ def test_runner_reads_preloaded_history_without_network_or_writes(tmp_path):
             ["60000", "100", "101", "99", "100"],
         ], "1m").accepted == 2
         before = s.connection.total_changes
-        r1 = runner.run(d, {"symbol": "BTCUSDT", "launchTime": "0"},
-                        start_ms=0, end_ms=60_000)
-        r2 = runner.run(d, {"symbol": "BTCUSDT", "launchTime": "0"},
-                        start_ms=0, end_ms=60_000)
-        assert r1.output == (2, 2) == r2.output
-        assert r1.fingerprint == r2.fingerprint
-        assert s.connection.total_changes == before
+        for _ in range(2):
+            with pytest.raises(RuntimeError, match="TERMINAN_EXECUTION_API_REQUIRED"):
+                runner.run(d, {"symbol": "BTCUSDT", "launchTime": "0"},
+                           start_ms=0, end_ms=60_000)
+            assert s.connection.total_changes == before
     finally:
         s.close()
 
