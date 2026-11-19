@@ -96,3 +96,18 @@ Previous Strattester strategy-owner guidance is **withdrawn**. Do not merge PR #
 - Original `strattester/strategies/registry.py` and `strattester/strategies/base.py` are still present in Strattester, as external callsite migration and rollback proof remain incomplete. No user data or original Git history was modified.
 - PR #88 new HEAD has different commit ancestry from #87, but same source tree. **Never merge both independently**; owner selects canonical merge route and review. Stage4 exact-head CI queued at the first check; independently green *older* heads do not establish a PASS.
 - Source imports/entrypoints in other repositories, semantic execution parity, real source Grid/Math/Terminan E2E, Windows installer/rollback, all Git refs secret scan remain blockers under #114/#115/#116.
+
+## Stage 5: fail-closed elimination of one direct Bybit connection entrypoint
+
+**Actual code changes on this Strattester Draft PR #87:** 
+- `strattester/marketdata/download_smoke.py:run_download_smoke` no longer imports/instantiates `BybitClient` when caller omits a source. It returns `GRID_SOURCE_REQUIRED` without opening network or touching disk; a non-conforming supplied source returns `GRID_KLINES_INTERFACE_REQUIRED`. Existing explicit injected-client path remains temporarily to preserve test compatibility while Grid's authenticated read contract is defined.
+- `strattester/marketdata/download_smoke_cli.py:main` no longer invokes `run_download_smoke` and fails closed with exit 2 / `GRID_SOURCE_REQUIRED`. This prevents an unreviewed direct exchange connection or independent local market DB from this standalone executable.
+- `tests/marketdata/test_download_smoke.py` now exercises no implicit Bybit instantiation, no directory/database side effects and a denied standalone CLI. **Tests added but exact-head CI qualification must be observed**.
+
+**No Grid API was fabricated or authenticated:** the existing Grid `fetch_kline_page` API is a different interface and a full read-only contract for every Strattester dataset is still unapproved. This change intentionally disables the unsafe entrypoint until the source owner supplies a versioned interface. This is not a migration of `SyncEngine`, `ResearchRunner`, `UniverseSynchronizer` or raw store writes; those remain outstanding and must not be falsely counted as migrated.
+
+**Architecture decisions:** Unified provisions PostgreSQL and manages SSH/LAN orchestration; Grid alone connects Bybit and controls canonical market schema/writes; Math alone computes domain statistics; Terminan alone runs strategies. Strattester is transitional and must not be an installed service after E2E and data-backfill verification. Unique historical user SQLite, sharded files and persisted experiment results are preserved. No git history deletion, service restart or native/physical access performed.
+
+**KEEP/MOVE/MERGE/DELETE:** KEEP original data and readback; MOVE request/REST ownership to Grid; MERGE duplicated legacy smoke into Grid's single collector; DELETE candidates `download_smoke_cli.py`, `bybit_client.py`, `sync_engine.py` only once every caller and rollback gate passes. Real removed source: implicit `BybitClient()` connection invocation; no removed tracked files.
+
+**Blockers:** #114 complete import and entrypoint graph; #115 retirement; #116 real provider+Windows E2E; #112 all-refs secrets; Grid dataset-specific read API authn/authz/provenance; Terminan simulation and Math calculations; Unified PG and distributed SSH HA. Release **NO_GO**, main merge **NO**.
