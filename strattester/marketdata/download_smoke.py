@@ -19,7 +19,13 @@ def validate_candle_smoke(rows,start_ms,end_ms,step=60_000):
         f'expected={expected} first={unique[0] if unique else None} last={unique[-1] if unique else None}')
 
 def run_download_smoke(root:Path,client=None,minutes=10,clock_ms=None):
-    # No implicit exchange connection: only Grid may own Bybit transport.\n    if client is None:\n        return DownloadSmokeResult(False,0,0,0,'GRID_SOURCE_REQUIRED')\n    fetch=getattr(client,'fetch_klines',None)\n    if not callable(fetch):\n        return DownloadSmokeResult(False,0,0,0,'GRID_KLINES_INTERFACE_REQUIRED')\n    now=(clock_ms or (lambda:int(time.time()*1000)))()
+    # No implicit exchange connection: only Grid may own Bybit transport.
+    if client is None:
+        return DownloadSmokeResult(False,0,0,0,'GRID_SOURCE_REQUIRED')
+    fetch=getattr(client,'fetch_klines',None)
+    if not callable(fetch):
+        return DownloadSmokeResult(False,0,0,0,'GRID_KLINES_INTERFACE_REQUIRED')
+    now=(clock_ms or (lambda:int(time.time()*1000)))()
     end=((now//60_000)-2)*60_000; start=end-(int(minutes)-1)*60_000
     rows=client.fetch_klines('BTCUSDT',start,end,'1',limit=max(10,int(minutes)))
     valid=validate_candle_smoke(rows,start,end)
