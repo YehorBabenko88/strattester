@@ -5,9 +5,13 @@ import os
 import sys
 import stat
 import hashlib
+import runpy
+import argparse
 import json
 from pathlib import Path
 import tempfile
+
+CACHE_API=runpy.run_path(str(Path(__file__).resolve().with_name('sdk_cache_custody.py')))
 
 SOURCE_REVISIONS={'unified-terminan':'75a906d36574bfdc19acd966e79a6c168dc71ad4','unified-math-kernels':'a5868944bf1bae813403a32b22d329c1da6f8238'}
 MATH_MODULES=frozenset(('market_math','market_compute_api','history_statistics'))
@@ -33,8 +37,9 @@ def load_sdk_manifest(source):
             raise AssertionError('SDK name/path/source binding differs')
     return modules
 
-def verify_sdk_modules(source, expected):
+def verify_sdk_modules(source, expected, custody):
     """Local source-byte integrity, not remote source authority or RECORD trust."""
+    CACHE_API['verify_sdk_cache'](custody)
     for name,module in tuple(sys.modules.items()):
         if name not in MATH_MODULES and name!='terminan' and not name.startswith('terminan.'):continue
         if name not in expected:raise AssertionError('unapproved imported SDK module: '+name)
@@ -48,6 +53,7 @@ def verify_sdk_modules(source, expected):
         spec=getattr(module,'__spec__',None)
         if origin!=declared or spec is None or Path(spec.origin).resolve(strict=True)!=declared or origin.is_relative_to(source):
             raise AssertionError('SDK exact installed path differs')
+        CACHE_API['verify_module_cache'](custody,module,origin)
         info=Path(module.__file__).lstat()
         if not stat.S_ISREG(info.st_mode) or getattr(info,'st_file_attributes',0)&1024 or Path(module.__file__).is_symlink() or info.st_size>2097152:
             raise AssertionError('SDK module must be a bounded ordinary file')
@@ -56,12 +62,20 @@ def verify_sdk_modules(source, expected):
             raise AssertionError('SDK module differs from approved Git source bytes')
 
 
-sys.path.insert(0,str(Path(__file__).resolve().parent))
-from canonical_test_gate import StrictTestRoster
 
-
-def main():
+def main(argv=None):
     source = Path(__file__).resolve().parents[1]
+    parser=argparse.ArgumentParser()
+    parser.add_argument("cache_root")
+    parser.add_argument("--dependencies",required=True)
+    args=parser.parse_args(argv)
+    custody=CACHE_API['claim_sdk_cache'](args.cache_root,source_roots=(source,))
+    sys.path.insert(0,str(source/'scripts'))
+    from canonical_test_gate import StrictTestRoster
+    dependencies=Path(args.dependencies).resolve(strict=True)
+    CACHE_API['_ordinary_directory'](dependencies)
+    if dependencies.is_relative_to(source):raise AssertionError("dependency root must be external to checkout")
+    sys.path.insert(0,str(dependencies))
     previous = Path.cwd()
     with tempfile.TemporaryDirectory(prefix="canonical-frozen-consumer-") as temporary:
         os.chdir(temporary)
@@ -70,7 +84,7 @@ def main():
             import terminan.research_archive as archive
             import terminan.migration.research_results as migration
             expected_modules=load_sdk_manifest(source)
-            verify_sdk_modules(source,expected_modules)
+            verify_sdk_modules(source,expected_modules,custody)
             for name in ("grid","strattester","meta_analyse","market_profile_math"):
                 if importlib.util.find_spec(name) is not None:
                     raise AssertionError("retired package fallback is visible: " + name)
@@ -78,7 +92,7 @@ def main():
             expected=json.loads((source/"scripts/frozen_consumer_roster.json").read_text(encoding="utf-8"))
             guard=StrictTestRoster(expected,expected_count=14)
             result=pytest.main(["--confcutdir",str(source/"integration_tests"),str(source/"integration_tests/test_frozen_results.py"),"-q"],plugins=[guard])
-            verify_sdk_modules(source,expected_modules)
+            verify_sdk_modules(source,expected_modules,custody)
             return 0 if int(result)==0 and guard.accepted else 1
         finally:
             os.chdir(previous)
