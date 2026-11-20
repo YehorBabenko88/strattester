@@ -34,6 +34,8 @@ jobs:
           import os, pathlib, subprocess, sys, tempfile
           root=pathlib.Path.cwd()
           def committed_input(owner, source):
+              if source.is_symlink() or not source.resolve(strict=True).is_relative_to(owner.resolve(strict=True)):
+                  raise RuntimeError("build input escapes owned source checkout")
               relative=source.relative_to(owner).as_posix()
               committed=subprocess.check_output(['git','--no-replace-objects','-C',str(owner),'cat-file','blob','HEAD:'+relative])
               working=source.read_bytes()
