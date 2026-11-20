@@ -29,7 +29,9 @@ def verify(site,bindings,custody):
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('site','bindings','evidence','cache-root','dependencies'):parser.add_argument('--'+name,required=True)
-    args=parser.parse_args(argv);root=pathlib.Path(__file__).resolve().parents[1]
+    args=parser.parse_args(argv);head=os.environ.get('MARKET_DATA_TEST_SHA')
+    if type(head) is not str or len(head)!=40 or any(c not in '0123456789abcdef' for c in head):raise ValueError('exact source SHA required')
+    root=pathlib.Path(__file__).resolve().parents[1]
     custody=CACHE_API['claim_sdk_cache'](args.cache_root,source_roots=(root,))
     dependencies=pathlib.Path(args.dependencies).resolve(strict=True)
     CACHE_API['_ordinary_directory'](dependencies)
@@ -42,7 +44,7 @@ def main(argv=None):
     sys.path[:0]=[str(site),str(dependencies),str(root/'scripts'),str(root/'tests/market_data'),str(root/'tests/marketdata')]
     os.environ['PYTEST_DISABLE_PLUGIN_AUTOLOAD']='1'
     expected=json.loads((root/'scripts/canonical_test_roster.json').read_text())
-    guard=Guard(expected,expected_count=640)
+    guard=Guard(expected,expected_count=644)
     import market_data,market_math,pytest
     verify(site,bindings,custody)
     with tempfile.TemporaryDirectory(prefix='canonical-data-tests-') as case:
@@ -51,7 +53,7 @@ def main(argv=None):
             result=pytest.main(['--rootdir',str(root),'--import-mode=importlib','-p','pytest_asyncio.plugin','--confcutdir',str(root/'tests'),str(root/'tests/market_data'),str(root/'tests/marketdata/test_rich_sync.py'),str(root/'tests/marketdata/test_coverage.py'),str(root/'tests/unmigrated_market_data/test_source_provenance.py::test_event_time_ohlc_duplicate_and_late_trades'),str(root/'tests/unmigrated_market_data/test_source_provenance.py::test_actual_builder_decimal_tick_rounding_retains_integrity'),'-p','no:cacheprovider','-q'],plugins=[guard])
             verify(site,bindings,custody)
             accepted=int(result)==0 and guard.accepted
-            output.write_text(json.dumps({'status':'PASS_SCOPED' if accepted else 'FAIL','cases':640,'source_head':os.environ.get('MARKET_DATA_TEST_SHA'),'scope':'SYNTHETIC_FIXTURES_ONLY','native':'NOT_RUN','release_status':'NO_GO','errors':guard.errors},indent=2)+'\n')
+            output.write_text(json.dumps({'status':'PASS_SCOPED' if accepted else 'FAIL','cases':644,'source_head':head,'scope':'SYNTHETIC_FIXTURES_ONLY','native':'NOT_RUN','release_status':'NO_GO','errors':guard.errors},indent=2)+'\n')
             return 0 if accepted else 1
         finally:os.chdir(previous)
 
