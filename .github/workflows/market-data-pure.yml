@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: YehorBabenko88/math
-          ref: 31e35f6a3073f107a3c8bcc56f38834d21aaae8f
+          ref: 0c9ee5db773e410992597303c9bba45710e76789
           path: .source/math
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
