@@ -32,7 +32,7 @@ class _AdmittedCaptureSink:
         if not callable(getattr(sink,"store_capture",None)):raise ValueError("canonical capture sink required")
         self.owner=owner;self.sink=sink
     async def store_capture(self,**kwargs):
-        self.owner._current();facts=await self.sink.store_capture(**kwargs);self.owner._current();return facts
+        self.owner._require_current_identity();facts=await self.sink.store_capture(**kwargs);self.owner._require_current_identity();return facts
 
 class PublicTradeCollector:
     def __init__(self, sink, *, symbol, source_revision, connector=public_connection,
@@ -81,6 +81,11 @@ class PublicTradeCollector:
 
     def _current(self):
         self._raise_if_cancelled()
+        self._require_current_identity()
+
+    def _require_current_identity(self):
+        # Raw cancelled-disconnect cleanup still needs the same identity proof.
+        # On Python3.12 wait_for can execute this sink in the cancelled owner.
         try:identity=startup_identity(self.startup_admission)
         except Exception:raise RawCaptureError("CURRENT_CAPTURE_ADMISSION_REQUIRED") from None
         if identity!=self._identity:raise RawCaptureError("CAPTURE_MANAGED_IDENTITY_CHANGED")
