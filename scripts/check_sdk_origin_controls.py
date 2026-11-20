@@ -9,7 +9,7 @@ verify=runner['verify_sdk_modules']
 if len(sys.argv)!=2:raise AssertionError('one unused startup cache path required')
 custody=runner['CACHE_API']['claim_sdk_cache'](sys.argv[1],source_roots=(root.parent,))
 with tempfile.TemporaryDirectory(prefix='sdk-origin-controls-') as directory:
- site=Path(directory);path=site/'market_math.py';raw=b'# inert fixture\n';path.write_bytes(raw)
+ site=runner['CACHE_API']['_canonical_directory'](Path(directory));path=site/'market_math.py';raw=b'# inert fixture\n';path.write_bytes(raw)
  expected={'market_math':{'distribution':'unified-math-kernels','relative_path':'market_math.py','sha256':hashlib.sha256(raw).hexdigest()}}
  module=ModuleType('market_math');module.__file__=str(path);module.__spec__=importlib.util.spec_from_file_location('market_math',path);module.__loader__=module.__spec__.loader;module.__cached__=module.__spec__.cached
  class Dist:

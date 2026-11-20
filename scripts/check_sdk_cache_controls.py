@@ -14,6 +14,7 @@ def audit(event,args):
  if event in ('subprocess.Popen','os.system','socket.__new__') or event.startswith('ctypes.'):raise AssertionError('FORBIDDEN '+event)
 sys.addaudithook(audit)
 with tempfile.TemporaryDirectory(prefix='inert-sdk-bytecode-') as directory:
+ directory=str(api['_canonical_directory'](Path(directory)))
  source=Path(directory)/'market_math.py';source.write_bytes(b'EXECUTED_POLICY="APPROVED_SOURCE"\n')
  original_prefix=sys.pycache_prefix
  try:
@@ -37,7 +38,13 @@ with tempfile.TemporaryDirectory(prefix='inert-sdk-bytecode-') as directory:
  importlib.invalidate_caches();module=importlib.import_module('market_math')
  assert module.EXECUTED_POLICY=='APPROVED_SOURCE'
  api['verify_module_cache'](custody,module,source.resolve());results.append('old_unchecked_hash_ignored_under_fresh_startup_prefix')
- cached=module.__cached__;module.__cached__=str(old_cache)
+ cached=module.__cached__;spec_cached=module.__spec__.cached
+ alias_cache=importlib.util.cache_from_source(str(source.with_name('RUNNER~1.py')))
+ assert alias_cache!=cached and Path(alias_cache).is_relative_to(cache)
+ module.__cached__=alias_cache;module.__spec__.cached=alias_cache
+ try:refused(lambda:api['verify_module_cache'](custody,module,source.resolve()),'foreign_source_cache_inside_same_fresh_prefix_refused')
+ finally:module.__cached__=cached;module.__spec__.cached=spec_cached
+ module.__cached__=str(old_cache)
  try:refused(lambda:api['verify_module_cache'](custody,module,source.resolve()),'foreign_module_cache_refused')
  finally:module.__cached__=cached
  injected=cache/'injected.pyc';injected.write_bytes(b'inert fixture')

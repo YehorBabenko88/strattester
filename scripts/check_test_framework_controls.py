@@ -20,6 +20,7 @@ assert pytest.__version__=='8.3.5', 'reviewed pytest 8.3.5 required'
 assert importlib.metadata.version('pytest-asyncio')=='0.26.0', 'reviewed asyncio plugin 0.26.0 required'
 results=[]
 with tempfile.TemporaryDirectory(prefix='literal-pytest-protocol-') as temp:
+ temp=str(api['_canonical_directory'](Path(temp)))
  for label, expression, accepted in [('passing','True',True),('failed_subtest','i != 1',False)]:
   source=Path(temp)/('test_'+label+'.py')
   source.write_text('import unittest\nclass Literal(unittest.TestCase):\n def test_subtests(self):\n  for i in range(3):\n   with self.subTest(i=i):\n    self.assertTrue('+expression+')\n')
