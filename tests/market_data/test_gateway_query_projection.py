@@ -61,6 +61,13 @@ class ProjectionTests(unittest.TestCase):
  def test_old_wire_profile_never_accepted_as_alias(self):
   helper=preparation.PreparationTests();helper.module=self.m;request=helper.request();request['schema']='grid.gateway.ohlcv-query.v1-review2'
   with self.assertRaises(self.m.QueryFormatError):self.m.prepare_query(c3(request))
+  for invalid_cut in (None,False,''):
+   value=helper.request();value['event_cut_ms']=invalid_cut
+   with patch.object(self.m,'query_minute_grid_ms',wraps=self.m.query_minute_grid_ms) as kernel:
+    with self.assertRaises(self.m.QueryFormatError):self.m.prepare_query(c3(value))
+    self.assertEqual(kernel.call_count,0)
+  value=helper.request();value.pop('event_cut_ms')
+  with self.assertRaises(self.m.QueryFormatError):self.m.prepare_query(c3(value))
  def test_index_oversize_refuses_before_hash(self):
   with patch.object(self.m.hashlib,'sha256',wraps=hashlib.sha256) as hashing:
    with self.assertRaises(self.m.QueryFormatError):self.m.decode_query_segment_index(b' '*16385,context=self.context)
