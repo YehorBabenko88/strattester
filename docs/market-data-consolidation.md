@@ -1,0 +1,37 @@
+# Canonical market-data consolidation (NO_GO)
+
+Base repository source: Strattester #90 `13998cf87139330dd0406fed00acd148e045e6c4`. Imported source: Grid #295 `c9ffdaa2af52c4d55871a48655a77a0c669da80f`. Canonical Math dependency: `dae65b688e65ade8308af1ad8dd22b357068d42d`, kernel `d38e05e84bfe05dbe4c37c9820a4b17e1bf54978`. No Git repository rename or ref deletion.
+
+## Active ownership / old → new
+
+- Grid canonical 11-module market wheel → `market_data` modules with the same meaningful module/function names. No runtime Grid import or shim. Active schema families `grid.*` → `market_data.*`; data producer → `market_data`; research producer → `terminan` (API major1/minor1). New descriptors are sealed under new namespaces; original locked historical digests are not rewritten or admitted by alias.
+- Grid `raw_capture`, `segment_wal`, `write_queue` → same modules in `market_data`; original bounded payload and commit/refusal semantics retained.
+- Grid `public_trade_validation.decode_frame/parse_trades` → `market_data.public_trades`, excluding footprint/tape numeric preflight; original payload bytes are persisted before validation/use.
+- Grid `cluster.FootprintBuilder` → `market_data.footprint_state.FootprintBuilder` for event clocks, dedup, finalization and quality only. All price bins, volume cells, deltas, sums and POC use canonical Math. Explicit HALF_EVEN tick policy and first-seen POC ties preserve intended source policies while removing float-division artifacts. Bounded event/price/open-bucket memory caps are enforced.
+- Strattester `marketdata.sqlite_store` read-only legacy/current candle, coverage and aggregate methods → `market_data.sqlite_history.HistoricalMarketReader`; no write/bootstrap/checkpoint method is shipped. Requires a frozen checkpointed snapshot and never creates sidecars. Existing historical SQL table/column names remain unchanged.
+- New `collector.PublicTradeCollector` joins the existing decoder and recorder into an actual bounded public WebSocket acquisition path; no strategy, execution simulation, indicator or alternate numeric engine.
+- New `capture_store.CaptureStore` stores original payload/metadata in one atomic PostgreSQL transaction and enforces one session writer with a DB advisory lock. Exact database identity is required. Driver faults and unknown commit outcomes stop capture; PostgreSQL operational behavior remains unqualified here.
+- Canonical REST `market_backfill` acquisition/recovery retained. Reproduced/fixed false completeness on empty response without launch bound: now waiting_source/coverage UNKNOWN, never READY. This is not a source completeness attestation even when a launch bound is reached.
+
+## One distribution / service / imports
+
+`market-data` distribution, Python `market_data`, CLI `market-data = market_data.cli:main`. Only this package and its schema data are in clean wheel/sdist. `strattester`, `grid`, strategy/research source packages and native service scripts are excluded from artifacts. Legacy unique source files remain visibly retained in the repository pending consumer/data migration; source-tree retirement is NOT complete.
+
+Unified managed invocation: module `market_data.cli`, argv `["serve"]`, fixed loopback host127.0.0.1, env `MARKET_DATA_PORT` default18766 and read-only `MARKET_DATA_DSN`, optional `MARKET_DATA_PINNED_HISTORY_CATALOG`. Managed identity env `UNIFIED_MODULE_ID=market_data`, `UNIFIED_MODULE_VERSION`, `UNIFIED_RELEASE_ID`, `UNIFIED_INSTANCE_TOKEN`64lowerhex. Unified passes the in-memory `startup_admission` callback; exact True is required before bind and on every authenticated request. `/health` requires one Bearer header before returning module_id/version/release_id/instance_token/ready. No actual bind or service was exercised locally.
+
+Separate explicit operator commands: `capture --symbol BTCUSDT --database <dedicated-db> --source-revision <SHA> --max-frames 4`; `backfill --symbols BTCUSDT --database <prepared-db> --max-pages 5`. Writer connection comes from `MARKET_DATA_INGEST_DSN`, never CLI credentials. Managed profiles refuse these write commands. Backfill expects independently prepared existing schema; no arbitrary schema bootstrap. No command is run during import or tests. Capture is bounded/unqualified, not continuous live admission.
+
+## Preserved / blocked unique sources (no delete)
+
+- Grid legacy Worker/Storage scientific/micro-tape/control mix, L2/order-book continuity, OI/ticker stream and authenticated source/fencing need individual dependency and parity migration. They are NOT silently copied into the market wheel.
+- Strattester long/short historical endpoint, sharded store/manifests and all strategy/research/persistence features remain old-source migration inputs until canonical consumers/Math/Terminan absorb unique functions. Legacy acquisition was already guarded from default live sessions in the source. No user data or old source is removed merely because it is not packaged.
+- Meta source acquisition/archive/storage unique functions require transfer or explicit proof of equivalence; none is deleted here. Original user PG/SQLite rows, level_map/checkpoints/settings and backup/restore remain unverified.
+- Retained provenance test module `tests/unmigrated_market_data/test_source_provenance.py` is NOT a passing gate: initial run had missing FootprintBuilder in `test_event_time_ohlc_duplicate_and_late_trades` and `test_actual_builder_decimal_tick_rounding_retains_integrity`; both behaviors now pass in separately ported canonical lifecycle tests. Original `test_real_strattester_producer_export_compatibility` requires explicit old-source migration, not a new active DTO alias. `test_disposable_pg_immutability_and_idempotency` remains NOT RUN (native/DB authorization pause), depends on legacy migration47. Real-loopback deadline parameter cases are retained, not re-executed after the security pause. No mandatory source test is deleted or marked skipped to manufacture acceptance.
+
+## Data classes / cleanup
+
+A preserve: all market history, legacy DBs, raw payloads, research results, strategies, settings, WAL/checkpoints and critical QA evidence. B archive: old source receipts, migration reports and historical exact-head evidence. C reproducible: only new candidate build/bytecode/test caches owned by this task; none has been deleted in this change. Persistent data, PG clusters, Git refs and other projects untouched.
+
+## Verification boundary
+
+Only explicitly reviewed pure Python fixture modules are executed, using direct Python via Node execFile shell:false with no PowerShell/CMD and isolated pytest confcutdir. No broad legacy test discovery, native service tests, real provider networking, store mutation, firewall or antivirus change. Pure transaction fixtures are NOT actual PostgreSQL acceptance. Windows/Linux hosted, authenticated source continuity, native health/installer and independent release acceptance remain required.

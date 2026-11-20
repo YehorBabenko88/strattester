@@ -1,0 +1,47 @@
+name: Canonical Market Data pure source and package
+on: [push, pull_request]
+permissions:
+  contents: read
+env:
+  SOURCE_DATE_EPOCH: '315532800'
+  MARKET_DATA_TEST_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+jobs:
+  pure:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.MARKET_DATA_TEST_SHA }}
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: YehorBabenko88/math
+          ref: dae65b688e65ade8308af1ad8dd22b357068d42d
+          path: .source/math
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Build isolated pure wheels and test only inspected fixtures
+        shell: python
+        run: |
+          import os, pathlib, subprocess, sys, tempfile
+          root=pathlib.Path.cwd()
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['MARKET_DATA_TEST_SHA']
+          def run(*args, cwd=root):
+              subprocess.run([sys.executable,*map(str,args)],cwd=cwd,check=True)
+          run('-m','pip','install','setuptools>=75,<83','wheel','pytest>=8,<10','pytest-asyncio>=0.24,<2','aiohttp>=3.10,<4','psycopg[binary]>=3.2,<4','websockets>=15,<16')
+          run('-I','-c','from setuptools.build_meta import build_wheel,build_sdist; build_wheel(".candidate-dist"); build_sdist(".candidate-dist")')
+          run('-m','pip','wheel','--no-deps','--wheel-dir',root/'.dependency-wheels',root/'.source/math')
+          wheel=next((root/'.dependency-wheels').glob('*.whl'))
+          run('-I',root/'scripts/check_market_package.py',root,wheel)
+          with tempfile.TemporaryDirectory(prefix='market-data-pure-') as temporary:
+              program='import pathlib,sys; sys.path.insert(0,sys.argv[1]); import market_data,pytest; assert pathlib.Path(market_data.__file__).is_relative_to(pathlib.Path(sys.argv[1])); raise SystemExit(pytest.main(sys.argv[2:]))'
+              run('-I','-c',program,root/'.artifact-site','-p','pytest_asyncio.plugin','--confcutdir',root/'tests/market_data',root/'tests/market_data','-q',cwd=temporary)
+          print('PURE_OFFLINE_ONLY=PASS; NATIVE_LIVE_ORIGINAL_DATA=NOT_QUALIFIED')
