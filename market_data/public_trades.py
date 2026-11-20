@@ -28,7 +28,14 @@ def decode_frame(raw):
     size=len(raw.encode('utf-8')) if isinstance(raw,str) else len(raw)
     if size>MAX_FRAME_BYTES:raise ValueError('public trade frame byte limit')
     def nonfinite(_):raise ValueError('nonfinite public JSON')
-    try:message=json.loads(raw,parse_constant=nonfinite)
+    def unique_fields(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('duplicate public JSON field')
+            result[key] = value
+        return result
+    try:message=json.loads(raw,parse_constant=nonfinite,object_pairs_hook=unique_fields)
     except (ValueError,UnicodeError,RecursionError) as exc:raise ValueError('invalid public trade JSON') from exc
     if not isinstance(message,dict):raise ValueError('invalid public trade envelope')
     return message,size
