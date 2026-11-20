@@ -1,6 +1,7 @@
 name: tests
 on:
   push:
+    branches: [main]
   pull_request:
 permissions:
   contents: read
@@ -21,7 +22,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: YehorBabenko88/math
-          ref: 212dbcbc0f9f4c540ccfe8c5891c37527fe147a1
+          ref: a5868944bf1bae813403a32b22d329c1da6f8238
           path: .source/math
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
@@ -33,7 +34,7 @@ jobs:
           import pathlib, runpy
           materialize = runpy.run_path('scripts/materialize_ci_sources.py')['materialize']
           materialize(pathlib.Path.cwd(), '${{ github.event.pull_request.head.sha || github.sha }}', ['market_data'])
-          materialize(pathlib.Path('.source/math'), '212dbcbc0f9f4c540ccfe8c5891c37527fe147a1', ['python'])
+          materialize(pathlib.Path('.source/math'), 'a5868944bf1bae813403a32b22d329c1da6f8238', ['python'])
       - run: python -m pip install --no-deps ./.source/math
       - run: python -m pip install ".[test]"
       - run: python -m pytest -v
@@ -68,13 +69,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: YehorBabenko88/Terminan
-          ref: 28f475cd237037837be20af0cf6289150168e70a
+          ref: 75a906d36574bfdc19acd966e79a6c168dc71ad4
           path: .source/terminan
           persist-credentials: false
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: YehorBabenko88/math
-          ref: 212dbcbc0f9f4c540ccfe8c5891c37527fe147a1
+          ref: a5868944bf1bae813403a32b22d329c1da6f8238
           path: .source/math
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
@@ -86,16 +87,16 @@ jobs:
           import pathlib, runpy
           materialize = runpy.run_path('scripts/materialize_ci_sources.py')['materialize']
           materialize(pathlib.Path.cwd(), '${{ github.event.pull_request.head.sha || github.sha }}', ['market_data'])
-          materialize(pathlib.Path('.source/math'), '212dbcbc0f9f4c540ccfe8c5891c37527fe147a1', ['python'])
+          materialize(pathlib.Path('.source/math'), 'a5868944bf1bae813403a32b22d329c1da6f8238', ['python'])
       - run: python -m pip install --no-deps ./.source/math
       - run: python -m pip install ".[test]"
       - name: Materialize canonical historical reader
         shell: python
         run: |
           import pathlib, runpy
-          runpy.run_path('scripts/materialize_ci_sources.py')['materialize'](pathlib.Path('.source/terminan'), '28f475cd237037837be20af0cf6289150168e70a', ['terminan'])
+          runpy.run_path('scripts/materialize_ci_sources.py')['materialize'](pathlib.Path('.source/terminan'), '75a906d36574bfdc19acd966e79a6c168dc71ad4', ['terminan'])
       - run: python -I scripts/build_sdk_source_manifest.py .source/terminan .source/math .ci-evidence/sdk-source-manifest.json
       - run: python -m pip install --no-deps ./.source/terminan
       - run: python -I scripts/check_sdk_origin_controls.py
-      - run: python -I scripts/check_frozen_roster_controls.py
+      - run: python -I scripts/check_test_roster_controls.py
       - run: python -I scripts/check_frozen_consumer.py

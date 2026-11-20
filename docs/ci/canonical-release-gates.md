@@ -1,0 +1,9 @@
+# Canonical release source gates
+
+The aggregate combines105 per-row funding assessment,106 canonical historical consumer,107 exact roster,108 bounded raw ratio/coverage transfer,109 distribution-owned Git bytes and110 two exact footprint test retargets. Runtime tests retain all638 prior canonical cases plus the two explicitly reviewed footprint methods: exact640. Other mixed-file/native/PG/HTTP obligations remain in the full legacy selector and are not automatically executed locally.534 original legacy functions remain untransferred.
+
+StrictTestRoster is the one shared pytest report guard for the14 historical cases and640 canonical cases. The old private StrictFrozenRoster class and control script are removed, with every control retained in the generic runner. Missing/duplicate/foreign/skip/xfail/xpass/deselected/collection failures cannot become PASS. Exact640 collection has been recorded. Host-only dependencies are pinned to Matha5868944bf1bae813403a32b22d329c1da6f8238 and Terminan75a906d36574bfdc19acd966e79a6c168dc71ad4; all new-head executions are required, not inherited from old111/212 evidence.
+
+Package proof compares all42 Data Python/SQL members and all3 Math Python members to raw committed build inputs, including sdist SQL; CRLF-equivalent bytes do not count as exact. One positive and10 deliberately malformed raw package controls pass the new gate. The former gate accepted9 of10 negative fixtures (SQL/Math/CRLF/sdist/duplicate drift); original RED matrix retained locally. This is an integrity-test defect, not observed installed-host compromise.
+
+Full release remains NO_GO. Windows/Linux hosted full CI and clean installation/update/native/PG/security acceptance are separate. The independent109 executable-bytecode counterexample requires the subsequent startup cache-custody integration before this aggregate is published.
