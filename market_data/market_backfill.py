@@ -267,15 +267,23 @@ async def recover_stale_backfill_jobs(pool,stale_minutes=30,max_attempts=5):
 
 
 async def run_backfill_worker(pool,base_url,stop_event=None,max_pages=50):
+    """Bound all claims in one invocation to max_pages total provider pages.
+
+    A known failed claim remains retryable for a later operator invocation;
+    it is never immediately reclaimed in a tight retry loop.
+    """
+    if type(max_pages) is not int or not 1<=max_pages<=50:
+        raise ValueError("invalid invocation page budget")
     from .data_capabilities import set_capability
-    stop_event=stop_event or asyncio.Event();done=chunks=failed=0
+    stop_event=stop_event or asyncio.Event();done=chunks=failed=0;remaining=max_pages
     if not stop_event.is_set():
         await recover_stale_backfill_jobs(pool)
-    while not stop_event.is_set():
+    while remaining and not stop_event.is_set():
         state=await claim_backfill(pool)
         if not state:break
         try:
-            r=await backfill_symbol(pool,base_url,state,max_pages=max_pages)
+            r=await backfill_symbol(pool,base_url,state,max_pages=remaining)
+            remaining-=r["pages"]
             chunks+=1
             if r["complete"]:
                 done+=1
@@ -292,6 +300,7 @@ async def run_backfill_worker(pool,base_url,stop_event=None,max_pages=50):
             await pool.execute("""UPDATE market_backfill_state SET status='retry',last_error=$3,
               updated_at=now() WHERE symbol=$1 AND timeframe=$2""",
               state["symbol"],state.get("timeframe","1"),str(exc)[:4000])
+            break  # Retry occurs only in a later bounded invocation.
     return {"completed":done,"chunks":chunks,"failed":failed}
 
 
