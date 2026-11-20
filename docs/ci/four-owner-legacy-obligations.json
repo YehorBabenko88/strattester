@@ -4839,7 +4839,7 @@
         },
         {
           "name": "test_event_time_ohlc_duplicate_and_late_trades",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DATA_FOOTPRINT_TEST_RETARGET",
           "proposed_owner": "market_data"
         },
         {
@@ -4879,7 +4879,7 @@
         },
         {
           "name": "test_actual_builder_decimal_tick_rounding_retains_integrity",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DATA_FOOTPRINT_TEST_RETARGET",
           "proposed_owner": "market_data"
         }
       ],

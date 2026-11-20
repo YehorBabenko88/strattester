@@ -68,8 +68,8 @@ def test_handoff_adversarial(change):
 
 
 def test_event_time_ohlc_duplicate_and_late_trades():
-    from market_data.cluster import FootprintBuilder
-    from market_data.models import Trade
+    from market_data.footprint_state import FootprintBuilder
+    from market_data.public_trades import Trade
     b=FootprintBuilder(1)
     assert b.add(Trade(symbol="BTCUSDT",ts_ms=2000,price=2,qty=1,side="Buy",trade_id="b"))
     assert b.add(Trade(symbol="BTCUSDT",ts_ms=1000,price=1,qty=1,side="Buy",trade_id="a"))
@@ -199,10 +199,10 @@ def test_additive_capabilities_do_not_claim_source_readiness():
 
 
 def test_actual_builder_decimal_tick_rounding_retains_integrity():
-    from market_data.cluster import FootprintBuilder
-    from market_data.models import Trade
-    b=FootprintBuilder(.1)
-    b.add(Trade(symbol='BTCUSDT',ts_ms=1000,price=.3,qty=1,side='Buy',trade_id='decimal'))
+    from market_data.footprint_state import FootprintBuilder
+    from market_data.public_trades import Trade
+    b=FootprintBuilder('0.1')
+    b.add(Trade(symbol='BTCUSDT',ts_ms=1000,price='0.3',qty=1,side='Buy',trade_id='decimal'))
     r=b.pop_closed(60000)[0]
     r['source_provenance']=producer('fixture','a'*40,'wss://stream.bybit.com/v5/public/linear')
     assert minute_record(r,int(time.time()*1000),'fixture')['status']=='PARTIAL'
