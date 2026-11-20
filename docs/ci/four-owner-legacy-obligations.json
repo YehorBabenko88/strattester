@@ -404,22 +404,22 @@
       "declared_functions": [
         {
           "name": "test_complete_active_history",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DATA_DECLARED_RANGE_AUDIT_WITH_CONSERVATIVE_COMPLETENESS_FIX",
           "proposed_owner": "market_data"
         },
         {
           "name": "test_unrecoverable_delisted_gap_is_partial",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DATA_DECLARED_RANGE_AUDIT_WITH_CONSERVATIVE_COMPLETENESS_FIX",
           "proposed_owner": "market_data"
         },
         {
           "name": "test_missing_mandatory_dataset_is_insufficient",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DATA_DECLARED_RANGE_AUDIT_WITH_CONSERVATIVE_COMPLETENESS_FIX",
           "proposed_owner": "market_data"
         },
         {
           "name": "test_history_before_listing_is_not_complete",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DATA_DECLARED_RANGE_AUDIT_WITH_CONSERVATIVE_COMPLETENESS_FIX",
           "proposed_owner": "market_data"
         }
       ],
