@@ -1,5 +1,5 @@
 {
-  "schema": "market_data.readiness-frozen-transfer.v1",
+  "schema": "market_data.readiness-frozen-transfer.v2",
   "base": "14883a946125c7922f21ad8753b09549d3c69bb8",
   "original_source": "13998cf87139330dd0406fed00acd148e045e6c4",
   "original_file": "tests/marketdata/test_readiness.py",
@@ -10,9 +10,14 @@
   "roles": [
     {
       "name": "test_open_market_store_prefers_existing_local_legacy_data",
-      "old_line": 14,
-      "current_line": 16,
-      "obligations": [
+      "status": "NOT_TRANSFERRED",
+      "canonical_api": null,
+      "contract_changes": [],
+      "assertions_preserved_semantically": null,
+      "original13998_line": 14,
+      "base118_line": 16,
+      "base118_assertion_list_matches_original13998": true,
+      "original13998_assertion_units": [
         {
           "kind": "assert",
           "expression": "assert legacy.read_bytes() == before"
@@ -42,17 +47,19 @@
           "expression": "pytest.raises(sqlite3.OperationalError, match='readonly')"
         }
       ],
-      "unchanged": true,
-      "status": "NOT_TRANSFERRED",
-      "canonical_api": null,
-      "contract_changes": [],
-      "assertions_preserved_semantically": null
+      "candidate_function_line": 27,
+      "candidate_function_ast_changed_from_base118": false
     },
     {
       "name": "test_historical_reader_sees_committed_wal_rows_without_checkpoint",
-      "old_line": 33,
-      "current_line": 38,
-      "obligations": [
+      "status": "NOT_TRANSFERRED",
+      "canonical_api": null,
+      "contract_changes": [],
+      "assertions_preserved_semantically": null,
+      "original13998_line": 33,
+      "base118_line": 38,
+      "base118_assertion_list_matches_original13998": true,
+      "original13998_assertion_units": [
         {
           "kind": "assert",
           "expression": "assert writer.execute('PRAGMA journal_mode=WAL').fetchone()[0] == 'wal'"
@@ -74,17 +81,24 @@
           "expression": "assert row_digest(opened.store.connection) == row_digest(writer)"
         }
       ],
-      "unchanged": true,
-      "status": "NOT_TRANSFERRED",
-      "canonical_api": null,
-      "contract_changes": [],
-      "assertions_preserved_semantically": null
+      "candidate_function_line": 49,
+      "candidate_function_ast_changed_from_base118": false
     },
     {
       "name": "test_open_market_store_refuses_creation_without_existing_history",
-      "old_line": 64,
-      "current_line": 72,
-      "obligations": [
+      "status": "CANONICAL_EXISTING_API_TRANSFER_CANDIDATE",
+      "canonical_api": "HistoricalMarketReader.open_snapshot",
+      "contract_changes": [
+        "retired implicit app bootstrap/GRID error -> existing explicit-source FileNotFound before sqlite open; no target creation"
+      ],
+      "assertions_preserved_semantically": [
+        "missing-source refusal",
+        "no bybit_1m.sqlite3 creation"
+      ],
+      "original13998_line": 64,
+      "base118_line": 72,
+      "base118_assertion_list_matches_original13998": true,
+      "original13998_assertion_units": [
         {
           "kind": "raises",
           "expression": "pytest.raises(RuntimeError, match='GRID_MARKET_STORE_REQUIRED')"
@@ -94,22 +108,21 @@
           "expression": "assert not (root / 'data' / 'bybit_1m.sqlite3').exists()"
         }
       ],
-      "unchanged": true,
-      "status": "CANONICAL_EXISTING_API_TRANSFER_CANDIDATE",
-      "canonical_api": "HistoricalMarketReader.open_snapshot",
-      "contract_changes": [
-        "retired implicit app bootstrap/GRID error -> existing explicit-source FileNotFound before sqlite open; no target creation"
-      ],
-      "assertions_preserved_semantically": [
-        "missing-source refusal",
-        "no bybit_1m.sqlite3 creation"
-      ]
+      "candidate_function_line": 83,
+      "candidate_function_ast_changed_from_base118": true
     },
     {
       "name": "test_ensure_history_refuses_legacy_writer_without_fetch_or_mutation",
-      "old_line": 71,
-      "current_line": 82,
-      "obligations": [
+      "status": "PARTIAL_DATA_READONLY_REGRESSION_ORIGINAL_FULL_ROLE_RETAINED",
+      "canonical_api": null,
+      "contract_changes": [
+        "new empty-snapshot negative covers nofetch/nochanges/count0 only; bulk len1/repair-state/GRID message remain original unchanged"
+      ],
+      "assertions_preserved_semantically": null,
+      "original13998_line": 71,
+      "base118_line": 82,
+      "base118_assertion_list_matches_original13998": true,
+      "original13998_assertion_units": [
         {
           "kind": "assert",
           "expression": "assert len(result) == 1"
@@ -131,19 +144,25 @@
           "expression": "assert opened.store.coverage('BTCUSDT', 'candles', '1m').count == 0"
         }
       ],
-      "unchanged": true,
-      "status": "PARTIAL_DATA_READONLY_REGRESSION_ORIGINAL_FULL_ROLE_RETAINED",
-      "canonical_api": null,
-      "contract_changes": [
-        "new empty-snapshot negative covers nofetch/nochanges/count0 only; bulk len1/repair-state/GRID message remain original unchanged"
-      ],
-      "assertions_preserved_semantically": null
+      "candidate_function_line": 94,
+      "candidate_function_ast_changed_from_base118": false
     },
     {
       "name": "test_existing_candles_not_promoted_to_source_attested",
-      "old_line": 96,
-      "current_line": 110,
-      "obligations": [
+      "status": "CANONICAL_EXISTING_API_TRANSFER_CANDIDATE",
+      "canonical_api": "HistoricalMarketReader.open_snapshot + assess_declared_history_range",
+      "contract_changes": [
+        "retired SyncState.REPAIR_REQUIRED -> NOT_EVALUATED readiness plus UNKNOWN coverage/source/PIT and falseauthority; no repair scheduling asserted"
+      ],
+      "assertions_preserved_semantically": [
+        "no source-attested readiness from one local row",
+        "connection.total_changes unchanged",
+        "coverage.count remains1"
+      ],
+      "original13998_line": 96,
+      "base118_line": 110,
+      "base118_assertion_list_matches_original13998": true,
+      "original13998_assertion_units": [
         {
           "kind": "assert",
           "expression": "assert result[0].state is SyncState.REPAIR_REQUIRED"
@@ -157,17 +176,8 @@
           "expression": "assert opened.store.coverage('BTCUSDT', 'candles', '1m').count == 1"
         }
       ],
-      "unchanged": true,
-      "status": "CANONICAL_EXISTING_API_TRANSFER_CANDIDATE",
-      "canonical_api": "HistoricalMarketReader.open_snapshot + assess_declared_history_range",
-      "contract_changes": [
-        "retired SyncState.REPAIR_REQUIRED -> NOT_EVALUATED readiness plus UNKNOWN coverage/source/PIT and falseauthority; no repair scheduling asserted"
-      ],
-      "assertions_preserved_semantically": [
-        "no source-attested readiness from one local row",
-        "connection.total_changes unchanged",
-        "coverage.count remains1"
-      ]
+      "candidate_function_line": 122,
+      "candidate_function_ast_changed_from_base118": true
     }
   ],
   "new_partial_node": "tests/marketdata/test_readiness.py::test_frozen_empty_history_inspection_is_unqualified_without_fetch_or_mutation",
@@ -192,5 +202,13 @@
   "scope": "FROZEN_PRIVATE_SQLITE_ONLY_NO_COMMITTED_WAL_OR_IMPLICIT_REPAIR",
   "execution": "fresh -I-S-B-X, denied child/socket/ctypes, SQLite connections only private temp fixtures",
   "qualification": "EXACT_FINAL_HEAD_FULL_SOURCE_ARTIFACT_RUNS_REQUIRED",
-  "release_status": "NO_GO"
+  "release_status": "NO_GO",
+  "provenance_field_definitions": {
+    "original13998_line": "function coordinates in original13998 testfile",
+    "base118_line": "function coordinates in base14883a9 BEFOREthistransfer",
+    "base118_assertion_list_matches_original13998": "originalassertion/refusal-list equality againstbase118 ONLY; never claims currentfunctionAST unchanged",
+    "candidate_function_line": "coordinates in candidate testfile (metadata-only commit doesnotchange these)",
+    "candidate_function_ast_changed_from_base118": "actualcompletefunctionAST comparison; roles3/5 true, held1/2/4 false",
+    "original13998_assertion_units": "retainedoriginalexpressions as provenance, not assertionsclaimedbyteidenticalafterretarget"
+  }
 }
