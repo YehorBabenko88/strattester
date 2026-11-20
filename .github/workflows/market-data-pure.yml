@@ -69,7 +69,10 @@ jobs:
           proof=pathlib.Path(os.environ['RUNNER_TEMP'])/'canonical-data-package-proof.json'
           if proof.exists(): raise RuntimeError('fresh package proof required')
           proof.write_text(json.dumps(evidence,sort_keys=True,indent=2))
-          run('-I','-B',root/'scripts/run_canonical_tests.py','--site',evidence['artifact_site'],'--bindings',proof,'--evidence',pathlib.Path(os.environ['RUNNER_TEMP'])/'canonical-data-tests.json',cwd=pathlib.Path(os.environ['RUNNER_TEMP']))
+          import runpy,sysconfig
+          cache_api=runpy.run_path(str(root/'scripts/sdk_cache_custody.py'))
+          with cache_api['fresh_sdk_cache'](source_roots=(root,)) as cache:
+              run('-I','-S','-B','-X','pycache_prefix='+str(cache),root/'scripts/run_canonical_tests.py','--cache-root',cache,'--dependencies',sysconfig.get_path('purelib'),'--site',evidence['artifact_site'],'--bindings',proof,'--evidence',pathlib.Path(os.environ['RUNNER_TEMP'])/'canonical-data-tests.json',cwd=pathlib.Path(os.environ['RUNNER_TEMP']))
           print('PURE_OFFLINE_ONLY=PASS; NATIVE_LIVE_ORIGINAL_DATA=NOT_QUALIFIED')
 
       - name: Preserve canonical source and exact case evidence
