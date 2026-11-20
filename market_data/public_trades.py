@@ -9,7 +9,8 @@ MAX_FRAME_BYTES=1024*1024
 MAX_BATCH_TRADES=1024
 U63=2**63-1
 
-def _decimal(value):
+def _decimal(value,*,allow_zero=False):
+    if type(allow_zero) is not bool:raise ValueError('strict scalar codec policy required')
     if type(value) not in (Decimal,str,int):raise ValueError('exact decimal value required')
     if type(value) is not Decimal:
         text=str(value)
@@ -19,7 +20,7 @@ def _decimal(value):
         if len(exponent)==2 and not -4096<=int(exponent[1])<=4096:
             raise ValueError('invalid exact public numeric exponent')
         value=Decimal(text)
-    if (not value.is_finite() or value<=0 or len(value.as_tuple().digits)>160
+    if (not value.is_finite() or value<0 or (value==0 and not allow_zero) or len(value.as_tuple().digits)>160
             or not -4096<=value.as_tuple().exponent<=4096
             or value.as_tuple().exponent+len(value.as_tuple().digits)-1>4096):
         raise ValueError('invalid exact public numeric')

@@ -1,4 +1,5 @@
 import asyncio,time,aiohttp
+from .timestamp_codec import utc_from_epoch_milliseconds,epoch_milliseconds_from_utc
 
 async def seed_backfill(pool,symbols,timeframe="1"):
     async with pool.acquire() as c:
@@ -192,12 +193,20 @@ async def fetch_funding_page(base_url,symbol,start_ms=None,end_ms=None,limit=200
 
 
 async def store_kline_page(pool,symbol,rows):
+    if type(rows) not in (list,tuple) or len(rows)>1000:raise ValueError("bounded kline page required")
     if not rows:return None
-    from datetime import datetime,timezone
+    from .public_trades import _decimal
+    from market_math import candle_ohlcv_valid
+    if type(symbol) is not str or not 1<=len(symbol)<=64 or not symbol.isascii() or not symbol.isalnum():raise ValueError("explicit bounded kline symbol required")
     parsed=[]
     for r in rows:
-        ts=datetime.fromtimestamp(int(r[0])/1000,timezone.utc)
-        parsed.append((symbol,ts,r[1],r[2],r[3],r[4],r[5],r[6] if len(r)>6 else None))
+        if type(r) not in (list,tuple) or not 6<=len(r)<=7:raise ValueError("bounded kline row required")
+        ts=utc_from_epoch_milliseconds(r[0])
+        values=tuple(_decimal(r[i],allow_zero=(i==5)) for i in range(1,6))
+        if candle_ohlcv_valid(*values) is not True:raise ValueError("Math OHLCV integrity refused")
+        turnover=_decimal(r[6],allow_zero=True) if len(r)>6 and r[6] is not None else None
+        parsed.append((symbol,ts,*values,turnover))
+    parsed=tuple(parsed)  # Detached immutable SQL batch before ANY pool/transaction await.
     async with pool.acquire() as c:
         async with c.transaction():
             await c.executemany("""INSERT INTO ohlcv_1m(symbol,ts,open,high,low,close,volume,turnover)
@@ -218,7 +227,7 @@ async def backfill_symbol(pool,base_url,state,max_pages=50,pause=.08):
             break
         lo,hi=await store_kline_page(pool,symbol,rows)
         oldest=lo if oldest is None else min(oldest,lo);newest=hi if newest is None else max(newest,hi)
-        lo_ms=int(lo.timestamp()*1000)
+        lo_ms=epoch_milliseconds_from_utc(lo)
         next_end=lo_ms-1
         if launch_ms and lo_ms<=launch_ms:
             complete=True;end_ms=next_end;break

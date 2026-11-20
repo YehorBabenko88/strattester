@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 
 from .bybit_archive_audit import ArchiveAudit
-from market_math import decimal_epoch_units
+from .timestamp_codec import epoch_milliseconds_from_utc
 
 
 @dataclass(frozen=True)
@@ -24,8 +24,8 @@ def utc_day_boundary(day: date) -> DayBoundary:
         raise TypeError("day must be a date")
     start = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
     end = start + timedelta(days=1)
-    return DayBoundary(day, decimal_epoch_units(str(start.timestamp()), 3),
-                       decimal_epoch_units(str(end.timestamp()), 3))
+    return DayBoundary(day, epoch_milliseconds_from_utc(start),
+                       epoch_milliseconds_from_utc(end))
 
 
 def validate_day_audit(audit: ArchiveAudit, day: date) -> None:

@@ -1,0 +1,36 @@
+{
+  "schema": "market_data.exact-metadata-storage-plan.v1",
+  "execution_status": "NOT_EXECUTED",
+  "source_ddl": {
+    "revision": "c9ffdaa2af52c4d55871a48655a77a0c669da80f",
+    "instrument_path": "grid/instrument_lifecycle.py",
+    "instrument_blob": "dd59f3fe5c9abe0ce2c5540724ab6344cdf9ef28",
+    "tick_type": "numeric (no declared precision/scale)",
+    "ohlcv_path": "grid/migrations.py",
+    "ohlcv_blob": "51be4e432109d640c5c09f576d0e0c71f60ba49c",
+    "ohlcv_numeric_types": "open/high/low/close/volume/turnover numeric without typmod",
+    "timestamp_type": "timestamptz (default microsecond precision)"
+  },
+  "actual_destination": {
+    "catalog_precision": "UNKNOWN",
+    "driver_roundtrip": "NOT_RUN",
+    "legacy_numeric_fidelity": "UNKNOWN",
+    "point_in_time_availability": "UNKNOWN"
+  },
+  "admission_before_any_write": [
+    "Independently inspect actual schema/column typmods/permissions under approved DB workflow",
+    "Reject constrained/truncating tick or OHLCV numeric storage and submillisecond timestamp precision",
+    "Verify exact Decimal19dp/tiny quantity/year9999 timestamp roundtrip before adoption",
+    "Require source/destination row/hash/clock receipts; no auto adopting old rows"
+  ],
+  "if_narrow_schema": {
+    "strategy": "Explicit reviewed fresh versioned instrument/exact-history schema, not silent ALTER/adoption",
+    "source_requirement": "Original hash-bound raw metadata/history bytes or admitted current metadata refetch",
+    "refetch_limit": "Current refetch is NOT a historical tick or PIT reconstruction",
+    "missing_original": "Rounded old numeric row alone cannot recover discarded digits: precision UNKNOWN and retain old source",
+    "rollback": "Select prior release/schema; retain both namespaces and WAL/receipts; no destructive cleanup"
+  },
+  "automatic_ddl": false,
+  "user_db_touched": false,
+  "old_rows_rewritten": false
+}

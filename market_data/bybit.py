@@ -8,6 +8,8 @@ from urllib.parse import urlsplit
 
 import aiohttp
 
+from .public_trades import _decimal,decimal_text
+
 log=logging.getLogger("bybit")
 
 _RETRYABLE_STATUS={408,425,429,500,502,503,504}
@@ -155,13 +157,13 @@ async def linear_symbols(base_url: str, *, max_attempts: int = 8):
         for x in page.items:
             try:
                 if x.get("status")=="Trading" and x.get("contractType") in ("LinearPerpetual","LinearFutures"):
-                    tick=float(x["priceFilter"]["tickSize"])
-                    if not 0<tick<float("inf"):
-                        raise ValueError("nonfinite or nonpositive tick")
+                    tick=decimal_text(_decimal(x["priceFilter"]["tickSize"]))
                     symbol=x["symbol"]
                     if type(symbol) is not str or not symbol or not symbol.isascii():
                         raise ValueError("invalid symbol")
-                    out.append({"symbol":symbol,"tick_size":tick,
+                    out.append({"schema":"market_data.linear-instrument.v1",
+                                "symbol":symbol,"tick_size":tick,
+                                "tick_size_encoding":"CANONICAL_EXACT_DECIMAL",
                                 "contract_type":x.get("contractType"),
                                 "status":x.get("status"),
                                 "settle_coin":x.get("settleCoin"),
