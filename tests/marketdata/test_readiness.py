@@ -2,8 +2,10 @@ from pathlib import Path
 from hashlib import sha256
 import sqlite3
 import pytest
-from strattester.marketdata.readiness import open_market_store,ensure_history,requirements_for_instrument,dataset_capabilities
-from strattester.marketdata.sync_engine import DataRequirement,SyncState
+from market_data.history_planning import declare_history_instrument,declared_dataset_requests,plan_history_requests
+
+def _planned(instrument,*,end_ms):
+    return plan_history_requests(declare_history_instrument(instrument),end_ms=end_ms).requests
 
 def _legacy(path):
     c=sqlite3.connect(path)
@@ -12,6 +14,9 @@ def _legacy(path):
     c.commit(); c.close()
 
 def test_open_market_store_prefers_existing_local_legacy_data(tmp_path):
+    # Retained unmigrated DB role: imports remain local, assertions unchanged.
+    from strattester.marketdata.readiness import open_market_store,ensure_history
+    from strattester.marketdata.sync_engine import DataRequirement,SyncState
     root=tmp_path/'app'; root.mkdir()
     legacy=tmp_path/'legacy.db'; _legacy(legacy)
     before=legacy.read_bytes()
@@ -31,6 +36,9 @@ def test_open_market_store_prefers_existing_local_legacy_data(tmp_path):
 
 
 def test_historical_reader_sees_committed_wal_rows_without_checkpoint(tmp_path):
+    # Retained unmigrated DB role: imports remain local, assertions unchanged.
+    from strattester.marketdata.readiness import open_market_store,ensure_history
+    from strattester.marketdata.sync_engine import DataRequirement,SyncState
     root = tmp_path / 'app'
     root.mkdir()
     legacy = tmp_path / 'legacy #1.sqlite3'
@@ -62,6 +70,9 @@ def test_historical_reader_sees_committed_wal_rows_without_checkpoint(tmp_path):
         writer.close()
 
 def test_open_market_store_refuses_creation_without_existing_history(tmp_path):
+    # Retained unmigrated DB role: imports remain local, assertions unchanged.
+    from strattester.marketdata.readiness import open_market_store,ensure_history
+    from strattester.marketdata.sync_engine import DataRequirement,SyncState
     import pytest
     root=tmp_path/'app'; root.mkdir()
     with pytest.raises(RuntimeError,match='GRID_MARKET_STORE_REQUIRED'):
@@ -69,6 +80,9 @@ def test_open_market_store_refuses_creation_without_existing_history(tmp_path):
     assert not (root/'data'/'bybit_1m.sqlite3').exists()
 
 def test_ensure_history_refuses_legacy_writer_without_fetch_or_mutation(tmp_path):
+    # Retained unmigrated DB role: imports remain local, assertions unchanged.
+    from strattester.marketdata.readiness import open_market_store,ensure_history
+    from strattester.marketdata.sync_engine import DataRequirement,SyncState
     root = tmp_path / 'app'
     root.mkdir()
     # Existing historical fixture is deliberately created by the TEST only.
@@ -94,6 +108,9 @@ def test_ensure_history_refuses_legacy_writer_without_fetch_or_mutation(tmp_path
 
 
 def test_existing_candles_not_promoted_to_source_attested(tmp_path):
+    # Retained unmigrated DB role: imports remain local, assertions unchanged.
+    from strattester.marketdata.readiness import open_market_store,ensure_history
+    from strattester.marketdata.sync_engine import DataRequirement,SyncState
     from strattester.marketdata.sqlite_store import Candle
     root = tmp_path / 'app'
     root.mkdir()
@@ -123,8 +140,8 @@ def test_existing_candles_not_promoted_to_source_attested(tmp_path):
 def test_requirements_skip_explicitly_unsupported_optional_datasets():
     instrument={"symbol":"NEWUSDT","launchTime":"60000","fundingInterval":None,
                 "supportsOpenInterest":False,"supportsFunding":False,"supportsLongShortRatio":False}
-    caps=dataset_capabilities(instrument)
-    req=requirements_for_instrument(instrument,end_ms=600000)
+    caps=declared_dataset_requests(declare_history_instrument(instrument))
+    req=_planned(instrument,end_ms=600000)
     datasets={x.dataset for x in req}
     assert datasets=={"candles","mark_price","index_price","premium_index"}
     assert "open_interest" not in caps and "funding" not in caps
@@ -132,14 +149,14 @@ def test_requirements_skip_explicitly_unsupported_optional_datasets():
 def test_supported_optional_datasets_remain_required():
     instrument={"symbol":"BTCUSDT","launchTime":"0","fundingInterval":"480",
                 "supportsOpenInterest":True,"supportsFunding":True,"supportsLongShortRatio":True}
-    assert {x.dataset for x in requirements_for_instrument(instrument,end_ms=600000)}=={
+    assert {x.dataset for x in _planned(instrument,end_ms=600000)}=={
         "candles","mark_price","index_price","premium_index","open_interest","funding","long_short_ratio"}
 
 
 def test_requirements_stop_at_delisting_boundary():
     instrument={"symbol":"OLDUSDT","launchTime":"60000","deliveryTime":"600000",
                 "fundingInterval":"480","supportsOpenInterest":True,"supportsFunding":True}
-    req=requirements_for_instrument(instrument,end_ms=900000)
+    req=_planned(instrument,end_ms=900000)
     by={x.dataset:x for x in req}
     assert by['candles'].start_ms==60000 and by['candles'].end_ms==600000
     assert by['open_interest'].start_ms==300000 and by['open_interest'].end_ms==600000
@@ -147,11 +164,11 @@ def test_requirements_stop_at_delisting_boundary():
 
 def test_requirements_empty_before_instrument_launch():
     instrument={"symbol":"NEWUSDT","launchTime":"600000","fundingInterval":"480"}
-    assert requirements_for_instrument(instrument,end_ms=300000)==()
+    assert _planned(instrument,end_ms=300000)==()
 
 def test_zero_delivery_time_does_not_truncate_perpetual_instrument():
     instrument={"symbol":"BTCUSDT","launchTime":"0","deliveryTime":"0","fundingInterval":"480"}
-    req=requirements_for_instrument(instrument,end_ms=900000)
+    req=_planned(instrument,end_ms=900000)
     by={x.dataset:x for x in req}
     assert by['candles'].end_ms==900000
     assert by['open_interest'].end_ms==900000
@@ -162,7 +179,7 @@ def test_dataset_windows_align_to_their_own_sampling_grid():
     instrument={"symbol":"XUSDT","launchTime":"61000","deliveryTime":"899999",
                 "fundingInterval":"8","supportsOpenInterest":True,"supportsFunding":True,
                 "supportsLongShortRatio":True}
-    req={x.dataset:x for x in requirements_for_instrument(instrument,end_ms=999999)}
+    req={x.dataset:x for x in _planned(instrument,end_ms=999999)}
     assert req['candles'].start_ms==120000 and req['candles'].end_ms==840000
     assert req['open_interest'].start_ms==300000 and req['open_interest'].end_ms==600000
     assert req['long_short_ratio'].start_ms==300000 and req['long_short_ratio'].end_ms==600000

@@ -2,7 +2,7 @@
 from pathlib import Path
 import hashlib,json,subprocess,sys
 
-SOURCES={'unified-terminan':'75a906d36574bfdc19acd966e79a6c168dc71ad4','unified-math-kernels':'a5868944bf1bae813403a32b22d329c1da6f8238'}
+SOURCES={'unified-terminan':'75a906d36574bfdc19acd966e79a6c168dc71ad4','unified-math-kernels':'e352b98ff619064a9affba35bc9ad08e1ec7fe5b'}
 
 def build_manifest(terminan,math):
     modules={}
