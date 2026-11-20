@@ -12,6 +12,7 @@ import hashlib
 from pathlib import Path
 
 from .archive_resume import ResumeState, resume_headers
+from .archive_file_lock import guard_archive_destination
 
 
 @dataclass(frozen=True)
@@ -32,7 +33,7 @@ def _sha256(path: Path) -> str:
 
 
 def partial_paths(destination: str | Path) -> tuple[Path, Path]:
-    dest = Path(destination)
+    dest = guard_archive_destination(destination)
     return (dest.with_name(dest.name + ".partial"),
             dest.with_name(dest.name + ".partial.json"))
 

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import os
+from .archive_file_lock import guard_archive_destination
 
 from .archive_partial_state import (
     discard_partial, partial_paths, read_partial, save_partial,
@@ -22,7 +23,7 @@ async def download_resumable(session, url: str, destination: str | Path, *,
     if (type(max_bytes) is not int or not 1 <= max_bytes <= 2_000_000_000
             or type(chunk_bytes) is not int or not 1 <= chunk_bytes <= 1_048_576):
         raise ValueError("invalid download limits")
-    destination = Path(destination)
+    destination = guard_archive_destination(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     partial, sidecar = partial_paths(destination)
     state = read_partial(destination, url, max_bytes=max_bytes)

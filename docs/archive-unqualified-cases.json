@@ -1,10 +1,10 @@
 {
   "source_commit": "b1a4d6a41054f0040a88dc80b585380fb6b4f323",
-  "status": "NOT_RUN_UNQUALIFIED",
+  "status": "PARTIAL_PURE_QUALIFICATION_NOT_NATIVE",
   "sources": [
     {
       "source": "tests/test_archive_file_lock.py",
-      "reason": "Pending destination-lock audit; process cases forbidden locally",
+      "reason": "Four original orchestration/cancellation cases passed with inert_lock backend; real cross-process lock excluded from pure local run",
       "cases": [
         "test_async_lock_serializes_tasks",
         "test_lock_timeout_across_processes",
@@ -12,6 +12,17 @@
         "test_waiting_process_acquires_lock_after_release",
         "test_cancelled_thread_read_keeps_lock_until_competing_writer",
         "test_repeated_cancellation_does_not_release_lock_early"
+      ],
+      "status": "PARTIAL_PURE_ONLY",
+      "qualified_cases": [
+        "test_async_lock_serializes_tasks",
+        "test_cancelled_waiter_does_not_hold_lock",
+        "test_cancelled_thread_read_keeps_lock_until_competing_writer",
+        "test_repeated_cancellation_does_not_release_lock_early"
+      ],
+      "unqualified_cases": [
+        "test_lock_timeout_across_processes",
+        "test_waiting_process_acquires_lock_after_release"
       ]
     },
     {
@@ -23,46 +34,50 @@
     },
     {
       "source": "tests/test_bybit_archive_audit.py",
-      "reason": "Audit/ingestion canonical timestamp helper or source integration pending",
+      "reason": "Canonical Math epoch conversion and strict content fixture parity",
       "cases": [
         "test_valid_archive_is_not_assumed_complete",
         "test_invalid_and_out_of_order_rows",
         "test_corrupt_and_empty_archive"
-      ]
+      ],
+      "status": "PASS_PURE_FIXTURE"
     },
     {
       "source": "tests/test_archive_csv_profile.py",
-      "reason": "Audit/ingestion canonical timestamp helper or source integration pending",
+      "reason": "Canonical Math epoch conversion and strict content fixture parity",
       "cases": [
         "test_archive_csv_strict_profile",
         "test_timestamp_milliseconds_never_round_across_boundary",
         "test_audit_rejects_invalid_resource_budget_before_opening_file",
         "test_archive_rejects_unterminated_quoted_csv_field",
         "test_archive_extreme_tiny_timestamp_does_not_allocate_huge_power"
-      ]
+      ],
+      "status": "PASS_PURE_FIXTURE"
     },
     {
       "source": "tests/test_archive_decompression_budget.py",
-      "reason": "Audit/ingestion canonical timestamp helper or source integration pending",
+      "reason": "Canonical Math epoch conversion and strict content fixture parity",
       "cases": [
         "test_decompression_budget_rejects_large_csv_header",
         "test_decompression_budget_rejects_large_row",
         "test_exact_decompression_budget_allows_valid_csv"
-      ]
+      ],
+      "status": "PASS_PURE_FIXTURE"
     },
     {
       "source": "tests/test_archive_day_boundary.py",
-      "reason": "Audit/ingestion canonical timestamp helper or source integration pending",
+      "reason": "Canonical Math epoch conversion and strict content fixture parity",
       "cases": [
         "test_utc_day_boundary_is_half_open",
         "test_valid_endpoints_are_inside_day",
         "test_out_of_day_endpoints_rejected",
         "test_invalid_audit_rejected"
-      ]
+      ],
+      "status": "PASS_PURE_FIXTURE"
     },
     {
       "source": "tests/test_archive_ingestion.py",
-      "reason": "Audit/ingestion canonical timestamp helper or source integration pending",
+      "reason": "Canonical content/receipt orchestration qualified only with injected transport and inert native lock backend",
       "cases": [
         "test_cached_receipt_skips_network_and_detects_tampering",
         "test_invalid_archive_never_receives_audit_receipt",
@@ -78,30 +93,34 @@
         "test_noncanonical_receipt_digest_forces_reaudit",
         "test_out_of_range_first_timestamp_receipt_forces_reaudit",
         "test_cached_receipt_rejects_endpoints_outside_requested_day"
-      ]
+      ],
+      "status": "PASS_PURE_FIXTURE"
     },
     {
       "source": "tests/test_archive_ingestion_concurrency.py",
-      "reason": "Audit/ingestion canonical timestamp helper or source integration pending",
+      "reason": "Canonical content/receipt orchestration qualified only with injected transport and inert native lock backend",
       "cases": [
         "test_parallel_ingestion_rejects_duplicate_destinations",
         "test_parallel_ingestion_detects_alias_destinations"
-      ]
+      ],
+      "status": "PASS_PURE_FIXTURE"
     },
     {
       "source": "tests/test_archive_ingestion_day.py",
-      "reason": "Audit/ingestion canonical timestamp helper or source integration pending",
+      "reason": "Canonical content/receipt orchestration qualified only with injected transport and inert native lock backend",
       "cases": [
         "test_day_validation_and_day_bound_cache",
         "test_out_of_day_archive_never_writes_receipt"
-      ]
+      ],
+      "status": "PASS_PURE_FIXTURE"
     },
     {
       "source": "tests/test_archive_ingestion_resume.py",
-      "reason": "Audit/ingestion canonical timestamp helper or source integration pending",
+      "reason": "Canonical content/receipt orchestration qualified only with injected transport and inert native lock backend",
       "cases": [
         "test_opt_in_resume_uses_audited_ingestion"
-      ]
+      ],
+      "status": "PASS_PURE_FIXTURE"
     },
     {
       "source": "tests/test_trade_archive.py",

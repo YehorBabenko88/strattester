@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 import os
+from .archive_file_lock import guard_archive_destination
 from urllib.parse import urlparse, unquote
 
 from .history_parallel import bounded_map
@@ -43,7 +44,7 @@ async def download_archive(session, url: str, destination: str | Path,
     if (type(max_bytes) is not int or not 1 <= max_bytes <= 2_000_000_000
             or type(chunk_bytes) is not int or not 1 <= chunk_bytes <= 1_048_576):
         raise ValueError("invalid download limits")
-    destination = Path(destination)
+    destination = guard_archive_destination(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     partial = destination.with_name(destination.name + ".partial")
     try:
