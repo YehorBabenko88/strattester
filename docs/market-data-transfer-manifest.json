@@ -1,0 +1,118 @@
+{
+  "source_sha": "c9ffdaa2af52c4d55871a48655a77a0c669da80f",
+  "canonical_repo_base": "13998cf87139330dd0406fed00acd148e045e6c4",
+  "files": [
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/__init__.py",
+      "to": "market_data/__init__.py",
+      "original_sha256": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
+      "canonical_sha256": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
+      "transform": "namespace-only; algorithm unchanged"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/bybit.py",
+      "to": "market_data/bybit.py",
+      "original_sha256": "c31f14fe4c7867ce2832e56ecd64a249565afdcb0cc4f8ffaceff748d97765ac",
+      "canonical_sha256": "c31f14fe4c7867ce2832e56ecd64a249565afdcb0cc4f8ffaceff748d97765ac",
+      "transform": "namespace-only; algorithm unchanged"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/data_capabilities.py",
+      "to": "market_data/data_capabilities.py",
+      "original_sha256": "1a03d544d0c7ab3186955965291ae60abd506eec13130b19bac90f75698bcfca",
+      "canonical_sha256": "1a03d544d0c7ab3186955965291ae60abd506eec13130b19bac90f75698bcfca",
+      "transform": "namespace-only; algorithm unchanged"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/history_export.py",
+      "to": "market_data/history_export.py",
+      "original_sha256": "0190637d181ef6c91cdf4e7296f3d50a24bb896185ffef5c3c1f1c4fca957fa0",
+      "canonical_sha256": "f3f4c994dd4ef3bb58d80fe5fd76f2f95c6353ff13861238e9571a4112db5cc0",
+      "transform": "namespace-only; algorithm unchanged; quantitative arithmetic/validation delegated to canonical Math"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/history_export_v11.py",
+      "to": "market_data/history_export_v11.py",
+      "original_sha256": "613281803ac47da73546024a3d8ff69ebae4917aca26c90da6bcae72664e1438",
+      "canonical_sha256": "56f2c9726dfd2061100bd8ec6c25f079293aeb261e4bb9871198cf497eb5ae77",
+      "transform": "namespace-only; algorithm unchanged"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/history_snapshot.py",
+      "to": "market_data/history_snapshot.py",
+      "original_sha256": "f0aaae68f8c72c5a1365f26121d673181144dc4232d8305a071d5b63771b48a7",
+      "canonical_sha256": "58647d7112c924bc5ae301002ee795a1b786d31dcf764dfaa41b75e522c4c6ef",
+      "transform": "namespace-only; algorithm unchanged; quantitative arithmetic/validation delegated to canonical Math"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/market_backfill.py",
+      "to": "market_data/market_backfill.py",
+      "original_sha256": "5c9b19ed7162fcf3494bd0e791e3c59ae4d6afe39ce34d11777c5319cd248db1",
+      "canonical_sha256": "c213d6f4131e52e795c468b4f5d79e44eb42c62fb8a1854200b30bb5d0e07726",
+      "transform": "namespace migration plus reproduced empty-page UNKNOWN-coverage fix"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/provenance.py",
+      "to": "market_data/provenance.py",
+      "original_sha256": "a598d148b797244d21ab090af3f2abc8a2aaa84c789d45bb4780245d763458da",
+      "canonical_sha256": "644f3da2ba3179b475bb7ecd516be0eb10268d07b94b70ac35b15d28de728033",
+      "transform": "namespace-only; algorithm unchanged; quantitative arithmetic/validation delegated to canonical Math"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/provenance_gateway.py",
+      "to": "market_data/provenance_gateway.py",
+      "original_sha256": "bedba05dcdf6d6fb5c9a4644f51fe03ee67e23b3edb7b2e0fe405ca2c4cb4399",
+      "canonical_sha256": "9cdd43a86b49dd07882ae913f11b16b435f489091173b0861c0891b61c3f59e5",
+      "transform": "namespace-only; algorithm unchanged"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/research_handoff.py",
+      "to": "market_data/research_handoff.py",
+      "original_sha256": "bc0fe27e11159ddee66d0a4ea564e4d89f0e145fd989ceaa2c7b7e29ce96a65c",
+      "canonical_sha256": "71bffbcadb6e2a3e05d30de22d4f23d3b50e7bce3842ec5198acd305946a5da1",
+      "transform": "canonical terminan producer and namespace; new records only"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/terminan_gateway.py",
+      "to": "market_data/terminan_gateway.py",
+      "original_sha256": "6c505af0e642bd58100632a131bac2659bc9433c7831cd633ff44bb4ec59529a",
+      "canonical_sha256": "c4c89cfb6bec677f763dea32e3f1c9b7a6ad69ad6d5a0dd650895e194784b6b9",
+      "transform": "namespace and producer migration plus managed callback/Bearer health gate"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/raw_capture.py",
+      "to": "market_data/raw_capture.py",
+      "original_sha256": "089131b3ca3e01ee5ea3127ed56fdfc05dc0c17fa15e3557160b3f7a8da5fb87",
+      "canonical_sha256": "f4a11a07c867b3c3ac958cfe3f0f9031ab37e6dc6f7ae50d4f40955d84ecf954",
+      "transform": "namespace-only; algorithm unchanged"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/segment_wal.py",
+      "to": "market_data/segment_wal.py",
+      "original_sha256": "fa73d7c64943a4afa670c7150ff0db1fb99472d060d487c9af829bee702df1ab",
+      "canonical_sha256": "063c0e8e733c361ae2ce93468b3057e02c03d14855f7d913c487c4534ddc36fc",
+      "transform": "namespace-only; algorithm unchanged"
+    },
+    {
+      "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/write_queue.py",
+      "to": "market_data/write_queue.py",
+      "original_sha256": "d67f6b54448f5df8e34a363b3726d6b48bbbbd03107b2a602f0e37671e26064a",
+      "canonical_sha256": "d67f6b54448f5df8e34a363b3726d6b48bbbbd03107b2a602f0e37671e26064a",
+      "transform": "namespace-only; algorithm unchanged"
+    }
+  ],
+  "sql_schema": "schema.sql copied byte-normalized, no DDL executed; persistent schema names unmodified",
+  "math_sha": "fdc515473f495cdb0f0dcfdab23be286cc6b5efa",
+  "new_components": [
+    "admission.py",
+    "capture_store.py",
+    "collector.py",
+    "cli.py",
+    "numeric_dto.py (serialization/range guard; all arithmetic delegated)"
+  ],
+  "extracted_components": {
+    "sqlite_history.py": "Strattester sqlite_store read-only methods; schema/writers not copied",
+    "public_trades.py": "Grid complete-batch decoder and validator; analytics omitted",
+    "footprint_state.py": "Grid event lifecycle only; all arithmetic delegated to Math"
+  }
+}
