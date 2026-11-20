@@ -404,22 +404,22 @@
       "declared_functions": [
         {
           "name": "test_complete_active_history",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DATA_DECLARED_RANGE_AUDIT_WITH_CONSERVATIVE_COMPLETENESS_FIX",
           "proposed_owner": "market_data"
         },
         {
           "name": "test_unrecoverable_delisted_gap_is_partial",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DATA_DECLARED_RANGE_AUDIT_WITH_CONSERVATIVE_COMPLETENESS_FIX",
           "proposed_owner": "market_data"
         },
         {
           "name": "test_missing_mandatory_dataset_is_insufficient",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DATA_DECLARED_RANGE_AUDIT_WITH_CONSERVATIVE_COMPLETENESS_FIX",
           "proposed_owner": "market_data"
         },
         {
           "name": "test_history_before_listing_is_not_complete",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DATA_DECLARED_RANGE_AUDIT_WITH_CONSERVATIVE_COMPLETENESS_FIX",
           "proposed_owner": "market_data"
         }
       ],
@@ -615,7 +615,7 @@
       "declared_functions": [
         {
           "name": "test_instrument_history_plan_starts_at_launch_and_uses_dataset_cadence",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DECLARED_HISTORY_REQUEST_PLAN",
           "proposed_owner": "market_data"
         }
       ],
@@ -843,32 +843,32 @@
         },
         {
           "name": "test_requirements_skip_explicitly_unsupported_optional_datasets",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DECLARED_HISTORY_REQUEST_PLAN",
           "proposed_owner": "market_data"
         },
         {
           "name": "test_supported_optional_datasets_remain_required",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DECLARED_HISTORY_REQUEST_PLAN",
           "proposed_owner": "market_data"
         },
         {
           "name": "test_requirements_stop_at_delisting_boundary",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DECLARED_HISTORY_REQUEST_PLAN",
           "proposed_owner": "market_data"
         },
         {
           "name": "test_requirements_empty_before_instrument_launch",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DECLARED_HISTORY_REQUEST_PLAN",
           "proposed_owner": "market_data"
         },
         {
           "name": "test_zero_delivery_time_does_not_truncate_perpetual_instrument",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DECLARED_HISTORY_REQUEST_PLAN",
           "proposed_owner": "market_data"
         },
         {
           "name": "test_dataset_windows_align_to_their_own_sampling_grid",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_DECLARED_HISTORY_REQUEST_PLAN",
           "proposed_owner": "market_data"
         }
       ],
