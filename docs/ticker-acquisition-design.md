@@ -16,3 +16,5 @@ Safety differences from the historical mixed collector: public linear endpoint o
 Validation: 37 new scoped tests plus existing488 cases (525 total) source PASS before final artifact build. Tests use real temporary SegmentWAL and synthetic socket/fake sink only. No actual provider/network/Postgres/native process or hosted acceptance.
 
 Managed calls reuse admission.startup_identity. Current grant/identity is checked around recorder WAL/store boundaries, receives, consumer callback and prefix ACK. Revocation during WAL append prevents the underlying store; revocation during consumer callback retains all occurrence WAL and blocks state commit. Known cancellation with no uncertain pending effect records a durable cancelled disconnect; unknown raw/consumer outcome emits no extra retry/control write.
+
+Merged independently reviewed packet closed-map resource fix5bb26e2 (Data101). Combined source scope now534 PASS; original100000-key probe independently reduced from~4.2MiB to2077bytes transient allocation. Source wire/numeric/clock policy unchanged. Previous525 proof remains historical pre-fix scope, not final cohort qualification.
