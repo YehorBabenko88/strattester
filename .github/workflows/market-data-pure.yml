@@ -33,9 +33,20 @@ jobs:
         run: |
           import os, pathlib, subprocess, sys, tempfile
           root=pathlib.Path.cwd()
-          for source in (root/'market_data').glob('*'):
-              if source.suffix in ('.py','.sql'):
-                  source.write_bytes(source.read_bytes().replace(b'\r\n',b'\n'))
+          def committed_input(owner, source):
+              relative=source.relative_to(owner).as_posix()
+              committed=subprocess.check_output(['git','--no-replace-objects','-C',str(owner),'cat-file','blob','HEAD:'+relative])
+              working=source.read_bytes()
+              normalized=working.replace(b'\r\n',b'\n')
+              if working!=committed and (normalized!=committed or b'\r' in working.replace(b'\r\n',b'')):
+                  raise RuntimeError('build input differs from committed source')
+              source.write_bytes(committed)
+          for source in [root/'pyproject.toml',root/'MANIFEST.in',root/'README.md',*list((root/'market_data').glob('*.py')),*list((root/'market_data').glob('*.sql'))]:
+              committed_input(root,source)
+          math_root=root/'.source/math'
+          assert subprocess.check_output(['git','-C',str(math_root),'rev-parse','HEAD'],text=True).strip()=='fdc515473f495cdb0f0dcfdab23be286cc6b5efa'
+          for source in [math_root/'pyproject.toml',*list((math_root/'python').glob('*.py'))]:
+              committed_input(math_root,source)
           assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['MARKET_DATA_TEST_SHA']
           def run(*args, cwd=root):
               subprocess.run([sys.executable,*map(str,args)],cwd=cwd,check=True)
