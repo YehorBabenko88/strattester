@@ -9,30 +9,11 @@ from types import SimpleNamespace
 
 from .raw_capture import decode_observation
 from .public_trades import decode_execution_record,digest_json
+from .capture_read_model import CAPTURE_LAYOUT_SHA256,_SCHEMA_CHECK_SQL,_PAGE_SQL,page_request,decode_page
 
 
 _WRITER_LOCK = 0x4d44415441575231
-_SCHEMA = """
-CREATE TABLE IF NOT EXISTS market_data_capture_v2 (
-    observation_sha256 text PRIMARY KEY,
-    observation_bytes bytea NOT NULL,
-    payload_bytes bytea,
-    connection_id text NOT NULL,
-    observation_index bigint NOT NULL,
-    UNIQUE(connection_id, observation_index)
-)
-;
-CREATE TABLE IF NOT EXISTS market_data_execution_v1 (
-    event_key text PRIMARY KEY, symbol text NOT NULL, timestamp_us numeric(19,0) NOT NULL,
-    price text NOT NULL, quantity text NOT NULL, side text NOT NULL,
-    trade_id text NOT NULL, content_sha256 text NOT NULL
-);
-CREATE TABLE IF NOT EXISTS market_data_archive_checkpoint_v1 (
-    import_id text PRIMARY KEY, blob_sha256 text NOT NULL, committed_rows bigint NOT NULL,
-    last_observation_sha256 text NOT NULL, total_rows bigint NOT NULL,
-    last_timestamp_us text NOT NULL, last_trade_id text NOT NULL
-);
-"""
+
 
 
 class CaptureStore:
@@ -64,7 +45,9 @@ class CaptureStore:
                 cursor = await connection.execute('SELECT pg_try_advisory_lock(%s)', (_WRITER_LOCK,))
                 if (await cursor.fetchone())[0] is not True:
                     raise RuntimeError('market data writer already active')
-                await connection.execute(_SCHEMA)
+                cursor=await connection.execute(_SCHEMA_CHECK_SQL)
+                if await cursor.fetchone()!=(3,CAPTURE_LAYOUT_SHA256):
+                    raise ValueError('capture schema requires explicit qualified operator plan')
             cls._require_idle(connection)
             return cls(connection)
         except BaseException:
@@ -88,12 +71,12 @@ class CaptureStore:
             try:
                 async with self._connection.transaction():
                     await self._connection.execute(
-                        'INSERT INTO market_data_capture_v2 VALUES (%s,%s,%s,%s,%s) '
+                        'INSERT INTO public.market_data_capture_v3 (observation_sha256,observation_bytes,payload_bytes,connection_id,observation_index) VALUES (%s,%s,%s,%s,%s) '
                         'ON CONFLICT(observation_sha256) DO NOTHING',
                         (digest, observation_bytes, payload_bytes, observation['connection_id'],
                          int(observation['observation_index'])))
                     cursor = await self._connection.execute(
-                        'SELECT observation_bytes,payload_bytes FROM market_data_capture_v2 '
+                        'SELECT observation_bytes,payload_bytes FROM public.market_data_capture_v3 '
                         'WHERE observation_sha256=%s', (digest,))
                     row = await cursor.fetchone()
                     if row != (observation_bytes, payload_bytes):
@@ -129,7 +112,7 @@ class CaptureStore:
                 async with self._connection.transaction():
                     cursor=await self._connection.execute(
                         '/*archive:read_checkpoint*/ SELECT blob_sha256,committed_rows,last_observation_sha256,total_rows,last_timestamp_us,last_trade_id '
-                        'FROM market_data_archive_checkpoint_v1 WHERE import_id=%s', (import_id,))
+                        'FROM public.market_data_archive_checkpoint_v2 WHERE import_id=%s', (import_id,))
                     row=await cursor.fetchone()
                 self._require_idle(self._connection)
                 if row is None:return None
@@ -163,10 +146,10 @@ class CaptureStore:
                 async with self._connection.transaction():
                     cursor=await self._connection.execute(
                         '/*archive:read_checkpoint*/ SELECT blob_sha256,committed_rows,last_observation_sha256,total_rows,last_timestamp_us,last_trade_id '
-                        'FROM market_data_archive_checkpoint_v1 WHERE import_id=%s FOR UPDATE',(identity,))
+                        'FROM public.market_data_archive_checkpoint_v2 WHERE import_id=%s FOR UPDATE',(identity,))
                     checkpoint=await cursor.fetchone()
                     cursor=await self._connection.execute(
-                        '/*archive:read_observation*/ SELECT observation_bytes,payload_bytes FROM market_data_capture_v2 WHERE observation_sha256=%s',(digest,))
+                        '/*archive:read_observation*/ SELECT observation_bytes,payload_bytes FROM public.market_data_capture_v3 WHERE observation_sha256=%s',(digest,))
                     prior=await cursor.fetchone()
                     replay=prior is not None
                     if replay:
@@ -182,23 +165,23 @@ class CaptureStore:
                         values=(event['delivery_key'],event['symbol'],event['timestamp_us'],event['price'],event['quantity'],event['side'],event['trade_id'],event['content_sha256'])
                         if not replay:
                             await self._connection.execute(
-                                '/*archive:insert_event*/ INSERT INTO market_data_execution_v1 '
+                                '/*archive:insert_event*/ INSERT INTO public.market_data_execution_v2 '
                                 '(event_key,symbol,timestamp_us,price,quantity,side,trade_id,content_sha256) '
                                 'VALUES (%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT(event_key) DO NOTHING',values)
                         cursor=await self._connection.execute(
                             '/*archive:read_event*/ SELECT symbol,timestamp_us::text,price,quantity,side,trade_id,content_sha256 '
-                            'FROM market_data_execution_v1 WHERE event_key=%s',(event['delivery_key'],))
+                            'FROM public.market_data_execution_v2 WHERE event_key=%s',(event['delivery_key'],))
                         if await cursor.fetchone()!=values[1:]:raise ValueError('conflicting persisted exact execution')
                     if not replay:
                         await self._connection.execute(
-                            '/*archive:insert_observation*/ INSERT INTO market_data_capture_v2 VALUES (%s,%s,%s,%s,%s) '
+                            '/*archive:insert_observation*/ INSERT INTO public.market_data_capture_v3 (observation_sha256,observation_bytes,payload_bytes,connection_id,observation_index) VALUES (%s,%s,%s,%s,%s) '
                             'ON CONFLICT(observation_sha256) DO NOTHING',
                             (digest,observation_bytes,None,observation['connection_id'],int(observation['observation_index'])))
                         cursor=await self._connection.execute(
-                            '/*archive:read_observation*/ SELECT observation_bytes,payload_bytes FROM market_data_capture_v2 WHERE observation_sha256=%s',(digest,))
+                            '/*archive:read_observation*/ SELECT observation_bytes,payload_bytes FROM public.market_data_capture_v3 WHERE observation_sha256=%s',(digest,))
                         if await cursor.fetchone()!=(observation_bytes,None):raise ValueError('archive observation readback mismatch')
                         await self._connection.execute(
-                            '/*archive:write_checkpoint*/ INSERT INTO market_data_archive_checkpoint_v1 '
+                            '/*archive:write_checkpoint*/ INSERT INTO public.market_data_archive_checkpoint_v2 '
                             '(import_id,blob_sha256,committed_rows,last_observation_sha256,total_rows,last_timestamp_us,last_trade_id) '
                             'VALUES (%s,%s,%s,%s,%s,%s,%s) ON CONFLICT(import_id) DO UPDATE SET '
                             'committed_rows=EXCLUDED.committed_rows,last_observation_sha256=EXCLUDED.last_observation_sha256,'
@@ -206,12 +189,30 @@ class CaptureStore:
                             (identity,archive['blob_sha256'],end,digest,int(archive['rows']),events[-1]['timestamp_us'],events[-1]['trade_id']))
                         cursor=await self._connection.execute(
                             '/*archive:read_checkpoint*/ SELECT blob_sha256,committed_rows,last_observation_sha256,total_rows,last_timestamp_us,last_trade_id '
-                            'FROM market_data_archive_checkpoint_v1 WHERE import_id=%s',(identity,))
+                            'FROM public.market_data_archive_checkpoint_v2 WHERE import_id=%s',(identity,))
                         expected=(archive['blob_sha256'],end,digest,int(archive['rows']),events[-1]['timestamp_us'],events[-1]['trade_id'])
                         if await cursor.fetchone()!=expected:raise ValueError('archive checkpoint readback mismatch')
                 self._require_idle(self._connection)
                 return dict(import_id=identity,committed_source_rows=end,observation_sha256=digest,committed=True,
-                            source_authenticity='UNKNOWN',point_in_time_availability='UNKNOWN',native_authority_verified=False)
+                            source_authenticity='UNKNOWN',point_in_time_availability='UNKNOWN',native_authority_verified=False,storage_schema_version=3)
+            except BaseException:
+                self._closed=True
+                try:await self._connection.close()
+                except BaseException:pass
+                raise
+
+    async def read_capture_page(self,*,after_ordinal,limit=100):
+        after,limit=page_request(after_ordinal,limit)
+        async with self._lock:
+            if self._closed:raise RuntimeError('capture store closed')
+            self._require_idle(self._connection)
+            try:
+                async with self._connection.transaction():
+                    await self._connection.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
+                    cursor=await self._connection.execute(_PAGE_SQL,(after,limit+1))
+                    page=decode_page(await cursor.fetchall(),after_ordinal,limit)
+                self._require_idle(self._connection)
+                return page
             except BaseException:
                 self._closed=True
                 try:await self._connection.close()

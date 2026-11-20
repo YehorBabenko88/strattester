@@ -208,7 +208,8 @@ async def test_open_identity_and_session_lock_reads_own_explicit_outer_transacti
             finally:self.inside=False;self.info.transaction_status=0
         async def execute(self,sql,p=()):
             assert self.inside,'constructor read would create implicit outer transaction'
-            self.pending=('fixture',) if 'current_database()' in sql else (True,)
+            from market_data.capture_read_model import CAPTURE_LAYOUT_SHA256
+            self.pending=('fixture',) if 'current_database()' in sql else (3,CAPTURE_LAYOUT_SHA256) if 'capture:schema_check' in sql else (True,)
             return self
         async def commit(self):raise AssertionError('do not repair implicit caller transaction by committing it')
     connection=Opening(state())
@@ -284,7 +285,7 @@ async def test_every_commit_receipt_binding_is_required_before_wal_ack(tmp_path,
         async def archive_checkpoint(self,_):return None
         async def store_archive_batch(self,*,observation_bytes,events):
             archive=decode_observation(observation_bytes)['archive']
-            expected=dict(import_id=archive['import_id'],committed_source_rows=int(archive['end_row']),observation_sha256=hashlib.sha256(observation_bytes).hexdigest(),committed=True,source_authenticity='UNKNOWN',point_in_time_availability='UNKNOWN',native_authority_verified=False)
+            expected=dict(import_id=archive['import_id'],committed_source_rows=int(archive['end_row']),observation_sha256=hashlib.sha256(observation_bytes).hexdigest(),committed=True,source_authenticity='UNKNOWN',point_in_time_availability='UNKNOWN',native_authority_verified=False,storage_schema_version=3)
             return dict(expected,**change)
     importer=ArchiveImporter(root,WrongBinding(),wal,source_revision='a'*40)
     with pytest.raises(ValueError):await importer.ingest(locator,sha,size,'BTCUSDT')

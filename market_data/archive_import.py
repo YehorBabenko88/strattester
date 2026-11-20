@@ -70,13 +70,13 @@ class ArchiveImporter:
         archive=decode_observation(raw)['archive']
         expected=dict(import_id=archive['import_id'],committed_source_rows=int(archive['end_row']),
             observation_sha256=hashlib.sha256(raw).hexdigest(),committed=True,
-            source_authenticity='UNKNOWN',point_in_time_availability='UNKNOWN',native_authority_verified=False)
+            source_authenticity='UNKNOWN',point_in_time_availability='UNKNOWN',native_authority_verified=False,storage_schema_version=3)
         if (type(result) is not dict or set(result)!=set(expected)
                 or any(type(result[key]) is not type(value) or result[key]!=value for key,value in expected.items())):
             raise ValueError('ARCHIVE_COMMIT_OUTCOME_UNCONFIRMED')
 
     async def _replay(self,rid,payload):
-        if type(payload) is not dict or set(payload)!={'schema','observation','events'} or payload['schema']!='market_data.archive-wal.v1':raise ValueError('foreign or invalid WAL payload')
+        if type(payload) is not dict or set(payload)!={'schema','observation','events','target_schema_version'} or payload['schema']!='market_data.archive-wal.v2' or type(payload['target_schema_version']) is not int or payload['target_schema_version']!=3:raise ValueError('foreign or invalid WAL payload')
         raw=encode_observation(payload['observation']);observation=decode_observation(raw);archive=observation['archive']
         if observation['source_kind']!='ARCHIVE':raise ValueError('archive WAL source mismatch')
         with blob_snapshot(self.root,archive['locator'],archive['blob_sha256'],int(archive['blob_bytes'])) as snapshot:
@@ -120,7 +120,7 @@ class ArchiveImporter:
                             rows=str(audit.rows),start_row=str(start),end_row=str(index),events_sha256=digest_json(batch),
                             source_authenticity='UNKNOWN',point_in_time_availability='UNKNOWN')
                         raw=batch_observation(archive,symbol,self.revision,previous)
-                        payload=dict(schema='market_data.archive-wal.v1',observation=decode_observation(raw),events=batch)
+                        payload=dict(schema='market_data.archive-wal.v2',target_schema_version=3,observation=decode_observation(raw),events=batch)
                         if len(json.dumps(payload,separators=(',',':')).encode())>1048576:raise ValueError('archive batch WAL byte budget')
                         rid=await self.wal.append(payload)
                         result=await self.store.store_archive_batch(observation_bytes=raw,events=batch)
