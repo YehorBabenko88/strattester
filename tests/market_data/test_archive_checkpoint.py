@@ -209,7 +209,11 @@ async def test_open_identity_and_session_lock_reads_own_explicit_outer_transacti
         async def execute(self,sql,p=()):
             assert self.inside,'constructor read would create implicit outer transaction'
             self.pending=('fixture',) if 'current_database()' in sql else (True,)
+            self.catalog_kind=next((kind for kind in ('relations','columns','keys','indexes') if 'prepared:'+kind in sql),None)
             return self
+        async def fetchall(self):
+            from test_capture_prepared_schema import prepared_rows
+            return prepared_rows()[self.catalog_kind]
         async def commit(self):raise AssertionError('do not repair implicit caller transaction by committing it')
     connection=Opening(state())
     async def connect(*args,**kwargs):return connection
