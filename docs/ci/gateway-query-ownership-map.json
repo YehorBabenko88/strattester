@@ -69,7 +69,7 @@
       "bytes": 8025
     }
   ],
-  "execution": "SOURCE_MAP_AND_BOUNDARY_PLAN_ONLY",
+  "execution": "DATA_PURE_SOURCE_AND_ARTIFACT_PASS_SCOPED_ROOT_AUTHENTICATED_INTEGRATION_PENDING",
   "target_module": "market_data.gateway_query",
   "canonical_schema_family": "market_data.gateway.*",
   "legacy_active_aliases": false,
@@ -139,7 +139,7 @@
         }
       ],
       "owner": "unified_system",
-      "status": "PENDING_CANONICAL_TRANSFER",
+      "status": "ROOT_AUTHORITY_STORE_TLS_OWNER_TRANSFER_PENDING",
       "assertions_must_be_preserved": true
     },
     {
@@ -192,7 +192,7 @@
         }
       ],
       "owner": "market_data",
-      "status": "PENDING_CANONICAL_TRANSFER",
+      "status": "CANONICAL_DATA_PURE_DOMAIN_ASSERTIONS_PRESERVED",
       "assertions_must_be_preserved": true
     },
     {
@@ -215,7 +215,7 @@
         }
       ],
       "owner": "unified_system",
-      "status": "PENDING_CANONICAL_TRANSFER",
+      "status": "ROOT_AUTHORITY_STORE_TLS_OWNER_TRANSFER_PENDING",
       "assertions_must_be_preserved": true
     },
     {
@@ -263,7 +263,7 @@
         }
       ],
       "owner": "market_data",
-      "status": "PENDING_CANONICAL_TRANSFER",
+      "status": "CANONICAL_DATA_PURE_DOMAIN_ASSERTIONS_PRESERVED",
       "assertions_must_be_preserved": true
     }
   ],
@@ -296,5 +296,19 @@
     "decimal_text": 80
   },
   "adoption": "New canonical schemas require NEW descriptor/closure/hash fixtures; historical bytes never silently rewritten",
-  "risk": "Approved strongest separation: no opaque Data callback; no Root imports or generic Root manifest DTO parser"
+  "risk": "Approved strongest separation: no opaque Data callback; no Root imports or generic Root manifest DTO parser",
+  "case_counts": {
+    "retained_previous": 696,
+    "original_preparation_generated_cases": 53,
+    "original_codec_cases": 9,
+    "new_domain_cases": 14,
+    "total": 772
+  },
+  "original_static_roles": {
+    "total": 32,
+    "data": 17,
+    "root": 15,
+    "assertion_nodes": 74
+  },
+  "other_inventory": "Strattester original547 inventory remains523 pending; Grid query roles are separate, not subtracted blindly"
 }
