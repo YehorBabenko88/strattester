@@ -8,7 +8,7 @@ from urllib.parse import urlsplit
 
 import aiohttp
 
-from .public_trades import _decimal,decimal_text
+from .public_trades import _decimal,decimal_text,decode_frame
 
 log=logging.getLogger("bybit")
 
@@ -77,8 +77,8 @@ async def _read_bounded_http_response(response, *, max_body_bytes: int = 1048576
 
 
 def _bounded_result(response):
-    payload = json.loads(response.body.decode("utf-8"))
-    if not isinstance(payload, dict) or payload.get("retCode") != 0:
+    payload,_ = decode_frame(response.body)
+    if type(payload.get("retCode")) is not int or payload["retCode"] != 0:
         raise ValueError("invalid or unsuccessful Bybit response")
     result = payload.get("result")
     if not isinstance(result, dict) or not isinstance(result.get("list"), list):
@@ -105,6 +105,7 @@ async def fetch_linear_instruments_page(base_url: str, *, cursor: str | None = N
                                allow_redirects=False) as response:
             raw = await _read_bounded_http_response(response)
     result = _bounded_result(raw)
+    if len(result["list"])>limit:raise ValueError("instrument page exceeds request row bound")
     if any(not isinstance(item, dict) for item in result["list"]):
         raise ValueError("invalid instrument page record")
     next_cursor = result.get("nextPageCursor")
@@ -114,13 +115,15 @@ async def fetch_linear_instruments_page(base_url: str, *, cursor: str | None = N
     return LinearInstrumentPage(tuple(result["list"]), next_cursor or None, "INCOMPLETE", raw)
 
 
-async def linear_symbols(base_url: str, *, max_attempts: int = 8):
+async def linear_symbols(base_url: str, *, max_attempts: int = 8,max_instruments: int = 4096):
     """Discover a COMPLETE linear universe through the sole bounded page reader.
 
     This is the existing Worker discovery entrypoint, not a second Bybit
     client. A failed or partial scan never replaces the current registry.
     """
     _bounded_int(max_attempts,"discovery attempts",1,16)
+    _bounded_int(max_instruments,"universe limit",1,4096)
+    received=0
     out=[]
     cursor=None
     seen_cursors=set()
@@ -154,6 +157,8 @@ async def linear_symbols(base_url: str, *, max_attempts: int = 8):
             await asyncio.sleep(delay)
         if page is None:
             raise RuntimeError("Bybit discovery page unavailable")
+        received+=len(page.items)
+        if received>max_instruments:raise ValueError("instrument universe exceeds configured bound")
         for x in page.items:
             try:
                 if x.get("status")=="Trading" and x.get("contractType") in ("LinearPerpetual","LinearFutures"):
@@ -187,3 +192,39 @@ async def linear_symbols(base_url: str, *, max_attempts: int = 8):
     if not unique:
         raise RuntimeError("Bybit discovery returned an empty active linear universe")
     return list(unique.values())
+
+
+@dataclass(frozen=True)
+class LinearTickerPage:
+    rows: tuple
+    response: _HttpBody
+    source_authenticity: str='UNKNOWN'
+    completeness: str='UNKNOWN'
+
+async def fetch_linear_tickers(base_url,*,max_rows=4096):
+    """One bounded ranking snapshot via the existing public HTTP transport.
+
+    Rows are a projection of original numeric strings, not a numerical ranking
+    or durable source receipt. Math alone evaluates quantitative policy.
+    """
+    _bounded_int(max_rows,'ticker universe row limit',1,4096)
+    origin=_https_origin(base_url)
+    timeout=aiohttp.ClientTimeout(total=35,connect=10,sock_read=30)
+    async with aiohttp.ClientSession(timeout=timeout,trust_env=False,auto_decompress=False,cookie_jar=aiohttp.DummyCookieJar(),headers={'Accept-Encoding':'identity'}) as session:
+        async with session.get(origin+'/v5/market/tickers',params={'category':'linear'},allow_redirects=False) as response:
+            raw=await _read_bounded_http_response(response)
+    rows=_bounded_result(raw)['list']
+    if len(rows)>max_rows:raise ValueError('ticker universe row limit exceeded')
+    projected=[]
+    for row in rows:
+        if type(row) is not dict or len(row)>64:raise ValueError('bounded ticker row required')
+        symbol=row.get('symbol')
+        if type(symbol) is not str or not 2<=len(symbol)<=30 or not symbol.isascii() or not symbol.isalnum():raise ValueError('bounded ticker symbol required')
+        if not symbol.endswith('USDT'):continue
+        item={'symbol':symbol}
+        for key in ('turnover24h','lastPrice','prevPrice24h'):
+            value=row.get(key)
+            if type(value) is not str or not 1<=len(value)<=256:raise ValueError('bounded original ticker scalar required')
+            item[key]=value
+        projected.append(item)
+    return LinearTickerPage(tuple(projected),raw)

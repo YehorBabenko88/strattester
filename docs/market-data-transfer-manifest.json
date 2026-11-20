@@ -102,13 +102,14 @@
     }
   ],
   "sql_schema": "schema.sql copied byte-normalized, no DDL executed; persistent schema names unmodified",
-  "math_sha": "d88a6adc689ee0c9ce8951afe1e6e347294c6bf6",
+  "math_sha": "212dbcbc0f9f4c540ccfe8c5891c37527fe147a1",
   "new_components": [
     "admission.py",
     "capture_store.py",
     "collector.py",
     "cli.py",
-    "numeric_dto.py (serialization/range guard; all arithmetic delegated)"
+    "numeric_dto.py (serialization/range guard; all arithmetic delegated)",
+    "selection_rotation.py (bounded acquisition ownership; numerical ranking exclusively Math)"
   ],
   "extracted_components": {
     "sqlite_history.py": "Strattester sqlite_store read-only methods; schema/writers not copied",
@@ -118,6 +119,6 @@
   "historical_math_sha": "fdc515473f495cdb0f0dcfdab23be286cc6b5efa",
   "math_module": "market_math",
   "math_kernel_path": "python/market_math.py",
-  "math_kernel_git_blob": "642c5262188d63aa6f899d7dcdc3716659fce3a0",
+  "math_kernel_git_blob": "66e00624d8e55703f878dcb6aee7d9151bd0597e",
   "hash_scope": "files.original_sha256 and canonical_sha256 retain initial transfer snapshots, not current runtime release pins; use exact Git/wheel byte verification for current sources"
 }

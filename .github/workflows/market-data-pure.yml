@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: YehorBabenko88/math
-          ref: d88a6adc689ee0c9ce8951afe1e6e347294c6bf6
+          ref: 212dbcbc0f9f4c540ccfe8c5891c37527fe147a1
           path: .source/math
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
@@ -46,8 +46,8 @@ jobs:
           for source in [root/'pyproject.toml',root/'MANIFEST.in',root/'README.md',*list((root/'market_data').glob('*.py')),*list((root/'market_data').glob('*.sql'))]:
               committed_input(root,source)
           math_root=root/'.source/math'
-          assert subprocess.check_output(['git','-C',str(math_root),'rev-parse','HEAD'],text=True).strip()=='d88a6adc689ee0c9ce8951afe1e6e347294c6bf6'
-          assert subprocess.check_output(['git','-C',str(math_root),'rev-parse','HEAD:python/market_math.py'],text=True).strip()=='642c5262188d63aa6f899d7dcdc3716659fce3a0'
+          assert subprocess.check_output(['git','-C',str(math_root),'rev-parse','HEAD'],text=True).strip()=='212dbcbc0f9f4c540ccfe8c5891c37527fe147a1'
+          assert subprocess.check_output(['git','-C',str(math_root),'rev-parse','HEAD:python/market_math.py'],text=True).strip()=='66e00624d8e55703f878dcb6aee7d9151bd0597e'
           for source in [math_root/'pyproject.toml',*list((math_root/'python').glob('*.py'))]:
               committed_input(math_root,source)
           assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['MARKET_DATA_TEST_SHA']
