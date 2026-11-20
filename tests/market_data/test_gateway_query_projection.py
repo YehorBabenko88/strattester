@@ -15,10 +15,10 @@ class ProjectionTests(unittest.TestCase):
  def setUp(self):
   import market_data.gateway_query as m
   self.m=m;self.root,self.objects=fixture();self.context=context_for(self.root)
- def prepared(self,start='0',end='180000'):
+ def prepared(self,start='0',end='180000',cut='180000'):
   helper=preparation.PreparationTests();helper.module=self.m;request=helper.request()
   request['knowledge_cut']={'manifest_sha256':self.context['manifest_sha256'],'manifest_revision':self.context['manifest_revision']}
-  request['range']={'start_ms':start,'end_ms':end};request['event_cut_ms']='180000'
+  request['range']={'start_ms':start,'end_ms':end};request['event_cut_ms']=cut
   return self.m.prepare_query(c3(request))
  def project(self,**changes):
   args=dict(context=self.context,manifest_bytes=self.root,objects_by_sha256=self.objects);args.update(changes)
@@ -99,3 +99,43 @@ class ProjectionTests(unittest.TestCase):
    result=self.project()
    self.assertEqual(result['rows'][0][1],price);self.assertEqual(result['rows'][0][5],tiny)
    self.assertEqual(result['rows'][0][6],tiny);self.assertEqual(context.flags,before.flags);self.assertEqual(context.prec,before.prec)
+
+ def test_hostile_row_width_refuses_before_json_loads(self):
+  raw=c3({'rows':[[] for _ in range(160000)]})
+  self.assertLessEqual(len(raw),524288)
+  with patch.object(self.m.json,'loads',wraps=json.loads) as loads:
+   with self.assertRaises(self.m.QueryFormatError):self.m._fixture_json(raw,524288)
+   self.assertEqual(loads.call_count,0)
+ def test_request_extra_scalar_fields_refuse_before_json_loads(self):
+  helper=preparation.PreparationTests();helper.module=self.m;request=helper.request()
+  request.update({('extra'+str(i)):'x' for i in range(1000)});raw=c3(request)
+  self.assertLess(len(raw),32768)
+  with patch.object(self.m.json,'loads',wraps=json.loads) as loads:
+   with self.assertRaises(self.m.QueryFormatError):self.m.prepare_query(raw)
+   self.assertEqual(loads.call_count,0)
+ def test_container_field_column_budgets_and_escaped_strings(self):
+  hostile=[c3({'rows':[[[] for _ in range(7)] for _ in range(210)]}),c3({str(i):'x' for i in range(17)}),c3({'rows':[['x']*8]}),b'{"\\u0072ows":[]}']
+  for raw in hostile:
+   with patch.object(self.m.json,'loads',wraps=json.loads) as loads:
+    with self.assertRaises(self.m.QueryFormatError):self.m._fixture_json(raw,524288)
+    self.assertEqual(loads.call_count,0)
+  value={'text':(','*5000)+'[]{}"\\end'};raw=c3(value)
+  self.assertEqual(self.m._fixture_json(raw,524288),value)
+ def test_exact_1440_rows_and_cells_remain_valid(self):
+  directory=Path(__file__).resolve().parent/'query_fixtures'
+  records={name:json.loads((directory/(name+'.canonical.json')).read_bytes()) for name in ('rows','segment-index','coverage','dependencies','manifest')}
+  rows,index,coverage,dependencies,manifest=[records[name] for name in ('rows','segment-index','coverage','dependencies','manifest')]
+  grid=self.m.query_minute_grid_ms(0,86400000,event_cut_ms=86400000)
+  self.assertEqual(len(grid),1440)
+  template=list(rows['rows'][0]);rows['rows']=[[str(lower),*template[1:]] for lower,_ in grid]
+  index['declared_range']={'start_ms':'0','end_ms':'86400000'};index['segments'][0]['row_count']='1440'
+  rows_raw=c3(rows);index['segments'][0].update(sha256=hashlib.sha256(rows_raw).hexdigest(),bytes=str(len(rows_raw)))
+  index_raw=c3(index);coverage['segments_root_sha256']=hashlib.sha256(index_raw).hexdigest();coverage['declared_range']=dict(index['declared_range'])
+  coverage['cells']=[dict(start_ms=str(lower),end_ms=str(upper),disposition='PRESENT',reason='FIXTURE_GENERATED',recoverability='NOT_APPLICABLE') for lower,upper in grid];coverage_raw=c3(coverage)
+  descriptor=(directory/'data-schema.canonical.json').read_bytes()
+  dependencies['objects']=[dict(role=role,sha256=hashlib.sha256(raw).hexdigest(),bytes=str(len(raw))) for role,raw in [('data_schema',descriptor),('rows',rows_raw),('segment_index',index_raw),('coverage',coverage_raw)]]
+  dependencies_raw=c3(dependencies);manifest.update(segments_root_sha256=hashlib.sha256(index_raw).hexdigest(),coverage_root_sha256=hashlib.sha256(coverage_raw).hexdigest(),dependencies_root_sha256=hashlib.sha256(dependencies_raw).hexdigest())
+  self.root=c3(manifest);self.context=context_for(self.root);self.objects={hashlib.sha256(raw).hexdigest():raw for raw in (descriptor,rows_raw,index_raw,coverage_raw,dependencies_raw)}
+  result=self.m.project_query(self.prepared(end='86400000',cut='86400000'),context=self.context,manifest_bytes=self.root,objects_by_sha256=self.objects)
+  self.assertEqual(len(result['rows']),1440);self.assertEqual(len(result['cells']),1440)
+  self.assertEqual(result['rows'][-1][0],'86340000');self.assertEqual(result['cells'][-1]['end_ms'],'86400000')

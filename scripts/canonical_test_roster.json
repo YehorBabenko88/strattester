@@ -766,5 +766,9 @@
   "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_request_context_mismatch_refuses_and_original_inputs_detached",
   "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_requested_subset_is_not_latest_manifest_alias",
   "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_single_reference_is_bounded_immutable_and_selects_actual_rows",
-  "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_exact_decimal_strings_and_hostile_context_survive_projection"
+  "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_exact_decimal_strings_and_hostile_context_survive_projection",
+  "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_hostile_row_width_refuses_before_json_loads",
+  "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_request_extra_scalar_fields_refuse_before_json_loads",
+  "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_container_field_column_budgets_and_escaped_strings",
+  "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_exact_1440_rows_and_cells_remain_valid"
 ]

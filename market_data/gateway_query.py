@@ -89,6 +89,60 @@ def _u63(value, *, positive=False):
     return number
 
 
+def _preparse_json(raw,*,profile='fixture'):
+    """Bound canonical domain container widths before allocating parsed objects.
+
+    This lexical budget does not replace JSON decoding, closed-field validation,
+    canonical byte equality, Math qualification or any Root manifest codec.
+    """
+    stack=[];containers=0;quoted=False;escaped=False;key_start=None;key_escaped=False
+    def width(kind,path):
+        if profile=='request':
+            if kind==91:return 0
+            return {():13,('instrument_id',):4,('range',):2,('knowledge_cut',):2,('consumer_context',):3}.get(path,16)
+        if kind==123:return 16
+        return {('rows',):MAX_ROWS,('rows','*'):7,('cells',):MAX_ROWS,('segments',):1,('objects',):4}.get(path,MAX_ROWS)
+    for offset,char in enumerate(raw):
+        if quoted:
+            if key_start is not None and offset-key_start>128:raise QueryFormatError('object key byte bound')
+            if escaped:escaped=False
+            elif char==92:escaped=True;key_escaped=True
+            elif char==34:
+                quoted=False
+                if key_start is not None:
+                    if key_escaped:raise QueryFormatError('escaped object keys are noncanonical')
+                    try:stack[-1]['key']=raw[key_start:offset].decode('ascii')
+                    except UnicodeError as exc:raise QueryFormatError('object key grammar') from exc
+                    stack[-1]['expect_key']=False;key_start=None
+            continue
+        if char==34:
+            quoted=True;escaped=False;key_escaped=False;key_start=None
+            if stack:
+                frame=stack[-1];frame['content']=True
+                if frame['kind']==123 and frame['expect_key']:key_start=offset+1
+        elif char in (123,91):
+            path=()
+            if stack:
+                parent=stack[-1];parent['content']=True
+                path=parent['path']+((parent['key'] if parent['kind']==123 else '*'),)
+            containers+=1
+            if len(stack)>=8 or containers>1456:raise QueryFormatError('JSON depth/container budget')
+            cap=width(char,path)
+            if cap==0:raise QueryFormatError('array not allowed in request')
+            stack.append({'kind':char,'path':path,'commas':0,'content':False,'key':None,'expect_key':char==123,'cap':cap})
+        elif char in (125,93):
+            if not stack or stack[-1]['kind']!={125:123,93:91}[char]:raise QueryFormatError('JSON nesting')
+            stack.pop()
+        elif char==44:
+            if not stack:raise QueryFormatError('JSON delimiter')
+            frame=stack[-1];frame['commas']+=1
+            if frame['commas']>=frame['cap']:raise QueryFormatError('JSON field/array cardinality')
+            if frame['kind']==123:frame['expect_key']=True;frame['key']=None
+        elif char not in (9,10,13,32):
+            if stack:stack[-1]['content']=True
+    if quoted or stack:raise QueryFormatError('JSON nesting/string')
+
+
 def _validate(raw):
     if type(raw) is not bytes or not raw or len(raw) > MAX_BYTES:
         raise QueryFormatError('bounded bytes required')
@@ -96,6 +150,7 @@ def _validate(raw):
     # profile has exactly five objects, no arrays and no container chars in IDs.
     if raw.count(b'{') != 5 or raw.count(b'}') != 5 or b'[' in raw or b']' in raw:
         raise QueryFormatError('container shape')
+    _preparse_json(raw,profile='request')
     try:
         value = json.loads(raw.decode('ascii'), object_pairs_hook=_pairs,
                            parse_int=_no_number, parse_float=_no_number,
@@ -187,20 +242,7 @@ def prepare_query(request_bytes):
 def _fixture_json(raw, limit):
     if type(raw) is not bytes or not 0 < len(raw) <= limit:
         raise QueryFormatError('fixture byte bound')
-    depth = 0
-    quoted = escaped = False
-    for char in raw:
-        if quoted:
-            if escaped: escaped = False
-            elif char == 92: escaped = True
-            elif char == 34: quoted = False
-        elif char == 34: quoted = True
-        elif char in (123, 91):
-            depth += 1
-            if depth > 8: raise QueryFormatError('fixture depth bound')
-        elif char in (125, 93):
-            depth -= 1
-            if depth < 0: raise QueryFormatError('fixture nesting')
+    _preparse_json(raw)
     try:
         value = json.loads(raw.decode('ascii'), object_pairs_hook=_pairs,
                            parse_int=_no_number, parse_float=_no_number,
