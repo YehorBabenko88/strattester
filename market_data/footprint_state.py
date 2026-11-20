@@ -107,6 +107,7 @@ class FootprintBuilder:
 
     def pop_closed(self, now_ms):
         output = []
+        prepared = []
         for key, bucket in list(self.buckets.items()):
             symbol, start = key
             if start + self.interval_ms + self.finalization_delay_ms > now_ms:
@@ -126,7 +127,11 @@ class FootprintBuilder:
                     delta=self._number(executed_volume_delta(cell['buy'], cell['sell'])),
                     volume=self._number(profile[price]), buy_count=cell['buy_count'], sell_count=cell['sell_count'])
                     for price, cell in sorted(bucket['levels'].items())])
-            self.buckets.pop(key)
-            self.finalized_through_ms[symbol] = max(start, self.finalized_through_ms.get(symbol, -1))
             output.append(row)
+            prepared.append(key)
+        # No row is returned until every eligible DTO is representable. A
+        # refusal in a later bucket must not erase an earlier unreturned row.
+        for symbol, start in prepared:
+            self.buckets.pop((symbol, start))
+            self.finalized_through_ms[symbol] = max(start, self.finalized_through_ms.get(symbol, -1))
         return output

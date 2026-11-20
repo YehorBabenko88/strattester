@@ -54,3 +54,15 @@ def test_nonzero_volume_cannot_underflow_historical_dto_or_advance_watermark():
         builder.pop_closed(60000)
     assert ('BTCUSDT', 0) in builder.buckets
     assert builder.finalized_through_ms == {}
+
+
+def test_bad_second_bucket_never_discards_an_earlier_unreturned_row():
+    from market_data.footprint_state import FootprintBuilder
+    from market_data.public_trades import Trade
+    builder = FootprintBuilder('1')
+    assert builder.add(Trade('BTCUSDT', 1000, '1', '1', 'Buy', 'valid'))
+    assert builder.add(Trade('BTCUSDT', 60001, '1', '1e1000', 'Buy', 'overflow'))
+    with pytest.raises(ValueError, match='represent amount'):
+        builder.pop_closed(120000)
+    assert set(builder.buckets) == {('BTCUSDT', 0), ('BTCUSDT', 60000)}
+    assert builder.finalized_through_ms == {}
