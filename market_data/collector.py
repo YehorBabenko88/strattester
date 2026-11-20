@@ -32,7 +32,7 @@ class _AdmittedCaptureSink:
         if not callable(getattr(sink,"store_capture",None)):raise ValueError("canonical capture sink required")
         self.owner=owner;self.sink=sink
     async def store_capture(self,**kwargs):
-        self.owner._current();facts=await self.sink.store_capture(**kwargs);self.owner._current();return facts
+        self.owner._require_current_identity();facts=await self.sink.store_capture(**kwargs);self.owner._require_current_identity();return facts
 
 class PublicTradeCollector:
     def __init__(self, sink, *, symbol, source_revision, connector=public_connection,
@@ -71,7 +71,21 @@ class PublicTradeCollector:
             source_kind='PUBLIC_PROVIDER_OBSERVED_UNAUTHENTICATED', endpoint=PUBLIC_ENDPOINT,
             profile=RawCaptureProfile(16, 4194304, MAX_FRAME_BYTES, 16384, 2))
 
+    @staticmethod
+    def _raise_if_cancelled():
+        # wait_for may return an already-completed result after consuming the
+        # exception while the caller task still has a cancellation request.
+        try:task=asyncio.current_task()
+        except RuntimeError:return
+        if task is not None and task.cancelling():raise asyncio.CancelledError
+
     def _current(self):
+        self._raise_if_cancelled()
+        self._require_current_identity()
+
+    def _require_current_identity(self):
+        # Raw cancelled-disconnect cleanup still needs the same identity proof.
+        # On Python3.12 wait_for can execute this sink in the cancelled owner.
         try:identity=startup_identity(self.startup_admission)
         except Exception:raise RawCaptureError("CURRENT_CAPTURE_ADMISSION_REQUIRED") from None
         if identity!=self._identity:raise RawCaptureError("CAPTURE_MANAGED_IDENTITY_CHANGED")
@@ -82,9 +96,12 @@ class PublicTradeCollector:
         if self.recorder.metrics()['stop_reason']=='storage_unknown':raise RawCaptureError('RAW_CAPTURE_STORAGE_OUTCOME_UNKNOWN')
 
     async def _persist(self, operation):
-        return await asyncio.wait_for(operation, timeout=self.persist_timeout)
+        result=await asyncio.wait_for(operation, timeout=self.persist_timeout)
+        self._raise_if_cancelled()
+        return result
 
     async def run(self):
+        self._raise_if_cancelled()
         if self._started:
             raise RawCaptureError("CAPTURE_INSTANCE_REUSE_REJECTED")
         self._started=True

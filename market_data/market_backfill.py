@@ -293,3 +293,33 @@ async def run_backfill_worker(pool,base_url,stop_event=None,max_pages=50):
               updated_at=now() WHERE symbol=$1 AND timeframe=$2""",
               state["symbol"],state.get("timeframe","1"),str(exc)[:4000])
     return {"completed":done,"chunks":chunks,"failed":failed}
+
+
+async def fetch_long_short_ratio_page(base_url,symbol,start_ms,end_ms,interval='5min',limit=500):
+    """One bounded raw public account-ratio page, never a numeric qualification.
+
+    Port of the retained historical endpoint/parameter contract through the
+    existing canonical transport. Values are provider-declared UNVALIDATED;
+    no normalization, arithmetic, persistence or history completeness is implied.
+    """
+    from .bybit import _bounded_int,_https_origin,_read_bounded_http_response,_bounded_result
+    origin=_https_origin(base_url)
+    if type(symbol) is not str or not 1<=len(symbol)<=64 or not symbol.isascii() or not symbol.isalnum():
+        raise ValueError('invalid account ratio symbol')
+    if type(interval) is not str or not 1<=len(interval)<=32 or not interval.isascii() or not interval.isalnum():
+        raise ValueError('invalid account ratio period')
+    _bounded_int(start_ms,'account ratio start_ms',0,2**63-1)
+    _bounded_int(end_ms,'account ratio end_ms',0,2**63-1)
+    _bounded_int(limit,'account ratio page limit',1,500)
+    if end_ms<start_ms:raise ValueError('invalid account ratio time range')
+    params=dict(category='linear',symbol=symbol,period=interval,startTime=start_ms,endTime=end_ms,limit=limit)
+    timeout=aiohttp.ClientTimeout(total=30,connect=10,sock_read=30)
+    async with aiohttp.ClientSession(timeout=timeout,trust_env=False,auto_decompress=False,
+                                    cookie_jar=aiohttp.DummyCookieJar(),
+                                    headers={'Accept-Encoding':'identity'}) as session:
+        async with session.get(origin+'/v5/market/account-ratio',params=params,allow_redirects=False) as response:
+            raw=await _read_bounded_http_response(response)
+    rows=_bounded_result(raw)['list']
+    if len(rows)>limit or any(type(row) is not dict for row in rows):
+        raise ValueError('invalid or oversized account ratio page')
+    return rows
