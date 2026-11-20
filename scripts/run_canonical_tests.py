@@ -12,8 +12,9 @@ def verify(site,bindings,custody):
             raise AssertionError('approved wheel bytes changed: '+relative)
         distribution=metadata.distribution(owners[relative.split('/')[0].removesuffix('.py')])
         files=distribution.files
-        if files is None or sum(item.as_posix()==relative for item in files)!=1:
-            raise AssertionError('wheel file not owned by named distribution: '+relative)
+        members=[] if files is None else [item for item in files if item.as_posix()==relative]
+        if len(members)!=1 or pathlib.Path(distribution.locate_file(members[0])).resolve(strict=True)!=path.resolve(strict=True):
+            raise AssertionError('wheel file not exactly located by named distribution: '+relative)
     for name,module in tuple(sys.modules.items()):
         if name!='market_data' and not name.startswith('market_data.') and name not in owners:continue
         origin=pathlib.Path(module.__file__).resolve(strict=True)
@@ -37,11 +38,11 @@ def main(argv=None):
     if output.exists() or output.resolve().is_relative_to(root):raise ValueError('fresh external evidence required')
     bindings=json.loads(pathlib.Path(args.bindings).read_text())['bindings']
     if len(bindings)!=45:raise ValueError('exact42Data+3Math wheel bindings required')
+    Guard=runpy.run_path(str(root/'scripts/canonical_test_gate.py'))['StrictTestRoster']
     sys.path[:0]=[str(site),str(dependencies),str(root/'scripts'),str(root/'tests/market_data'),str(root/'tests/marketdata')]
     os.environ['PYTEST_DISABLE_PLUGIN_AUTOLOAD']='1'
-    from canonical_test_gate import StrictTestRoster
     expected=json.loads((root/'scripts/canonical_test_roster.json').read_text())
-    guard=StrictTestRoster(expected,expected_count=640)
+    guard=Guard(expected,expected_count=640)
     import market_data,market_math,pytest
     verify(site,bindings,custody)
     with tempfile.TemporaryDirectory(prefix='canonical-data-tests-') as case:
