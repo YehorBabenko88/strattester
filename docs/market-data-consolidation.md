@@ -1,6 +1,6 @@
 # Canonical market-data consolidation (NO_GO)
 
-Base repository source: Strattester #90 `13998cf87139330dd0406fed00acd148e045e6c4`. Imported source: Grid #295 `c9ffdaa2af52c4d55871a48655a77a0c669da80f`. Canonical Math dependency: `de8194f71311a6d7dddb69be9de812030ed1f13f`, module `market_math`, kernel Git blob `27cb210bfdaecfef70b72b216b4ebc0683fb8319` at `python/market_math.py`. No Git repository rename or ref deletion.
+Base repository source: Strattester #90 `13998cf87139330dd0406fed00acd148e045e6c4`. Imported source: Grid #295 `c9ffdaa2af52c4d55871a48655a77a0c669da80f`. Canonical Math dependency: `d88a6adc689ee0c9ce8951afe1e6e347294c6bf6`, module `market_math`, kernel Git blob `642c5262188d63aa6f899d7dcdc3716659fce3a0` at `python/market_math.py`. No Git repository rename or ref deletion.
 
 ## Active ownership / old → new
 
