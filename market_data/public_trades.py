@@ -1,25 +1,58 @@
-"""Admission bounds for the existing public-trade collector; no feed engine."""
-import json
-import math
-
+"""Canonical exact public-trade DTO and complete-batch admission; no feed engine."""
 from dataclasses import dataclass
+from decimal import Decimal
+from hashlib import sha256
+import json
+import re
+
+MAX_FRAME_BYTES=1024*1024
+MAX_BATCH_TRADES=1024
+U63=2**63-1
+
+def _decimal(value):
+    if type(value) not in (Decimal,str,int):raise ValueError('exact decimal value required')
+    if type(value) is not Decimal:
+        text=str(value)
+        if not 0<len(text)<=160 or re.fullmatch(r'[+]?(?:[0-9]+(?:[.][0-9]*)?|[.][0-9]+)(?:[eE][+-]?[0-9]+)?',text) is None:
+            raise ValueError('invalid exact public numeric')
+        exponent=re.split('[eE]',text)
+        if len(exponent)==2 and not -4096<=int(exponent[1])<=4096:
+            raise ValueError('invalid exact public numeric exponent')
+        value=Decimal(text)
+    if (not value.is_finite() or value<=0 or len(value.as_tuple().digits)>160
+            or not -4096<=value.as_tuple().exponent<=4096):
+        raise ValueError('invalid exact public numeric')
+    return value
 
 @dataclass(frozen=True)
 class Trade:
     symbol: str
     ts_ms: int
-    price: float
-    qty: float
+    price: Decimal
+    qty: Decimal
     side: str
-    trade_id: str = ""
+    trade_id: str
 
-MAX_FRAME_BYTES=1024*1024
-MAX_BATCH_TRADES=1024
-MAX_ACK_FRAMES=2000
-MAX_ACK_BYTES=4*1024*1024
-MAX_OPEN_MINUTES=1024
-PERSIST_TIMEOUT_SECONDS=20
+    def __post_init__(self):
+        if (type(self.symbol) is not str or re.fullmatch('[A-Z0-9]{2,30}',self.symbol) is None
+                or type(self.ts_ms) is not int or not 0<self.ts_ms<=U63
+                or self.side not in ('Buy','Sell')
+                or type(self.trade_id) is not str or not 0<len(self.trade_id)<=128):
+            raise ValueError('invalid exact execution identity')
+        object.__setattr__(self,'price',_decimal(self.price))
+        object.__setattr__(self,'qty',_decimal(self.qty))
 
+def delivery_identity(trade):
+    """Stable event key plus exact semantic payload digest; no commit assertion."""
+    def canonical_decimal(value):
+        text=format(value,'f')
+        return text.rstrip('0').rstrip('.') if '.' in text else text
+    def digest(value):
+        return sha256(json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=True,allow_nan=False).encode('ascii')).hexdigest()
+    identity=dict(schema='market_data.execution-key.v1',exchange='bybit',category='linear',
+                  symbol=trade.symbol,trade_id=trade.trade_id)
+    return dict(delivery_key=digest(identity),content_sha256=digest(dict(identity,
+        ts_ms=trade.ts_ms,price=canonical_decimal(trade.price),qty=canonical_decimal(trade.qty),side=trade.side)))
 
 def decode_frame(raw):
     if not isinstance(raw,(str,bytes)):
@@ -42,33 +75,21 @@ def decode_frame(raw):
 
 
 def parse_trades(message,symbol,now_ms):
-    """Validate the complete batch before any continuity/aggregate mutation."""
-    if message.get('topic')!='publicTrade.'+symbol:raise ValueError('unsubscribed trade topic')
+    """Validate every exact DTO and conflicting ID before any downstream mutation."""
+    if (type(symbol) is not str or re.fullmatch('[A-Z0-9]{2,30}',symbol) is None
+            or type(now_ms) is not int or not 0<now_ms<=U63
+            or type(message) is not dict or message.get('topic')!='publicTrade.'+symbol):
+        raise ValueError('invalid public trade envelope or clock')
     batch=message.get('data')
-    if not isinstance(batch,list) or len(batch)>MAX_BATCH_TRADES:raise ValueError('invalid public trade batch')
-    trades=[]
+    if type(batch) is not list or len(batch)>MAX_BATCH_TRADES:raise ValueError('invalid public trade batch')
+    trades=[]; seen={}
     for item in batch:
-        if not isinstance(item,dict) or ('s' in item and item['s']!=symbol):raise ValueError('invalid public trade symbol')
-        stamp=item.get('T')
-        if isinstance(stamp,str) and 0<len(stamp)<=20 and stamp.isascii() and stamp.isdecimal():stamp=int(stamp)
-        if type(stamp) is not int or stamp<=0 or stamp>now_ms+300000:raise ValueError('invalid public trade timestamp')
-        values=[]
-        for key in ('p','v'):
-            value=item.get(key)
-            if isinstance(value,bool) or not isinstance(value,(int,float,str)) or (isinstance(value,str) and len(value)>64):raise ValueError('invalid public trade numeric')
-            try:value=float(value)
-            except (ValueError,TypeError,OverflowError) as exc:raise ValueError('invalid public trade numeric') from exc
-            if not math.isfinite(value) or value<=0:raise ValueError('invalid public trade numeric')
-            values.append(value)
-        side=item.get('S');trade_id=item.get('i')
-        if side not in ('Buy','Sell') or not isinstance(trade_id,str) or not 0<len(trade_id)<=128:raise ValueError('invalid public trade side or identity')
-        trades.append(Trade(symbol,stamp,values[0],values[1],side,trade_id))
+        if (type(item) is not dict or item.get('s')!=symbol
+                or type(item.get('p')) is not str or type(item.get('v')) is not str):
+            raise ValueError('invalid exact provider trade fields')
+        trade=Trade(symbol,item.get('T'),item['p'],item['v'],item.get('S'),item.get('i'))
+        if trade.ts_ms>now_ms+300000:raise ValueError('future public trade timestamp')
+        prior=seen.setdefault(trade.trade_id,trade)
+        if prior!=trade:raise ValueError('conflicting public trade identity')
+        trades.append(trade)
     return trades
-
-
-def validated_tick(value):
-    if isinstance(value,bool):raise ValueError('invalid public trade tick')
-    try:value=float(value)
-    except (ValueError,TypeError,OverflowError) as exc:raise ValueError('invalid public trade tick') from exc
-    if not math.isfinite(value) or value<=0:raise ValueError('invalid public trade tick')
-    return value

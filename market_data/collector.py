@@ -9,7 +9,7 @@ import re
 import time
 from math import isfinite
 
-from .public_trades import decode_frame, parse_trades, MAX_FRAME_BYTES
+from .public_trades import decode_frame, parse_trades, delivery_identity, MAX_FRAME_BYTES
 from .raw_capture import RawCaptureRecorder, RawCaptureProfile, RawCaptureError
 
 
@@ -27,7 +27,8 @@ async def public_connection(endpoint):
 
 class PublicTradeCollector:
     def __init__(self, sink, *, symbol, source_revision, connector=public_connection,
-                 clock_ms=lambda: int(time.time() * 1000), max_frames=4, persist_timeout=20):
+                 clock_ms=lambda: time.time_ns() // 1_000_000, max_frames=4, persist_timeout=20,
+                 on_execution=None):
         if type(symbol) is not str or re.fullmatch('[A-Z0-9]{2,30}', symbol) is None:
             raise ValueError('invalid capture instrument')
         if type(max_frames) is not int or not 1 <= max_frames <= 4:
@@ -35,6 +36,11 @@ class PublicTradeCollector:
         if (type(source_revision) is not str
                 or re.fullmatch('[0-9a-f]{40}', source_revision) is None):
             raise ValueError('exact producer source revision required')
+        if on_execution is not None and not callable(on_execution):
+            raise ValueError("execution consumer must be callable")
+        self.on_execution=on_execution
+        self._acknowledged={}
+        self._started=False
         self.symbol = symbol
         self.connector = connector
         self.clock_ms = clock_ms
@@ -54,6 +60,9 @@ class PublicTradeCollector:
         return await asyncio.wait_for(operation, timeout=self.persist_timeout)
 
     async def run(self):
+        if self._started:
+            raise RawCaptureError("CAPTURE_INSTANCE_REUSE_REJECTED")
+        self._started=True
         self.recorder.begin_connection()
         accepted = 0
         subscribed = False
@@ -77,7 +86,30 @@ class PublicTradeCollector:
                     except ValueError:
                         await self._persist(self.recorder.gap('frame_invalid', reference))
                         raise
+                    pending={}
+                    for trade in trades:
+                        identity=delivery_identity(trade)
+                        key=identity['delivery_key']; digest=identity['content_sha256']
+                        if key in self._acknowledged and self._acknowledged[key]!=digest:
+                            await self._persist(self.recorder.gap('frame_invalid', reference))
+                            raise ValueError('conflicting acknowledged execution identity')
+                        if key not in self._acknowledged:pending[key]=(trade,identity)
                     await self._persist(self.recorder.validated(reference))
+                    if self.on_execution is not None:
+                        for key,(trade,identity) in pending.items():
+                            try:
+                                acknowledgement=await asyncio.wait_for(self.on_execution(trade,**identity),timeout=20)
+                                if (type(acknowledgement) is not dict
+                                        or set(acknowledgement)!={'delivery_key','content_sha256','committed'}
+                                        or acknowledgement.get('committed') is not True
+                                        or acknowledgement.get('delivery_key')!=key
+                                        or acknowledgement.get('content_sha256')!=identity['content_sha256']):
+                                    raise ValueError('invalid execution acknowledgement')
+                            except asyncio.CancelledError:
+                                raise
+                            except Exception:
+                                raise RawCaptureError('EXECUTION_COMMIT_OUTCOME_UNKNOWN') from None
+                            self._acknowledged[key]=identity['content_sha256']
                     accepted += len(trades)
                 await self._persist(self.recorder.disconnect('normal_stop'))
         except asyncio.CancelledError:
@@ -91,6 +123,7 @@ class PublicTradeCollector:
             raise
         return {'schema': 'market_data.capture.receipt.v1',
                 'accepted_trade_observations': accepted,
+                'acknowledged_unique_executions': len(self._acknowledged),
                 'capture': self.recorder.metrics(), 'coverage': 'UNKNOWN',
                 'source_authenticity': 'NOT_INDEPENDENTLY_VERIFIED',
                 'execution_authority': False, 'trading_authorized': False}

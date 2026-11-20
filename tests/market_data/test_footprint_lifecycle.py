@@ -1,3 +1,4 @@
+from decimal import Decimal
 from decimal import Context, Decimal, localcontext
 import time
 import pytest
@@ -20,7 +21,7 @@ def test_actual_builder_decimal_tick_rounding_retains_integrity():
     from market_data.footprint_state import FootprintBuilder
     from market_data.public_trades import Trade
     b=FootprintBuilder(.1)
-    b.add(Trade(symbol='BTCUSDT',ts_ms=1000,price=.3,qty=1,side='Buy',trade_id='decimal'))
+    b.add(Trade(symbol='BTCUSDT',ts_ms=1000,price=Decimal("0.3"),qty=1,side='Buy',trade_id='decimal'))
     r=b.pop_closed(60000)[0]
     r['source_provenance']=producer('fixture','a'*40,'wss://stream.bybit.com/v5/public/linear')
     assert minute_record(r,int(time.time()*1000),'fixture')['status']=='PARTIAL'
