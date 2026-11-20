@@ -102,7 +102,7 @@
     }
   ],
   "sql_schema": "schema.sql copied byte-normalized, no DDL executed; persistent schema names unmodified",
-  "math_sha": "de8194f71311a6d7dddb69be9de812030ed1f13f",
+  "math_sha": "d88a6adc689ee0c9ce8951afe1e6e347294c6bf6",
   "new_components": [
     "admission.py",
     "capture_store.py",
@@ -118,6 +118,6 @@
   "historical_math_sha": "fdc515473f495cdb0f0dcfdab23be286cc6b5efa",
   "math_module": "market_math",
   "math_kernel_path": "python/market_math.py",
-  "math_kernel_git_blob": "27cb210bfdaecfef70b72b216b4ebc0683fb8319",
+  "math_kernel_git_blob": "642c5262188d63aa6f899d7dcdc3716659fce3a0",
   "hash_scope": "files.original_sha256 and canonical_sha256 retain initial transfer snapshots, not current runtime release pins; use exact Git/wheel byte verification for current sources"
 }
