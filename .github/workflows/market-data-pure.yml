@@ -61,6 +61,6 @@ jobs:
           evidence=json.loads(subprocess.check_output([sys.executable,'-I',str(root/'scripts/check_market_package.py'),str(root),str(wheel)],text=True))
           print(json.dumps(evidence,sort_keys=True))
           with tempfile.TemporaryDirectory(prefix='market-data-pure-') as temporary:
-              program='import pathlib,sys; sys.path.insert(0,sys.argv[1]); import market_data,pytest; assert pathlib.Path(market_data.__file__).is_relative_to(pathlib.Path(sys.argv[1])); raise SystemExit(pytest.main(sys.argv[2:]))'
+              program="import pathlib,sys,importlib.util; sys.path.insert(0,sys.argv[1]); import market_data,market_math,pytest; assert pathlib.Path(market_data.__file__).is_relative_to(pathlib.Path(sys.argv[1])); assert pathlib.Path(market_math.__file__).is_relative_to(pathlib.Path(sys.argv[1])); assert all(importlib.util.find_spec(name) is None for name in ('market_profile_math','grid','strattester','meta_analyse')); raise SystemExit(pytest.main(sys.argv[2:]))"
               run('-I','-c',program,evidence['artifact_site'],'-p','pytest_asyncio.plugin','--confcutdir',root/'tests/market_data',root/'tests/market_data','-q',cwd=temporary)
           print('PURE_OFFLINE_ONLY=PASS; NATIVE_LIVE_ORIGINAL_DATA=NOT_QUALIFIED')
