@@ -47,7 +47,7 @@ def test_gateway_integrity_gaps_stale_and_restart(monkeypatch):
     assert gateway.snapshot("/internal/v1/candles")["reason"]=="AMBIGUOUS_MINUTE_REVISIONS"
 
 def handoff():
-    r=dict(api_version={"major":1,"minor":1},producer="strattester",producer_identity="fixture",
+    r=dict(api_version={"major":1,"minor":1},producer="terminan",producer_identity="fixture",
         source_revision="a"*40,producer_epoch=str(uuid.uuid4()),run_id=str(uuid.uuid4()),mode="HISTORICAL",execution_authority=False,
         dataset=dict(fingerprint="b"*64,source_identity="fixture",market_type="linear",symbol="BTCUSDT",timeframe="1m",start_ms=0,end_ms=60000,coverage="COMPLETE",missing_data=[]),
         strategy={"id":"fixture","version":"1","fingerprint":"a"*64,"parameters":{}},model={"kind":"synthetic","version":"1"},execution_assumptions={"fees":1,"slippage":0,"execution":"none"},metrics={"x":1},completed_at_ms=60001)
@@ -160,16 +160,26 @@ def test_http_absolute_deadline_closes_slow_header_or_body(body):
         sock.close();server.shutdown();server.server_close();worker.join()
 
 
-def test_real_strattester_producer_export_compatibility():
+def test_canonical_handoff_preserves_frozen_source_and_rejects_forgery():
     import json
     from pathlib import Path
-    r=json.loads((Path(__file__).parent/'fixtures'/'strattester-owned-export.synthetic.json').read_text())
+    # Original frozen producer bytes remain historical evidence, not an active alias.
+    source=Path(__file__).parents[1]/'market_data'/'fixtures'/'legacy-experiment-export.synthetic.json'
+    original=source.read_bytes()
+    legacy=json.loads(original)
+    legacy_trust={(legacy['producer_identity'],legacy['source_revision'],legacy['run_id'],legacy['completion_receipt'])}
+    assert accept_handoff(legacy,legacy_trust)['status']=='UNAVAILABLE'
+    # Explicit synthetic namespace transfer; this is not a real producer attestation.
+    r=copy.deepcopy(legacy)
+    r['producer']='terminan'
+    r['completion_receipt']=digest({k:v for k,v in r.items() if k!='completion_receipt'})
     trust={(r['producer_identity'],r['source_revision'],r['run_id'],r['completion_receipt'])}
     assert accept_handoff(r,trust)['status']=='ACCEPTED_HISTORICAL'
     assert accept_handoff(r,set())['status']=='UNAVAILABLE'
     changed=copy.deepcopy(r);changed['metrics']={'forged':True}
     changed['completion_receipt']=digest({k:v for k,v in changed.items() if k!='completion_receipt'})
     assert accept_handoff(changed,trust)['status']=='UNAVAILABLE'
+    assert source.read_bytes()==original
 
 
 def test_http_invalid_query_does_not_echo_or_log_secret(capsys):
