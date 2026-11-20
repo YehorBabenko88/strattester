@@ -346,3 +346,33 @@ def _paper_domain_payload(kind,payload,q,event_us,ingest_us):
         if q['as_of_ms']-event>q['max_age_ms'] or q['as_of_ms']-observed>q['max_age_ms']:known=False
     out['_field_observations']=copy.deepcopy(evidence)
     return out,known
+
+
+def assess_paper_funding_rows(packet,*,now_ms):
+    """Assess every visible ticker independently, never borrowing the last row.
+
+    Values and field clocks remain producer declarations, not remote authority
+    or physical availability. Results are detached and leave packet hashes intact.
+    """
+    started=time.monotonic();checked=validate_paper_inputs(packet);q=checked['request']
+    if type(now_ms) is not int or not q['as_of_ms']<=now_ms<=253402300799999:_block('PAPER_CLOCK')
+    use_time=dict(q,as_of_ms=now_ms);request_sha=_paper_hash(q);results=[]
+    for row in checked['rows']:
+        if row['event_type']!='derivatives_ticker':continue
+        projected,known=_paper_payload(row['event_type'],row['payload'],use_time,_microseconds(row['event_us']),_microseconds(row['ingest_us']))
+        fields={key:projected[key] for key in sorted(PAPER_FUNDING) if key in projected}
+        proofs=projected.get('_field_observations',{}).get('fields',{})
+        states={}
+        for key in sorted(PAPER_FUNDING):
+            if key not in fields:state='OMITTED'
+            elif fields[key] is None:state='EXPLICIT_UNKNOWN'
+            elif key not in proofs:state='PROOF_MISSING'
+            elif now_ms-proofs[key]['event_ms']>q['max_age_ms'] or now_ms-proofs[key]['observed_ms']>q['max_age_ms']:state='STALE'
+            else:state='KNOWN_SOURCE_FIELD'
+            states[key]=state
+        results.append(dict(row_id=row['id'],funding_status='KNOWN_SOURCE_FIELDS' if known and checked['producer_context_status']=='CONSISTENT' else 'UNAVAILABLE',
+                            evaluated_at_ms=now_ms,source_request_sha256=request_sha,row_sha256=row['row_sha256'],
+                            fields=fields,field_observations=copy.deepcopy(proofs),field_states=states))
+        if time.monotonic()-started>DEADLINE:_block('DEADLINE')
+    if time.monotonic()-started>DEADLINE:_block('DEADLINE')
+    return tuple(results)
