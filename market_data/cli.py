@@ -54,7 +54,7 @@ def main(argv=None, *, startup_admission=None):
     backfill.add_argument('--max-pages', type=int, choices=range(1, 51), default=5)
     args = parser.parse_args(argv)
     if args.command == 'serve':
-        from .terminan_gateway import main as serve
+        from .history_api import main as serve
         return serve(startup_admission=startup_admission)
     if os.environ.get('UNIFIED_MODULE_ID') is not None:
         raise RuntimeError('managed profile permits only the read API')

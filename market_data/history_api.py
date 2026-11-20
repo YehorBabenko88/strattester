@@ -247,7 +247,6 @@ def qualified_snapshot(route, symbol, limit, before_ms=None):
                                   'pinned_historical_rollups_v2': ['5m', '15m', '1h'],
                                   'pinned_historical_rollups_v3': ['1h', '4h', '1d', '1w'],
                                   'pinned_historical_sequences_v4': ['1h', '4h', '1d', '1w'],
-                                  'research_handoff_validation_v1_1': True,
                                   'public_trades': 'UNAVAILABLE',
                                   'orderbook_snapshots': 'UNAVAILABLE',
                                   'open_interest': 'UNAVAILABLE',
@@ -395,56 +394,46 @@ class Handler(BaseHTTPRequestHandler):
         if not self._managed_request():
             return
         route=urlsplit(self.path).path
-        if route not in ('/internal/v1/research-handoffs/validate',
-                         '/internal/v1/history/snapshots/read'):
+        if route != '/internal/v1/history/snapshots/read':
             self.send_error(404)
             return
         try:
-            if route=='/internal/v1/history/snapshots/read' and urlsplit(self.path).query:
+            if urlsplit(self.path).query:
                 raise ValueError('snapshot route must not include query')
             self.connection.settimeout(3)
             if self.headers.get('Transfer-Encoding'):
                 raise ValueError('chunked requests unavailable')
             size = int(self.headers.get('Content-Length', '0'))
-            limit = 4096 if route=='/internal/v1/history/snapshots/read' else 8388608
+            limit = 4096
             if not 0 < size <= limit:
                 raise ValueError('bounded request required')
             body=self.rfile.read(size)
             if len(body)!=size:
                 raise ValueError('truncated request')
-            if route=='/internal/v1/history/snapshots/read':
-                if self.headers.get('Content-Type')!='application/json':
-                    raise ValueError('JSON content type required')
-                def unique(pairs):
-                    out={}
-                    for k,v in pairs:
-                        if k in out:raise ValueError('duplicate selection field')
-                        out[k]=v
-                    return out
-                selection=json.loads(body,object_pairs_hook=unique,
-                                     parse_constant=lambda _: (_ for _ in ()).throw(ValueError('nonfinite')))
-                if type(selection) is dict and getattr(self, '_deadline', None) is not None:
-                    schema = selection.get('schema')
-                    if schema == 'market_data.history.selection.v3':
-                        self._arm_deadline(40)
-                    elif schema == 'market_data.history.selection.v4':
-                        # Up to sixteen bounded reads after complete bounded ingress.
-                        self._arm_deadline(70)
-                result=pinned_history(selection)
-            else:
-                from .research_handoff import accept_handoff
-                configured = json.loads(os.environ.get('MARKET_DATA_TRUSTED_RESEARCH_SOURCES', '[]'))
-                trusted = {(x['identity'], x['source_revision'], x['run_id'], x['completion_receipt']) for x in configured}
-                result = accept_handoff(json.loads(body), trusted)
+            if self.headers.get('Content-Type')!='application/json':
+                raise ValueError('JSON content type required')
+            def unique(pairs):
+                out={}
+                for k,v in pairs:
+                    if k in out:raise ValueError('duplicate selection field')
+                    out[k]=v
+                return out
+            selection=json.loads(body,object_pairs_hook=unique,
+                                 parse_constant=lambda _: (_ for _ in ()).throw(ValueError('nonfinite')))
+            if type(selection) is dict and getattr(self, '_deadline', None) is not None:
+                schema = selection.get('schema')
+                if schema == 'market_data.history.selection.v3':
+                    self._arm_deadline(40)
+                elif schema == 'market_data.history.selection.v4':
+                    # Up to sixteen bounded reads after complete bounded ingress.
+                    self._arm_deadline(70)
+            result=pinned_history(selection)
             status = 200
         except ValueError:
-            reason='INVALID_SNAPSHOT_REQUEST' if route=='/internal/v1/history/snapshots/read' else 'INVALID_HANDOFF_REQUEST'
+            reason='INVALID_SNAPSHOT_REQUEST'
             result,status={'status':'UNAVAILABLE','reason':reason,'execution_authority':False},400
         except Exception:
-            if route=='/internal/v1/history/snapshots/read':
-                result,status={'status':'UNAVAILABLE','reason':'SOURCE_READ_UNAVAILABLE','execution_authority':False},503
-            else:
-                result,status={'status':'UNAVAILABLE','reason':'INVALID_HANDOFF_REQUEST','execution_authority':False},400
+            result,status={'status':'UNAVAILABLE','reason':'SOURCE_READ_UNAVAILABLE','execution_authority':False},503
         data = json.dumps(result,allow_nan=False).encode()
         self.send_response(status)
         self.send_header('Content-Type','application/json')

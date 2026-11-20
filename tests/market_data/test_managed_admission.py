@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from market_data import cli, terminan_gateway as gateway
+from market_data import cli, history_api as gateway
 
 
 ENV = dict(UNIFIED_MODULE_ID='market_data', UNIFIED_MODULE_VERSION='0.1.0',

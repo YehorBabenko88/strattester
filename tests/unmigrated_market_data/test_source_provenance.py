@@ -3,8 +3,7 @@ import time
 import uuid
 import pytest
 from market_data.provenance import minute_record, producer, digest
-from market_data import terminan_gateway as gateway
-from market_data.research_handoff import accept_handoff
+from market_data import history_api as gateway
 
 def row(start=None):
     start = start if start is not None else (int(time.time()*1000)//60000-1)*60000
@@ -46,25 +45,8 @@ def test_gateway_integrity_gaps_stale_and_restart(monkeypatch):
     monkeypatch.setattr(gateway,"immutable_minutes",lambda *args:[a,a])
     assert gateway.snapshot("/internal/v1/candles")["reason"]=="AMBIGUOUS_MINUTE_REVISIONS"
 
-def handoff():
-    r=dict(api_version={"major":1,"minor":1},producer="terminan",producer_identity="fixture",
-        source_revision="a"*40,producer_epoch=str(uuid.uuid4()),run_id=str(uuid.uuid4()),mode="HISTORICAL",execution_authority=False,
-        dataset=dict(fingerprint="b"*64,source_identity="fixture",market_type="linear",symbol="BTCUSDT",timeframe="1m",start_ms=0,end_ms=60000,coverage="COMPLETE",missing_data=[]),
-        strategy={"id":"fixture","version":"1","fingerprint":"a"*64,"parameters":{}},model={"kind":"synthetic","version":"1"},execution_assumptions={"fees":1,"slippage":0,"execution":"none"},metrics={"x":1},completed_at_ms=60001)
-    r["completion_receipt"]=digest(r);return r
 
-def test_research_handoff_requires_trust_and_never_trades():
-    r=handoff();trust={("fixture","a"*40,r["run_id"],r["completion_receipt"])}
-    assert accept_handoff(r,set())["reason"]=="SOURCE_IDENTITY_UNATTESTED"
-    out=accept_handoff(r,trust)
-    assert out["status"]=="ACCEPTED_HISTORICAL" and out["trading_authorized"] is False
-    r["execution_authority"]=True
-    assert accept_handoff(r,trust)["status"]=="UNAVAILABLE"
 
-@pytest.mark.parametrize("change",[lambda r:r.update(completion_receipt="0"*64),lambda r:r.update(api_version={"major":2,"minor":0}),lambda r:r.update(completed_at_ms=True),lambda r:r["dataset"].update(missing_data=[1])])
-def test_handoff_adversarial(change):
-    r=handoff();change(r)
-    assert accept_handoff(r,{("fixture","a"*40,r["run_id"],r["completion_receipt"])})["status"]=="UNAVAILABLE"
 
 
 def test_event_time_ohlc_duplicate_and_late_trades():
@@ -145,7 +127,7 @@ def test_http_absolute_deadline_closes_slow_header_or_body(body):
     sock.settimeout(1)
     try:
         started=time.monotonic()
-        sock.sendall(b'POST /internal/v1/research-handoffs/validate HTTP/1.0\r\nContent-Length: 100\r\n\r\n' if body else b'GET /internal/v1/health HTTP/1.0\r\nX-Test: ')
+        sock.sendall(b'POST /internal/v1/history/snapshots/read HTTP/1.0\r\nContent-Length: 100\r\n\r\n' if body else b'GET /internal/v1/health HTTP/1.0\r\nX-Test: ')
         closed=False
         for _ in range(10):
             time.sleep(.45)
@@ -160,26 +142,6 @@ def test_http_absolute_deadline_closes_slow_header_or_body(body):
         sock.close();server.shutdown();server.server_close();worker.join()
 
 
-def test_canonical_handoff_preserves_frozen_source_and_rejects_forgery():
-    import json
-    from pathlib import Path
-    # Original frozen producer bytes remain historical evidence, not an active alias.
-    source=Path(__file__).parents[1]/'market_data'/'fixtures'/'legacy-experiment-export.synthetic.json'
-    original=source.read_bytes()
-    legacy=json.loads(original)
-    legacy_trust={(legacy['producer_identity'],legacy['source_revision'],legacy['run_id'],legacy['completion_receipt'])}
-    assert accept_handoff(legacy,legacy_trust)['status']=='UNAVAILABLE'
-    # Explicit synthetic namespace transfer; this is not a real producer attestation.
-    r=copy.deepcopy(legacy)
-    r['producer']='terminan'
-    r['completion_receipt']=digest({k:v for k,v in r.items() if k!='completion_receipt'})
-    trust={(r['producer_identity'],r['source_revision'],r['run_id'],r['completion_receipt'])}
-    assert accept_handoff(r,trust)['status']=='ACCEPTED_HISTORICAL'
-    assert accept_handoff(r,set())['status']=='UNAVAILABLE'
-    changed=copy.deepcopy(r);changed['metrics']={'forged':True}
-    changed['completion_receipt']=digest({k:v for k,v in changed.items() if k!='completion_receipt'})
-    assert accept_handoff(changed,trust)['status']=='UNAVAILABLE'
-    assert source.read_bytes()==original
 
 
 def test_http_invalid_query_does_not_echo_or_log_secret(capsys):
@@ -204,7 +166,7 @@ def test_additive_capabilities_do_not_claim_source_readiness():
     result=gateway.snapshot('/internal/v1/capabilities')
     assert result['api_version']=={'major':1,'minor':0}
     assert result['capabilities']['immutable_market_snapshots_v1_1'] is True
-    assert result['capabilities']['research_handoff_validation_v1_1'] is True
+    assert 'research_handoff_validation_v1_1' not in result['capabilities']
     assert result['capabilities']['candles']=='UNAVAILABLE'
 
 
