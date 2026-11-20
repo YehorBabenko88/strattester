@@ -94,6 +94,8 @@ jobs:
         run: |
           import pathlib, runpy
           runpy.run_path('scripts/materialize_ci_sources.py')['materialize'](pathlib.Path('.source/terminan'), '28f475cd237037837be20af0cf6289150168e70a', ['terminan'])
+      - run: python -I scripts/build_sdk_source_manifest.py .source/terminan .source/math .ci-evidence/sdk-source-manifest.json
       - run: python -m pip install --no-deps ./.source/terminan
+      - run: python -I scripts/check_sdk_origin_controls.py
       - run: python -I scripts/check_frozen_roster_controls.py
       - run: python -I scripts/check_frozen_consumer.py
