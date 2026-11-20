@@ -36,7 +36,7 @@ jobs:
           materialize(pathlib.Path.cwd(), '${{ github.event.pull_request.head.sha || github.sha }}', ['market_data'])
           materialize(pathlib.Path('.source/math'), 'e80d622eed7c01b109062b68e750f2b70bcccff7', ['python'])
       - run: python -m pip install --no-deps ./.source/math
-      - run: python -m pip install ".[test]"
+      - run: python -m pip install ".[test,legacy-test]"
       - run: python -m pytest -v
       - name: Parse PowerShell scripts
         if: runner.os == 'Windows'

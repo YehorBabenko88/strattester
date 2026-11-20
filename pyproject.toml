@@ -12,6 +12,8 @@ dependencies = ["aiohttp>=3.10,<4", "psycopg[binary]>=3.2,<4", "websockets>=15,<
 [project.optional-dependencies]
 ingestion = ["asyncpg>=0.29,<1"]
 test = ["pytest==8.3.5", "pytest-asyncio==0.26.0"]
+# Retained pre-consolidation tests only; not canonical acquisition runtime dependencies.
+legacy-test = ["requests>=2.31,<3", "psutil>=5.9,<8"]
 
 [project.scripts]
 market-data = "market_data.cli:main"
