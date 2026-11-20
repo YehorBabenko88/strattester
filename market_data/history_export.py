@@ -7,6 +7,7 @@ Existing ingestion_ms is deliberately never treated as feature availability.
 import copy
 import math
 from .provenance import canonical, digest
+from .numeric_dto import volume_total
 
 MAX_ROWS=2000
 MAX_BYTES=8*1024*1024
@@ -43,8 +44,7 @@ def export_records(records, request, trust):
             c=r['candle']; vals=[c[k] for k in ('open','high','low','close','buy_volume','sell_volume')]
             if any(type(v) not in (int,float) or not math.isfinite(v) for v in vals):raise ValueError('NUMERIC')
             if not 0<c['low']<=min(c['open'],c['close'])<=max(c['open'],c['close'])<=c['high'] or min(c['buy_volume'],c['sell_volume'])<0:raise ValueError('OHLCV')
-            volume=c['buy_volume']+c['sell_volume']
-            if not math.isfinite(volume):raise ValueError('VOLUME')
+            volume=volume_total((c['buy_volume'],c['sell_volume']))
             out.append({**{k:c[k] for k in ('open','high','low','close')},'volume':volume,
               'event_start_ms':lo,'event_end_ms':hi,'available_at_ms':a['available_at_ms'],'revision':fp})
             receipt_hashes.append(t['receipt_pins'][fp])

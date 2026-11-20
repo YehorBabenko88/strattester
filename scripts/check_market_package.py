@@ -19,4 +19,4 @@ with zipfile.ZipFile(sdk) as z:z.extractall(site)
 with tarfile.open(sdist) as t:
  names=t.getnames();assert not any('/strattester/' in n or '/grid/' in n or '/meta_analyse/' in n or n.endswith(('.ps1','.cmd','.bat','.exe')) for n in names)
 assert 'market-data = market_data.cli:main' in (site/'market_data-0.1.0.dist-info/entry_points.txt').read_text()
-print(json.dumps({'wheel_sha256':hashlib.sha256(wheel.read_bytes()).hexdigest(),'sdist_sha256':hashlib.sha256(sdist.read_bytes()).hexdigest(),'python_files':21,'legacy_packages_absent':True,'native_scripts_absent':True,'source_namespace_scan':'PASS'},sort_keys=True))
+print(json.dumps({'wheel_sha256':hashlib.sha256(wheel.read_bytes()).hexdigest(),'sdist_sha256':hashlib.sha256(sdist.read_bytes()).hexdigest(),'python_files':len(wheel_files),'legacy_packages_absent':True,'native_scripts_absent':True,'source_namespace_scan':'PASS'},sort_keys=True))

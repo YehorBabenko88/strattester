@@ -27,8 +27,8 @@
       "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/history_export.py",
       "to": "market_data/history_export.py",
       "original_sha256": "0190637d181ef6c91cdf4e7296f3d50a24bb896185ffef5c3c1f1c4fca957fa0",
-      "canonical_sha256": "b4e57602c1ef9eca6aaf426264235f08281ac7efc6d23877dfb31a73cde101a9",
-      "transform": "namespace-only; algorithm unchanged"
+      "canonical_sha256": "f3f4c994dd4ef3bb58d80fe5fd76f2f95c6353ff13861238e9571a4112db5cc0",
+      "transform": "namespace-only; algorithm unchanged; quantitative arithmetic/validation delegated to canonical Math"
     },
     {
       "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/history_export_v11.py",
@@ -41,8 +41,8 @@
       "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/history_snapshot.py",
       "to": "market_data/history_snapshot.py",
       "original_sha256": "f0aaae68f8c72c5a1365f26121d673181144dc4232d8305a071d5b63771b48a7",
-      "canonical_sha256": "4ffed7776ba22b2541e36e847466cc9e558617489c4f84b8054347a5cfb310a8",
-      "transform": "namespace-only; algorithm unchanged"
+      "canonical_sha256": "58647d7112c924bc5ae301002ee795a1b786d31dcf764dfaa41b75e522c4c6ef",
+      "transform": "namespace-only; algorithm unchanged; quantitative arithmetic/validation delegated to canonical Math"
     },
     {
       "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/market_backfill.py",
@@ -55,8 +55,8 @@
       "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/provenance.py",
       "to": "market_data/provenance.py",
       "original_sha256": "a598d148b797244d21ab090af3f2abc8a2aaa84c789d45bb4780245d763458da",
-      "canonical_sha256": "01412635372d2fa56fe8c43695fa5c41d3ff8545fb4390aad66dcdf2a601c110",
-      "transform": "namespace-only; algorithm unchanged"
+      "canonical_sha256": "644f3da2ba3179b475bb7ecd516be0eb10268d07b94b70ac35b15d28de728033",
+      "transform": "namespace-only; algorithm unchanged; quantitative arithmetic/validation delegated to canonical Math"
     },
     {
       "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/provenance_gateway.py",
@@ -102,12 +102,13 @@
     }
   ],
   "sql_schema": "schema.sql copied byte-normalized, no DDL executed; persistent schema names unmodified",
-  "math_sha": "dae65b688e65ade8308af1ad8dd22b357068d42d",
+  "math_sha": "31e35f6a3073f107a3c8bcc56f38834d21aaae8f",
   "new_components": [
     "admission.py",
     "capture_store.py",
     "collector.py",
-    "cli.py"
+    "cli.py",
+    "numeric_dto.py (serialization/range guard; all arithmetic delegated)"
   ],
   "extracted_components": {
     "sqlite_history.py": "Strattester sqlite_store read-only methods; schema/writers not copied",

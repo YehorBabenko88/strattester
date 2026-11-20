@@ -9,6 +9,7 @@ import re
 from .history_export import _read_records_postgres, MAX_ROWS, MAX_BYTES
 from .history_export_v11 import export_records_v11
 from .provenance import canonical, digest
+from .numeric_dto import volume_total
 
 TIMEFRAME_MINUTES = {'5m': 5, '15m': 15, '1h': 60}
 MULTIPIN_MINUTES = {'1h': 60, '4h': 240, '1d': 1440, '1w': 10080}
@@ -26,7 +27,7 @@ def _candle(window):
             'open': first['open'], 'close': last['close'],
             'high': max(row['high'] for row in window),
             'low': min(row['low'] for row in window),
-            'volume': math.fsum(row['volume'] for row in window),
+            'volume': volume_total(row['volume'] for row in window),
             'available_at_ms': max(row['available_at_ms'] for row in window),
             'watermark_ms': max(row['watermark_ms'] for row in window),
         }

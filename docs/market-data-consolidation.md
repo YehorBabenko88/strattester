@@ -1,6 +1,6 @@
 # Canonical market-data consolidation (NO_GO)
 
-Base repository source: Strattester #90 `13998cf87139330dd0406fed00acd148e045e6c4`. Imported source: Grid #295 `c9ffdaa2af52c4d55871a48655a77a0c669da80f`. Canonical Math dependency: `dae65b688e65ade8308af1ad8dd22b357068d42d`, kernel `d38e05e84bfe05dbe4c37c9820a4b17e1bf54978`. No Git repository rename or ref deletion.
+Base repository source: Strattester #90 `13998cf87139330dd0406fed00acd148e045e6c4`. Imported source: Grid #295 `c9ffdaa2af52c4d55871a48655a77a0c669da80f`. Canonical Math dependency: `31e35f6a3073f107a3c8bcc56f38834d21aaae8f`, kernel `55515bf1c89cf7be26d1795fdcca6486230c6cff`. No Git repository rename or ref deletion.
 
 ## Active ownership / old → new
 
@@ -35,3 +35,9 @@ A preserve: all market history, legacy DBs, raw payloads, research results, stra
 ## Verification boundary
 
 Only explicitly reviewed pure Python fixture modules are executed, using direct Python via Node execFile shell:false with no PowerShell/CMD and isolated pytest confcutdir. No broad legacy test discovery, native service tests, real provider networking, store mutation, firewall or antivirus change. Pure transaction fixtures are NOT actual PostgreSQL acceptance. Windows/Linux hosted, authenticated source continuity, native health/installer and independent release acceptance remain required.
+
+## Subsequent numerical ownership correction
+
+The imported history exporter still added binary64 buy/sell totals locally and the rollup used math.fsum; both returned 0.30000000000000004 for source display numbers0.1/0.2. Reproduced hand-oracle regressions now require0.3 via canonical Math exact_sum(Decimal(str(value))). The frozen SQLite aggregate reader similarly delegates delta to Math (0.3-0.1→0.2). Shared numeric_dto only normalizes historical JSON-number representations and enforces finite/nonzero binary64 presentation; no arithmetic engine is duplicated. Overflow and nonzero-underflow refuse before publication, and source snapshots remain unchanged.
+
+The entire historical partition/POC/isclose/8ULP numeric integrity validator moved to Math historical_aggregate_integrity; Data keeps identity/source/time/JSON byte-size checks. Thus old numeric formulas no longer remain in the data package. Integer event counters/time indexing, basic type/range validation and selection of original OHLC extrema remain lifecycle/DTO responsibilities. Quantitative totals/deltas/buckets/POC and historical numerical integrity have one Math owner. This correction changes newly generated output fingerprints when the corrected numeric value changes; it never rewrites original records, immutable source-revision pins or locked historical receipts.

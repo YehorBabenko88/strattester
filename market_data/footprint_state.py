@@ -5,7 +5,7 @@ tie policy preserves the source lifecycle contract; price bins use canonical
 Decimal HALF_EVEN, preserving the source tie policy without float division.
 """
 from decimal import Decimal
-from math import isfinite
+from .numeric_dto import binary64
 
 from market_profile_math import (price_bucket, footprint_cell_update, exact_sum,
                                  executed_volume_delta, volume_profile_poc)
@@ -95,16 +95,6 @@ class FootprintBuilder:
             if instrument == symbol:
                 self.mark_degraded(symbol, start, reason)
 
-    @staticmethod
-    def _number(value):
-        # Historical v1 numeric DTOs are finite IEEE binary64 presentation,
-        # not exact scientific inputs. The exact original payload and Math
-        # state remain separate; reject range loss instead of emitting zero.
-        result = float(value)
-        if not isfinite(result) or (value != 0 and result == 0):
-            raise ValueError('historical numeric DTO cannot represent amount')
-        return result
-
     def pop_closed(self, now_ms):
         output = []
         prepared = []
@@ -117,15 +107,15 @@ class FootprintBuilder:
             poc = volume_profile_poc(profile, tie_policy='first_seen')
             row = dict(symbol=symbol, start_ms=start,
                 source_event_start_ms=bucket['first_event_ms'], source_event_end_ms=bucket['last_event_ms'],
-                **{field: self._number(bucket[field]) for field in ('open', 'high', 'low', 'close')},
-                buy_volume=self._number(bucket['buy']), sell_volume=self._number(bucket['sell']),
-                delta=self._number(executed_volume_delta(bucket['buy'], bucket['sell'])),
-                trade_count=bucket['trades'], poc_price=self._number(poc),
+                **{field: binary64(bucket[field]) for field in ('open', 'high', 'low', 'close')},
+                buy_volume=binary64(bucket['buy']), sell_volume=binary64(bucket['sell']),
+                delta=binary64(executed_volume_delta(bucket['buy'], bucket['sell'])),
+                trade_count=bucket['trades'], poc_price=binary64(poc),
                 quality_status=bucket['quality_status'], quality_reasons=list(bucket['quality_reasons']),
-                levels=[dict(price=self._number(price), buy_volume=self._number(cell['buy']),
-                    sell_volume=self._number(cell['sell']),
-                    delta=self._number(executed_volume_delta(cell['buy'], cell['sell'])),
-                    volume=self._number(profile[price]), buy_count=cell['buy_count'], sell_count=cell['sell_count'])
+                levels=[dict(price=binary64(price), buy_volume=binary64(cell['buy']),
+                    sell_volume=binary64(cell['sell']),
+                    delta=binary64(executed_volume_delta(cell['buy'], cell['sell'])),
+                    volume=binary64(profile[price]), buy_count=cell['buy_count'], sell_count=cell['sell_count'])
                     for price, cell in sorted(bucket['levels'].items())])
             output.append(row)
             prepared.append(key)

@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 import sqlite3
+from .numeric_dto import volume_delta
 
 
 
@@ -72,7 +73,7 @@ class HistoricalMarketReader:
             f"SELECT open_time,buy_volume,sell_volume,turnover,trade_count,vwap,max_trade FROM public_trade_aggregates WHERE {' AND '.join(where)} ORDER BY open_time",
             tuple(params))
         for ts,buy,sell,turnover,count,vwap,max_trade in cur:
-            yield {'t':ts,'open_time':ts,'buy_volume':buy,'sell_volume':sell,'delta':buy-sell,
+            yield {'t':ts,'open_time':ts,'buy_volume':buy,'sell_volume':sell,'delta':volume_delta(buy,sell),
                    'turnover':turnover,'trade_count':count,'vwap':vwap,'max_trade':max_trade}
 
     def coverage(self,symbol:str,dataset:str='candles',timeframe:str='1m',step_ms:int=60_000,start_ms:int|None=None,end_ms:int|None=None)->Coverage:

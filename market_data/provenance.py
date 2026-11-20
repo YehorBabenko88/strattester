@@ -2,10 +2,10 @@
 import copy
 import hashlib
 import json
-import math
 import re
 import time
 import uuid
+from market_profile_math import historical_aggregate_integrity
 
 SHA = re.compile(r"^[0-9a-f]{40}$")
 
@@ -24,29 +24,11 @@ def producer(identity, revision, endpoint):
 
 
 def data_integrity(row):
+    """Math owns numeric partition/POC policy; this layer owns JSON byte bounds."""
     try:
-        def number(v):return type(v) in (int,float) and math.isfinite(v)
-        def boundary_equal(a,b):return abs(a-b)<=8*max(math.ulp(float(a)),math.ulp(float(b)))
-        values=[row[k] for k in ('open','high','low','close','buy_volume','sell_volume','delta','poc_price')]
-        if not all(number(v) for v in values):return False
-        if not 0 < row['low'] <= min(row['open'],row['close']) <= max(row['open'],row['close']) <= row['high']:return False
-        if type(row['trade_count']) is not int or row['trade_count']<=0:return False
-        levels=row['levels']
-        if not isinstance(levels,list) or not 0<len(levels)<=10000:return False
-        prices=set();buy=sell=trades=0
-        for x in levels:
-            if not all(number(x[k]) for k in ('price','buy_volume','sell_volume','delta','volume')):return False
-            if x['price'] in prices or not ((x['price']>=row['low'] or boundary_equal(x['price'],row['low'])) and (x['price']<=row['high'] or boundary_equal(x['price'],row['high']))):return False
-            prices.add(x['price'])
-            if min(x['buy_volume'],x['sell_volume'])<0:return False
-            if not math.isclose(x['delta'],x['buy_volume']-x['sell_volume'],abs_tol=1e-9) or not math.isclose(x['volume'],x['buy_volume']+x['sell_volume'],abs_tol=1e-9):return False
-            if any(type(x[k]) is not int or x[k]<0 for k in ('buy_count','sell_count')):return False
-            buy+=x['buy_volume'];sell+=x['sell_volume'];trades+=x['buy_count']+x['sell_count']
-        return (trades==row['trade_count'] and row['poc_price'] in prices and
-                any(x['price']==row['poc_price'] and math.isclose(x['volume'],max(v['volume'] for v in levels),abs_tol=1e-9) for x in levels) and
-                math.isclose(buy,row['buy_volume'],abs_tol=1e-9) and math.isclose(sell,row['sell_volume'],abs_tol=1e-9) and
-                math.isclose(buy-sell,row['delta'],abs_tol=1e-9) and len(canonical(row))<=1048576)
-    except (KeyError,TypeError,ValueError,OverflowError):return False
+        return historical_aggregate_integrity(row) and len(canonical(row)) <= 1048576
+    except (TypeError, ValueError, OverflowError):
+        return False
 
 def minute_record(row, ingestion_ms, authenticated_identity=None):
     row = copy.deepcopy(row)

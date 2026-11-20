@@ -9,6 +9,26 @@ from market_data.sqlite_history import HistoricalMarketReader
 
 
 class FrozenSQLiteTests(unittest.TestCase):
+    def test_readonly_aggregate_delta_uses_canonical_decimal_owner(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'aggregates.db'
+            connection = sqlite3.connect(source)
+            try:
+                connection.execute('CREATE TABLE public_trade_aggregates '
+                    '(symbol,timeframe,open_time,buy_volume,sell_volume,turnover,trade_count,vwap,max_trade)')
+                connection.execute("INSERT INTO public_trade_aggregates VALUES('BTCUSDT','1m',60000,0.3,0.1,1,2,1,1)")
+                connection.commit()
+            finally:
+                connection.close()
+            original = source.read_bytes()
+            reader = HistoricalMarketReader.open_snapshot(source)
+            try:
+                rows = list(reader.iter_public_trade_aggregates('BTCUSDT'))
+                self.assertEqual(rows[0]['delta'], 0.2)
+            finally:
+                reader.close()
+            self.assertEqual(source.read_bytes(), original)
+
     def test_legacy_and_current_candles_remain_original_and_read_only(self):
         with tempfile.TemporaryDirectory() as directory:
             for legacy in (False, True):
