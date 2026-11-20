@@ -13,14 +13,15 @@ def _decimal(value):
     if type(value) not in (Decimal,str,int):raise ValueError('exact decimal value required')
     if type(value) is not Decimal:
         text=str(value)
-        if not 0<len(text)<=160 or re.fullmatch(r'[+]?(?:[0-9]+(?:[.][0-9]*)?|[.][0-9]+)(?:[eE][+-]?[0-9]+)?',text) is None:
+        if not 0<len(text)<=256 or re.fullmatch(r'[+]?(?:[0-9]+(?:[.][0-9]*)?|[.][0-9]+)(?:[eE][+-]?[0-9]+)?',text) is None:
             raise ValueError('invalid exact public numeric')
         exponent=re.split('[eE]',text)
         if len(exponent)==2 and not -4096<=int(exponent[1])<=4096:
             raise ValueError('invalid exact public numeric exponent')
         value=Decimal(text)
     if (not value.is_finite() or value<=0 or len(value.as_tuple().digits)>160
-            or not -4096<=value.as_tuple().exponent<=4096):
+            or not -4096<=value.as_tuple().exponent<=4096
+            or value.as_tuple().exponent+len(value.as_tuple().digits)-1>4096):
         raise ValueError('invalid exact public numeric')
     return value
 
@@ -32,27 +33,50 @@ class Trade:
     qty: Decimal
     side: str
     trade_id: str
+    ts_us: int | None = None
 
     def __post_init__(self):
         if (type(self.symbol) is not str or re.fullmatch('[A-Z0-9]{2,30}',self.symbol) is None
-                or type(self.ts_ms) is not int or not 0<self.ts_ms<=U63
+                or type(self.ts_ms) is not int or not 0<=self.ts_ms<=2**53-1
                 or self.side not in ('Buy','Sell')
                 or type(self.trade_id) is not str or not 0<len(self.trade_id)<=128):
             raise ValueError('invalid exact execution identity')
+        microseconds=self.ts_ms*1000 if self.ts_us is None else self.ts_us
+        if type(microseconds) is not int or not 0<=microseconds<=U63 or microseconds//1000!=self.ts_ms:
+            raise ValueError('invalid exact execution microseconds')
+        object.__setattr__(self,'ts_us',microseconds)
         object.__setattr__(self,'price',_decimal(self.price))
         object.__setattr__(self,'qty',_decimal(self.qty))
 
+def decimal_text(value):
+    digits=list(value.as_tuple().digits);exponent=value.as_tuple().exponent
+    while len(digits)>1 and digits[-1]==0:digits.pop();exponent+=1
+    text=''.join(str(digit) for digit in digits)
+    return text if exponent==0 else text+'E'+str(exponent)
+
+def digest_json(value):
+    return sha256(json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=True,allow_nan=False).encode('ascii')).hexdigest()
+
 def delivery_identity(trade):
-    """Stable event key plus exact semantic payload digest; no commit assertion."""
-    def canonical_decimal(value):
-        text=format(value,'f')
-        return text.rstrip('0').rstrip('.') if '.' in text else text
-    def digest(value):
-        return sha256(json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=True,allow_nan=False).encode('ascii')).hexdigest()
-    identity=dict(schema='market_data.execution-key.v1',exchange='bybit',category='linear',
-                  symbol=trade.symbol,trade_id=trade.trade_id)
-    return dict(delivery_key=digest(identity),content_sha256=digest(dict(identity,
-        ts_ms=trade.ts_ms,price=canonical_decimal(trade.price),qty=canonical_decimal(trade.qty),side=trade.side)))
+    """Stable event key and exact microsecond semantic digest; no commit assertion."""
+    identity=dict(schema='market_data.execution-key.v1',exchange='bybit',category='linear',symbol=trade.symbol,trade_id=trade.trade_id)
+    return dict(delivery_key=digest_json(identity),content_sha256=digest_json(dict(identity,
+        schema='market_data.execution-content.v2',timestamp_us=str(trade.ts_us),
+        price=decimal_text(trade.price),qty=decimal_text(trade.qty),side=trade.side)))
+
+def execution_record(trade):
+    return dict(delivery_identity(trade),symbol=trade.symbol,trade_id=trade.trade_id,
+        timestamp_us=str(trade.ts_us),price=decimal_text(trade.price),quantity=decimal_text(trade.qty),side=trade.side)
+
+def decode_execution_record(value):
+    fields={'delivery_key','content_sha256','symbol','trade_id','timestamp_us','price','quantity','side'}
+    if type(value) is not dict or set(value)!=fields or any(type(item) is not str for item in value.values()):
+        raise ValueError('invalid exact execution record')
+    if re.fullmatch('0|[1-9][0-9]{0,18}',value['timestamp_us']) is None:raise ValueError('invalid exact event time')
+    microseconds=int(value['timestamp_us'])
+    trade=Trade(value['symbol'],microseconds//1000,value['price'],value['quantity'],value['side'],value['trade_id'],ts_us=microseconds)
+    if execution_record(trade)!=value:raise ValueError('noncanonical exact execution record')
+    return trade
 
 def decode_frame(raw):
     if not isinstance(raw,(str,bytes)):
@@ -85,10 +109,11 @@ def parse_trades(message,symbol,now_ms):
     trades=[]; seen={}
     for item in batch:
         if (type(item) is not dict or item.get('s')!=symbol
-                or type(item.get('p')) is not str or type(item.get('v')) is not str):
+                or type(item.get('p')) is not str or type(item.get('v')) is not str
+                or len(item['p'])>160 or len(item['v'])>160):
             raise ValueError('invalid exact provider trade fields')
         trade=Trade(symbol,item.get('T'),item['p'],item['v'],item.get('S'),item.get('i'))
-        if trade.ts_ms>now_ms+300000:raise ValueError('future public trade timestamp')
+        if trade.ts_ms<=0 or trade.ts_ms>now_ms+300000:raise ValueError('future public trade timestamp')
         prior=seen.setdefault(trade.trade_id,trade)
         if prior!=trade:raise ValueError('conflicting public trade identity')
         trades.append(trade)

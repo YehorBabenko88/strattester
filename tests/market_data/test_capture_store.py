@@ -9,6 +9,7 @@ from market_data.raw_capture import RawCaptureRecorder, RawCaptureProfile, RawCa
 
 class Connection:
     def __init__(self, fail_commit=False):
+        self.info = type("Info",(),{"transaction_status":0})()
         self.rows = {}
         self.fail_commit = fail_commit
         self.committed = False
