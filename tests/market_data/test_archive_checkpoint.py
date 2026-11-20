@@ -293,3 +293,24 @@ async def test_every_commit_receipt_binding_is_required_before_wal_ack(tmp_path,
         fresh=ArchiveImporter(root,WrongBinding(),SegmentWAL(tmp_path/'wal'),source_revision='a'*40)
         with pytest.raises(ValueError):await fresh.recover()
         assert fresh.failed and len(wal.recover())==1
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('oversize',['batch','record','value'])
+async def test_invalid_archive_input_refuses_before_unbounded_snapshot_or_hash(tmp_path,oversize):
+    import tracemalloc
+    from market_data.archive_import import batch_observation,import_identity
+    from market_data.public_trades import execution_record,digest_json
+    valid=execution_record(Trade('BTCUSDT',1,'1','1','Buy','one'))
+    archive=dict(import_id=import_identity('a'*64,'BTCUSDT'),blob_sha256='a'*64,blob_bytes='1',locator='x.csv.gz',format='BYBIT_CSV_GZIP',rows='1',start_row='0',end_row='1',events_sha256=digest_json([valid]),source_authenticity='UNKNOWN',point_in_time_availability='UNKNOWN')
+    raw=batch_observation(archive,'BTCUSDT','b'*40,None)
+    events=[valid]*100000 if oversize=='batch' else [dict(valid)]
+    if oversize=='record':events[0].update({str(i):'x' for i in range(50000)})
+    if oversize=='value':events[0]['price']='1'*1000000
+    persistent=state();store=CaptureStore(Connection(persistent))
+    tracemalloc.start()
+    try:
+        with pytest.raises(ValueError):await store.store_archive_batch(observation_bytes=raw,events=events)
+        _,peak=tracemalloc.get_traced_memory()
+    finally:tracemalloc.stop()
+    assert peak<262144,'invalid input must refuse before proportional copy/hash allocation'
+    assert persistent==state()

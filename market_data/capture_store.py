@@ -144,14 +144,15 @@ class CaptureStore:
         observation=decode_observation(observation_bytes)
         if observation['source_kind']!='ARCHIVE':raise ValueError('archive observation required')
         archive=observation['archive'];start=int(archive['start_row']);end=int(archive['end_row'])
-        if type(events) is not list or any(type(event) is not dict for event in events):
-            raise ValueError('archive batch records required')
-        events=[dict(event) for event in events]  # Snapshot before ANY await/lock wait.
-        if len(events)!=end-start or digest_json(events)!=archive['events_sha256']:
-            raise ValueError('archive batch digest or row range mismatch')
+        if type(events) is not list or not 1<=len(events)<=1024 or len(events)!=end-start:
+            raise ValueError('archive batch row range mismatch')
+        if any(type(event) is not dict or len(event)!=8 for event in events):
+            raise ValueError('bounded archive batch records required')
+        events=[dict(event) for event in events]  # Bounded snapshot before ANY await/lock wait.
         for event in events:
             decode_execution_record(event)
             if event['symbol']!=observation['instrument']['symbol']:raise ValueError('archive event instrument mismatch')
+        if digest_json(events)!=archive['events_sha256']:raise ValueError('archive batch digest mismatch')
         digest=sha256(observation_bytes).hexdigest();identity=archive['import_id']
         expected_id=digest_json(dict(schema='market_data.archive-import.v1',blob_sha256=archive['blob_sha256'],symbol=observation['instrument']['symbol'],format='BYBIT_CSV_GZIP'))
         if identity!=expected_id:raise ValueError('archive source identity mismatch')
