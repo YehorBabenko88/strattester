@@ -144,7 +144,10 @@ class CaptureStore:
         observation=decode_observation(observation_bytes)
         if observation['source_kind']!='ARCHIVE':raise ValueError('archive observation required')
         archive=observation['archive'];start=int(archive['start_row']);end=int(archive['end_row'])
-        if type(events) is not list or len(events)!=end-start or digest_json(events)!=archive['events_sha256']:
+        if type(events) is not list or any(type(event) is not dict for event in events):
+            raise ValueError('archive batch records required')
+        events=[dict(event) for event in events]  # Snapshot before ANY await/lock wait.
+        if len(events)!=end-start or digest_json(events)!=archive['events_sha256']:
             raise ValueError('archive batch digest or row range mismatch')
         for event in events:
             decode_execution_record(event)

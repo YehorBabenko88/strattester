@@ -6,7 +6,7 @@ import csv,gzip,hashlib,json,os,re,tempfile,time,uuid
 from contextlib import contextmanager
 from datetime import datetime,timezone
 from pathlib import Path
-from market_profile_math import decimal_epoch_units
+from market_math import decimal_epoch_units
 from .archive_file_lock import guard_archive_destination
 from .bybit_archive_audit import audit_trade_gzip
 from .public_trades import Trade,execution_record,decode_execution_record,digest_json
@@ -65,6 +65,16 @@ class ArchiveImporter:
     def __init__(self,root,store,wal,*,source_revision):
         if type(source_revision) is not str or re.fullmatch('[a-f0-9]{40}',source_revision) is None:raise ValueError('exact source revision required')
         self.root=Path(root);self.store=store;self.wal=wal;self.revision=source_revision;self.failed=False;self.busy=False
+    @staticmethod
+    def _require_commit(result,raw):
+        archive=decode_observation(raw)['archive']
+        expected=dict(import_id=archive['import_id'],committed_source_rows=int(archive['end_row']),
+            observation_sha256=hashlib.sha256(raw).hexdigest(),committed=True,
+            source_authenticity='UNKNOWN',point_in_time_availability='UNKNOWN',native_authority_verified=False)
+        if (type(result) is not dict or set(result)!=set(expected)
+                or any(type(result[key]) is not type(value) or result[key]!=value for key,value in expected.items())):
+            raise ValueError('ARCHIVE_COMMIT_OUTCOME_UNCONFIRMED')
+
     async def _replay(self,rid,payload):
         if type(payload) is not dict or set(payload)!={'schema','observation','events'} or payload['schema']!='market_data.archive-wal.v1':raise ValueError('foreign or invalid WAL payload')
         raw=encode_observation(payload['observation']);observation=decode_observation(raw);archive=observation['archive']
@@ -78,6 +88,7 @@ class ArchiveImporter:
                 if index+1>=end:break
             if events!=payload['events'] or digest_json(events)!=archive['events_sha256']:raise ValueError('archive WAL content drift')
             result=await self.store.store_archive_batch(observation_bytes=raw,events=events)
+            self._require_commit(result,raw)
             await self.wal.ack(rid)
             return result
     async def recover(self):
@@ -112,7 +123,8 @@ class ArchiveImporter:
                         payload=dict(schema='market_data.archive-wal.v1',observation=decode_observation(raw),events=batch)
                         if len(json.dumps(payload,separators=(',',':')).encode())>1048576:raise ValueError('archive batch WAL byte budget')
                         rid=await self.wal.append(payload)
-                        await self.store.store_archive_batch(observation_bytes=raw,events=batch)
+                        result=await self.store.store_archive_batch(observation_bytes=raw,events=batch)
+                        self._require_commit(result,raw)
                         await self.wal.ack(rid)
                         start=index;previous=hashlib.sha256(raw).hexdigest();batch=[]
                 return dict(schema='market_data.archive-import.receipt.v1',import_id=identity,committed_source_rows=start,

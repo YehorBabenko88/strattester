@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 
 from .bybit_archive_audit import ArchiveAudit
-from market_profile_math import decimal_epoch_units
+from market_math import decimal_epoch_units
 
 
 @dataclass(frozen=True)

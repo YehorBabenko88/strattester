@@ -235,3 +235,61 @@ def test_nonidle_or_unproven_session_never_adopted(status):
     connection=Connection(state());connection.info.transaction_status=status
     with pytest.raises(ValueError):CaptureStore(connection)
     assert not connection.closed
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('when',['sql','lock'])
+async def test_validated_batch_snapshot_survives_caller_mutation(tmp_path,when):
+    import asyncio
+    from market_data.archive_import import batch_observation,import_identity
+    from market_data.public_trades import execution_record,digest_json
+    events=[execution_record(Trade('BTCUSDT',1,'1','1','Buy','one'))]
+    archive=dict(import_id=import_identity('a'*64,'BTCUSDT'),blob_sha256='a'*64,blob_bytes='1',locator='x.csv.gz',format='BYBIT_CSV_GZIP',rows='1',start_row='0',end_row='1',events_sha256=digest_json(events),source_authenticity='UNKNOWN',point_in_time_availability='UNKNOWN')
+    raw=batch_observation(archive,'BTCUSDT','b'*40,None)
+    class Mutating(Connection):
+        mutated=False
+        async def execute(self,sql,p=()):
+            if when=='sql' and not self.mutated:self.mutated=True;events[0]['price']='999'
+            return await super().execute(sql,p)
+    persistent=state();store=CaptureStore(Mutating(persistent))
+    if when=='lock':await store._lock.acquire()
+    task=asyncio.create_task(store.store_archive_batch(observation_bytes=raw,events=events))
+    if when=='lock':
+        await asyncio.sleep(0);events[0]['price']='999';events.append(dict(events[0]));store._lock.release()
+    receipt=await task
+    assert receipt['committed'] is True and next(iter(persistent['events'].values()))[2]=='1'
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('mode',['fresh','replay'])
+@pytest.mark.parametrize('bad',[None,{}, {'committed':False},{'committed':1}, {'committed':True,'import_id':'bad'}])
+async def test_unconfirmed_store_ack_retains_wal_and_poisoned_owner(tmp_path,mode,bad):
+    root,locator,sha,size=fixture(tmp_path);wal=SegmentWAL(tmp_path/'wal')
+    class Unconfirmed:
+        async def archive_checkpoint(self,_):return None
+        async def store_archive_batch(self,**kwargs):return bad
+    importer=ArchiveImporter(root,Unconfirmed(),wal,source_revision='a'*40)
+    with pytest.raises(ValueError):await importer.ingest(locator,sha,size,'BTCUSDT')
+    assert importer.failed and len(wal.recover())==1
+    if mode=='replay':
+        fresh=ArchiveImporter(root,Unconfirmed(),SegmentWAL(tmp_path/'wal'),source_revision='a'*40)
+        with pytest.raises(ValueError):await fresh.recover()
+        assert fresh.failed and len(wal.recover())==1
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('mode',['fresh','replay'])
+@pytest.mark.parametrize('change',[{'import_id':'0'*64},{'committed_source_rows':True},{'committed_source_rows':999},{'observation_sha256':'0'*64},{'committed':1},{'source_authenticity':'VERIFIED'},{'point_in_time_availability':'KNOWN'},{'native_authority_verified':True}])
+async def test_every_commit_receipt_binding_is_required_before_wal_ack(tmp_path,mode,change):
+    from market_data.raw_capture import decode_observation
+    root,locator,sha,size=fixture(tmp_path);wal=SegmentWAL(tmp_path/'wal')
+    class WrongBinding:
+        async def archive_checkpoint(self,_):return None
+        async def store_archive_batch(self,*,observation_bytes,events):
+            archive=decode_observation(observation_bytes)['archive']
+            expected=dict(import_id=archive['import_id'],committed_source_rows=int(archive['end_row']),observation_sha256=hashlib.sha256(observation_bytes).hexdigest(),committed=True,source_authenticity='UNKNOWN',point_in_time_availability='UNKNOWN',native_authority_verified=False)
+            return dict(expected,**change)
+    importer=ArchiveImporter(root,WrongBinding(),wal,source_revision='a'*40)
+    with pytest.raises(ValueError):await importer.ingest(locator,sha,size,'BTCUSDT')
+    assert importer.failed and len(wal.recover())==1
+    if mode=='replay':
+        fresh=ArchiveImporter(root,WrongBinding(),SegmentWAL(tmp_path/'wal'),source_revision='a'*40)
+        with pytest.raises(ValueError):await fresh.recover()
+        assert fresh.failed and len(wal.recover())==1

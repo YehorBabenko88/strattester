@@ -5,7 +5,7 @@ import json
 import re
 import time
 import uuid
-from market_profile_math import historical_aggregate_integrity
+from market_math import historical_aggregate_integrity
 
 SHA = re.compile(r"^[0-9a-f]{40}$")
 
