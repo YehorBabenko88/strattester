@@ -50,3 +50,30 @@ async def test_cancel_at_completed_subscription_callback_preserves_unknown_clean
  assert len(sink.rows)==1 and sink.wal.recover()==[]
  assert collector.recorder.metrics()['stop_reason']=='storage_unknown'
  with pytest.raises(RawCaptureError,match='RAW_CAPTURE_STORAGE_OUTCOME_UNKNOWN'):collector.require_known_outcome()
+
+
+@pytest.mark.asyncio
+async def test_valid_admission_allows_known_disconnect_during_caller_cancellation(tmp_path,monkeypatch):
+ from market_data.raw_capture import decode_observation
+ import json
+ managed(monkeypatch)
+ class Admission:
+  def require_current(self):return True
+ sink=SharedSink(tmp_path/'wal');socket=Socket(asyncio.Event());owned=[];trace=[]
+ async def connector(endpoint):return socket
+ async def ready(*args):owned[0].cancel()
+ collector=PublicTradeCollector(sink,symbol='BTCUSDT',source_revision='a'*40,connector=connector,max_frames=1,on_subscription_ready=ready,startup_admission=Admission())
+ wrapper=type(collector.recorder.sink);original=wrapper.store_capture
+ async def observed(self,**kwargs):
+  task=asyncio.current_task();kind=decode_observation(kwargs['observation_bytes'])['kind']
+  trace.append(dict(kind=kind,same_collector_task=task is owned[0],cancelling=task.cancelling()))
+  return await original(self,**kwargs)
+ monkeypatch.setattr(wrapper,'store_capture',observed)
+ task=asyncio.create_task(collector.run());owned.append(task)
+ with pytest.raises(asyncio.CancelledError):await task
+ print('RAW_CLEANUP_CONTEXT='+json.dumps(trace))
+ assert task.cancelled() and socket.closed
+ assert [decode_observation(raw)['kind'] for raw,payload in sink.rows]==['frame','disconnect']
+ assert collector.recorder.metrics()['stop_reason']!='storage_unknown'
+ collector.require_known_outcome()
+ assert sink.wal.recover()==[]
