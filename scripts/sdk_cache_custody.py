@@ -16,6 +16,20 @@ def _ordinary_directory(path):
     info=path.lstat()
     if not stat.S_ISDIR(info.st_mode) or path.is_symlink() or getattr(info,'st_file_attributes',0)&1024:
         raise AssertionError('ordinary private cache directory required')
+    return info
+
+def _canonical_directory(path):
+    """Accept ordinary spelling aliases only after validating BOTH full chains."""
+    lexical=Path(path).absolute()
+    before=None
+    for part in (*reversed(lexical.parents),lexical):before=_ordinary_directory(part)
+    canonical=lexical.resolve(strict=True)
+    after=None
+    for part in (*reversed(canonical.parents),canonical):after=_ordinary_directory(part)
+    if (before.st_dev,before.st_ino)!=(after.st_dev,after.st_ino):
+        raise AssertionError('cache directory identity changed during canonicalization')
+    return canonical
+
 
 def _external(path,source_roots):
     roots=(Path(__file__).resolve().parents[1],*(Path(p).resolve() for p in source_roots))
@@ -25,8 +39,7 @@ def _external(path,source_roots):
 def fresh_sdk_cache(*,source_roots=()):
     """Yield a NONEXISTENT cache path for a new -B -X child interpreter."""
     with tempfile.TemporaryDirectory(prefix='unified-sdk-cache-') as directory:
-        owner=Path(directory).absolute();_ordinary_directory(owner)
-        if owner.resolve()!=owner:raise AssertionError('linked cache parent refused')
+        owner=_canonical_directory(Path(directory).absolute())
         _external(owner,source_roots)
         cache=owner/'bytecode'
         if cache.exists() or cache.is_symlink():raise AssertionError('cache path was not fresh')
@@ -55,16 +68,17 @@ def claim_sdk_cache(path,*,source_roots=()):
     """Refuse existing cache, then exclusively claim the unused startup path."""
     assert_no_preloaded_sdks()
     path=Path(path).absolute();_startup_cache(path);_external(path,source_roots)
-    _ordinary_directory(path.parent)
-    if path.parent.resolve()!=path.parent:raise AssertionError('linked cache parent refused')
+    if _canonical_directory(path.parent)!=path.parent:
+        raise AssertionError('startup cache must use canonical owner spelling')
     try:path.mkdir(mode=0o700,exist_ok=False)
     except FileExistsError:raise AssertionError('pre-existing SDK cache refused') from None
-    _ordinary_directory(path)
+    if _canonical_directory(path)!=path:raise AssertionError('cache spelling changed')
     info=path.stat()
     return SdkCacheCustody(path,(info.st_dev,info.st_ino))
 
 def verify_sdk_cache(custody):
-    path=custody.path;_startup_cache(path);_ordinary_directory(path)
+    path=custody.path;_startup_cache(path)
+    if _canonical_directory(path)!=path:raise AssertionError('cache spelling changed')
     info=path.stat()
     if (info.st_dev,info.st_ino)!=custody.identity or any(path.iterdir()):
         raise AssertionError('SDK cache custody changed or contains bytecode')
