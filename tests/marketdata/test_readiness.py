@@ -13,6 +13,17 @@ def _legacy(path):
     c.execute("INSERT INTO candles VALUES('BTCUSDT',0,100,101,99,100,1,100)")
     c.commit(); c.close()
 
+def _frozen_current(path,rows=()):
+    """Literal private TEST fixture, never a runtime store/bootstrap."""
+    if path.exists():raise AssertionError('fresh fixture destination required')
+    connection=sqlite3.connect(path)
+    try:
+        connection.execute('CREATE TABLE candles(symbol TEXT NOT NULL,timeframe TEXT NOT NULL,open_time INTEGER NOT NULL,open REAL NOT NULL,high REAL NOT NULL,low REAL NOT NULL,close REAL NOT NULL,volume REAL NOT NULL,turnover REAL,complete INTEGER NOT NULL,PRIMARY KEY(symbol,timeframe,open_time))')
+        connection.executemany('INSERT INTO candles VALUES(?,?,?,?,?,?,?,?,?,?)',rows)
+        connection.commit()
+    finally:connection.close()
+
+
 def test_open_market_store_prefers_existing_local_legacy_data(tmp_path):
     # Retained unmigrated DB role: imports remain local, assertions unchanged.
     from strattester.marketdata.readiness import open_market_store,ensure_history
@@ -69,15 +80,16 @@ def test_historical_reader_sees_committed_wal_rows_without_checkpoint(tmp_path):
     finally:
         writer.close()
 
-def test_open_market_store_refuses_creation_without_existing_history(tmp_path):
-    # Retained unmigrated DB role: imports remain local, assertions unchanged.
-    from strattester.marketdata.readiness import open_market_store,ensure_history
-    from strattester.marketdata.sync_engine import DataRequirement,SyncState
-    import pytest
-    root=tmp_path/'app'; root.mkdir()
-    with pytest.raises(RuntimeError,match='GRID_MARKET_STORE_REQUIRED'):
-        open_market_store(root,legacy_paths=())
+def test_open_market_store_refuses_creation_without_existing_history(tmp_path,monkeypatch):
+    from market_data.sqlite_history import HistoricalMarketReader
+    root=tmp_path/'app';root.mkdir();missing=root/'data'/'bybit_1m.sqlite3'
+    def forbidden(*args,**kwargs):raise AssertionError('missing source must refuse before SQLite open')
+    monkeypatch.setattr(sqlite3,'connect',forbidden)
+    # Canonical explicit-source API replaces retired GRID bootstrap/error text.
+    with pytest.raises(FileNotFoundError):HistoricalMarketReader.open_snapshot(missing)
     assert not (root/'data'/'bybit_1m.sqlite3').exists()
+    assert list(root.iterdir())==[]
+
 
 def test_ensure_history_refuses_legacy_writer_without_fetch_or_mutation(tmp_path):
     # Retained unmigrated DB role: imports remain local, assertions unchanged.
@@ -107,34 +119,57 @@ def test_ensure_history_refuses_legacy_writer_without_fetch_or_mutation(tmp_path
         opened.store.close()
 
 
-def test_existing_candles_not_promoted_to_source_attested(tmp_path):
-    # Retained unmigrated DB role: imports remain local, assertions unchanged.
-    from strattester.marketdata.readiness import open_market_store,ensure_history
-    from strattester.marketdata.sync_engine import DataRequirement,SyncState
-    from strattester.marketdata.sqlite_store import Candle
-    root = tmp_path / 'app'
-    root.mkdir()
-    # Existing historical fixture is deliberately created by the TEST only.
-    # Runtime open_market_store must not create any market table or new DB.
-    from strattester.marketdata.sqlite_store import SQLiteMarketStore
-    market_file = root/'data'/'bybit_1m.sqlite3'
-    with_market = SQLiteMarketStore.open(market_file)
+def test_existing_candles_not_promoted_to_source_attested(tmp_path,monkeypatch):
+    from market_data.sqlite_history import HistoricalMarketReader
+    from market_data.history_range_audit import assess_declared_history_range
+    import socket
+    root=tmp_path/'app';root.mkdir();market_file=root/'historical.sqlite3'
+    _frozen_current(market_file,[('BTCUSDT','1m',0,100,101,99,100,1,100,1)])
+    original=market_file.read_bytes();original_files=sorted(root.iterdir())
+    def forbidden(*args,**kwargs):raise AssertionError('read-only inspection must not fetch')
+    monkeypatch.setattr(socket,'socket',forbidden)
+    reader=HistoricalMarketReader.open_snapshot(market_file)
     try:
-        with_market.upsert_candles([
-            Candle('BTCUSDT', '1m', 0, 100, 101, 99, 100, 1, 100, True),
-        ])
-    finally:
-        with_market.close()
-    opened = open_market_store(root, legacy_paths=())
+        before=reader.connection.total_changes
+        coverage=reader.coverage('BTCUSDT','candles','1m')
+        result=assess_declared_history_range(required_start_ms=0,required_end_ms=0,
+            available_start_ms=coverage.earliest,available_end_ms=coverage.latest,
+            instrument_status='UNKNOWN',recoverable=False)
+        # A counted local row is not source-attested readiness or repair authority.
+        assert result['readiness']=='NOT_EVALUATED' and result['coverage']=='UNKNOWN'
+        assert reader.connection.total_changes==before
+        assert reader.coverage('BTCUSDT','candles','1m').count==1
+        assert result['range_status']=='BOUNDARIES_PRESENT'
+        assert result['source_authenticity']=='NOT_EVALUATED' and result['point_in_time_availability']=='UNKNOWN'
+        assert result['execution_authority'] is False and result['trading_authorized'] is False
+        with pytest.raises(sqlite3.OperationalError,match='readonly'):reader.connection.execute('DELETE FROM candles')
+    finally:reader.close()
+    assert market_file.read_bytes()==original and sorted(root.iterdir())==original_files
+
+
+def test_frozen_empty_history_inspection_is_unqualified_without_fetch_or_mutation(tmp_path,monkeypatch):
+    """PARTIAL old ensure_history role: no fabricated batch/repair-result adapter."""
+    from market_data.sqlite_history import HistoricalMarketReader
+    from market_data.history_range_audit import assess_declared_history_range
+    import socket
+    source=tmp_path/'empty.sqlite3';_frozen_current(source)
+    original=source.read_bytes();original_files=sorted(tmp_path.iterdir())
+    def forbidden(*args,**kwargs):raise AssertionError('read-only inspection must not fetch')
+    monkeypatch.setattr(socket,'socket',forbidden)
+    reader=HistoricalMarketReader.open_snapshot(source)
     try:
-        before = opened.store.connection.total_changes
-        req = DataRequirement('BTCUSDT', 'candles', '1m', 0, 0)
-        result = ensure_history(opened.store, None, (req,))
-        assert result[0].state is SyncState.REPAIR_REQUIRED
-        assert opened.store.connection.total_changes == before
-        assert opened.store.coverage('BTCUSDT', 'candles', '1m').count == 1
-    finally:
-        opened.store.close()
+        before=reader.connection.total_changes;coverage=reader.coverage('BTCUSDT','candles','1m')
+        result=assess_declared_history_range(required_start_ms=0,required_end_ms=60000,
+            available_start_ms=coverage.earliest,available_end_ms=coverage.latest,
+            instrument_status='UNKNOWN',recoverable=False)
+        assert reader.connection.total_changes==before
+        assert reader.coverage('BTCUSDT','candles','1m').count==0
+        assert result['range_status']=='INSUFFICIENT_RANGE' and result['coverage']=='UNKNOWN'
+        assert result['readiness']=='NOT_EVALUATED' and result['source_authenticity']=='NOT_EVALUATED'
+        assert result['execution_authority'] is False and result['trading_authorized'] is False
+        with pytest.raises(sqlite3.OperationalError,match='readonly'):reader.connection.execute('DELETE FROM candles')
+    finally:reader.close()
+    assert source.read_bytes()==original and sorted(tmp_path.iterdir())==original_files
 
 
 def test_requirements_skip_explicitly_unsupported_optional_datasets():

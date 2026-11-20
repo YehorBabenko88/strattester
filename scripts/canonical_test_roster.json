@@ -770,5 +770,8 @@
   "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_hostile_row_width_refuses_before_json_loads",
   "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_request_extra_scalar_fields_refuse_before_json_loads",
   "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_container_field_column_budgets_and_escaped_strings",
-  "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_exact_1440_rows_and_cells_remain_valid"
+  "tests/market_data/test_gateway_query_projection.py::ProjectionTests::test_exact_1440_rows_and_cells_remain_valid",
+  "tests/marketdata/test_readiness.py::test_open_market_store_refuses_creation_without_existing_history",
+  "tests/marketdata/test_readiness.py::test_existing_candles_not_promoted_to_source_attested",
+  "tests/marketdata/test_readiness.py::test_frozen_empty_history_inspection_is_unqualified_without_fetch_or_mutation"
 ]
