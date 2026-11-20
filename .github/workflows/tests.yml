@@ -2,6 +2,10 @@ name: tests
 on:
   push:
   pull_request:
+permissions:
+  contents: read
+env:
+  SOURCE_DATE_EPOCH: "315532800"
 jobs:
   pytest:
     strategy:
@@ -10,11 +14,28 @@ jobs:
         python: ['3.11','3.12','3.13']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: YehorBabenko88/math
+          ref: 212dbcbc0f9f4c540ccfe8c5891c37527fe147a1
+          path: .source/math
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install -e .[dev]
+      - name: Materialize build inputs from exact Git blobs
+        shell: python
+        run: |
+          import pathlib, runpy
+          materialize = runpy.run_path('scripts/materialize_ci_sources.py')['materialize']
+          materialize(pathlib.Path.cwd(), '${{ github.event.pull_request.head.sha || github.sha }}', ['market_data'])
+          materialize(pathlib.Path('.source/math'), '212dbcbc0f9f4c540ccfe8c5891c37527fe147a1', ['python'])
+      - run: python -m pip install --no-deps ./.source/math
+      - run: python -m pip install ".[test]"
       - run: python -m pytest -v
       - name: Parse PowerShell scripts
         if: runner.os == 'Windows'
@@ -40,19 +61,38 @@ jobs:
         python: ['3.11', '3.12']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: YehorBabenko88/Terminan
-          ref: 0f3b1408ada9a2cdea20e66ec56840d5bb196bac
+          ref: 28f475cd237037837be20af0cf6289150168e70a
           path: .source/terminan
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: YehorBabenko88/math
+          ref: 212dbcbc0f9f4c540ccfe8c5891c37527fe147a1
+          path: .source/math
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install -e ".[dev]"
+      - name: Materialize build inputs from exact Git blobs
+        shell: python
+        run: |
+          import pathlib, runpy
+          materialize = runpy.run_path('scripts/materialize_ci_sources.py')['materialize']
+          materialize(pathlib.Path.cwd(), '${{ github.event.pull_request.head.sha || github.sha }}', ['market_data'])
+          materialize(pathlib.Path('.source/math'), '212dbcbc0f9f4c540ccfe8c5891c37527fe147a1', ['python'])
+      - run: python -m pip install --no-deps ./.source/math
+      - run: python -m pip install ".[test]"
+      - name: Materialize canonical historical reader
+        shell: python
+        run: |
+          import pathlib, runpy
+          runpy.run_path('scripts/materialize_ci_sources.py')['materialize'](pathlib.Path('.source/terminan'), '28f475cd237037837be20af0cf6289150168e70a', ['terminan'])
       - run: python -m pip install --no-deps ./.source/terminan
-      - run: python -m pytest -q integration_tests/test_frozen_results.py
+      - run: python -I scripts/check_frozen_consumer.py
