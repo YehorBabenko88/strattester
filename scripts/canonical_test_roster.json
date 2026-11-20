@@ -642,5 +642,6 @@
   "tests/market_data/test_collector_cancellation_priority.py::test_consumed_pending_cancellation_wins_before_admission_is_read[current]",
   "tests/market_data/test_collector_cancellation_priority.py::test_consumed_pending_cancellation_wins_before_admission_is_read[run]",
   "tests/market_data/test_collector_cancellation_priority.py::test_cancel_at_completed_subscription_callback_preserves_unknown_cleanup[1]",
-  "tests/market_data/test_collector_cancellation_priority.py::test_cancel_at_completed_subscription_callback_preserves_unknown_cleanup[2]"
+  "tests/market_data/test_collector_cancellation_priority.py::test_cancel_at_completed_subscription_callback_preserves_unknown_cleanup[2]",
+  "tests/market_data/test_collector_cancellation_priority.py::test_valid_admission_allows_known_disconnect_during_caller_cancellation"
 ]
