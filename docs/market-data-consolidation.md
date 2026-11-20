@@ -1,6 +1,6 @@
 # Canonical market-data consolidation (NO_GO)
 
-Base repository source: Strattester #90 `13998cf87139330dd0406fed00acd148e045e6c4`. Imported source: Grid #295 `c9ffdaa2af52c4d55871a48655a77a0c669da80f`. Canonical Math dependency: `8b6887f8d7f7993bb05e8a3ab6514b53c0dff1c3`, kernel `3245ce0dd0aebf9b42c741023770489b95112381`. No Git repository rename or ref deletion.
+Base repository source: Strattester #90 `13998cf87139330dd0406fed00acd148e045e6c4`. Imported source: Grid #295 `c9ffdaa2af52c4d55871a48655a77a0c669da80f`. Canonical Math dependency: `fdc515473f495cdb0f0dcfdab23be286cc6b5efa`, kernel `0314e6a0b89dcf98dad2b97fc1ad073e6a93e95c`. No Git repository rename or ref deletion.
 
 ## Active ownership / old → new
 

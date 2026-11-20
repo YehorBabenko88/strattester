@@ -102,7 +102,7 @@
     }
   ],
   "sql_schema": "schema.sql copied byte-normalized, no DDL executed; persistent schema names unmodified",
-  "math_sha": "8b6887f8d7f7993bb05e8a3ab6514b53c0dff1c3",
+  "math_sha": "fdc515473f495cdb0f0dcfdab23be286cc6b5efa",
   "new_components": [
     "admission.py",
     "capture_store.py",
