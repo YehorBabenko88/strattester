@@ -118,6 +118,26 @@ def decode_observation(raw):
     _need(encode_observation(value)==raw)
     return value
 
+
+def validate_capture_receipt(facts,observation_bytes,payload_bytes):
+    """Canonical exact sink receipt predicate, also used for original-byte recovery."""
+    raw=observation_bytes;payload=payload_bytes;value=decode_observation(raw)
+    _need(payload is None or type(payload) is bytes)
+    raw_count=0 if payload is None else len(payload)
+    _need(raw_count==int(value['payload_bytes']) and (None if payload is None else hashlib.sha256(payload).hexdigest())==value['payload_sha256'])
+    _need(type(facts.observation_bytes) is bytes and facts.observation_bytes==raw)
+    _need((facts.payload_bytes is None and payload is None) or
+          (type(facts.payload_bytes) is bytes and payload is not None and facts.payload_bytes==payload))
+    _need(facts.observation_sha256==hashlib.sha256(raw).hexdigest())
+    _need(type(facts.observation_byte_count) is int and facts.observation_byte_count==len(raw))
+    _need(facts.payload_sha256==value['payload_sha256'])
+    _need(type(facts.payload_byte_count) is int and facts.payload_byte_count==raw_count)
+    _sha(facts.journal_record_digest)
+    _need(facts.classification=='LOCAL_UNATTESTED' and facts.durability=='UNKNOWN')
+    _need(facts.local_content_verified is True and facts.publication_confirmed is False
+          and facts.native_authority_verified is False and facts.replica_eligible is False)
+    return facts
+
 @dataclass(frozen=True)
 class RawCaptureProfile:
     max_observations: int
@@ -224,17 +244,7 @@ class RawCaptureRecorder:
         self._busy=True; self._attempts+=1; self._payload_charge+=raw_count
         try:
             facts=await self.sink.store_capture(observation_bytes=raw,payload_bytes=payload)
-            _need(type(facts.observation_bytes) is bytes and facts.observation_bytes==raw)
-            _need((facts.payload_bytes is None and payload is None) or
-                  (type(facts.payload_bytes) is bytes and payload is not None and facts.payload_bytes==payload))
-            _need(facts.observation_sha256==hashlib.sha256(raw).hexdigest())
-            _need(type(facts.observation_byte_count) is int and facts.observation_byte_count==len(raw))
-            _need(facts.payload_sha256==value['payload_sha256'])
-            _need(type(facts.payload_byte_count) is int and facts.payload_byte_count==raw_count)
-            _sha(facts.journal_record_digest)
-            _need(facts.classification=='LOCAL_UNATTESTED' and facts.durability=='UNKNOWN')
-            _need(facts.local_content_verified is True and facts.publication_confirmed is False
-                  and facts.native_authority_verified is False and facts.replica_eligible is False)
+            validate_capture_receipt(facts,raw,payload)
             _need(not self._failed)
         except BaseException as error:
             self._failed=True; self._gap_open=True; self._gap_durable=False; self._stop_reason='storage_unknown'

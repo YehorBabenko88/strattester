@@ -201,25 +201,53 @@ class SegmentWAL:
             pending=next(self.iter_recover(),None)
             if pending is None or pending[0]!=record_id:
                 raise ValueError("WAL ACK must target the oldest pending record")
-            tmp=self.root/"checkpoint.next"
-            with open(tmp,"w",encoding="ascii") as f:
-                f.write(str(record_id)); f.flush(); os.fsync(f.fileno())
-            # Preserve the previous known-good generation before publishing the
-            # new primary. Recovery chooses the highest valid generation.
-            previous=self._read_checkpoint(self.checkpoint)
-            if previous is not None:
-                backup_tmp=self.root/"checkpoint.backup.next"
-                try:
-                    with open(backup_tmp,"w",encoding="ascii") as f:
-                        f.write(str(previous)); f.flush(); os.fsync(f.fileno())
-                    os.replace(backup_tmp,self.checkpoint_backup)
-                except OSError:
-                    try: backup_tmp.unlink()
-                    except OSError: pass
-            os.replace(tmp,self.checkpoint)
-            # Durable complete-prefix ACKs remain safe, but do not inspect or
-            # compact an uncertain append tail until a fresh owner recovers it.
-            if not self._append_faulted:self._compact(record_id)
+            self._publish_checkpoint(record_id)
+
+    async def ack_prefix(self,record_ids):
+        """Publish one atomic checkpoint for a bounded, fully confirmed prefix.
+
+        Caller must possess matching durable receipts for EVERY supplied record.
+        No skipping, unrelated-owner acknowledgment, or automatic retry.
+        """
+        if type(record_ids) is not list or not 1<=len(record_ids)<=16:
+            raise ValueError("bounded ACK prefix required")
+        ids=list(record_ids)
+        if any(type(rid) is not int or rid<0 for rid in ids) or any(right!=left+1 for left,right in zip(ids,ids[1:])):
+            raise ValueError("contiguous canonical ACK prefix required")
+        async with self._lock:
+            if ids[-1]>=self._next_id:raise ValueError("ACK prefix outside allocated records")
+            current=self._checkpoint_id()
+            remaining=[rid for rid in ids if rid>current]
+            if not remaining:return
+            if remaining[0]!=current+1:raise ValueError("ACK prefix cannot skip records")
+            actual=[]
+            for rid,_ in self.iter_recover():
+                actual.append(rid)
+                if len(actual)>=len(remaining):break
+            if actual!=remaining:raise ValueError("ACK prefix must match oldest pending records")
+            self._publish_checkpoint(remaining[-1])
+
+    def _publish_checkpoint(self,record_id):
+        tmp=self.root/"checkpoint.next"
+        with open(tmp,"w",encoding="ascii") as f:
+            f.write(str(record_id)); f.flush(); os.fsync(f.fileno())
+        # Preserve the previous known-good generation before publishing the
+        # new primary. Recovery chooses the highest valid generation.
+        previous=self._read_checkpoint(self.checkpoint)
+        if previous is not None:
+            backup_tmp=self.root/"checkpoint.backup.next"
+            try:
+                with open(backup_tmp,"w",encoding="ascii") as f:
+                    f.write(str(previous)); f.flush(); os.fsync(f.fileno())
+                os.replace(backup_tmp,self.checkpoint_backup)
+            except OSError:
+                try: backup_tmp.unlink()
+                except OSError: pass
+        os.replace(tmp,self.checkpoint)
+        # Durable complete-prefix ACKs remain safe, but do not inspect or
+        # compact an uncertain append tail until a fresh owner recovers it.
+        if not self._append_faulted:self._compact(record_id)
+
 
     def _compact(self,checkpoint):
         segs=self._segments()
