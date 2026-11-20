@@ -54,6 +54,7 @@ class PublicTradeCollector:
         self.source_revision=source_revision
         self.on_execution=on_execution
         self._acknowledged={}
+        self._execution_pending=False
         self._started=False
         self.symbol = symbol
         self.connector = connector
@@ -74,6 +75,11 @@ class PublicTradeCollector:
         try:identity=startup_identity(self.startup_admission)
         except Exception:raise RawCaptureError("CURRENT_CAPTURE_ADMISSION_REQUIRED") from None
         if identity!=self._identity:raise RawCaptureError("CAPTURE_MANAGED_IDENTITY_CHANGED")
+
+    def require_known_outcome(self):
+        """Cancellation is not evidence that an in-flight commit did not occur."""
+        if self._execution_pending:raise RawCaptureError('EXECUTION_COMMIT_OUTCOME_UNKNOWN')
+        if self.recorder.metrics()['stop_reason']=='storage_unknown':raise RawCaptureError('RAW_CAPTURE_STORAGE_OUTCOME_UNKNOWN')
 
     async def _persist(self, operation):
         return await asyncio.wait_for(operation, timeout=self.persist_timeout)
@@ -133,6 +139,7 @@ class PublicTradeCollector:
                         for key,(trade,identity) in pending.items():
                             try:
                                 self._current()
+                                self._execution_pending=True
                                 acknowledgement=await asyncio.wait_for(self.on_execution(trade,**identity),timeout=20)
                                 self._current()
                                 if (type(acknowledgement) is not dict
@@ -141,6 +148,7 @@ class PublicTradeCollector:
                                         or acknowledgement.get('delivery_key')!=key
                                         or acknowledgement.get('content_sha256')!=identity['content_sha256']):
                                     raise ValueError('invalid execution acknowledgement')
+                                self._execution_pending=False
                             except asyncio.CancelledError:
                                 raise
                             except Exception:
