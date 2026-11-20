@@ -91,12 +91,17 @@ class BoundedAcquisitionGroup:
     @property
     def running(self):return not self._stopped and any(not t.done() for t in self.tasks)
     def _task_done(self,task):
-        if not task.cancelled() and task.exception() is not None:
-            if self._error is None:self._error=task.exception()
+        try:self.check()
+        except BaseException as error:
+            if self._error is None:self._error=error
             self.failure_event.set()
             for sibling in self.tasks:
                 if sibling is not task and not sibling.done():sibling.cancel()
     def check(self):
+        # A cancelled task may have committed before losing its ACK. Inspect
+        # completed collectors BEFORE ordinary task errors can mask uncertainty.
+        for collector,task in zip(self.collectors,self.tasks):
+            if task.done():collector.require_known_outcome()
         if self._error is not None:raise self._error
         for task in self.tasks:
             if task.done() and not task.cancelled() and task.exception() is not None:raise task.exception()
@@ -162,15 +167,33 @@ class RotationController:
             except asyncio.CancelledError:
                 self.failed=True;await self._stop_owned();raise
             except Exception as error:
-                await replacement.stop();self._owned.discard(replacement)
+                try:
+                    await replacement.stop()
+                    # Failure of the new start must never hide terminal failure
+                    # in the old group while the start/cleanup awaited.
+                    if previous is not None:previous.check()
+                    try:replacement.check()
+                    except RawCaptureError:raise
+                    except Exception:pass  # Known rejected start; original error follows.
+                except BaseException:
+                    self.failed=True;await self._stop_owned();raise
                 if isinstance(error,(RawCaptureError,TimeoutError)):
                     self.failed=True;await self._stop_owned()
+                else:self._owned.discard(replacement)
                 raise
-            self.current=replacement
             try:
-                if previous is not None:await previous.stop();self._owned.discard(previous)
+                # Readiness can await long enough for old ownership to become
+                # uncertain. Drain can itself lose an ACK: check BOTH boundaries.
+                if previous is not None:
+                    previous.check()
+                    await previous.stop()
+                    previous.check()
+                replacement.check()
             except BaseException:
                 self.failed=True;await self._stop_owned();raise
+            # No await separates the final checks from accepting new ownership.
+            self.current=replacement
+            if previous is not None:self._owned.discard(previous)
             return dict(status='ROTATED',selection_key=selection.key,source_authenticity='UNKNOWN',coverage='UNKNOWN')
     async def stop(self):
         async with self._lock:await self._stop_owned()
