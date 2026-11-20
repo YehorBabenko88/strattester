@@ -16,9 +16,9 @@ KEYS = frozenset(('schema','instrument','producer_source_revision','source_kind'
     'endpoint','connection_id','observation_index','kind','received_at_utc',
     'received_monotonic_ns','payload_kind','payload_sha256','payload_bytes',
     'frame_metadata_sha256','previous_metadata_sha256','exchange_event_at_utc',
-    'sequence','update_id','reason','publication'))
+    'sequence','update_id','reason','publication','archive'))
 REASONS = {
-    'frame': (None,), 'validated': (None,),
+    'frame': (None,), 'validated': (None,), 'archive_batch': (None,),
     'disconnect': ('transport_closed','transport_error','cancelled','normal_stop'),
     'gap_observation': ('sequence_invalid','buffer_pressure','frame_oversize',
         'restart_unknown','storage_failure','frame_invalid'),
@@ -58,11 +58,12 @@ def _identity(value):
 def encode_observation(value):
     """Closed lexical/calendar/cross-field validation, independent of schema."""
     _need(type(value) is dict and set(value)==KEYS)
-    _need(value['schema']=='market_data.raw-capture-observation.v1-review1')
+    _need(value['schema']=='market_data.raw-capture-observation.v2')
     _identity(value['instrument'])
     _need(_match(value['producer_source_revision'],r'[0-9a-f]{40}'))
-    _need(value['source_kind'] in ('SYNTHETIC','PUBLIC_PROVIDER_OBSERVED_UNAUTHENTICATED'))
-    endpoint='synthetic://bybit/linear' if value['source_kind']=='SYNTHETIC' else 'wss://stream.bybit.com/v5/public/linear'
+    _need(value['source_kind'] in ('SYNTHETIC','PUBLIC_PROVIDER_OBSERVED_UNAUTHENTICATED','ARCHIVE'))
+    endpoint=('archive://bybit/linear' if value['source_kind']=='ARCHIVE' else
+              'synthetic://bybit/linear' if value['source_kind']=='SYNTHETIC' else 'wss://stream.bybit.com/v5/public/linear')
     _need(value['endpoint']==endpoint)
     _need(_match(value['connection_id'],r'[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'))
     _number(value['observation_index'],True); _number(value['received_monotonic_ns'])
@@ -74,11 +75,28 @@ def encode_observation(value):
     _number(value['payload_bytes']); _need(int(value['payload_bytes'])<=1048576)
     kind=value['kind']; _need(type(kind) is str and kind in REASONS)
     _need(value['reason'] in REASONS[kind] and value['publication']=='LOCAL_UNATTESTED')
+    if value['source_kind']=='ARCHIVE':
+        _need(kind=='archive_batch' and value['payload_kind']=='EXTERNAL_BLOB'
+              and value['payload_sha256'] is None and value['payload_bytes']=='0'
+              and all(value[key] is None for key in ('frame_metadata_sha256','exchange_event_at_utc','sequence','update_id')))
+        archive=value['archive']
+        _need(type(archive) is dict and set(archive)=={'import_id','blob_sha256','blob_bytes','locator','format','rows','start_row','end_row','events_sha256','source_authenticity','point_in_time_availability'})
+        for key in ('import_id','blob_sha256','events_sha256'): _sha(archive[key])
+        for key in ('blob_bytes','rows','start_row','end_row'): _number(archive[key],key in ('blob_bytes','rows','end_row'))
+        _need(int(archive['blob_bytes'])<=2000000000 and int(archive['rows'])<=50000000
+              and 0<=int(archive['start_row'])<int(archive['end_row'])<=int(archive['rows'])
+              and int(archive['end_row'])-int(archive['start_row'])<=1024)
+        _need(_match(archive['locator'],r'[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*')
+              and len(archive['locator'])<=256 and all(part not in ('.','..') for part in archive['locator'].split('/')))
+        _need(archive['format']=='BYBIT_CSV_GZIP' and archive['source_authenticity']=='UNKNOWN'
+              and archive['point_in_time_availability']=='UNKNOWN')
+    else:
+        _need(value['archive'] is None and kind!='archive_batch')
     if kind=='frame':
         _need(value['payload_kind'] in ('TEXT_UTF8_REENCODED_NOT_WIRE','BINARY_APPLICATION_PAYLOAD'))
         _sha(value['payload_sha256'])
         _need(all(value[key] is None for key in ('frame_metadata_sha256','exchange_event_at_utc','sequence','update_id')))
-    else:
+    elif kind!='archive_batch':
         _need(value['payload_kind']=='NONE' and value['payload_sha256'] is None and value['payload_bytes']=='0')
     if kind in ('validated','resync'): _sha(value['frame_metadata_sha256'])
     try: raw=json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=True,allow_nan=False).encode('ascii')
@@ -175,14 +193,14 @@ class RawCaptureRecorder:
         except Exception: self._terminal('clock')
 
     def _value(self,kind,cid,index,received,payload,frame,exchange,sequence,update,reason):
-        return dict(schema='market_data.raw-capture-observation.v1-review1',instrument=dict(self._instrument),
+        return dict(schema='market_data.raw-capture-observation.v2',instrument=dict(self._instrument),
             producer_source_revision=self._revision,source_kind=self._source_kind,endpoint=self._endpoint,
             connection_id=cid,observation_index=str(index),kind=kind,received_at_utc=received[0],
             received_monotonic_ns=received[1],payload_kind=('NONE' if payload is None else 'BINARY_APPLICATION_PAYLOAD'),
             payload_sha256=None if payload is None else hashlib.sha256(payload).hexdigest(),
             payload_bytes=str(0 if payload is None else len(payload)),frame_metadata_sha256=frame,
             previous_metadata_sha256=self._head,exchange_event_at_utc=exchange,sequence=sequence,
-            update_id=update,reason=reason,publication='LOCAL_UNATTESTED')
+            update_id=update,reason=reason,publication='LOCAL_UNATTESTED',archive=None)
 
     async def _emit(self,kind,*,received=None,payload=None,text=False,frame=None,
                     exchange=None,sequence=None,update=None,reason=None):

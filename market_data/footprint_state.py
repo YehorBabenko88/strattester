@@ -7,7 +7,7 @@ Decimal HALF_EVEN, preserving the source tie policy without float division.
 from decimal import Decimal
 from .numeric_dto import binary64
 
-from market_profile_math import (price_bucket, footprint_cell_update, exact_sum,
+from market_math import (price_bucket, footprint_cell_update, exact_sum,
                                  executed_volume_delta, volume_profile_poc)
 
 

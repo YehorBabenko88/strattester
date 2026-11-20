@@ -11,7 +11,7 @@ import csv
 import gzip
 import io
 from pathlib import Path
-from market_profile_math import decimal_epoch_units
+from market_math import decimal_epoch_units
 from .public_trades import _decimal
 
 

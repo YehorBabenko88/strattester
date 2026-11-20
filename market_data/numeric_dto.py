@@ -6,7 +6,7 @@ Original precise provider payloads remain separate from these display DTOs.
 """
 from decimal import Decimal
 from math import isfinite
-from market_profile_math import exact_sum, executed_volume_delta
+from market_math import exact_sum, executed_volume_delta
 
 
 def binary64(value):

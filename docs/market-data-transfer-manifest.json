@@ -102,7 +102,7 @@
     }
   ],
   "sql_schema": "schema.sql copied byte-normalized, no DDL executed; persistent schema names unmodified",
-  "math_sha": "fdc515473f495cdb0f0dcfdab23be286cc6b5efa",
+  "math_sha": "de8194f71311a6d7dddb69be9de812030ed1f13f",
   "new_components": [
     "admission.py",
     "capture_store.py",
@@ -114,5 +114,10 @@
     "sqlite_history.py": "Strattester sqlite_store read-only methods; schema/writers not copied",
     "public_trades.py": "Grid complete-batch decoder and validator; analytics omitted",
     "footprint_state.py": "Grid event lifecycle only; all arithmetic delegated to Math"
-  }
+  },
+  "historical_math_sha": "fdc515473f495cdb0f0dcfdab23be286cc6b5efa",
+  "math_module": "market_math",
+  "math_kernel_path": "python/market_math.py",
+  "math_kernel_git_blob": "27cb210bfdaecfef70b72b216b4ebc0683fb8319",
+  "hash_scope": "files.original_sha256 and canonical_sha256 retain initial transfer snapshots, not current runtime release pins; use exact Git/wheel byte verification for current sources"
 }

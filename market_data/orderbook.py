@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from decimal import Decimal
 import re
-from market_profile_math import wall_notional, book_summary_metrics
+from market_math import wall_notional, book_summary_metrics
 
 @dataclass
 class OrderBook:
