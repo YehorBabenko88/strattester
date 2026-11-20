@@ -97,6 +97,7 @@ jobs:
           runpy.run_path('scripts/materialize_ci_sources.py')['materialize'](pathlib.Path('.source/terminan'), '75a906d36574bfdc19acd966e79a6c168dc71ad4', ['terminan'])
       - run: python -I scripts/build_sdk_source_manifest.py .source/terminan .source/math .ci-evidence/sdk-source-manifest.json
       - run: python -m pip install --no-deps ./.source/terminan
+      - run: python -I -S -B scripts/check_sdk_cache_path_controls.py
       - run: python -I -S -B scripts/check_test_roster_controls.py
       - name: Verify SDK controls and historical consumer under fresh startup cache custody
         shell: python
@@ -105,8 +106,8 @@ jobs:
           root=pathlib.Path.cwd()
           api=runpy.run_path(str(root/"scripts/sdk_cache_custody.py"))
           dependencies=sysconfig.get_path("purelib")
-          for name in ("check_sdk_cache_controls.py","check_sdk_origin_controls.py","check_frozen_consumer.py"):
+          for name in ("check_sdk_cache_controls.py","check_sdk_origin_controls.py","check_test_framework_controls.py","check_frozen_consumer.py"):
               with api["fresh_sdk_cache"](source_roots=(root,)) as cache:
                   command=[sys.executable,"-I","-S","-B","-X","pycache_prefix="+str(cache),str(root/"scripts"/name),str(cache)]
-                  if name=="check_frozen_consumer.py":command += ["--dependencies",dependencies]
+                  if name in ("check_test_framework_controls.py","check_frozen_consumer.py"):command += ["--dependencies",dependencies]
                   subprocess.run(command,check=True)
