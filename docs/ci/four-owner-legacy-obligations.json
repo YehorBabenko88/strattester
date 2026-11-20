@@ -828,7 +828,7 @@
         },
         {
           "name": "test_open_market_store_refuses_creation_without_existing_history",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_FROZEN_MISSING_SOURCE_REFUSAL",
           "proposed_owner": "market_data"
         },
         {
@@ -838,7 +838,7 @@
         },
         {
           "name": "test_existing_candles_not_promoted_to_source_attested",
-          "status": "RETAINED_REQUIRES_SEMANTIC_MIGRATION",
+          "status": "CANONICAL_FROZEN_ROWS_NOT_SOURCE_ATTESTED",
           "proposed_owner": "market_data"
         },
         {
