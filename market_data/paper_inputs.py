@@ -40,9 +40,16 @@ def _block(code):
     raise ExportBlocked('BLOCKED_'+code) from None
 
 
+def _closed_map(value,expected,*,subset=False):
+    """Bound cardinality before key iteration/hash; never build a set of input."""
+    if type(value) is not dict:return False
+    if (len(value)>len(expected) if subset else len(value)!=len(expected)):return False
+    return all(type(key) is str and len(key)<=64 and key in expected for key in value)
+
+
 def _request(q):
     keys={'symbol','start_ms','end_ms','as_of_ms','max_age_ms'}
-    if type(q) is not dict or set(q)!=keys or type(q['symbol']) is not str or q['symbol'] not in SYMBOLS:
+    if not _closed_map(q,keys) or type(q['symbol']) is not str or q['symbol'] not in SYMBOLS:
         _block('REQUEST')
     if any(type(q[k]) is not int or not 0<=q[k]<=253402300799999 for k in keys-{'symbol'}):
         _block('REQUEST')
@@ -143,7 +150,7 @@ def _paper_hex(value):
 
 
 def _paper_request(request):
-    if type(request) is not dict or set(request)!={'symbol','after_id','start_ms','end_ms','as_of_ms','max_age_ms'}:_block('PAPER_REQUEST')
+    if not _closed_map(request,{'symbol','after_id','start_ms','end_ms','as_of_ms','max_age_ms'}):_block('PAPER_REQUEST')
     if type(request['after_id']) is not int or not 0<=request['after_id']<=2**53-1:_block('PAPER_REQUEST')
     base={k:v for k,v in request.items() if k!='after_id'}
     _request(base);return dict(request)
@@ -159,7 +166,7 @@ def _paper_payload(kind,payload,q,event_us,ingest_us):
     projected,known=_paper_domain_payload(kind,payload,q,event_us,ingest_us)
     if '_producer_connection' in payload:
         context=payload['_producer_connection']
-        if type(context) is not dict or set(context)!={'schema','venue','category','endpoint','connection_id','scope'}:_block('PAPER_CONNECTION')
+        if not _closed_map(context,{'schema','venue','category','endpoint','connection_id','scope'}):_block('PAPER_CONNECTION')
         if context['schema']!='market_data.public-market-connection.v1' or context['venue']!='bybit' or context['category']!='linear' or context['endpoint']!='wss://stream.bybit.com/v5/public/linear' or context['scope']!='PRODUCER_DECLARED_LOCAL_CONNECTION_NOT_REMOTE_AUTHENTICATION':_block('PAPER_CONNECTION')
         if type(context['connection_id']) is not str or re.fullmatch('[a-f0-9]{32}',context['connection_id']) is None:_block('PAPER_CONNECTION')
         projected['_producer_connection']=copy.deepcopy(context)
@@ -189,21 +196,21 @@ def _validate_paper_inputs(packet):
     """
     started=time.monotonic()
     expected={'schema','request','rows','cursor','funding_status','availability','output_truncated','producer_context_status',*PAPER_QUALIFIERS}
-    if type(packet) is not dict or set(packet)!=expected or packet['schema']!=PAPER_SCHEMA:_block('PAPER_PACKET')
+    if not _closed_map(packet,expected) or packet['schema']!=PAPER_SCHEMA:_block('PAPER_PACKET')
     for key,value in PAPER_QUALIFIERS.items():
         if type(packet[key]) is not type(value) or packet[key]!=value:_block('PAPER_PACKET')
     q=_paper_request(packet['request']);rows=packet['rows']
     if type(rows) is not list or len(rows)>MAX_ROWS:_block('ROW_LIMIT')
     if _bytes(packet)>MAX_BYTES:_block('BYTE_LIMIT')
     availability=packet['availability']
-    if type(availability) is not dict or set(availability)!={'mode','as_of_ms','cut_before_id','state','scope'} or availability['mode']!='VISIBLE_ID_PREFIX' or availability['scope']!='SELECTED_VISIBLE_ROWS_NOT_STREAM_COMPLETENESS' or type(availability['as_of_ms']) is not int or availability['as_of_ms']!=q['as_of_ms']:_block('PAPER_AVAILABILITY')
+    if not _closed_map(availability,{'mode','as_of_ms','cut_before_id','state','scope'}) or availability['mode']!='VISIBLE_ID_PREFIX' or availability['scope']!='SELECTED_VISIBLE_ROWS_NOT_STREAM_COMPLETENESS' or type(availability['as_of_ms']) is not int or availability['as_of_ms']!=q['as_of_ms']:_block('PAPER_AVAILABILITY')
     cut=availability['cut_before_id']
     if cut is not None and (type(cut) is not int or not 0<cut<=2**53-1):_block('PAPER_AVAILABILITY')
     if type(packet['output_truncated']) is not bool or packet['output_truncated']!=(cut is not None):_block('PAPER_AVAILABILITY')
     previous=q['after_id'];last_event={};last_book=None;known=False
     for row in rows:
         if time.monotonic()-started>DEADLINE:_block('DEADLINE')
-        if type(row) is not dict or set(row)!=PAPER_ROW_FIELDS or _bytes(row,limit=MAX_ROW_BYTES)>MAX_ROW_BYTES:_block('PAPER_ROW')
+        if not _closed_map(row,PAPER_ROW_FIELDS) or _bytes(row,limit=MAX_ROW_BYTES)>MAX_ROW_BYTES:_block('PAPER_ROW')
         if type(row['id']) is not int or not previous<row['id']<=2**53-1 or row['symbol']!=q['symbol'] or row['source']!='bybit' or row['event_type'] not in PAPER_TYPES:_block('PAPER_ROW')
         previous=row['id'];event=_microseconds(row['event_us']);ingest=_microseconds(row['ingest_us']);kind=row['event_type']
         if type(event) is not int or type(ingest) is not int or event<0 or ingest<0:_block('PAPER_CLOCK')
@@ -327,12 +334,12 @@ def _paper_domain_payload(kind,payload,q,event_us,ingest_us):
     _numeric(kind,out)
     if '_field_observations' not in payload:return out,False
     evidence=payload['_field_observations']
-    if type(evidence) is not dict or set(evidence)!={'schema','clock_basis','fields'} or evidence['schema']!='market_data.ticker-field-observations.v1' or evidence['clock_basis']!='EXCHANGE_FRAME_TS_AND_PROCESS_WALL_CLOCK':_block('PAPER_FUNDING_PROOF')
+    if not _closed_map(evidence,{'schema','clock_basis','fields'}) or evidence['schema']!='market_data.ticker-field-observations.v1' or evidence['clock_basis']!='EXCHANGE_FRAME_TS_AND_PROCESS_WALL_CLOCK':_block('PAPER_FUNDING_PROOF')
     fields=evidence['fields']
-    if type(fields) is not dict or not fields.keys()<=PAPER_FUNDING:_block('PAPER_FUNDING_PROOF')
-    known=set(fields)==PAPER_FUNDING
+    if not _closed_map(fields,PAPER_FUNDING,subset=True):_block('PAPER_FUNDING_PROOF')
+    known=len(fields)==len(PAPER_FUNDING)
     for key,proof in fields.items():
-        if key not in out or out[key] is None or type(proof) is not dict or set(proof)!={'event_ms','observed_ms','value_sha256'}:_block('PAPER_FUNDING_PROOF')
+        if key not in out or out[key] is None or not _closed_map(proof,{'event_ms','observed_ms','value_sha256'}):_block('PAPER_FUNDING_PROOF')
         if not _paper_hex(proof['value_sha256']) or proof['value_sha256']!=_paper_hash(out[key]):_block('PAPER_FUNDING_PROOF')
         event=proof['event_ms'];observed=proof['observed_ms']
         if type(event) is not int or type(observed) is not int or not 0<event<=observed<=q['as_of_ms'] or event*1000>event_us:_block('PAPER_CLOCK')
