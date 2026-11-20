@@ -86,3 +86,9 @@ def test_retrying_worker_visible_until_shutdown():
         assert q.metrics()["retrying_workers"]==0
         assert q.metrics()["worker_tasks_alive"]==0
     asyncio.run(run())
+
+
+def test_only_truthful_bounded_queue_api_is_exported():
+    from market_data import write_queue
+    assert write_queue.BoundedWriteQueue is BoundedWriteQueue
+    assert not hasattr(write_queue, "DurableWriteQueue")

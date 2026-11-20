@@ -88,5 +88,3 @@ class BoundedWriteQueue:
                     self.retrying_workers-=1
                 self.q.task_done()
 
-# Compatibility alias; despite the historic name this queue is memory-bounded, not disk durable.
-DurableWriteQueue=BoundedWriteQueue
