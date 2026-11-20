@@ -13,3 +13,13 @@ current/
 *.sqlite3
 *.sqlite3-wal
 *.sqlite3-shm
+
+# Isolated canonical market-data qualification outputs
+.candidate-dist/
+.artifact-site/
+.artifact-run/
+market_data.egg-info/
+*-fixtures.log
+build-artifacts.log
+master-decision.json
+artifact_check.py

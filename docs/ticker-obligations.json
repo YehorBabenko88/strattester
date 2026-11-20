@@ -1,0 +1,41 @@
+{
+  "source_revision": "204897c9f3f6ccaf33ae6d02415b97d0049d7e1e",
+  "migrated_behavior": [
+    "15-key allowlist",
+    "field omission retains original proof",
+    "same-value present refreshes only its proof",
+    "clock regression invalidates only changed proof",
+    "reconnect clears epoch",
+    "raw before callback",
+    "literal fully bound consumer ACK",
+    "exact raw/delivery WAL recovery",
+    "atomic complete-prefix checkpoint",
+    "partial funding candidate refusal"
+  ],
+  "intentional_master_changes": [
+    "present-null/empty unknown",
+    "one physical epoch up to4frames",
+    "strict integer provider ts",
+    "reject pre-ACK market frame with gap",
+    "funding-domain gate Math only",
+    "12 other raw scalars explicitly UNVALIDATED"
+  ],
+  "unported_retained": [
+    "max_ticker_age_ms admission policy",
+    "multi-instrument subscription buffering/batches",
+    "automatic transport retry/backoff",
+    "snapshot_ms analytical throttle",
+    "mixed L2/watchdog/velocity/wall integrations",
+    "normalized derivatives_ticker SQL projection/read route"
+  ],
+  "not_run": [
+    "actual provider/network",
+    "actual PostgreSQL",
+    "native process/services",
+    "fsync/powerloss/ACL/clock synchronization",
+    "hosted release acceptance"
+  ],
+  "source_authenticity": "UNKNOWN",
+  "coverage": "UNKNOWN",
+  "point_in_time_availability": "UNKNOWN"
+}
