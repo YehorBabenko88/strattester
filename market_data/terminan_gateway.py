@@ -254,10 +254,10 @@ def qualified_snapshot(route, symbol, limit, before_ms=None):
                                   'funding_rate': 'UNAVAILABLE',
                                   'market_data_coverage': 'NOT_ATTESTED',
                                   'replay_cursor': 'NOT_ATTESTED'}
-        result['meta_absorption'] = {
-            'schema': 'market_data.meta.dataset-capabilities.v1',
-            'exchange_owner': 'Market Data',
-            'database_writer_owner': 'Market Data',
+        result['analytics_consumer'] = {
+            'schema': 'market_data.analytics.dataset-capabilities.v1',
+            'exchange_owner': 'market_data',
+            'database_writer_owner': 'market_data',
             'history_provenance': 'NOT_ATTESTED',
             'consumer_cutover': False,
             'execution_authority': False,

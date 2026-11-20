@@ -1,5 +1,6 @@
 from decimal import Context, Decimal, localcontext
 import time
+import pytest
 from market_data.provenance import minute_record, producer
 
 def test_event_time_ohlc_duplicate_and_late_trades():
@@ -42,3 +43,14 @@ def test_explicit_source_tie_policies_and_hostile_context():
     assert row["buy_volume"] == 100.00001
     assert row["sell_volume"] == 100.00001
     assert row["delta"] == 0
+
+
+def test_nonzero_volume_cannot_underflow_historical_dto_or_advance_watermark():
+    from market_data.footprint_state import FootprintBuilder
+    from market_data.public_trades import Trade
+    builder = FootprintBuilder('1')
+    assert builder.add(Trade('BTCUSDT', 1000, '1', '1e-1000', 'Buy', 'tiny'))
+    with pytest.raises(ValueError, match='represent amount'):
+        builder.pop_closed(60000)
+    assert ('BTCUSDT', 0) in builder.buckets
+    assert builder.finalized_through_ms == {}

@@ -97,8 +97,11 @@ class FootprintBuilder:
 
     @staticmethod
     def _number(value):
+        # Historical v1 numeric DTOs are finite IEEE binary64 presentation,
+        # not exact scientific inputs. The exact original payload and Math
+        # state remain separate; reject range loss instead of emitting zero.
         result = float(value)
-        if not isfinite(result):
+        if not isfinite(result) or (value != 0 and result == 0):
             raise ValueError('historical numeric DTO cannot represent amount')
         return result
 

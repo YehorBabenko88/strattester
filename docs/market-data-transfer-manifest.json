@@ -76,7 +76,7 @@
       "from": "bybit-cluster-grid@c9ffdaa2af52c4d55871a48655a77a0c669da80f:grid/terminan_gateway.py",
       "to": "market_data/terminan_gateway.py",
       "original_sha256": "6c505af0e642bd58100632a131bac2659bc9433c7831cd633ff44bb4ec59529a",
-      "canonical_sha256": "162cd3c74f3b00994dbf6ed2b820b46fe1f05006ce7b8c5a3a00e2deb59a4c45",
+      "canonical_sha256": "c4c89cfb6bec677f763dea32e3f1c9b7a6ad69ad6d5a0dd650895e194784b6b9",
       "transform": "namespace and producer migration plus managed callback/Bearer health gate"
     },
     {
