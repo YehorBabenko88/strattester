@@ -183,9 +183,16 @@ async def test_failed_handshakes_preserve_exponential_backoff(monkeypatch):
 async def test_other_symbol_traffic_does_not_hide_silent_book(monkeypatch):
     # A busy connection can keep delivering unrelated messages while the
     # subscribed book is silent; the watchdog must check on every iteration.
+    from types import SimpleNamespace
+    clock=[0.0];unrelated=[];gaps=[]
+    # Replace only this module binding; asyncio retains its real monotonic clock.
+    monkeypatch.setattr("market_data.orderbook_stream.time",
+                        SimpleNamespace(monotonic=lambda:clock[0]))
     class BusySocket(FakeSocket):
         async def recv(self):
-            await asyncio.sleep(0.002)
+            clock[0]+=0.004
+            unrelated.append(clock[0])
+            await asyncio.sleep(0)
             return json.dumps({"topic": "publicTrade.BTCUSDT", "data": []})
     sockets = [BusySocket([]), FakeSocket([packet("snapshot", 8, 8)])]
     stop = asyncio.Event()
@@ -193,8 +200,8 @@ async def test_other_symbol_traffic_does_not_hide_silent_book(monkeypatch):
     async def on_book(symbol, book, ts):
         updates.append(book.update_id)
         stop.set()
-    async def on_gap(*_):
-        pass
+    async def on_gap(symbols,reason):
+        gaps.append(reason)
     monkeypatch.setattr("market_data.orderbook_stream.websockets.connect",
                         lambda *a, **kw: sockets.pop(0))
     stream = make_stream(on_book, on_gap, silence_timeout=0.01,
@@ -202,6 +209,8 @@ async def test_other_symbol_traffic_does_not_hide_silent_book(monkeypatch):
     await asyncio.wait_for(stream.run(["BTCUSDT"], stop), 2)
     assert updates == [8]
     assert stream.connection_epoch == 2
+    assert len(unrelated)>=3
+    assert any("silent" in reason for reason in gaps)
 
 
 @pytest.mark.asyncio
