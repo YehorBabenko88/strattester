@@ -13,7 +13,7 @@ import tempfile
 
 CACHE_API=runpy.run_path(str(Path(__file__).resolve().with_name('sdk_cache_custody.py')))
 
-SOURCE_REVISIONS={'unified-terminan':'042b075dda0fc8cf6bb829d758632cfa989e8e55','unified-math-kernels':'e80d622eed7c01b109062b68e750f2b70bcccff7'}
+SOURCE_REVISIONS={'unified-terminan':'fc0bed4937ab5dbb039320aae48e49b01b31bb43','unified-math-kernels':'b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3'}
 MATH_MODULES=frozenset(('market_math','market_compute_api','history_statistics'))
 
 def load_sdk_manifest(source):

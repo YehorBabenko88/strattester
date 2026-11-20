@@ -2,7 +2,7 @@
   "source": "8042142bedc19718249f6de7519e382de3a1ed78",
   "canonical_owner": "terminan",
   "target_api": "terminan.research_import.validate_research_import",
-  "status": "PENDING_TERM_FROZEN_INDEPENDENT_ROOT_RETARGET",
+  "status": "TERM_FC0_INDEPENDENT_ACCEPTED_ROOT_8DE_RETARGET_PROVED_FINAL_DATA_QA_PENDING",
   "files": {
     "market_data/research_handoff.py": {
       "archive": "market_data__research_handoff.py.txt",
@@ -47,5 +47,11 @@
       "old": "test_canonical_producer_acceptance_and_old_identity_refusal_preserve_source",
       "target": "Term retired namespace/immutable source/falseauthority"
     }
-  ]
+  ],
+  "dependency_proof": {
+    "terminan": "fc0bed4937ab5dbb039320aae48e49b01b31bb43",
+    "math": "b3cb935aee7d6569d6fd0cfaff70ea9b9e5f0df3",
+    "root": "8de7749524d5be405f92334f76283b077f2c44db",
+    "term_independent_review": "https://github.com/YehorBabenko88/Terminan/pull/123#issuecomment-7049074048"
+  }
 }

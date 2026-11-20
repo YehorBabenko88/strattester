@@ -1,6 +1,6 @@
 # Research ownership transfer — pending coherent acceptance
 
-Canonical target: `terminan.research_import.validate_research_import`; no Data compatibility alias or replacement ledger. Exact input source, test AST/assertions and immutable fixture bytes are archived in this directory; manifest identifies each transferred role. Term source freeze, independent acceptance and Root installed SDK retarget remain required before publication.
+Canonical target: `terminan.research_import.validate_research_import`; no Data compatibility alias or replacement ledger. Exact input source, test AST/assertions and immutable fixture bytes are archived in this directory; manifest identifies each transferred role. Term source freeze/independent acceptance and Root installed SDK retarget are recorded in manifest.json. Final Data exact-HEAD source/artifact revalidation and independent QA remain required before publication.
 
 Data now exposes only the existing history snapshot POST route. Its research route returns 404 before body/environment access, old trusted-research env is not read, and research capability is absent. `market_data.history_api` replaces the old consumer-named module without an alias. The existing slow-body/header transport test retains its assertions and uses the history snapshot route. PG47 remains explicitly NOT_RUN without disposable DSN.
 
