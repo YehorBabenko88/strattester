@@ -62,5 +62,5 @@ jobs:
           print(json.dumps(evidence,sort_keys=True))
           with tempfile.TemporaryDirectory(prefix='market-data-pure-') as temporary:
               program="import pathlib,sys,importlib.util; sys.path.insert(0,sys.argv[1]); import market_data,market_math,pytest; assert pathlib.Path(market_data.__file__).is_relative_to(pathlib.Path(sys.argv[1])); assert pathlib.Path(market_math.__file__).is_relative_to(pathlib.Path(sys.argv[1])); assert all(importlib.util.find_spec(name) is None for name in ('market_profile_math','grid','strattester','meta_analyse')); raise SystemExit(pytest.main(sys.argv[2:]))"
-              run('-I','-c',program,evidence['artifact_site'],'-p','pytest_asyncio.plugin','--confcutdir',root/'tests/market_data',root/'tests/market_data','-q',cwd=temporary)
+              run('-I','-c',program,evidence['artifact_site'],'-p','pytest_asyncio.plugin','--confcutdir',root/'tests',root/'tests/market_data',root/'tests/marketdata/test_rich_sync.py',root/'tests/marketdata/test_coverage.py','-q',cwd=temporary)
           print('PURE_OFFLINE_ONLY=PASS; NATIVE_LIVE_ORIGINAL_DATA=NOT_QUALIFIED')
