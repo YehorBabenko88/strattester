@@ -1,0 +1,3 @@
+# Immutable provenance archives and original fixture bytes must survive checkout unchanged.
+*.txt -text
+tests/market_data/fixtures/legacy-experiment-export.synthetic.json -text
