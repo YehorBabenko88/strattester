@@ -1,0 +1,22 @@
+{
+  "source_commit": "204897c9f3f6ccaf33ae6d02415b97d0049d7e1e",
+  "source_blob": "dc0e19e4e9b8968e5ea284e60fb5736757bce40d",
+  "active_module": "market_data.paper_inputs",
+  "active_methods": [
+    "export_paper_inputs",
+    "validate_paper_inputs",
+    "paper_funding_at"
+  ],
+  "numeric_gate": "PINNED_CANONICAL_MATH_d88a6adc689ee0c9ce8951afe1e6e347294c6bf6",
+  "unported_original_pure_reader_tests": [
+    "test_reader_fixed_sql_readonly_and_no_partial_budget_success",
+    "test_reader_checks_whole_budget_after_transform"
+  ],
+  "hosted_pg_not_run": [
+    "test_actual_hosted_pg18_ten_symbol_source_projection_without_mutation",
+    "test_actual_hosted_pg18_later_ingest_blocks_without_skipping_cursor"
+  ],
+  "legacy_reader_status": "UNEXPOSED_LEGACY_ONLY; FROZEN_SNAPSHOT_CHECKS_NOT_IMPLEMENTED; MARKET_EVENTS_ABSENT_FROM_CANONICAL_SCHEMA",
+  "source_state": "ORIGINAL_SOURCE_AND_LOCKED_DIGESTS_RETAINED",
+  "readmodel_status": "SEPARATE_DESIGN_ONLY_NO_MIGRATION_OR_PIT_ADOPTION"
+}

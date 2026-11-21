@@ -1,0 +1,7 @@
+# Immutable provenance archives and original fixture bytes must survive checkout unchanged.
+*.txt -text
+tests/market_data/fixtures/legacy-experiment-export.synthetic.json -text
+
+# Raw legacy custody inventories are byte-bound, including on Windows checkouts.
+docs/ci/retained-legacy-test-inventory.json -text
+docs/ci/four-owner-legacy-obligations.json -text

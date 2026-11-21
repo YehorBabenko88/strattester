@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 import sqlite3
 from typing import Sequence
-from .integrity import quick_check
+from .integrity import connect_read_only, quick_check
 
 @dataclass(frozen=True)
 class DatabaseCandidate:
@@ -32,7 +32,7 @@ def inspect_database(path: Path) -> DatabaseInspection:
     if not integrity.ok:
         return DatabaseInspection(path,False,False,path.stat().st_size,None,integrity.message)
     try:
-        con=sqlite3.connect(f'file:{path.as_posix()}?mode=ro',uri=True)
+        con=connect_read_only(path)
         try:
             tables={r[0] for r in con.execute("select name from sqlite_master where type='table'")}
             recognized='candles' in tables

@@ -8,6 +8,7 @@ from typing import Iterable
 from .storage_health import storage_health
 from .coverage import Coverage, TimeRange
 from .schema import SCHEMA_SQL, SCHEMA_VERSION
+from .integrity import connect_read_only
 
 _OPEN_LOCK=threading.RLock()
 
@@ -31,10 +32,25 @@ class WriteStats:
     rejected: int = 0
 
 class SQLiteMarketStore:
-    def __init__(self,path: Path,connection: sqlite3.Connection):
+    def __init__(self,path: Path,connection: sqlite3.Connection,*,read_only=False):
         self.path=Path(path); self.connection=connection
+        self._read_only=read_only
         cols={r[1] for r in connection.execute('PRAGMA table_info(candles)')}
         self._legacy_candles='ts' in cols and 'open_time' not in cols
+        self._historical_tables = (
+            {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            if read_only else None
+        )
+
+    @classmethod
+    def open_read_only(cls, path: Path):
+        """Inspect historical rows without schema bootstrap or a write connection."""
+        connection = connect_read_only(path)
+        try:
+            return cls(path, connection, read_only=True)
+        except Exception:
+            connection.close()
+            raise
 
     @classmethod
     def open(cls,path: Path):
@@ -71,6 +87,8 @@ class SQLiteMarketStore:
         return cls(path,con)
 
     def checkpoint_wal(self,mode='PASSIVE'):
+        if self._read_only:
+            raise sqlite3.OperationalError('checkpoint unavailable for readonly market store')
         mode=str(mode).upper()
         if mode not in ('PASSIVE','FULL','RESTART','TRUNCATE'):
             raise ValueError('unsupported WAL checkpoint mode')
@@ -84,7 +102,8 @@ class SQLiteMarketStore:
         if getattr(self,'_closed',False):
             return
         try:
-            self.checkpoint_wal('PASSIVE')
+            if not self._read_only:
+                self.checkpoint_wal('PASSIVE')
         except sqlite3.ProgrammingError:
             # Connection may already have been closed by an owning routed
             # store during repeated shutdown/cleanup.
@@ -233,6 +252,8 @@ class SQLiteMarketStore:
         return WriteStats(s.accepted,s.unchanged,s.rejected+rejected)
 
     def iter_public_trade_aggregates(self,symbol:str,timeframe:str='1m',start_ms:int|None=None,end_ms:int|None=None):
+        if self._historical_tables is not None and 'public_trade_aggregates' not in self._historical_tables:
+            return
         where=['symbol=?','timeframe=?']; params=[symbol,timeframe]
         if start_ms is not None:
             where.append('open_time>=?'); params.append(int(start_ms))
@@ -272,6 +293,8 @@ class SQLiteMarketStore:
                 if b-a>step_ms:gaps.append(TimeRange(a+step_ms,b-step_ms))
             return Coverage(times[0],times[-1],len(times),tuple(gaps))
         table,time_col,uses_tf=mapping[dataset]
+        if self._historical_tables is not None and table not in self._historical_tables:
+            return Coverage(None,None,0,())
         where=['symbol=?']; params=[symbol]
         if dataset in ('candles','mark_price','index_price','premium_index','open_interest'):
             where.append('complete=1')
