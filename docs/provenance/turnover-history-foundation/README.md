@@ -84,3 +84,19 @@ ctypes/SQLite operations, driver imports and writes. Receipts report only scoped
 passes, including old export byte goldens. Legacy obligations remain547 declared
 test functions /516 remaining, zero deduction; old consumers are retained and
 overall release remains NO_GO.
+
+## Unpublished literal-admission followup
+
+Independent review found a resealed boolean start accepted as integer0 and a
+foreign metaclass equality callback in literal type-membership checks. The new
+v1.2 record preflight now checks every record clock by exact int identity and
+validates minute/source/ingestion clock relationships. Literal scalar/container
+branches and numeric handoff use only type identity before refusal. Future
+nested evidence receives the same preflight. Legacy v1/v1.1 behavior and byte
+goldens remain unchanged.
+
+A separate P1 gate remains RED: positive base volume with zero quote turnover is
+currently accepted. Data must not implement this numerical relation itself. The
+Math-owned executed-notional consistency predicate is pending; publication is
+HELD until that actual owner function is available and independently qualified.
+The scoped37-test pass for these literal fixes does not close that third gate.

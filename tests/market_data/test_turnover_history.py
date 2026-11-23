@@ -136,3 +136,22 @@ class TurnoverHistoryTests(unittest.TestCase):
  def test_actual_event_time_ohlc_legacy_lifecycle_remains_unchanged(self):
   b=FootprintBuilder(1);b.add(Trade('BTCUSDT',2000,'2','1','Buy','b'));b.add(Trade('BTCUSDT',1000,'1','1','Buy','a'));self.assertFalse(b.add(Trade('BTCUSDT',1000,'1','1','Buy','a')));row,=b.pop_closed(60000)
   self.assertEqual((row['open'],row['close'],row['trade_count'],row['turnover']),(1,2,2,3));self.assertFalse(b.add(Trade('BTCUSDT',3000,'3','1','Buy','c')))
+
+ def test_resealed_boolean_record_clocks_are_not_integer_identities(self):
+  for clock in ('start_ms','end_ms','available_at_ms','source_event_start_ms','source_event_end_ms','ingestion_ms'):
+   r,q,t=fixture();old=r[0]['dataset_fingerprint'];receipt=t['receipts'].pop(old);t['receipt_pins'].pop(old);r[0][clock]=False;fp=digest({k:v for k,v in r[0].items() if k!='dataset_fingerprint'});r[0]['dataset_fingerprint']=fp;receipt['fingerprint']=fp;t['receipts'][fp]=receipt;t['receipt_pins'][fp]=digest(receipt)
+   with self.subTest(clock=clock),self.assertRaises(ValueError):export_records_v12(r,q,t)
+ def test_foreign_metaclass_comparison_is_never_called_on_literal_refusal(self):
+  from market_data.history_contract import _snapshot_json,_number
+  class Meta(type):
+   def __eq__(self,other):raise AssertionError('FOREIGN_METACLASS_EQUALITY')
+   def __ne__(self,other):raise AssertionError('FOREIGN_METACLASS_INEQUALITY')
+  class Foreign(metaclass=Meta):pass
+  foreign=Foreign()
+  for raw in (foreign,[foreign],{'future':[foreign]}):
+   with self.assertRaises(ValueError):_snapshot_json(raw)
+  with self.assertRaises(ValueError):_number(foreign)
+  row=raw_rows(1)[0];row['quality_reasons']=[foreign]
+  with self.assertRaises(ValueError):minute_record_v12(row,61000,'fixture',available_at_ms=60000,units=UNITS)
+  r,q,t=fixture();r[1]['unavailable_future_metadata']=foreign
+  with self.assertRaises(ValueError):export_records_v12(r,q,t)

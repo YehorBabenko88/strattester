@@ -106,5 +106,15 @@
   "sourceAuthentication": "NOT_EVALUATED",
   "executionAuthority": false,
   "tradingAuthorized": false,
-  "release": "NO_GO"
+  "release": "NO_GO",
+  "independentFollowup": {
+    "base": "0f0736e83b49aac88785c539282f9ec025b42ad3",
+    "fixed": [
+      "Resealed boolean start and ingestion clocks refused by exact clock identities",
+      "Foreign metaclass equality cannot run during literal/container/numeric refusal"
+    ],
+    "scopedTestsEachPython": 37,
+    "remainingP1": "POSITIVE_VOLUME_ZERO_TURNOVER_RELATION_RED_AWAITS_MATH_OWNER",
+    "publication": "HELD"
+  }
 }

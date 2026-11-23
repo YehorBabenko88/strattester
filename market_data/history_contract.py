@@ -16,13 +16,13 @@ def _snapshot_json(value,*,max_bytes=8388608):
         nodes+=1
         if nodes>250000 or depth>16:raise ValueError('TURNOVER_HISTORY_GRAPH_BUDGET')
         kind=type(item)
-        if item is None or kind in (bool,int,float,str):
+        if item is None or kind is bool or kind is int or kind is float or kind is str:
             if kind is int and item.bit_length()>1024:raise ValueError('TURNOVER_HISTORY_INTEGER_BUDGET')
             if kind is str and len(item)>max_bytes:raise ValueError('TURNOVER_HISTORY_STRING_BUDGET')
             try:raw=json.dumps(item,separators=(',',':'),ensure_ascii=True,allow_nan=False).encode('ascii')
             except (ValueError,TypeError,OverflowError):raise ValueError('TURNOVER_HISTORY_LITERAL_VALUE_REQUIRED') from None
             charge(len(raw));return item
-        if kind in (list,tuple):
+        if kind is list or kind is tuple:
             if len(item)>250000:raise ValueError('TURNOVER_HISTORY_GRAPH_BUDGET')
             charge(2+max(0,len(item)-1));out=[copy(child,depth+1) for child in item]
             return tuple(out) if kind is tuple else out
@@ -51,6 +51,7 @@ def _version(value):
     if type(value['major']) is not int or type(value['minor']) is not int or value['major']!=1 or value['minor']!=2:raise ValueError('TURNOVER_HISTORY_RECORD_VERSION_REQUIRED')
 
 def _number(value):
+    if type(value) is not int and type(value) is not float:raise ValueError('TURNOVER_HISTORY_LITERAL_AMOUNT_REQUIRED')
     from market_math import lossless_nonnegative_binary64_valid
     if lossless_nonnegative_binary64_valid(value) is not True:raise ValueError('TURNOVER_HISTORY_LITERAL_AMOUNT_REQUIRED')
     return value
@@ -63,8 +64,12 @@ def _candle(candle):
     if candle_ohlcv_turnover_valid(*(Decimal(str(v)) for v in values[:4]),Decimal(str(volume)),turnover=Decimal(str(values[6]))) is not True:raise ValueError('TURNOVER_HISTORY_OHLCV_DOMAIN')
 
 def _record(value):
-    if value['producer']!='market_data' or value['timeframe']!='1m' or value['representation']!='historical_aggregate':raise ValueError('TURNOVER_HISTORY_RECORD_FAMILY_REQUIRED')
-    _version(value['api_version']);_units(value['units']);known=_clock(value['available_at_ms']);end=_clock(value['end_ms'])
+    for key,expected in (('producer','market_data'),('timeframe','1m'),('representation','historical_aggregate')):
+        if type(value[key]) is not str or value[key]!=expected:raise ValueError('TURNOVER_HISTORY_RECORD_FAMILY_REQUIRED')
+    _version(value['api_version']);_units(value['units'])
+    start=_clock(value['start_ms']);end=_clock(value['end_ms']);known=_clock(value['available_at_ms'])
+    source_start=_clock(value['source_event_start_ms']);source_end=_clock(value['source_event_end_ms']);ingestion=_clock(value['ingestion_ms'])
+    if start%60000 or end!=start+59999 or not start<=source_start<=source_end<=end or ingestion<source_end:raise ValueError('TURNOVER_HISTORY_RECORD_CLOCKS_REQUIRED')
     if known<end+1:raise ValueError('TURNOVER_HISTORY_AVAILABILITY_REQUIRED')
     for key,expected in (('turnover_basis',TURNOVER_BASIS),('availability_basis',AVAILABILITY_BASIS),('financial_encoding',FINANCIAL_ENCODING),('source_authentication','NOT_EVALUATED')):
         if type(value[key]) is not str or value[key]!=expected:raise ValueError('TURNOVER_HISTORY_DECLARATION_REQUIRED')
