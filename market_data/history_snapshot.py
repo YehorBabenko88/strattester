@@ -9,7 +9,7 @@ import re
 from .history_export import _read_records_postgres, MAX_ROWS, MAX_BYTES
 from .history_export_v11 import export_records_v11
 from .provenance import canonical, digest
-from .numeric_dto import volume_total
+from .numeric_dto import volume_total, amount_total
 
 TIMEFRAME_MINUTES = {'5m': 5, '15m': 15, '1h': 60}
 MULTIPIN_MINUTES = {'1h': 60, '4h': 240, '1d': 1440, '1w': 10080}
@@ -19,7 +19,9 @@ MAX_SEQUENCE_MINUTES = 2 * MULTIPIN_MINUTES['1w']
 MAX_SEQUENCE_PINS = 16
 
 
-def _candle(window):
+def _candle(window, *, version='v1.1'):
+    if version not in ('v1.1', 'v1.2'):
+        raise ValueError('ROLLUP_VERSION')
     first, last = window[0], window[-1]
     try:
         return {
@@ -28,6 +30,7 @@ def _candle(window):
             'high': max(row['high'] for row in window),
             'low': min(row['low'] for row in window),
             'volume': volume_total(row['volume'] for row in window),
+            **({'turnover': amount_total(row['turnover'] for row in window)} if version == 'v1.2' else {}),
             'available_at_ms': max(row['available_at_ms'] for row in window),
             'watermark_ms': max(row['watermark_ms'] for row in window),
         }
