@@ -30,7 +30,7 @@ def test_original_547_inventory_bytes_and_all_788_baseline_roles_preserved():
  original=json.loads(original_raw)
  assert len(baseline)==788 and current[:788]==baseline
  assert len(original)==custody['canonical_original_count']==791 and current[:791]==original
- assert len(current)==custody['canonical_current_count']==851
+ assert len(current)==custody['canonical_current_count']==853
  assert not any('test_trade_context.py' in node for node in baseline)
 def test_only_unowned_context_source_removed_no_runtime_dependency_or_alias():
  value=ledger()
@@ -40,7 +40,7 @@ def test_only_unowned_context_source_removed_no_runtime_dependency_or_alias():
   raw=path.read_text(encoding='utf8')
   assert 'trade_context' not in raw and 'attach_entry_context' not in raw
  custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
- assert custody['schema']=='market_data.turnover-runtime-custody.v1' and custody['source_head']=='f7ff8c6cf86d71c818469ad420d7efb38a33d760'
+ assert custody['schema']=='market_data.turnover-runtime-custody.v1' and custody['source_head']=='219c7a0fe0fe1931941f7cec9590a04094b71c5f'
  assert set(custody['changed_baseline_archives'])=={'market_data/footprint_state.py','market_data/provenance.py','market_data/history_export.py','market_data/history_export_v11.py','market_data/numeric_dto.py','market_data/history_snapshot.py'}
  assert custody['legacy_ledger_modified'] is False
  actual={p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}

@@ -1,6 +1,6 @@
 {
   "schema": "market_data.turnover-runtime-custody.v1",
-  "source_head": "f7ff8c6cf86d71c818469ad420d7efb38a33d760",
+  "source_head": "219c7a0fe0fe1931941f7cec9590a04094b71c5f",
   "runtime_files": {
     "market_data/__init__.py": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
     "market_data/admission.py": "02df5b4b4ad625b4ae3742cc02e307ae6024326833563ff385805df132a4fa96",
@@ -32,7 +32,7 @@
     "market_data/history_planning.py": "2647e87533b10b1ad2ff00b2ec74034c55493c5cb15b65141b1b1a0366b1e530",
     "market_data/history_range_audit.py": "5f07c9993b67113bf441b1600395365a451117aee99a94444132bc1074a2b799",
     "market_data/history_snapshot.py": "e9d537481d39bd92dc11a2216ccc10030676bb7d0ca17f789855bc3105f456ea",
-    "market_data/history_snapshot_v12.py": "58f6306db977abab4474adc8b6f9bf8a0d53093ebeda2981a686e3498a0bfd28",
+    "market_data/history_snapshot_v12.py": "d174dc313d66be2c07a885971a238ee1955284992642bbc959ee23226ced2eef",
     "market_data/market_backfill.py": "36aa515cbb19ecbf02b884a6b233210b6f4ed01dece175d20029583281ef8110",
     "market_data/numeric_dto.py": "f0a9725fdb73574647d7153ae9437d94a756068ba6f9b57beaf60d1b82553030",
     "market_data/orderbook.py": "668f8cd1fbfac4429c53aaa3e3215cefd4e7939ab209cb8dc8906a574ad8df09",
@@ -62,6 +62,6 @@
   "canonical_original_archive": "docs/provenance/turnover-history-foundation/raw/scripts__canonical_test_roster.json.txt",
   "canonical_original_sha256": "b6c09367a3157c5ae4db3cd6985a48f27d34210e329237560b1e404547942d73",
   "canonical_original_count": 791,
-  "canonical_current_count": 851,
+  "canonical_current_count": 853,
   "legacy_ledger_modified": false
 }
