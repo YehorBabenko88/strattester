@@ -114,23 +114,32 @@
       "Resealed boolean start and ingestion clocks refused by exact clock identities",
       "Foreign metaclass equality cannot run during literal/container/numeric refusal"
     ],
-    "scopedTestsEachPython": 40,
+    "scopedTestsEachPython": 43,
     "remainingP1": "RESOLVED_BY_PUBLIC_MATH_OWNER_ZERO_NONZERO_CONSISTENCY_ONLY",
     "publication": "UNPUBLISHED_CANDIDATE_AWAITS_INDEPENDENT_QA"
   },
   "canonicalRoster": {
     "original": 791,
-    "appended": 30,
-    "total": 821,
+    "appended": 33,
+    "total": 824,
     "oldCasesRemoved": 0,
     "originalBlob": "44325478a6700d9db5a8cac0811392d53a55abc9",
     "originalRawSha256": "b6c09367a3157c5ae4db3cd6985a48f27d34210e329237560b1e404547942d73",
     "originalArchive": "raw/scripts__canonical_test_roster.json.txt",
-    "inverse": "Remove appended 30 IDs and serialize original bytes from exact archived original roster; all original IDs retain order and identity"
+    "inverse": "Remove all33 appended IDs; original791 IDs retained in order; exact original bytes preserved in raw archive"
   },
   "payload": {
     "data": 47,
     "math": 3,
     "total": 50
+  },
+  "tradeSnapshot": {
+    "contract": "Exact canonical market_data.public_trades.Trade, exact literal identity/time/side and plain Decimal amounts captured before first Math call; no original rereads",
+    "constructorConversions": "Existing Trade owner still converts admitted string/int/Decimal amounts to plain Decimal",
+    "allDataCallsites": "All existing builder test callsites use canonical Trade; no active producer callsite exists",
+    "rootSdkCallsites": "Rootdaca tests/four_owner/test_sdk_contracts.py imports canonical Trade",
+    "legacyLifecycleFunctionsEachPython": 5,
+    "legacyLifecycleMethod": "Exact function AST with minimal pytest.raises fixture, no framework/native widening",
+    "normalOutputs": "Existing normal constructor vectors and legacy golden hashes unchanged"
   }
 }

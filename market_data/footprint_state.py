@@ -6,6 +6,8 @@ Decimal HALF_EVEN, preserving the source tie policy without float division.
 """
 from decimal import Decimal
 from .numeric_dto import binary64
+from .public_trades import Trade
+import re
 
 from market_math import (price_bucket, footprint_cell_update, exact_sum,
                                  executed_volume_delta, volume_profile_poc, wall_notional)
@@ -32,26 +34,35 @@ class FootprintBuilder:
         self.finalized_through_ms = {}
 
     def add(self, trade):
-        if (type(trade.ts_ms) is not int or trade.ts_ms < 0
-                or type(trade.symbol) is not str or not trade.symbol
-                or type(trade.trade_id) is not str or len(trade.trade_id) > 128):
-            raise ValueError('invalid event identity or timestamp')
-        start = trade.ts_ms // self.interval_ms * self.interval_ms
-        if trade.symbol not in self.finalized_through_ms and len(self.finalized_through_ms) >= self.max_open_buckets:
+        # Freeze the complete canonical DTO before any Math owner can run.
+        # No original event field is reread during admission or commit.
+        if type(trade) is not Trade:
+            raise ValueError('exact canonical Trade required')
+        symbol, timestamp, microseconds, trade_id, side, price, quantity = (
+            trade.symbol, trade.ts_ms, trade.ts_us, trade.trade_id,
+            trade.side, trade.price, trade.qty)
+        if (type(symbol) is not str or re.fullmatch('[A-Z0-9]{2,30}', symbol) is None
+                or type(timestamp) is not int or not 0 <= timestamp <= 2**53 - 1
+                or type(microseconds) is not int or not 0 <= microseconds <= 2**63 - 1
+                or microseconds // 1000 != timestamp
+                or type(trade_id) is not str or not 0 < len(trade_id) <= 128
+                or type(side) is not str or side not in ('Buy', 'Sell')
+                or type(price) is not Decimal or type(quantity) is not Decimal):
+            raise ValueError('invalid literal execution snapshot')
+        start = timestamp // self.interval_ms * self.interval_ms
+        if symbol not in self.finalized_through_ms and len(self.finalized_through_ms) >= self.max_open_buckets:
             raise ValueError('instrument cap')
-        if start <= self.finalized_through_ms.get(trade.symbol, -1):
+        if start <= self.finalized_through_ms.get(symbol, -1):
             return False
-        key = (trade.symbol, start)
+        key = (symbol, start)
         bucket = self.buckets.get(key)
-        if bucket is not None and trade.trade_id and trade.trade_id in bucket['seen_trade_ids']:
+        if bucket is not None and trade_id and trade_id in bucket['seen_trade_ids']:
             return False
         if bucket is None and len(self.buckets) >= self.max_open_buckets:
             raise ValueError('open bucket cap')
         if bucket is not None and bucket['trades'] >= self.max_trades_per_bucket:
             raise ValueError('event cap')
-        price, quantity = Decimal(str(trade.price)), Decimal(str(trade.qty))
         level_price = price_bucket(price, self.tick_size, rounding="half_even")
-        side = {'buy': 'Buy', 'sell': 'Sell'}.get(str(trade.side).lower())
         prior = bucket['levels'].get(level_price) if bucket else None
         if bucket is not None and prior is None and len(bucket['levels']) >= 20000:
             raise ValueError('price bucket cap')
@@ -63,17 +74,17 @@ class FootprintBuilder:
         turnover = exact_sum((bucket['turnover'] if bucket else zero, wall_notional(price, quantity)))
         if bucket is None:
             bucket = dict(turnover=zero, open=price, high=price, low=price, close=price, buy=zero, sell=zero,
-                trades=0, levels={}, seen_trade_ids=set(), first_event_ms=trade.ts_ms,
-                last_event_ms=trade.ts_ms, quality_status='GOOD', quality_reasons=[])
+                trades=0, levels={}, seen_trade_ids=set(), first_event_ms=timestamp,
+                last_event_ms=timestamp, quality_status='GOOD', quality_reasons=[])
             self.buckets[key] = bucket
-        if trade.trade_id:
-            bucket['seen_trade_ids'].add(trade.trade_id)
-        if trade.ts_ms < bucket['first_event_ms']:
+        if trade_id:
+            bucket['seen_trade_ids'].add(trade_id)
+        if timestamp < bucket['first_event_ms']:
             bucket['open'] = price
-        if trade.ts_ms >= bucket['last_event_ms']:
+        if timestamp >= bucket['last_event_ms']:
             bucket['close'] = price
-        bucket['first_event_ms'] = min(bucket['first_event_ms'], trade.ts_ms)
-        bucket['last_event_ms'] = max(bucket['last_event_ms'], trade.ts_ms)
+        bucket['first_event_ms'] = min(bucket['first_event_ms'], timestamp)
+        bucket['last_event_ms'] = max(bucket['last_event_ms'], timestamp)
         bucket['high'] = max(bucket['high'], price)
         bucket['low'] = min(bucket['low'], price)
         bucket['buy'], bucket['sell'] = total_buy, total_sell

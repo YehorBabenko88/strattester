@@ -819,5 +819,8 @@
   "tests/market_data/test_turnover_history.py::TurnoverHistoryTests::test_turnover_dto_overflow_or_nonzero_underflow_never_finalizes_any_bucket",
   "tests/market_data/test_turnover_history.py::TurnoverHistoryTests::test_turnover_units_receipts_or_record_tampering_fail",
   "tests/market_data/test_turnover_history.py::TurnoverHistoryTests::test_watermark_after_availability_or_false_completeness_refuses",
-  "tests/market_data/test_turnover_history.py::TurnoverHistoryTests::test_zero_turnover_positive_volume_refuses_factory_and_resealed_export"
+  "tests/market_data/test_turnover_history.py::TurnoverHistoryTests::test_zero_turnover_positive_volume_refuses_factory_and_resealed_export",
+  "tests/market_data/test_turnover_history.py::TurnoverHistoryTests::test_builder_captures_complete_trade_before_each_numeric_owner",
+  "tests/market_data/test_turnover_history.py::TurnoverHistoryTests::test_builder_literal_preflight_refuses_before_any_math_or_mutation",
+  "tests/market_data/test_turnover_history.py::TurnoverHistoryTests::test_builder_snapshot_owner_refusal_is_atomic_for_new_and_existing_bucket"
 ]

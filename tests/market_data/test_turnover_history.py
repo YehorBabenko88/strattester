@@ -176,3 +176,31 @@ class TurnoverHistoryTests(unittest.TestCase):
   with self.assertRaises(ValueError):minute_record_v12(row,61000,'fixture',available_at_ms=60000,units=UNITS)
   r,q,t=fixture();old=r[0]['dataset_fingerprint'];receipt=t['receipts'].pop(old);t['receipt_pins'].pop(old);r[0]['candle']['turnover']=0.0;fp=digest({k:v for k,v in r[0].items() if k!='dataset_fingerprint'});r[0]['dataset_fingerprint']=fp;receipt['fingerprint']=fp;t['receipts'][fp]=receipt;t['receipt_pins'][fp]=digest(receipt)
   with self.assertRaises(ValueError):export_records_v12(r,q,t)
+
+ def test_builder_captures_complete_trade_before_each_numeric_owner(self):
+  import market_data.footprint_state as owner
+  for name in ('price_bucket','footprint_cell_update','wall_notional','exact_sum'):
+   b=FootprintBuilder('.01');trade=Trade('BTCUSDT',1000,'100','2','Buy','original');original=getattr(owner,name)
+   def mutate(*args,**kwargs):
+    for key,value in dict(symbol='ETHUSDT',ts_ms=61000,ts_us=61000000,price=Decimal('999'),qty=Decimal('999'),side='Sell',trade_id='changed').items():object.__setattr__(trade,key,value)
+    return original(*args,**kwargs)
+   with patch('market_data.footprint_state.'+name,side_effect=mutate):self.assertTrue(b.add(trade))
+   self.assertFalse(b.add(Trade('BTCUSDT',1000,'100','2','Buy','original')))
+   row,=b.pop_closed(60000);self.assertEqual((row['symbol'],row['start_ms'],row['source_event_start_ms'],row['source_event_end_ms'],row['open'],row['buy_volume'],row['sell_volume'],row['turnover']),('BTCUSDT',0,1000,1000,100.,2.,0.,200.))
+ def test_builder_literal_preflight_refuses_before_any_math_or_mutation(self):
+  class Foreign:
+   def __str__(self):raise AssertionError('FOREIGN_STRING')
+   def __float__(self):raise AssertionError('FOREIGN_FLOAT')
+  for key,value in (('symbol',Foreign()),('ts_ms',False),('ts_us',False),('ts_us',2000000),('trade_id',Foreign()),('side',Foreign()),('side','buy'),('price',Foreign()),('qty',Foreign()),('price','100'),('qty',1)):
+   b=FootprintBuilder('.01');trade=Trade('BTCUSDT',1000,'100','2','Buy','original');object.__setattr__(trade,key,value)
+   with patch('market_data.footprint_state.price_bucket',side_effect=AssertionError('MATH_BEFORE_PREFLIGHT')),self.assertRaises(ValueError):b.add(trade)
+   self.assertEqual((b.buckets,b.finalized_through_ms),({},{}))
+  with self.assertRaises(ValueError):b.add(Foreign())
+ def test_builder_snapshot_owner_refusal_is_atomic_for_new_and_existing_bucket(self):
+  for existing in (False,True):
+   b=FootprintBuilder('.01')
+   if existing:b.add(Trade('BTCUSDT',500,'99','1','Sell','first'))
+   before=copy.deepcopy((b.buckets,b.finalized_through_ms));trade=Trade('BTCUSDT',1000,'100','2','Buy','original')
+   def refuse(*args):object.__setattr__(trade,'trade_id','changed');object.__setattr__(trade,'ts_ms',61000);raise ValueError('OWNER_REFUSAL')
+   with patch('market_data.footprint_state.wall_notional',side_effect=refuse),self.assertRaises(ValueError):b.add(trade)
+   self.assertEqual((b.buckets,b.finalized_through_ms),before)

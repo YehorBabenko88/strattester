@@ -32,5 +32,5 @@ def check(expected,count):
   else:raise AssertionError('invalid roster constructor accepted')
  return {'cases':count,'positive':1,'negative_reports':list(changes),'negative_constructors':3}
 
-results=[check(json.loads((root/name).read_text()),count) for name,count in (('frozen_consumer_roster.json',14),('canonical_test_roster.json',821))]
+results=[check(json.loads((root/name).read_text()),count) for name,count in (('frozen_consumer_roster.json',14),('canonical_test_roster.json',824))]
 print(json.dumps({'all_passed':True,'results':results}))
