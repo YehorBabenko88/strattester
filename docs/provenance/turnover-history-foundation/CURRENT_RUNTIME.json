@@ -1,6 +1,6 @@
 {
   "schema": "market_data.turnover-runtime-custody.v1",
-  "source_head": "219c7a0fe0fe1931941f7cec9590a04094b71c5f",
+  "source_head": "c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57",
   "runtime_files": {
     "market_data/__init__.py": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
     "market_data/admission.py": "02df5b4b4ad625b4ae3742cc02e307ae6024326833563ff385805df132a4fa96",
@@ -49,7 +49,8 @@
     "market_data/synthetic_collector.py": "bd62494ebbc55a63b995673104c5860067ad2db1d4896e97d0e212c4beec86f9",
     "market_data/ticker_acquisition.py": "42777df3546a26a9c1ede15a1dbc5695b3cf06893ae2da3b381fc261356724bd",
     "market_data/timestamp_codec.py": "9663b635878d57d1d738e4d301645626a1cc7862b626be53b3e7a123a2d60a98",
-    "market_data/write_queue.py": "13a7e695d52ee6c8603866e24b15edfd65777584e8c03ba855e7d56888106700"
+    "market_data/write_queue.py": "13a7e695d52ee6c8603866e24b15edfd65777584e8c03ba855e7d56888106700",
+    "market_data/observation_materializer.py": "8c3294b162f0101df47575b549d266189235b38fc333713adef5c1ec41a4c2fe"
   },
   "changed_baseline_archives": {
     "market_data/footprint_state.py": "docs/provenance/turnover-history-foundation/raw/market_data__footprint_state.py.txt",
@@ -62,6 +63,6 @@
   "canonical_original_archive": "docs/provenance/turnover-history-foundation/raw/scripts__canonical_test_roster.json.txt",
   "canonical_original_sha256": "b6c09367a3157c5ae4db3cd6985a48f27d34210e329237560b1e404547942d73",
   "canonical_original_count": 791,
-  "canonical_current_count": 853,
+  "canonical_current_count": 885,
   "legacy_ledger_modified": false
 }
