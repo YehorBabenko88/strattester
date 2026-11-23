@@ -849,5 +849,7 @@
   "tests/market_data/test_history_snapshot_v12.py::SnapshotV12Tests::test_foreign_selected_and_unused_catalog_keys_refuse_without_callbacks",
   "tests/market_data/test_history_snapshot_v12.py::SnapshotV12Tests::test_foreign_nested_field_keys_refuse_before_callbacks_math_or_reads",
   "tests/market_data/test_history_snapshot_v12.py::SnapshotV12Tests::test_unused_nested_catalog_foreign_leaves_cannot_be_ignored",
-  "tests/market_data/test_history_snapshot_v12.py::SnapshotV12Tests::test_catalog_full_literal_graph_is_bounded_before_selected_lookup"
+  "tests/market_data/test_history_snapshot_v12.py::SnapshotV12Tests::test_catalog_full_literal_graph_is_bounded_before_selected_lookup",
+  "tests/market_data/test_history_snapshot_v12.py::SnapshotV12Tests::test_continuation_requires_exact_bool_before_any_admission_or_cursor_callback",
+  "tests/market_data/test_history_snapshot_v12.py::SnapshotV12Tests::test_literal_false_starts_readonly_and_true_preserves_continuation_semantics"
 ]

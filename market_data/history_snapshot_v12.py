@@ -117,6 +117,7 @@ def _matching(s,entry):
         raise ValueError('V12_SELECTION_MISMATCH')
 
 def select_snapshot_v12(conn,selection,catalog,*,continuing=False):
+    if type(continuing) is not bool:raise ValueError('V12_LITERAL_CONTINUATION_REQUIRED')
     s=_selection(selection)
     if s['operation']!='minutes':raise ValueError('V12_MINUTES_OPERATION')
     entry=_entry(s['snapshot_id'],catalog);_matching(s,entry)

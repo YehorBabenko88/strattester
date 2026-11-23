@@ -246,3 +246,23 @@ class SnapshotV12Tests(unittest.TestCase):
   with self.assertRaises(ValueError):module().select_snapshot_v12(conn,s,c)
   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,window(s),c)
   self.assertEqual(conn.calls,[])
+
+ def test_continuation_requires_exact_bool_before_any_admission_or_cursor_callback(self):
+  calls=[]
+  class Foreign:
+   def __bool__(self):calls.append('BOOL');return True
+  class Fake(Connection):
+   def cursor(self):calls.append('CURSOR');return self
+  for flag in (Foreign(),0,1,2,'','true',None,[],{}):
+   r,s,c,e=fixture();conn=Fake(r);calls.clear()
+   with patch.object(module(),'_selection',side_effect=AssertionError('ADMISSION_BEFORE_FLAG_CHECK')):
+    with self.assertRaises(ValueError):module().select_snapshot_v12(conn,s,c,continuing=flag)
+   with self.assertRaises(ValueError):module().select_snapshot_v12(conn,s,c,continuing=flag)
+   self.assertEqual(calls,[]);self.assertEqual(conn.calls,[])
+ def test_literal_false_starts_readonly_and_true_preserves_continuation_semantics(self):
+  r,s,c,e=fixture()
+  for flag in (False,True):
+   conn=Connection(r);self.assertEqual(module().select_snapshot_v12(conn,s,c,continuing=flag),e)
+   setup=[sql for sql,params in conn.calls if sql.startswith('SET ')]
+   self.assertEqual(bool(setup),not flag)
+   if not flag:self.assertIn('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY',setup)
