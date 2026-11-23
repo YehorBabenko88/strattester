@@ -39,7 +39,7 @@ def main(argv=None):
     site=pathlib.Path(args.site).resolve(strict=True);output=pathlib.Path(args.evidence).absolute()
     if output.exists() or output.resolve().is_relative_to(root):raise ValueError('fresh external evidence required')
     bindings=json.loads(pathlib.Path(args.bindings).read_text())['bindings']
-    if len(bindings)!=50:raise ValueError('exact47Data+3Math wheel bindings required')
+    if len(bindings)!=51:raise ValueError('exact48Data+3Math wheel bindings required')
     Guard=runpy.run_path(str(root/'scripts/canonical_test_gate.py'))['StrictTestRoster']
     sys.path[:0]=[str(site),str(dependencies),str(root/'scripts'),str(root/'tests/market_data'),str(root/'tests/marketdata')]
     os.environ['PYTEST_DISABLE_PLUGIN_AUTOLOAD']='1'
