@@ -24,7 +24,13 @@ def test_original_547_inventory_bytes_and_all_788_baseline_roles_preserved():
  assert sum(len(row['tests']) for row in original)==547
  baseline=json.loads((ROOT/'docs/migration/entry-context-retirement/canonical-788-roster.json').read_bytes())
  current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
- assert len(baseline)==788 and current[:788]==baseline and len(current)==791
+ custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
+ original_raw=(ROOT/custody['canonical_original_archive']).read_bytes()
+ assert hashlib.sha256(original_raw).hexdigest()==custody['canonical_original_sha256']
+ original=json.loads(original_raw)
+ assert len(baseline)==788 and current[:788]==baseline
+ assert len(original)==custody['canonical_original_count']==791 and current[:791]==original
+ assert len(current)==custody['canonical_current_count']==824
  assert not any('test_trade_context.py' in node for node in baseline)
 def test_only_unowned_context_source_removed_no_runtime_dependency_or_alias():
  value=ledger()
@@ -33,8 +39,15 @@ def test_only_unowned_context_source_removed_no_runtime_dependency_or_alias():
  for path in (ROOT/'strattester').rglob('*.py'):
   raw=path.read_text(encoding='utf8')
   assert 'trade_context' not in raw and 'attach_entry_context' not in raw
+ custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
+ assert custody['schema']=='market_data.turnover-runtime-custody.v1' and custody['source_head']=='d0c59fc5b18d62b7ee89da7b6d453a59eb568ea7'
+ assert set(custody['changed_baseline_archives'])=={'market_data/footprint_state.py','market_data/provenance.py','market_data/history_export.py','market_data/history_export_v11.py'}
+ assert custody['legacy_ledger_modified'] is False
+ actual={p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
+ assert len(actual)==47 and actual==custody['runtime_files']
  for relative,sha in value['runtime_baseline'].items():
-  assert hashlib.sha256((ROOT/relative).read_bytes()).hexdigest()==sha
+  archive=custody['changed_baseline_archives'].get(relative)
+  assert hashlib.sha256((ROOT/(archive or relative)).read_bytes()).hexdigest()==sha
  assert len(value['runtime_baseline'])==45
  project=tomllib.loads((ROOT/'pyproject.toml').read_text(encoding='utf8'))
  assert project['tool']['setuptools']['packages']==['market_data']
