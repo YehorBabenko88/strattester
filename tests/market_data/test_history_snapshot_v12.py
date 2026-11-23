@@ -54,7 +54,7 @@ class SnapshotV12Tests(unittest.TestCase):
    with self.assertRaises(ValueError):module().select_snapshot_v12(conn,s,{s['snapshot_id']:entry})
    self.assertEqual(conn.calls,[])
  def test_revisions_receipt_and_content_tamper_refuse(self):
-  for change in (lambda r:r.reverse(),lambda r:r.pop(),lambda r:r[-1]['candle'].update(turnover=999),lambda r:r[-1].update(available_at_ms=999999)):
+  for change in (lambda r:r.reverse(),lambda r:r.pop(),lambda r:r[-1]['candle'].update(turnover=999),lambda r:r[-1].update(available_at_ms=999999),lambda r:r.__setitem__(0,1)):
    r,s,c,e=fixture();change(r)
    with self.assertRaises(ValueError):module().select_snapshot_v12(Connection(r),s,c)
  def test_window_alignment_and_limits_are_closed(self):
@@ -185,3 +185,13 @@ class SnapshotV12Tests(unittest.TestCase):
   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,wrong,c)
   entry=copy.deepcopy(next(iter(c.values())));entry['dataset_id']='e'*64;pin=digest(entry);changed=dict(window(s),snapshot_id=pin)
   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,changed,{pin:entry})
+  for change in ({'symbol':'ETHUSDT'},{'start_ms':60000},{'end_ms':600000}):
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,dict(window(s),**change),c)
+  from market_data.history_export_v11 import _dataset_content
+  x=copy.deepcopy(e);x['rows'][-1]['turnover']=999;x['dataset_id']=digest(_dataset_content(x,'market_data.dataset.v1.2'));reseal(x)
+  with self.assertRaisesRegex(ValueError,'PARENT_PIN'):module().rollup_snapshot_v12(x,window(s),c)
+  x=copy.deepcopy(e);x['request']['units']={'price':'USD/BTC','volume':'BTC','turnover':'USD'};x['dataset_id']=digest(_dataset_content(x,'market_data.dataset.v1.2'));reseal(x)
+  with self.assertRaisesRegex(ValueError,'PARENT_PIN'):module().rollup_snapshot_v12(x,window(s),c)
+  r,s,c=self.multipages();pin=s['snapshot_ids'][1];entry=c.pop(pin);entry['trust']['receipts'][entry['revisions'][0]]['turnover_basis']='FAKE';new=digest(entry);c[new]=entry;s['snapshot_ids'][1]=new;conn=Connection(r)
+  with self.assertRaises(ValueError):module().read_multipin_rollup_v12(conn,s,[],c)
+  self.assertEqual(conn.calls,[])
