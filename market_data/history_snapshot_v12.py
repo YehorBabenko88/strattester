@@ -67,7 +67,9 @@ def _selection(selection):
 
 def _entry(pin,catalog):
     if type(catalog) is not dict:raise ValueError('V12_CATALOG_LITERAL')
-    # Select one pin only; snapshot literal graph before invoking any Math owner.
+    # Admit the complete bounded literal graph before hashing/lookup can invoke
+    # a foreign key equality method, including unused colliding catalog keys.
+    catalog=_snapshot_json(catalog,max_bytes=MAX_BYTES)
     raw=catalog.get(pin)
     if raw is None:raise ValueError('V12_NOT_PROVISIONED')
     entry=_snapshot_json(raw,max_bytes=MAX_BYTES)

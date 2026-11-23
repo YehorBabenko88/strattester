@@ -195,3 +195,54 @@ class SnapshotV12Tests(unittest.TestCase):
   r,s,c=self.multipages();pin=s['snapshot_ids'][1];entry=c.pop(pin);entry['trust']['receipts'][entry['revisions'][0]]['turnover_basis']='FAKE';new=digest(entry);c[new]=entry;s['snapshot_ids'][1]=new;conn=Connection(r)
   with self.assertRaises(ValueError):module().read_multipin_rollup_v12(conn,s,[],c)
   self.assertEqual(conn.calls,[])
+
+ def test_foreign_selected_and_unused_catalog_keys_refuse_without_callbacks(self):
+  calls=[]
+  class Foreign(str):
+   __hash__=str.__hash__
+   def __eq__(self,other):calls.append('EQ');return str.__eq__(self,other)
+  for selected in (True,False):
+   r,s,c,e=fixture();pin=s['snapshot_id'];foreign={Foreign(pin if selected else 'unused'):c[pin]}
+   if not selected:foreign[pin]=c[pin]
+   calls.clear();before=[(id(k),id(v)) for k,v in foreign.items()];conn=Connection(r)
+   with self.assertRaises(ValueError):module().select_snapshot_v12(conn,s,foreign)
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,window(s),foreign)
+   self.assertEqual(calls,[]);self.assertEqual(conn.calls,[]);self.assertEqual([(id(k),id(v)) for k,v in foreign.items()],before)
+   r,ms,mc=self.multipages();foreign={Foreign(k):v for k,v in mc.items()} if selected else dict(mc)
+   if not selected:foreign[Foreign('unused')]=next(iter(mc.values()))
+   calls.clear();conn=Connection(r)
+   with self.assertRaises(ValueError):module().plan_multipin_v12(ms,foreign)
+   with self.assertRaises(ValueError):module().read_multipin_rollup_v12(conn,ms,[],foreign)
+   self.assertEqual(calls,[]);self.assertEqual(conn.calls,[])
+ def test_foreign_nested_field_keys_refuse_before_callbacks_math_or_reads(self):
+  calls=[]
+  class Foreign(str):
+   __hash__=str.__hash__
+   def __eq__(self,other):calls.append('EQ');return str.__eq__(self,other)
+  for which in ('selection','entry','request','trust','units','receipt','receipt_pins','payload','row','source'):
+   r,s,c,e=fixture();entry=c[s['snapshot_id']];receipt=entry['trust']['receipts'][entry['revisions'][0]]
+   maps={'selection':s,'entry':entry,'request':entry['request'],'trust':entry['trust'],'units':entry['request']['units'],'receipt':receipt,'receipt_pins':entry['trust']['receipt_pins'],'payload':e,'row':e['rows'][0],'source':e['source']}
+   target=maps[which];key=next(iter(target));value=target.pop(key);target[Foreign(key)]=value;calls.clear();before=[(id(k),id(v)) for k,v in target.items()];conn=Connection(r)
+   with patch('market_data.numeric_dto.exact_sum',side_effect=AssertionError('MATH_BEFORE_LITERAL_ADMISSION')):
+    with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,window(s),c)
+   if which not in ('payload','row','source'):
+    with self.assertRaises(ValueError):module().select_snapshot_v12(conn,s,c)
+   self.assertEqual(calls,[]);self.assertEqual(conn.calls,[]);self.assertEqual([(id(k),id(v)) for k,v in target.items()],before)
+ def test_unused_nested_catalog_foreign_leaves_cannot_be_ignored(self):
+  calls=[]
+  class Foreign(str):
+   __hash__=str.__hash__
+   def __eq__(self,other):calls.append('EQ');return str.__eq__(self,other)
+  class Leaf:
+   def __deepcopy__(self,memo):calls.append('COPY');return self
+   def __str__(self):calls.append('STR');return 'ignored'
+  for unused in ({Foreign('request'):{'units':UNITS}},{'request':{'units':{Foreign('turnover'):'USDT'}}},{'request':{'extra':Leaf()}}):
+   r,s,c,e=fixture();c['unused']=unused;calls.clear();conn=Connection(r)
+   with self.assertRaises(ValueError):module().select_snapshot_v12(conn,s,c)
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,window(s),c)
+   self.assertEqual(calls,[]);self.assertEqual(conn.calls,[])
+ def test_catalog_full_literal_graph_is_bounded_before_selected_lookup(self):
+  r,s,c,e=fixture();c['unused']='x'*(8*1024*1024+1);conn=Connection(r)
+  with self.assertRaises(ValueError):module().select_snapshot_v12(conn,s,c)
+  with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,window(s),c)
+  self.assertEqual(conn.calls,[])
