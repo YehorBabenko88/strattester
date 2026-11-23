@@ -16,8 +16,12 @@ def binary64(value):
     return result
 
 
-def volume_total(values):
+def amount_total(values):
     return binary64(exact_sum(Decimal(str(value)) for value in values))
+
+
+def volume_total(values):
+    return amount_total(values)
 
 
 def volume_delta(buy, sell):

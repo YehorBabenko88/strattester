@@ -1,0 +1,177 @@
+"""Pure opt-in catalog/rollup v1.2; all receipts are synthetic declarations."""
+import copy, unittest
+from decimal import localcontext
+from unittest.mock import patch
+from market_data.footprint_state import FootprintBuilder
+from market_data.public_trades import Trade
+from market_data.provenance import minute_record_v12, digest
+from market_data.history_export_v12 import export_records_v12
+from test_turnover_history import UNITS, BASIS, source
+from test_history_snapshot import Connection
+
+def module():
+ from market_data import history_snapshot_v12
+ return history_snapshot_v12
+
+def fixture(n=5, start=0, delay=False, asof=None):
+ b=FootprintBuilder('.01')
+ for i in range(n):b.add(Trade('BTCUSDT',start+i*60000+1000,str(200+i),'1','Buy',str(i)))
+ raw=b.pop_closed(start+n*60000);records=[];receipts={}
+ for i,row in enumerate(raw):
+  row['source_provenance']=source();known=900000 if delay and i==2 else start+(i+1)*60000
+  r=minute_record_v12(row,start+(i+1)*60000+1000,'fixture',available_at_ms=known,units=UNITS)
+  records.append(r);fp=r['dataset_fingerprint']
+  receipts[fp]=dict(schema='market_data.history.receipt.v1.2',record_api_version={'major':1,'minor':2},dataset_schema='market_data.dataset.v1.2',fingerprint=fp,venue='bybit',available_at_ms=known,watermark_ms=start+(i+1)*60000,complete=True,units=dict(UNITS),evidence_class='HISTORICAL',turnover_basis=BASIS)
+ end=start+n*60000;asof=max(end,900000) if asof is None else asof
+ q=dict(schema='market_data.history.request.v1.2',venue='bybit',market_type='linear',symbol='BTCUSDT',start_ms=start,end_ms=end,as_of_ms=asof,max_age_ms=2000000000,units=dict(UNITS))
+ t=dict(schema='market_data.history.trust.v1.2',identity='fixture',source_revision='a'*40,epoch=source()['epoch'],receipts=receipts,receipt_pins={fp:digest(r) for fp,r in receipts.items()},evidence_class='HISTORICAL')
+ env=export_records_v12(records,q,t)
+ entry=dict(schema='market_data.history.catalog-entry.v1.2',request=q,trust=t,revisions=[r['dataset_fingerprint'] for r in records],dataset_id=env['dataset_id'],dataset_fingerprint=env['dataset_fingerprint'])
+ pin=digest(entry);s=dict(schema='market_data.history.selection.v1.2',operation='minutes',snapshot_id=pin,**{k:q[k] for k in ('venue','market_type','symbol','start_ms','end_ms')})
+ return records,s,{pin:entry},env
+
+def window(s):return dict(s,operation='window',timeframe='5m')
+def reseal(x):x['dataset_fingerprint']=digest({k:v for k,v in x.items() if k!='dataset_fingerprint'});return x
+class SnapshotV12Tests(unittest.TestCase):
+ def test_minutes_new_catalog_identity_and_actual_envelope(self):
+  r,s,c,e=fixture();conn=Connection(r);self.assertEqual(module().select_snapshot_v12(conn,s,c),e)
+  old=dict(next(iter(c.values())));old.pop('schema');self.assertNotEqual(digest(old),s['snapshot_id']);self.assertEqual(len(e['rows'][0]),14)
+ def test_delayed_middle_actual_turnover_window_is_1010_available_900000(self):
+  r,s,c,e=fixture(delay=True);x=module().rollup_snapshot_v12(e,window(s));row,=x['rows']
+  self.assertEqual((row['turnover'],row['volume'],row['available_at_ms'],row['watermark_ms']),(1010,5,900000,300000))
+  self.assertEqual((row['open'],row['high'],row['low'],row['close']),(200,204,200,204));self.assertEqual(len(row),10)
+  self.assertEqual(x['schema'],'market_data.history.rollup.v1.2');self.assertEqual(x['operation'],'window');self.assertEqual(x['selection'],window(s));self.assertEqual(x['units'],UNITS);self.assertEqual(x['turnover_basis'],BASIS);self.assertFalse(x['execution_authority']);self.assertFalse(x['trading_authorized']);self.assertEqual(x['dataset_fingerprint'],digest({k:v for k,v in x.items() if k!='dataset_fingerprint'}))
+  self.assertEqual(x['parents'],[dict(snapshot_id=s['snapshot_id'],dataset_id=e['dataset_id'],dataset_fingerprint=e['dataset_fingerprint'])])
+ def test_exact_discriminated_selection_keys_and_closed_operations_refuse_before_read(self):
+  for change in ({'operation':'v5'},{'timeframe':'5m'},{'snapshot_ids':[]},{'end_ms':True},{'symbol':False},{'schema':'market_data.history.selection.v1'}):
+   r,s,c,e=fixture();s.update(change);conn=Connection(r)
+   with self.assertRaises(ValueError):module().select_snapshot_v12(conn,s,c)
+   self.assertEqual(conn.calls,[])
+ def test_catalog_request_trust_revision_and_receipt_preflight_before_read(self):
+  changes=[lambda e:e.update(schema='old'),lambda e:e['request'].update(extra=1),lambda e:e['trust'].update(extra=1),lambda e:e['revisions'].append(e['revisions'][0]),lambda e:e['revisions'].pop(),lambda e:e['trust'].update(evidence_class='SYNTHETIC'),lambda e:e['request'].update(schema='market_data.history.request.v1'),lambda e:next(iter(e['trust']['receipts'].values())).update(schema='old')]
+  for change in changes:
+   r,s,c,e=fixture();entry=next(iter(c.values()));change(entry);s['snapshot_id']=digest(entry);conn=Connection(r)
+   with self.assertRaises(ValueError):module().select_snapshot_v12(conn,s,{s['snapshot_id']:entry})
+   self.assertEqual(conn.calls,[])
+ def test_revisions_receipt_and_content_tamper_refuse(self):
+  for change in (lambda r:r.reverse(),lambda r:r.pop(),lambda r:r[-1]['candle'].update(turnover=999),lambda r:r[-1].update(available_at_ms=999999)):
+   r,s,c,e=fixture();change(r)
+   with self.assertRaises(ValueError):module().select_snapshot_v12(Connection(r),s,c)
+ def test_window_alignment_and_limits_are_closed(self):
+  r,s,c,e=fixture()
+  for change in ({'timeframe':'1m'},{'start_ms':60000},{'end_ms':240000},{'operation':'minutes'}):
+   selection=window(s);selection.update(change)
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,selection)
+ def test_full_future_rows_financial_and_hash_tamper_refuse(self):
+  r,s,c,e=fixture(delay=True)
+  for change in (lambda x:x['rows'][-1].update(turnover=-1),lambda x:x['rows'][-1].update(turnover=0),lambda x:x['rows'][-1].update(turnover=True),lambda x:x['rows'][-1].pop('turnover'),lambda x:x.update(turnover_basis='RECONSTRUCTED'),lambda x:x['request']['units'].update(turnover='USD')):
+   x=copy.deepcopy(e);change(x);reseal(x)
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s))
+ def test_context_and_exact_math_amount_total_shared_with_volume(self):
+  from market_data import numeric_dto
+  r,s,c,e=fixture(delay=True)
+  with localcontext() as ctx:
+   ctx.prec=1
+   for signal in ctx.traps:ctx.traps[signal]=True
+   before=dict(ctx.flags);x=module().rollup_snapshot_v12(e,window(s));self.assertEqual(dict(ctx.flags),before)
+  self.assertEqual(x['rows'][0]['turnover'],1010)
+  with patch.object(numeric_dto,'amount_total',return_value=12) as total:self.assertEqual(numeric_dto.volume_total([1,2]),12);total.assert_called_once()
+ def test_math_refusal_and_overflow_return_no_partial_result(self):
+  from market_data import numeric_dto
+  r,s,c,e=fixture()
+  with patch.object(numeric_dto,'exact_sum',side_effect=ValueError('MATH_REFUSED')):
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,window(s))
+  with self.assertRaises(ValueError):numeric_dto.amount_total([1e308,1e308])
+ def test_hostile_objects_never_receive_callbacks(self):
+  class Evil(dict):
+   def __iter__(self):raise AssertionError('CALLBACK')
+   def __deepcopy__(self,memo):raise AssertionError('CALLBACK')
+  r,s,c,e=fixture()
+  for value in (Evil(e),dict(e,rows=[Evil(e['rows'][0])])):
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(value,window(s))
+ def test_snapshot_input_detaches_before_first_math_callback(self):
+  import market_math
+  r,s,c,e=fixture();expected=copy.deepcopy(e);original=market_math.lossless_nonnegative_binary64_valid;calls=[]
+  def mutate(value):
+   if not calls:e['rows'][-1]['turnover']=-1;calls.append(True)
+   return original(value)
+  with patch.object(market_math,'lossless_nonnegative_binary64_valid',side_effect=mutate):result=module().rollup_snapshot_v12(e,window(s))
+  self.assertTrue(calls);self.assertEqual(result['rows'][0]['turnover'],1010)
+ def multipages(self):
+  r,a,c,e=fixture(30,asof=3600000);r2,b,c2,e2=fixture(30,start=1800000,asof=3600000);c.update(c2)
+  s=dict(schema='market_data.history.selection.v1.2',operation='multipin',snapshot_ids=[a['snapshot_id'],b['snapshot_id']],timeframe='1h',venue='bybit',market_type='linear',symbol='BTCUSDT',start_ms=0,end_ms=3600000)
+  return r+r2,s,c
+ def test_multipin_ordered_pages_actual_sum_and_parents(self):
+  r,s,c=self.multipages();pages=module().plan_multipin_v12(s,c)
+  class Pages(Connection):
+   def fetchall(self):
+    lo,hi=self.calls[-1][1][1:3];return [(r,) for r in self.rows if lo<=r['start_ms']<hi]
+  x=module().read_multipin_rollup_v12(Pages(r),s,pages,c)
+  self.assertEqual(x['rows'][0]['turnover'],12870);self.assertEqual([p['snapshot_id'] for p in x['parents']],s['snapshot_ids']);self.assertEqual(x['operation'],'multipin')
+ def test_multipin_reorder_duplicate_gap_identity_and_lineage_refuse_before_read(self):
+  r,s,c=self.multipages()
+  for pins in (s['snapshot_ids'][::-1],[s['snapshot_ids'][0]]*2,[s['snapshot_ids'][0]]):
+   with self.assertRaises(ValueError):module().plan_multipin_v12(dict(s,snapshot_ids=pins),c)
+  for key,value in (('as_of_ms',3600001),('units',{'price':'USD/BTC','volume':'BTC','turnover':'USD'})):
+   r,s,c=self.multipages();old=s['snapshot_ids'][1];entry=c.pop(old);entry['request'][key]=value;pin=digest(entry);c[pin]=entry;s['snapshot_ids'][1]=pin
+   with self.assertRaises(ValueError):module().plan_multipin_v12(s,c)
+ def test_multipin_supplied_pages_cannot_bypass_plan(self):
+  r,s,c=self.multipages();pages=module().plan_multipin_v12(s,c);conn=Connection(r)
+  with self.assertRaises(ValueError):module().read_multipin_rollup_v12(conn,s,pages[::-1],c)
+  self.assertEqual(conn.calls,[])
+ def test_series_same_schema_operation_and_bounded_complete_candles(self):
+  r,s,c=self.multipages();s['operation']='series';pages=module().plan_multipin_v12(s,c)
+  self.assertEqual(len(pages),2)
+  for change in ({'snapshot_ids':s['snapshot_ids']*9},{'end_ms':3600000*33},{'timeframe':'5m'},{'end_ms':1209600000+3600000}):
+   with self.assertRaises(ValueError):module().plan_multipin_v12(dict(s,**change),c)
+ def test_old_export_catalog_and_rollups_keep_golden_bytes(self):
+  from test_history_snapshot import snapshot_fixture
+  from market_data.history_snapshot import select_snapshot,rollup_snapshot
+  r,s,c,e=snapshot_fixture(5,'HISTORICAL');self.assertEqual(select_snapshot(Connection(r),s,c),e)
+  self.assertEqual(digest(rollup_snapshot(e,'5m')),'a3f82135a5741a48de2229e4ec47ab3cc2aace1aae52a616639d341960a59a61')
+
+ def test_fully_resealed_invalid_future_amount_is_rejected_by_financial_domain(self):
+  from market_data.history_export_v11 import _dataset_content
+  r,s,c,e=fixture(delay=True);e['rows'][2]['turnover']=-1
+  e['dataset_id']=digest(_dataset_content(e,'market_data.dataset.v1.2'));reseal(e)
+  with self.assertRaisesRegex(ValueError,'AMOUNT|FINANCIAL'):module().rollup_snapshot_v12(e,window(s))
+ def test_fully_resealed_available_clock_not_event_end_and_old_version_refuse(self):
+  from market_data.history_export_v11 import _dataset_content
+  r,s,c,e=fixture(delay=True)
+  for key,value in (('available_at_ms',179999),('watermark_ms',900001),('turnover',None)):
+   x=copy.deepcopy(e);x['rows'][2][key]=value;x['dataset_id']=digest(_dataset_content(x,'market_data.dataset.v1.2'));reseal(x)
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s))
+  x=copy.deepcopy(e);x['schema']='market_data.history.v1.1';reseal(x)
+  with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s))
+ def test_delayed_middle_parent_page_max_survives_boundary(self):
+  r,s,c=self.multipages();entry=c[s['snapshot_ids'][0]];old=r[15]['dataset_fingerprint'];record=r[15]
+  record['available_at_ms']=9000000;record['dataset_fingerprint']=digest({k:v for k,v in record.items() if k!='dataset_fingerprint'});new=record['dataset_fingerprint']
+  a=entry['trust']['receipts'].pop(old);entry['trust']['receipt_pins'].pop(old);a.update(fingerprint=new,available_at_ms=9000000);entry['trust']['receipts'][new]=a;entry['trust']['receipt_pins'][new]=digest(a);entry['revisions'][15]=new
+  for idx,pin in enumerate(list(s['snapshot_ids'])):
+   en=c.pop(pin);en['request']['as_of_ms']=9000000;records=r[:30] if idx==0 else r[30:];env=export_records_v12(records,en['request'],en['trust']);en['dataset_id']=env['dataset_id'];en['dataset_fingerprint']=env['dataset_fingerprint'];newpin=digest(en);c[newpin]=en;s['snapshot_ids'][idx]=newpin
+  class Pages(Connection):
+   def fetchall(self):
+    lo,hi=self.calls[-1][1][1:3];return [(r,) for r in self.rows if lo<=r['start_ms']<hi]
+  x=module().read_multipin_rollup_v12(Pages(r),s,module().plan_multipin_v12(s,c),c)
+  self.assertEqual(x['rows'][0]['available_at_ms'],9000000);self.assertEqual(x['rows'][0]['watermark_ms'],3600000)
+ def test_old_rollup_version_policy_is_closed_and_new_amount_does_not_reconstruct(self):
+  from market_data.history_snapshot import _candle
+  r,s,c,e=fixture()
+  self.assertNotIn('turnover',_candle(e['rows']))
+  with self.assertRaises(ValueError):_candle(e['rows'],version='v9')
+  x=copy.deepcopy(e);x['rows'][0].pop('turnover')
+  with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s))
+ def test_three_units_and_all_basis_receipt_versions_preflight_cross_page(self):
+  for key,value in (('turnover_basis','PROVIDER'),('record_api_version',{'major':1,'minor':1}),('dataset_schema','market_data.dataset.v1.1'),('units',{'price':'USDT/BTC','volume':'BTC'})):
+   r,s,c=self.multipages();pin=s['snapshot_ids'][1];entry=c.pop(pin);fp=entry['revisions'][0];entry['trust']['receipts'][fp][key]=value;entry['trust']['receipt_pins'][fp]=digest(entry['trust']['receipts'][fp]);pin=digest(entry);c[pin]=entry;s['snapshot_ids'][1]=pin
+   with self.assertRaises(ValueError):module().plan_multipin_v12(s,c)
+ def test_series_reads_two_complete_candles_same_rollup_family(self):
+  r,s,c=self.multipages();r2,a,c2,e2=fixture(60,start=3600000,asof=7200000)
+  for pin in list(s['snapshot_ids']):
+   entry=c.pop(pin);entry['request']['as_of_ms']=7200000;rr=r[:30] if entry['request']['start_ms']==0 else r[30:];env=export_records_v12(rr,entry['request'],entry['trust']);entry['dataset_fingerprint']=env['dataset_fingerprint'];new=digest(entry);c[new]=entry;s['snapshot_ids'][s['snapshot_ids'].index(pin)]=new
+  c.update(c2);s.update(operation='series',end_ms=7200000);s['snapshot_ids'].append(a['snapshot_id']);r+=r2
+  class Pages(Connection):
+   def fetchall(self):
+    lo,hi=self.calls[-1][1][1:3];return [(r,) for r in self.rows if lo<=r['start_ms']<hi]
+  x=module().read_multipin_rollup_v12(Pages(r),s,module().plan_multipin_v12(s,c),c)
+  self.assertEqual(x['schema'],'market_data.history.rollup.v1.2');self.assertEqual(x['operation'],'series');self.assertEqual(len(x['rows']),2)
