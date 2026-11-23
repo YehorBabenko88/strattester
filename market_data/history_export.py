@@ -14,9 +14,15 @@ MAX_BYTES=8*1024*1024
 
 
 def export_records(records, request, trust):
+    return _export_records(records,request,trust,version='v1')
+
+
+def _export_records(records,request,trust,*,version):
     try:
         q=copy.deepcopy(request); t=copy.deepcopy(trust)
-        if q['schema']!='market_data.history.request.v1':raise ValueError('SCHEMA')
+        if version not in ('v1','v1.2'):raise ValueError('SCHEMA')
+        expected='market_data.history.request.v1' if version=='v1' else 'market_data.history.request.v1.2'
+        if q['schema']!=expected:raise ValueError('SCHEMA')
         for key in ('start_ms','end_ms','as_of_ms','max_age_ms'):
             if type(q[key]) is not int or not 0<=q[key]<=2**53-1:raise ValueError('TIME')
         start,end=q['start_ms'],q['end_ms']; count=(end-start)//60000
@@ -26,7 +32,10 @@ def export_records(records, request, trust):
         if t['evidence_class'] not in ('SYNTHETIC','HISTORICAL'):raise ValueError('EVIDENCE')
         if not all(isinstance(t[k],str) and t[k] for k in ('identity','source_revision','epoch')):raise ValueError('SOURCE')
         if not all(isinstance(q[k],str) and q[k] for k in ('venue','market_type','symbol')):raise ValueError('IDENTITY')
-        if set(q['units'])!={'price','volume'} or not all(isinstance(v,str) and v for v in q['units'].values()):raise ValueError('UNITS')
+        if version=='v1.2':
+            from .history_contract import _units
+            _units(q['units'])
+        elif set(q['units'])!={'price','volume'} or not all(isinstance(v,str) and v for v in q['units'].values()):raise ValueError('UNITS')
         out=[]; receipt_hashes=[]
         for i,r in enumerate(records):
             fp=r['dataset_fingerprint']
@@ -41,11 +50,16 @@ def export_records(records, request, trust):
             if r['status']=='UNAVAILABLE' or a['complete'] is not True:raise ValueError('INCOMPLETE')
             if any(type(a[k]) is not int for k in ('available_at_ms','watermark_ms')):raise ValueError('AVAILABILITY')
             if not hi<=a['available_at_ms']<=q['as_of_ms'] or not hi<=a['watermark_ms']<=q['as_of_ms']:raise ValueError('AVAILABILITY')
-            c=r['candle']; vals=[c[k] for k in ('open','high','low','close','buy_volume','sell_volume')]
+            c=r['candle']
+            if version=='v1.2':
+                from .history_contract import _candle
+                _candle(c)
+            vals=[c[k] for k in ('open','high','low','close','buy_volume','sell_volume')]
             if any(type(v) not in (int,float) or not math.isfinite(v) for v in vals):raise ValueError('NUMERIC')
             if not 0<c['low']<=min(c['open'],c['close'])<=max(c['open'],c['close'])<=c['high'] or min(c['buy_volume'],c['sell_volume'])<0:raise ValueError('OHLCV')
             volume=volume_total((c['buy_volume'],c['sell_volume']))
             out.append({**{k:c[k] for k in ('open','high','low','close')},'volume':volume,
+              **({'turnover':c['turnover']} if version=='v1.2' else {}),
               'event_start_ms':lo,'event_end_ms':hi,'available_at_ms':a['available_at_ms'],'revision':fp})
             receipt_hashes.append(t['receipt_pins'][fp])
         envelope={'schema':'market_data.history.v1','request':q,'source':{k:t[k] for k in ('identity','source_revision','epoch')},

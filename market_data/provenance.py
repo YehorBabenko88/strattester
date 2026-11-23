@@ -30,7 +30,7 @@ def data_integrity(row):
     except (TypeError, ValueError, OverflowError):
         return False
 
-def minute_record(row, ingestion_ms, authenticated_identity=None):
+def _minute_record_base(row, ingestion_ms, authenticated_identity=None):
     row = copy.deepcopy(row)
     source = row.get("source_provenance", {})
     valid = (isinstance(source, dict) and isinstance(source.get("identity"), str)
@@ -65,8 +65,38 @@ def minute_record(row, ingestion_ms, authenticated_identity=None):
               "candle": {k: row[k] for k in ("open", "high", "low", "close", "buy_volume", "sell_volume", "delta", "trade_count", "poc_price")},
               "levels": row["levels"]}
     # Observing trades cannot attest exchange-wide completeness; never synthesize AVAILABLE.
-    record["dataset_fingerprint"] = digest(record)
     return record
+
+def minute_record(row, ingestion_ms, authenticated_identity=None):
+    record=_minute_record_base(row,ingestion_ms,authenticated_identity)
+    record['dataset_fingerprint']=digest(record)
+    return record
+
+def minute_record_v12(row,ingestion_ms,authenticated_identity=None,*,available_at_ms,units):
+    """Opt-in actual turnover declaration; never infer availability or quote units.
+
+    This pure factory neither writes records nor upgrades stored v1.1 bytes.
+    Raw collector/writer wiring and authenticated receipts remain separate gates.
+    """
+    from .history_contract import (_snapshot_json,_clock,_units,_record,
+        TURNOVER_BASIS,AVAILABILITY_BASIS,FINANCIAL_ENCODING)
+    try:
+        row,units=_snapshot_json((row,units),max_bytes=1048576)
+        if type(row) is not dict:raise ValueError('TURNOVER_HISTORY_LITERAL_ROW_REQUIRED')
+        units=_units(units);known=_clock(available_at_ms);_clock(ingestion_ms);start=_clock(row['start_ms'])
+        if known<start+60000:raise ValueError('TURNOVER_HISTORY_AVAILABILITY_REQUIRED')
+        if type(row['turnover_basis']) is not str or row['turnover_basis']!=TURNOVER_BASIS:raise ValueError('TURNOVER_HISTORY_ACTUAL_NOTIONAL_BASIS_REQUIRED')
+        # Existing source and aggregate validation is shared byte-for-byte with
+        # legacy output. New declarations are added only to this new version.
+        record=_minute_record_base(row,ingestion_ms,authenticated_identity)
+        record.update(api_version={'major':1,'minor':2},units=units,available_at_ms=known,
+            turnover_basis=TURNOVER_BASIS,availability_basis=AVAILABILITY_BASIS,
+            financial_encoding=FINANCIAL_ENCODING,source_authentication='NOT_EVALUATED',trading_authorized=False)
+        record['candle']['turnover']=row['turnover']
+        _record(record)
+        record['dataset_fingerprint']=digest(record)
+        return record
+    except (KeyError,TypeError,OverflowError) as exc:raise ValueError('TURNOVER_MINUTE_UNAVAILABLE') from exc
 
 async def persist_minute(conn, row, authenticated_identity=None):
     record = minute_record(row, int(time.time()*1000), authenticated_identity)

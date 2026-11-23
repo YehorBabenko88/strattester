@@ -8,7 +8,7 @@ from decimal import Decimal
 from .numeric_dto import binary64
 
 from market_math import (price_bucket, footprint_cell_update, exact_sum,
-                                 executed_volume_delta, volume_profile_poc)
+                                 executed_volume_delta, volume_profile_poc, wall_notional)
 
 
 class FootprintBuilder:
@@ -60,8 +60,9 @@ class FootprintBuilder:
                                          prior['sell'] if prior else zero, quantity, side)
         total_buy, total_sell = footprint_cell_update(bucket['buy'] if bucket else zero,
             bucket['sell'] if bucket else zero, quantity, side)
+        turnover = exact_sum((bucket['turnover'] if bucket else zero, wall_notional(price, quantity)))
         if bucket is None:
-            bucket = dict(open=price, high=price, low=price, close=price, buy=zero, sell=zero,
+            bucket = dict(turnover=zero, open=price, high=price, low=price, close=price, buy=zero, sell=zero,
                 trades=0, levels={}, seen_trade_ids=set(), first_event_ms=trade.ts_ms,
                 last_event_ms=trade.ts_ms, quality_status='GOOD', quality_reasons=[])
             self.buckets[key] = bucket
@@ -76,6 +77,7 @@ class FootprintBuilder:
         bucket['high'] = max(bucket['high'], price)
         bucket['low'] = min(bucket['low'], price)
         bucket['buy'], bucket['sell'] = total_buy, total_sell
+        bucket['turnover'] = turnover
         bucket['trades'] += 1
         bucket['levels'][level_price] = dict(buy=buy, sell=sell,
             buy_count=(prior['buy_count'] if prior else 0) + int(side == 'Buy'),
@@ -111,6 +113,8 @@ class FootprintBuilder:
                 buy_volume=binary64(bucket['buy']), sell_volume=binary64(bucket['sell']),
                 delta=binary64(executed_volume_delta(bucket['buy'], bucket['sell'])),
                 trade_count=bucket['trades'], poc_price=binary64(poc),
+                turnover=binary64(bucket['turnover']),
+                turnover_basis='EXECUTED_TRADE_PRICE_TIMES_QUANTITY_SUM',
                 quality_status=bucket['quality_status'], quality_reasons=list(bucket['quality_reasons']),
                 levels=[dict(price=binary64(price), buy_volume=binary64(cell['buy']),
                     sell_volume=binary64(cell['sell']),
