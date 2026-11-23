@@ -155,3 +155,24 @@ class TurnoverHistoryTests(unittest.TestCase):
   with self.assertRaises(ValueError):minute_record_v12(row,61000,'fixture',available_at_ms=60000,units=UNITS)
   r,q,t=fixture();r[1]['unavailable_future_metadata']=foreign
   with self.assertRaises(ValueError):export_records_v12(r,q,t)
+
+ def test_executed_turnover_zero_relation_uses_actual_math_owner(self):
+  from market_data.history_contract import _candle
+  row=raw_rows(1)[0]
+  for turnover,buy,sell in ((0.0,2.0,3.0),(1.0,0.0,0.0)):
+   candle={k:row[k] for k in ('open','high','low','close','buy_volume','sell_volume','turnover')};candle.update(turnover=turnover,buy_volume=buy,sell_volume=sell)
+   with self.assertRaises(ValueError):_candle(candle)
+  candle.update(turnover=0.0,buy_volume=0.0,sell_volume=0.0);_candle(candle)
+ def test_executed_turnover_owner_receives_literal_actual_amounts_and_exact_bool(self):
+  from market_data.history_contract import _candle
+  row=raw_rows(1)[0];candle={k:row[k] for k in ('open','high','low','close','buy_volume','sell_volume','turnover')}
+  with patch('market_math.executed_notional_consistent',return_value=True) as owner:
+   _candle(candle);owner.assert_called_once_with(500.29,5.0)
+  for refused in (False,1,None):
+   with patch('market_math.executed_notional_consistent',return_value=refused),self.assertRaises(ValueError):_candle(candle)
+
+ def test_zero_turnover_positive_volume_refuses_factory_and_resealed_export(self):
+  row=raw_rows(1)[0];row['turnover']=0.0
+  with self.assertRaises(ValueError):minute_record_v12(row,61000,'fixture',available_at_ms=60000,units=UNITS)
+  r,q,t=fixture();old=r[0]['dataset_fingerprint'];receipt=t['receipts'].pop(old);t['receipt_pins'].pop(old);r[0]['candle']['turnover']=0.0;fp=digest({k:v for k,v in r[0].items() if k!='dataset_fingerprint'});r[0]['dataset_fingerprint']=fp;receipt['fingerprint']=fp;t['receipts'][fp]=receipt;t['receipt_pins'][fp]=digest(receipt)
+  with self.assertRaises(ValueError):export_records_v12(r,q,t)

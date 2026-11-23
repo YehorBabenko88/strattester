@@ -57,10 +57,11 @@ def _number(value):
     return value
 
 def _candle(candle):
-    from market_math import candle_ohlcv_turnover_valid
+    from market_math import candle_ohlcv_turnover_valid,executed_notional_consistent
     from .numeric_dto import volume_total
     values=tuple(_number(candle[k]) for k in ('open','high','low','close','buy_volume','sell_volume','turnover'))
     volume=volume_total(values[4:6])
+    if executed_notional_consistent(values[6],volume) is not True:raise ValueError('TURNOVER_HISTORY_EXECUTED_NOTIONAL_CONSISTENCY')
     if candle_ohlcv_turnover_valid(*(Decimal(str(v)) for v in values[:4]),Decimal(str(volume)),turnover=Decimal(str(values[6]))) is not True:raise ValueError('TURNOVER_HISTORY_OHLCV_DOMAIN')
 
 def _record(value):

@@ -21,13 +21,15 @@ def write_wheel(path,payload,distribution,modules,scripts,mode,math=False):
    with warnings.catch_warnings():warnings.simplefilter('ignore');z.writestr(name,payload[name])
 
 def fixture(root,mode):
- files={'market_data/__init__.py':b'# inert source\n','market_data/schema.sql':b'CREATE TABLE inert(value TEXT);\n'}
+ files={'market_data/__init__.py':b'# inert source\n','market_data/schema.sql':b'CREATE TABLE inert(value TEXT);\n','market_data/history_contract.py':b'# inert turnover contract\n','market_data/history_export_v12.py':b'# inert opt-in export\n'}
  math={name:b'# inert source shape only\n' for name in ('market_math.py','market_compute_api.py','history_statistics.py')}
  for name,raw in files.items():p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(raw)
  for name,raw in math.items():p=root/'.source/math/python'/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(raw)
  (root/'pyproject.toml').write_text('[project]\nname="market-data"\nversion="0.1.0"\n[project.scripts]\nmarket-data="market_data.cli:main"\n')
  (root/'.source/math/pyproject.toml').write_text('[project]\nname="unified-math-kernels"\nversion="0.1.0"\n')
  wheels=dict(files);numbers=dict(math);archive=dict(files)
+ if mode=='turnover_contract_missing':del wheels['market_data/history_contract.py']
+ if mode=='turnover_export_changed':wheels['market_data/history_export_v12.py']+=b'# changed\n'
  if mode=='sql_changed':wheels['market_data/schema.sql']+=b'-- changed\n'
  if mode=='sql_missing':del wheels['market_data/schema.sql']
  if mode=='sql_extra':wheels['market_data/extra.sql']=b'-- extra\n'
@@ -48,7 +50,7 @@ def fixture(root,mode):
 
 def main():
  checker=pathlib.Path(sys.argv[1]) if len(sys.argv)>1 else pathlib.Path(__file__).with_name('check_market_package.py')
- modes=('positive','sql_changed','sql_missing','sql_extra','python_crlf','math_changed','math_missing','math_retired','math_crlf','sdist_sql_changed','duplicate_zip','data_extra_root','data_foreign_owner','entrypoint_suffix','math_duplicate','math_metadata_native','metadata_owner','record_bad_hash')
+ modes=('positive','turnover_contract_missing','turnover_export_changed','sql_changed','sql_missing','sql_extra','python_crlf','math_changed','math_missing','math_retired','math_crlf','sdist_sql_changed','duplicate_zip','data_extra_root','data_foreign_owner','entrypoint_suffix','math_duplicate','math_metadata_native','metadata_owner','record_bad_hash')
  results={}
  for mode in modes:
   with tempfile.TemporaryDirectory(prefix='package-gate-control-') as directory:

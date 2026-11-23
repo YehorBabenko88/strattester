@@ -1,7 +1,7 @@
 {
   "schema": "market_data.turnover-history-foundation.v1",
   "sourceHead": "622e99dcd169d471279b5d38204d29a01eaf8647",
-  "mathHead": "53fe518c012280557bc0f2b6fec9465942638d44",
+  "mathHead": "9ed369ddd41ae32c4b3a9434f0b29d6dcf51154f",
   "sources": [
     {
       "path": "market_data/footprint_state.py",
@@ -36,7 +36,8 @@
     "market_math.wall_notional",
     "market_math.exact_sum",
     "market_math.lossless_nonnegative_binary64_valid",
-    "market_math.candle_ohlcv_turnover_valid"
+    "market_math.candle_ohlcv_turnover_valid",
+    "market_math.executed_notional_consistent"
   ],
   "producerChanges": "Exact actual price*quantity notional and accumulated quote amount staged by Math before any bucket or dedup/OHLC mutation",
   "newPureAPIs": [
@@ -113,8 +114,23 @@
       "Resealed boolean start and ingestion clocks refused by exact clock identities",
       "Foreign metaclass equality cannot run during literal/container/numeric refusal"
     ],
-    "scopedTestsEachPython": 37,
-    "remainingP1": "POSITIVE_VOLUME_ZERO_TURNOVER_RELATION_RED_AWAITS_MATH_OWNER",
-    "publication": "HELD"
+    "scopedTestsEachPython": 40,
+    "remainingP1": "RESOLVED_BY_PUBLIC_MATH_OWNER_ZERO_NONZERO_CONSISTENCY_ONLY",
+    "publication": "UNPUBLISHED_CANDIDATE_AWAITS_INDEPENDENT_QA"
+  },
+  "canonicalRoster": {
+    "original": 791,
+    "appended": 30,
+    "total": 821,
+    "oldCasesRemoved": 0,
+    "originalBlob": "44325478a6700d9db5a8cac0811392d53a55abc9",
+    "originalRawSha256": "b6c09367a3157c5ae4db3cd6985a48f27d34210e329237560b1e404547942d73",
+    "originalArchive": "raw/scripts__canonical_test_roster.json.txt",
+    "inverse": "Remove appended 30 IDs and serialize original bytes from exact archived original roster; all original IDs retain order and identity"
+  },
+  "payload": {
+    "data": 47,
+    "math": 3,
+    "total": 50
   }
 }

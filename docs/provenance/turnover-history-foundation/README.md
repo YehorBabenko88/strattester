@@ -100,3 +100,5 @@ currently accepted. Data must not implement this numerical relation itself. The
 Math-owned executed-notional consistency predicate is pending; publication is
 HELD until that actual owner function is available and independently qualified.
 The scoped37-test pass for these literal fixes does not close that third gate.
+
+Follow-up consistency fix uses public Math `9ed369ddd41ae32c4b3a9434f0b29d6dcf51154f` (`executed_notional_consistent`) on the actual literal turnover and Math-owned total volume. This checks finite nonnegative zero/nonzero agreement only; it does not establish quantity/source authenticity or OHLC bounds. The prior 853 candidate RED is retained in external receipts. Mandatory canonical coverage retains all original 791 node IDs in order and appends all 30 new unittest method IDs (821 total). Installed custody now requires 47 Data + 3 Math payload files. Legacy declared inventory 547/516 remains unchanged.
