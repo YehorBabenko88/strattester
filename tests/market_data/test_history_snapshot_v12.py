@@ -37,7 +37,7 @@ class SnapshotV12Tests(unittest.TestCase):
   r,s,c,e=fixture();conn=Connection(r);self.assertEqual(module().select_snapshot_v12(conn,s,c),e)
   old=dict(next(iter(c.values())));old.pop('schema');self.assertNotEqual(digest(old),s['snapshot_id']);self.assertEqual(len(e['rows'][0]),14)
  def test_delayed_middle_actual_turnover_window_is_1010_available_900000(self):
-  r,s,c,e=fixture(delay=True);x=module().rollup_snapshot_v12(e,window(s));row,=x['rows']
+  r,s,c,e=fixture(delay=True);x=module().rollup_snapshot_v12(e,window(s),c);row,=x['rows']
   self.assertEqual((row['turnover'],row['volume'],row['available_at_ms'],row['watermark_ms']),(1010,5,900000,300000))
   self.assertEqual((row['open'],row['high'],row['low'],row['close']),(200,204,200,204));self.assertEqual(len(row),10)
   self.assertEqual(x['schema'],'market_data.history.rollup.v1.2');self.assertEqual(x['operation'],'window');self.assertEqual(x['selection'],window(s));self.assertEqual(x['units'],UNITS);self.assertEqual(x['turnover_basis'],BASIS);self.assertFalse(x['execution_authority']);self.assertFalse(x['trading_authorized']);self.assertEqual(x['dataset_fingerprint'],digest({k:v for k,v in x.items() if k!='dataset_fingerprint'}))
@@ -61,26 +61,26 @@ class SnapshotV12Tests(unittest.TestCase):
   r,s,c,e=fixture()
   for change in ({'timeframe':'1m'},{'start_ms':60000},{'end_ms':240000},{'operation':'minutes'}):
    selection=window(s);selection.update(change)
-   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,selection)
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,selection,c)
  def test_full_future_rows_financial_and_hash_tamper_refuse(self):
   r,s,c,e=fixture(delay=True)
   for change in (lambda x:x['rows'][-1].update(turnover=-1),lambda x:x['rows'][-1].update(turnover=0),lambda x:x['rows'][-1].update(turnover=True),lambda x:x['rows'][-1].pop('turnover'),lambda x:x.update(turnover_basis='RECONSTRUCTED'),lambda x:x['request']['units'].update(turnover='USD')):
    x=copy.deepcopy(e);change(x);reseal(x)
-   with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s))
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s),c)
  def test_context_and_exact_math_amount_total_shared_with_volume(self):
   from market_data import numeric_dto
   r,s,c,e=fixture(delay=True)
   with localcontext() as ctx:
    ctx.prec=1
    for signal in ctx.traps:ctx.traps[signal]=True
-   before=dict(ctx.flags);x=module().rollup_snapshot_v12(e,window(s));self.assertEqual(dict(ctx.flags),before)
+   before=dict(ctx.flags);x=module().rollup_snapshot_v12(e,window(s),c);self.assertEqual(dict(ctx.flags),before)
   self.assertEqual(x['rows'][0]['turnover'],1010)
   with patch.object(numeric_dto,'amount_total',return_value=12) as total:self.assertEqual(numeric_dto.volume_total([1,2]),12);total.assert_called_once()
  def test_math_refusal_and_overflow_return_no_partial_result(self):
   from market_data import numeric_dto
   r,s,c,e=fixture()
   with patch.object(numeric_dto,'exact_sum',side_effect=ValueError('MATH_REFUSED')):
-   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,window(s))
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,window(s),c)
   with self.assertRaises(ValueError):numeric_dto.amount_total([1e308,1e308])
  def test_hostile_objects_never_receive_callbacks(self):
   class Evil(dict):
@@ -88,14 +88,14 @@ class SnapshotV12Tests(unittest.TestCase):
    def __deepcopy__(self,memo):raise AssertionError('CALLBACK')
   r,s,c,e=fixture()
   for value in (Evil(e),dict(e,rows=[Evil(e['rows'][0])])):
-   with self.assertRaises(ValueError):module().rollup_snapshot_v12(value,window(s))
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(value,window(s),c)
  def test_snapshot_input_detaches_before_first_math_callback(self):
   import market_math
   r,s,c,e=fixture();expected=copy.deepcopy(e);original=market_math.lossless_nonnegative_binary64_valid;calls=[]
   def mutate(value):
    if not calls:e['rows'][-1]['turnover']=-1;calls.append(True)
    return original(value)
-  with patch.object(market_math,'lossless_nonnegative_binary64_valid',side_effect=mutate):result=module().rollup_snapshot_v12(e,window(s))
+  with patch.object(market_math,'lossless_nonnegative_binary64_valid',side_effect=mutate):result=module().rollup_snapshot_v12(e,window(s),c)
   self.assertTrue(calls);self.assertEqual(result['rows'][0]['turnover'],1010)
  def multipages(self):
   r,a,c,e=fixture(30,asof=3600000);r2,b,c2,e2=fixture(30,start=1800000,asof=3600000);c.update(c2)
@@ -129,20 +129,24 @@ class SnapshotV12Tests(unittest.TestCase):
   from market_data.history_snapshot import select_snapshot,rollup_snapshot
   r,s,c,e=snapshot_fixture(5,'HISTORICAL');self.assertEqual(select_snapshot(Connection(r),s,c),e)
   self.assertEqual(digest(rollup_snapshot(e,'5m')),'a3f82135a5741a48de2229e4ec47ab3cc2aace1aae52a616639d341960a59a61')
+  from market_data.history_snapshot import plan_multipin,read_multipin_rollup
+  r,s,c,e=snapshot_fixture(60,'HISTORICAL')
+  for schema,expected in (('market_data.history.selection.v3','2b029f164f73eefa0df7b5fcb6fe226c77a1935a28abe52bc2ad4775594dbb6a'),('market_data.history.selection.v4','04cfac848e0025bf882dd13ceed20cbb65e6a1918808aee676f74654d4000a97')):
+   q={k:v for k,v in s.items() if k not in ('snapshot_id','schema')};q.update(schema=schema,snapshot_ids=[s['snapshot_id']],timeframe='1h');self.assertEqual(digest(read_multipin_rollup(Connection(r),q,plan_multipin(q,c),c)),expected)
 
  def test_fully_resealed_invalid_future_amount_is_rejected_by_financial_domain(self):
   from market_data.history_export_v11 import _dataset_content
   r,s,c,e=fixture(delay=True);e['rows'][2]['turnover']=-1
   e['dataset_id']=digest(_dataset_content(e,'market_data.dataset.v1.2'));reseal(e)
-  with self.assertRaisesRegex(ValueError,'AMOUNT|FINANCIAL'):module().rollup_snapshot_v12(e,window(s))
+  with self.assertRaisesRegex(ValueError,'AMOUNT|FINANCIAL'):module().rollup_snapshot_v12(e,window(s),c)
  def test_fully_resealed_available_clock_not_event_end_and_old_version_refuse(self):
   from market_data.history_export_v11 import _dataset_content
   r,s,c,e=fixture(delay=True)
   for key,value in (('available_at_ms',179999),('watermark_ms',900001),('turnover',None)):
    x=copy.deepcopy(e);x['rows'][2][key]=value;x['dataset_id']=digest(_dataset_content(x,'market_data.dataset.v1.2'));reseal(x)
-   with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s))
+   with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s),c)
   x=copy.deepcopy(e);x['schema']='market_data.history.v1.1';reseal(x)
-  with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s))
+  with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s),c)
  def test_delayed_middle_parent_page_max_survives_boundary(self):
   r,s,c=self.multipages();entry=c[s['snapshot_ids'][0]];old=r[15]['dataset_fingerprint'];record=r[15]
   record['available_at_ms']=9000000;record['dataset_fingerprint']=digest({k:v for k,v in record.items() if k!='dataset_fingerprint'});new=record['dataset_fingerprint']
@@ -160,7 +164,7 @@ class SnapshotV12Tests(unittest.TestCase):
   self.assertNotIn('turnover',_candle(e['rows']))
   with self.assertRaises(ValueError):_candle(e['rows'],version='v9')
   x=copy.deepcopy(e);x['rows'][0].pop('turnover')
-  with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s))
+  with self.assertRaises(ValueError):module().rollup_snapshot_v12(x,window(s),c)
  def test_three_units_and_all_basis_receipt_versions_preflight_cross_page(self):
   for key,value in (('turnover_basis','PROVIDER'),('record_api_version',{'major':1,'minor':1}),('dataset_schema','market_data.dataset.v1.1'),('units',{'price':'USDT/BTC','volume':'BTC'})):
    r,s,c=self.multipages();pin=s['snapshot_ids'][1];entry=c.pop(pin);fp=entry['revisions'][0];entry['trust']['receipts'][fp][key]=value;entry['trust']['receipt_pins'][fp]=digest(entry['trust']['receipts'][fp]);pin=digest(entry);c[pin]=entry;s['snapshot_ids'][1]=pin
@@ -175,3 +179,9 @@ class SnapshotV12Tests(unittest.TestCase):
     lo,hi=self.calls[-1][1][1:3];return [(r,) for r in self.rows if lo<=r['start_ms']<hi]
   x=module().read_multipin_rollup_v12(Pages(r),s,module().plan_multipin_v12(s,c),c)
   self.assertEqual(x['schema'],'market_data.history.rollup.v1.2');self.assertEqual(x['operation'],'series');self.assertEqual(len(x['rows']),2)
+
+ def test_window_catalog_pin_must_bind_both_independent_parent_hashes(self):
+  r,s,c,e=fixture();wrong=dict(window(s),snapshot_id='f'*64)
+  with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,wrong,c)
+  entry=copy.deepcopy(next(iter(c.values())));entry['dataset_id']='e'*64;pin=digest(entry);changed=dict(window(s),snapshot_id=pin)
+  with self.assertRaises(ValueError):module().rollup_snapshot_v12(e,changed,{pin:entry})

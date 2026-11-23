@@ -120,7 +120,7 @@ def select_snapshot_v12(conn,selection,catalog,*,continuing=False):
     entry=_entry(s['snapshot_id'],catalog);_matching(s,entry)
     records=_read_records_postgres(conn,entry['request'],revisions=entry['revisions'],continuing=continuing)
     records=_snapshot_json(records)
-    if [r.get('dataset_fingerprint') for r in records]!=entry['revisions']:
+    if type(records) is not list or any(type(r) is not dict for r in records) or [r.get('dataset_fingerprint') for r in records]!=entry['revisions']:
         raise ValueError('V12_SNAPSHOT_REVISIONS')
     result=export_records_v12(records,entry['request'],entry['trust'])
     if any(result[k]!=entry[k] for k in ('dataset_id','dataset_fingerprint')):
@@ -189,11 +189,14 @@ def _rollup(s,envelopes,parents):
             'rows':[_candle(rows[i:i+minutes],version='v1.2') for i in range(0,len(rows),minutes)]}
     return dict(result,dataset_fingerprint=digest(result))
 
-def rollup_snapshot_v12(envelope,selection):
+def rollup_snapshot_v12(envelope,selection,catalog):
     s=_selection(selection)
     if s['operation']!='window':raise ValueError('V12_WINDOW_OPERATION')
+    entry=_entry(s['snapshot_id'],catalog);_matching(s,entry)
     x=_envelope(envelope)
     _matching(s,{'request':x['request']})
+    if any(x[k]!=entry[k] for k in ('dataset_id','dataset_fingerprint')):
+        raise ValueError('V12_PARENT_PIN')
     return _rollup(s,[x],[{'snapshot_id':s['snapshot_id'],'dataset_id':x['dataset_id'],
                            'dataset_fingerprint':x['dataset_fingerprint']}])
 
