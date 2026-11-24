@@ -2,7 +2,18 @@
 """Custody of two transferred research roles; no Terminan runtime import."""
 import ast,hashlib,json,pathlib,tomllib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
-from runtime_lineage_custody import verified_contexts
+# Development custody is loaded from detached, hash-verified bytes, never sys.path.
+import hashlib as _lineage_hashlib
+from pathlib import Path as _LineagePath
+from types import ModuleType as _LineageModule
+_lineage_path = _LineagePath(__file__).resolve().parents[2]/'scripts/runtime_lineage_custody.py'
+_lineage_raw = _lineage_path.read_bytes()
+if _lineage_hashlib.sha256(_lineage_raw).hexdigest() != '9cec6e527a0fc80d845452e1bdbdd50962625ecf7bbb5c1e931eeb0f47e63e72':
+ raise ValueError('LINEAGE_HELPER_SOURCE_SEAL')
+_lineage_module = _LineageModule('_sealed_data_runtime_lineage')
+_lineage_module.__file__ = str(_lineage_path)
+exec(compile(_lineage_raw,str(_lineage_path),'exec'),_lineage_module.__dict__)
+verified_contexts = _lineage_module.verified_contexts
 def historical_context():
  return verified_contexts(ROOT)['VERIFIED_HISTORICAL']
 LEDGER=ROOT/'docs/migration/entry-context-retirement/transfer-ledger.json'
