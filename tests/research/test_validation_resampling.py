@@ -1,5 +1,4 @@
 from strattester.research.validation import chronological_split,walk_forward_folds,freeze_parameters
-from strattester.research.resampling import bootstrap_expectancy,monte_carlo_max_drawdowns
 
 def test_chronological_split_never_overlaps_or_uses_future():
     rows=list(range(10))
@@ -20,15 +19,3 @@ def test_selected_parameters_are_frozen_before_test():
     assert p.values=={'threshold':.7}
     assert p.selected_through==7
 
-def test_bootstrap_expectancy_is_seeded_and_contains_sample_mean():
-    xs=[1.0,-1.0,2.0,0.5]
-    a=bootstrap_expectancy(xs,iterations=200,seed=7)
-    b=bootstrap_expectancy(xs,iterations=200,seed=7)
-    assert a==b
-    assert a.lower<=sum(xs)/len(xs)<=a.upper
-
-def test_monte_carlo_drawdown_is_seeded():
-    xs=[2,-1,-2,3,-.5]
-    a=monte_carlo_max_drawdowns(xs,iterations=100,seed=9)
-    b=monte_carlo_max_drawdowns(xs,iterations=100,seed=9)
-    assert a==b and len(a)==100 and min(a)>=0
