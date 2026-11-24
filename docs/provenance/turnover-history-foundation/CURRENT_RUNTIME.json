@@ -1,6 +1,8 @@
 {
-  "schema": "market_data.turnover-runtime-custody.v1",
-  "source_head": "c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57",
+  "schema": "market_data.turnover-runtime-custody.v2",
+  "source_head": "5bb90b86d8d62b41bc50d284d17b41dd01f9a355",
+  "anchor_tree": "f8464664ef0519294591e075f71647ace14cef9b",
+  "anchor_market_data_tree": "f210ce4ee1b4afe155b0f71656f59d298032b8d1",
   "runtime_files": {
     "market_data/__init__.py": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
     "market_data/admission.py": "02df5b4b4ad625b4ae3742cc02e307ae6024326833563ff385805df132a4fa96",
@@ -25,7 +27,7 @@
     "market_data/historical_capture.py": "51595ebf147aee19444d5d387bc77234ec7541be4b8472735d55b2d2b77b280b",
     "market_data/history_api.py": "fce3921ab21d4d50134fe8fdc1abcaa73bf6fa0bc9a3352742e7e6d3cafd151b",
     "market_data/history_contract.py": "c17c9348c92f1fbe66c7be9c004df1fb69a989774bc2d89f8e6b0559e33e2b7c",
-    "market_data/history_export.py": "07fe0e8956cfa74965778056142f0492efe518077bbd75eed0b926842595cef8",
+    "market_data/history_export.py": "a87dbc404ffd387cc089b15b5ec1f87f97a6510c6e6a3a604ff9d9718c5e43b6",
     "market_data/history_export_v11.py": "6c8bffde29c5f8197beeb32f5bb3ee2271d0f4588639526b52d94f73c52480b2",
     "market_data/history_export_v12.py": "8aaa99bc1fdb2bc93fb0ef70df7ce51b70947bc87a09ed9255a8f64a3cddd2bb",
     "market_data/history_parallel.py": "426786b722db1c6a964e19fe668ce4a43e92c46c94a314acc1ea2c2c6793487f",
@@ -35,6 +37,7 @@
     "market_data/history_snapshot_v12.py": "d174dc313d66be2c07a885971a238ee1955284992642bbc959ee23226ced2eef",
     "market_data/market_backfill.py": "36aa515cbb19ecbf02b884a6b233210b6f4ed01dece175d20029583281ef8110",
     "market_data/numeric_dto.py": "f0a9725fdb73574647d7153ae9437d94a756068ba6f9b57beaf60d1b82553030",
+    "market_data/observation_materializer.py": "8c3294b162f0101df47575b549d266189235b38fc333713adef5c1ec41a4c2fe",
     "market_data/orderbook.py": "668f8cd1fbfac4429c53aaa3e3215cefd4e7939ab209cb8dc8906a574ad8df09",
     "market_data/orderbook_stream.py": "4f6ed8b1e58b2ebf473287d43ff715d51bea8e18730f2bee94a0f8fa690d5258",
     "market_data/paper_inputs.py": "08361e7c4ca2d60977807a68f8828aaa2b102750f0cb3764cdfb0e5f0c46d8ab",
@@ -49,20 +52,13 @@
     "market_data/synthetic_collector.py": "bd62494ebbc55a63b995673104c5860067ad2db1d4896e97d0e212c4beec86f9",
     "market_data/ticker_acquisition.py": "42777df3546a26a9c1ede15a1dbc5695b3cf06893ae2da3b381fc261356724bd",
     "market_data/timestamp_codec.py": "9663b635878d57d1d738e4d301645626a1cc7862b626be53b3e7a123a2d60a98",
-    "market_data/write_queue.py": "13a7e695d52ee6c8603866e24b15edfd65777584e8c03ba855e7d56888106700",
-    "market_data/observation_materializer.py": "8c3294b162f0101df47575b549d266189235b38fc333713adef5c1ec41a4c2fe"
+    "market_data/write_queue.py": "13a7e695d52ee6c8603866e24b15edfd65777584e8c03ba855e7d56888106700"
   },
-  "changed_baseline_archives": {
-    "market_data/footprint_state.py": "docs/provenance/turnover-history-foundation/raw/market_data__footprint_state.py.txt",
-    "market_data/provenance.py": "docs/provenance/turnover-history-foundation/raw/market_data__provenance.py.txt",
-    "market_data/history_export.py": "docs/provenance/turnover-history-foundation/raw/market_data__history_export.py.txt",
-    "market_data/history_export_v11.py": "docs/provenance/turnover-history-foundation/raw/market_data__history_export_v11.py.txt",
-    "market_data/numeric_dto.py": "docs/provenance/turnover-history-foundation/raw/market_data__numeric_dto.py.txt",
-    "market_data/history_snapshot.py": "docs/provenance/turnover-history-foundation/raw/market_data__history_snapshot.py.txt"
-  },
-  "canonical_original_archive": "docs/provenance/turnover-history-foundation/raw/scripts__canonical_test_roster.json.txt",
-  "canonical_original_sha256": "b6c09367a3157c5ae4db3cd6985a48f27d34210e329237560b1e404547942d73",
-  "canonical_original_count": 791,
-  "canonical_current_count": 898,
-  "legacy_ledger_modified": false
+  "canonical_current_count": 902,
+  "canonical_ordered_sha256": "d235fb38d3f0d207200af95ada41d1ad58605f663dca317e38aa442d719b6fbe",
+  "transition_path": "docs/provenance/runtime-math-reanchor/transition.json",
+  "transition_sha256": "3ebb58eeed6047516db33418982133605f7bd3e7a3f5b1699114b57f616bd3b0",
+  "anchor_commit_archive": "docs/provenance/runtime-math-reanchor/raw/RHO.commit.hex.txt",
+  "anchor_tree_archive": "docs/provenance/runtime-math-reanchor/raw/RHO.tree.hex.txt",
+  "anchor_market_data_tree_archive": "docs/provenance/runtime-math-reanchor/raw/RHO.market_data.tree.hex.txt"
 }
