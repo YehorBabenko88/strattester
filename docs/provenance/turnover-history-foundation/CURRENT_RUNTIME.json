@@ -63,6 +63,6 @@
   "canonical_original_archive": "docs/provenance/turnover-history-foundation/raw/scripts__canonical_test_roster.json.txt",
   "canonical_original_sha256": "b6c09367a3157c5ae4db3cd6985a48f27d34210e329237560b1e404547942d73",
   "canonical_original_count": 791,
-  "canonical_current_count": 895,
+  "canonical_current_count": 897,
   "legacy_ledger_modified": false
 }

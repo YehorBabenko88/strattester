@@ -29,11 +29,11 @@ def _common(role):
   assert item['sha256']==digest and _sha(raw)==digest and len(raw)==item['bytes']
  old=(ROOT/value['old_canonical']['archive']).read_bytes();assert _sha(old)==value['old_canonical']['sha256']
  before=json.loads(old);current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
- assert len(before)==885 and current[:885]==before and len(current)==len(set(current))==895
+ assert len(before)==885 and current[:885]==before and len(current)==len(set(current))==897
  actual={p.relative_to(ROOT).as_posix():_sha(p.read_bytes()) for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
  assert len(actual)==49 and actual==value['runtime49']
  custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
- assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==895 and custody['runtime_files']==actual
+ assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==897 and custody['runtime_files']==actual
  project=tomllib.loads((ROOT/'pyproject.toml').read_text('utf8'));assert project['tool']['setuptools']['packages']==['market_data']
  assert all('terminan' not in dependency.lower() for dependency in project['project']['dependencies'])
  return value,value['roles'][role]
