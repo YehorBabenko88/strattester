@@ -21,3 +21,6 @@ tests/research/test_statistics_reporting.py text eol=lf
 docs/migration/scale-mc-retirement/transfer-ledger.json -text
 strattester/research/statistics.py text eol=lf
 strattester/research/pattern_evaluation.py text eol=lf
+
+docs/migration/pattern-statistics-bootstrap-retirement/canonical-891-roster.json -text
+docs/migration/pattern-statistics-bootstrap-retirement/transfer-ledger.json -text

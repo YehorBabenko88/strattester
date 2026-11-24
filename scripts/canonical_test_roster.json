@@ -889,5 +889,9 @@
   "tests/market_data/test_scale_mc_retirement.py::test_scale_move_stop_role_is_retired_to_sole_owner",
   "tests/market_data/test_scale_mc_retirement.py::test_seeded_monte_carlo_role_is_retired_without_changing_other_resampling",
   "tests/market_data/test_reporting_retirement.py::test_reporting_primary_coverage_role_has_exact_canonical_counterpart",
-  "tests/market_data/test_reporting_retirement.py::test_reporting_volatility_role_removes_only_duplicate_source_and_preserves_custody"
+  "tests/market_data/test_reporting_retirement.py::test_reporting_volatility_role_removes_only_duplicate_source_and_preserves_custody",
+  "tests/market_data/test_pattern_statistics_bootstrap_retirement.py::test_pattern_chronological_role_is_owned_by_independent_signal_accounts",
+  "tests/market_data/test_pattern_statistics_bootstrap_retirement.py::test_empty_pattern_role_preserves_no_evidence_refusal",
+  "tests/market_data/test_pattern_statistics_bootstrap_retirement.py::test_statistics_role_is_owned_by_declared_trade_summary",
+  "tests/market_data/test_pattern_statistics_bootstrap_retirement.py::test_bootstrap_role_is_owned_by_iid_mean_bootstrap"
 ]

@@ -29,11 +29,11 @@ def _common(role):
   assert item['sha256']==digest and _sha(raw)==digest and len(raw)==item['bytes']
  old=(ROOT/value['old_canonical']['archive']).read_bytes();assert _sha(old)==value['old_canonical']['sha256']
  before=json.loads(old);current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
- assert len(before)==885 and current[:885]==before and len(current)==len(set(current))==891
+ assert len(before)==885 and current[:885]==before and len(current)==len(set(current))==895
  actual={p.relative_to(ROOT).as_posix():_sha(p.read_bytes()) for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
  assert len(actual)==49 and actual==value['runtime49']
  custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
- assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==891 and custody['runtime_files']==actual
+ assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==895 and custody['runtime_files']==actual
  project=tomllib.loads((ROOT/'pyproject.toml').read_text('utf8'));assert project['tool']['setuptools']['packages']==['market_data']
  assert all('terminan' not in dependency.lower() for dependency in project['project']['dependencies'])
  return value,value['roles'][role]
@@ -55,7 +55,8 @@ def test_scale_no_shared_state_role_is_retired_to_sole_owner():
 def test_scale_move_stop_role_is_retired_to_sole_owner():
  _scale(2,"tests/test_scaled_limit_execution.py::ScaledLimitExecutionTests::test_move_stop_after_first_target")
 def test_seeded_monte_carlo_role_is_retired_without_changing_other_resampling():
- source=(ROOT/'strattester/research/resampling.py').read_bytes()
+ assert not (ROOT/'strattester/research/resampling.py').exists()
+ source=(ROOT/'docs/migration/pattern-statistics-bootstrap-retirement/raw/strattester__research__resampling.py.txt').read_bytes()
  assert not {'_max_drawdown','monte_carlo_max_drawdowns'}&set(_functions(source))
  value,mapping=_common(3)
  assert mapping['owner']=='Math' and mapping['owner_commit']=="9379384606492af33619bc9168d259917da296a0" and mapping['canonical_api']=='history_statistics.permutation_drawdowns'
@@ -63,10 +64,14 @@ def test_seeded_monte_carlo_role_is_retired_without_changing_other_resampling():
  old=(ROOT/value['archives']['strattester/research/resampling.py']['archive']).read_bytes()
  assert source==old[:916] and _sha(source)=="4d80e652e63646e2cd6dcdf870472584ca61c9b936a619de3a4ad010e2ae4d5b"
  original=(ROOT/value['archives']['tests/research/test_validation_resampling.py']['archive']).read_bytes()
- current=(ROOT/'tests/research/test_validation_resampling.py').read_bytes()
+ current=(ROOT/'docs/migration/pattern-statistics-bootstrap-retirement/raw/tests__research__test_validation_resampling.py.txt').read_bytes()
  old_functions=_functions(original);new_functions=_functions(current)
  assert len(old_functions)==5 and len(new_functions)==4 and 'test_monte_carlo_drawdown_is_seeded' not in new_functions
  assert {k:v for k,v in old_functions.items() if k!='test_monte_carlo_drawdown_is_seeded'}==new_functions
  assert current==original[:original.index(b'def test_monte_carlo_drawdown_is_seeded(')].replace(b',monte_carlo_max_drawdowns',b'')
+
+ live=(ROOT/'tests/research/test_validation_resampling.py').read_bytes()
+ assert live==current[:current.index(b'def test_bootstrap_expectancy_is_seeded_and_contains_sample_mean(')].replace(b'from strattester.research.resampling import bootstrap_expectancy\n',b'')
+ assert len(_functions(live))==3 and _functions(live)=={k:v for k,v in new_functions.items() if k!='test_bootstrap_expectancy_is_seeded_and_contains_sample_mean'}
  for p in (ROOT/'strattester').rglob('*.py'):
   assert not any(isinstance(n,ast.Name) and n.id in {'_max_drawdown','monte_carlo_max_drawdowns'} for n in ast.walk(ast.parse(p.read_bytes())))

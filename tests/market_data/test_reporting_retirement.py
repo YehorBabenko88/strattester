@@ -38,12 +38,15 @@ def test_reporting_primary_coverage_role_has_exact_canonical_counterpart():
  original=functions(raw);assert len(original)==4
  assert 'test_primary_report_excludes_partial_history' in original and 'test_volatility_breakdown_keeps_sample_counts_and_coverage_separate' in original
  assert sorted(sum(isinstance(n,ast.Assert) for n in ast.walk(ast.parse(original[name]))) for name in ('test_primary_report_excludes_partial_history','test_volatility_breakdown_keeps_sample_counts_and_coverage_separate'))==[2,3]
- current=(ROOT/'tests/research/test_statistics_reporting.py').read_bytes()
+ assert not (ROOT/'tests/research/test_statistics_reporting.py').exists()
+ current=(ROOT/'docs/migration/pattern-statistics-bootstrap-retirement/raw/tests__research__test_statistics_reporting.py.txt').read_bytes()
  expected=raw[:raw.index(b'def test_primary_report_excludes_partial_history(')].replace(b'from strattester.research.reporting import research_report\n',b'')
  assert current==expected
  assert functions(current)=={k:v for k,v in original.items() if k not in ('test_primary_report_excludes_partial_history','test_volatility_breakdown_keeps_sample_counts_and_coverage_separate')}
- assert sha((ROOT/'strattester/research/statistics.py').read_bytes())=='dc5a03194c57d1f0c6151462787b0836490aa157a5b4f1c65988c70e60b6269e'
- assert sha((ROOT/'strattester/research/pattern_evaluation.py').read_bytes())=='dae7ec661950dd4b2b4ba0d567be8981e4ec0163825916825acbe61036173709'
+ assert not (ROOT/'strattester/research/statistics.py').exists()
+ assert sha((ROOT/'docs/migration/pattern-statistics-bootstrap-retirement/raw/strattester__research__statistics.py.txt').read_bytes())=='dc5a03194c57d1f0c6151462787b0836490aa157a5b4f1c65988c70e60b6269e'
+ assert not (ROOT/'strattester/research/pattern_evaluation.py').exists()
+ assert sha((ROOT/'docs/migration/pattern-statistics-bootstrap-retirement/raw/strattester__research__pattern_evaluation.py.txt').read_bytes())=='dae7ec661950dd4b2b4ba0d567be8981e4ec0163825916825acbe61036173709'
 
 def test_reporting_volatility_role_removes_only_duplicate_source_and_preserves_custody():
  value=common()
@@ -59,8 +62,8 @@ def test_reporting_volatility_role_removes_only_duplicate_source_and_preserves_c
  assert len(originals)==547 and set(prior)<=originals and set(OLD_IDS)<=originals and not set(prior)&set(OLD_IDS)
  frozen=(ROOT/value['old_canonical']['archive']).read_bytes();assert sha(frozen)=='c1bf1dce6aa6d294019ba3c05b479544b167551222fcd7df5bdf963e26c569b2'==value['old_canonical']['sha256']
  before=json.loads(frozen);current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
- assert len(before)==889 and current[:889]==before and current[889:]==NEW_IDS and len(current)==len(set(current))==value['canonical_current_count']==891
- assert sha(json.dumps(current,separators=(',',':'),ensure_ascii=True).encode('ascii'))==value['canonical_ordered_sha256']=='bf927586b34ed8a5c44a98bfef06ff6823e54b11b1e3b41b803ff1e17e12cb3a'
+ assert len(before)==889 and current[:889]==before and current[889:891]==NEW_IDS and len(current)==len(set(current))==895 and value['canonical_current_count']==891
+ assert sha(json.dumps(current[:891],separators=(',',':'),ensure_ascii=True).encode('ascii'))==value['canonical_ordered_sha256']=='bf927586b34ed8a5c44a98bfef06ff6823e54b11b1e3b41b803ff1e17e12cb3a'
  actual={p.relative_to(ROOT).as_posix():sha(p.read_bytes()) for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
  assert len(actual)==49 and actual==value['runtime49']
  attrs=(ROOT/'.gitattributes').read_bytes();assert sha(attrs[:730])=='e30342895d6598258847b98c8d450e2f38dacadc2742ac87ceb1dc448f149834'
