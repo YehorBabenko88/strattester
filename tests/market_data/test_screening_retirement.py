@@ -44,7 +44,10 @@ def common(role):
  for path in (ROOT/'strattester').rglob('*.py'):
   for node in ast.walk(ast.parse(path.read_bytes())):
    if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef,ast.Name)):assert (getattr(node,'name',None) or getattr(node,'id',None)) not in forbidden
-   if isinstance(node,ast.ImportFrom):assert (node.module or '').split('.')[-1]!='entry_screening'
+   if isinstance(node,ast.ImportFrom):
+    assert (node.module or '').split('.')[-1]!='entry_screening'
+    research_package=node.module in ('strattester.research','research') or node.level>0 and (node.module is None or node.module.split('.')[-1]=='research')
+    assert not (research_package and any(alias.name=='entry_screening' for alias in node.names))
    if isinstance(node,ast.Import):assert not any(a.name in (module,'entry_screening') or a.name.startswith((module+'.','entry_screening.')) for a in node.names)
    if isinstance(node,ast.Constant) and type(node.value) is str:assert not (node.value==module or node.value.startswith((module+':',module+'.')))
  raw=(ROOT/value['archives']['tests/research/test_entry_screening.py']['archive']).read_bytes();current=(ROOT/'tests/research/test_entry_screening.py').read_bytes()

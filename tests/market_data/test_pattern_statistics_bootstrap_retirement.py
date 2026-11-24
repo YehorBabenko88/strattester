@@ -52,7 +52,10 @@ def common(role):
  for path in (ROOT/'strattester').rglob('*.py'):
   for n in ast.walk(ast.parse(path.read_bytes())):
    if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef,ast.Name)):assert (getattr(n,'name',None) or getattr(n,'id',None)) not in forbidden
-   if isinstance(n,ast.ImportFrom):assert not ((n.module or '').split('.')[-1] in modules and ('research' in (n.module or '') or n.level))
+   if isinstance(n,ast.ImportFrom):
+    assert not ((n.module or '').split('.')[-1] in modules and ('research' in (n.module or '') or n.level))
+    research_package=n.module in ('strattester.research','research') or n.level>0 and (n.module is None or n.module.split('.')[-1]=='research')
+    assert not (research_package and any(alias.name in modules for alias in n.names))
    if isinstance(n,ast.Constant) and type(n.value) is str:assert not any(n.value==module or n.value.startswith((module+':',module+'.')) for module in ('strattester.research.pattern_evaluation','strattester.research.statistics','strattester.research.resampling'))
    if isinstance(n,ast.Import):assert not any(a.name.startswith('strattester.research.') and a.name.split('.')[-1] in modules for a in n.names)
  raw=current_archive('tests/research/test_validation_resampling.py');current=(ROOT/'tests/research/test_validation_resampling.py').read_bytes()
