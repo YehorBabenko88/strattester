@@ -5,3 +5,10 @@ tests/market_data/fixtures/legacy-experiment-export.synthetic.json -text
 # Raw legacy custody inventories are byte-bound, including on Windows checkouts.
 docs/ci/retained-legacy-test-inventory.json -text
 docs/ci/four-owner-legacy-obligations.json -text
+
+# Scoped source-retirement byte consumers: freeze archives, preserve live LF prefixes.
+docs/migration/entry-context-retirement/transfer-ledger.json -text
+docs/migration/scale-mc-retirement/canonical-885-roster.json -text
+strattester/research/execution.py text eol=lf
+strattester/research/resampling.py text eol=lf
+tests/research/test_validation_resampling.py text eol=lf
