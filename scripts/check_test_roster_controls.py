@@ -39,7 +39,7 @@ def canonical_roster():
  if (type(expected) is not list or len(expected)!=889
      or any(type(node) is not str or not 1<=len(node)<=2048 for node in expected) or len(set(expected))!=889
      or hashlib.sha256(json.dumps(expected,separators=(',',':'),ensure_ascii=True).encode('ascii')).hexdigest()!=CANONICAL_ROSTER_SHA256):
-  raise ValueError('exact ordered885 canonical obligations required')
+  raise ValueError('exact ordered889 canonical obligations required')
  return expected
 results=[check(json.loads((root/'frozen_consumer_roster.json').read_text()),14),check(canonical_roster(),889)]
 print(json.dumps({'all_passed':True,'results':results}))
