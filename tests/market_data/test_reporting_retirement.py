@@ -50,7 +50,7 @@ def test_reporting_volatility_role_removes_only_duplicate_source_and_preserves_c
  assert not (ROOT/'strattester/research/reporting.py').exists()
  for path in (ROOT/'strattester').rglob('*.py'):
   for node in ast.walk(ast.parse(path.read_bytes())):
-   assert not isinstance(node,(ast.FunctionDef,ast.Name)) or (getattr(node,'name',None) or getattr(node,'id',None)) not in {'research_report','ResearchReport'}
+   assert not isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef,ast.Name)) or (getattr(node,'name',None) or getattr(node,'id',None)) not in {'research_report','ResearchReport'}
    if isinstance(node,ast.ImportFrom):assert not (node.module or '').endswith('research.reporting') and node.module!='reporting'
  prior=value['prior_accepted_original_ids'];assert len(prior)==len(set(prior))==35
  previous=json.loads((ROOT/'docs/migration/scale-mc-retirement/transfer-ledger.json').read_bytes())
