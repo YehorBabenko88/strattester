@@ -1,6 +1,5 @@
 from types import SimpleNamespace
 from strattester.research.statistics import evaluate_trades
-from strattester.research.reporting import research_report
 
 def T(net,gross,fees,entry,exit,coverage='COMPLETE_HISTORY',vol='NORMAL',mae=0,mfe=0,r=0):
     return SimpleNamespace(net_pnl=net,gross_pnl=gross,fees=fees,entry_time=entry,exit_time=exit,
@@ -19,15 +18,3 @@ def test_statistics_compute_core_metrics_drawdown_and_streaks():
     assert m.avg_holding_ms==80
     assert m.avg_mae<0 and m.avg_mfe>0
 
-def test_primary_report_excludes_partial_history():
-    xs=[T(2,2,0,0,1,'COMPLETE_HISTORY','HIGH'),T(100,100,0,0,1,'PARTIAL_HISTORY','HIGH')]
-    r=research_report(xs)
-    assert r.primary.trades==1 and r.primary.net_pnl==2
-    assert r.partial.trades==1 and r.partial.net_pnl==100
-
-def test_volatility_breakdown_keeps_sample_counts_and_coverage_separate():
-    xs=[T(2,2,0,0,1,'COMPLETE_HISTORY','HIGH'),T(-1,-1,0,0,1,'COMPLETE_HISTORY','LOW'),T(3,3,0,0,1,'PARTIAL_HISTORY','HIGH')]
-    r=research_report(xs)
-    assert r.by_volatility['HIGH'].trades==1
-    assert r.by_volatility['LOW'].trades==1
-    assert r.partial_by_volatility['HIGH'].trades==1

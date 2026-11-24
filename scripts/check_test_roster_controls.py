@@ -32,14 +32,14 @@ def check(expected,count):
   else:raise AssertionError('invalid roster constructor accepted')
  return {'cases':count,'positive':1,'negative_reports':list(changes),'negative_constructors':3}
 
-# Ordered889 source-custody manifest; prior885 prefix is frozen at public30ef.
-CANONICAL_ROSTER_SHA256='f049d308d996e73dd875538fd14bd24003c2c6fd9f73bdd1ca52e00151c148dc'
+# Ordered891 source-custody manifest; complete prior889 prefix is frozen at publicda9.
+CANONICAL_ROSTER_SHA256='bf927586b34ed8a5c44a98bfef06ff6823e54b11b1e3b41b803ff1e17e12cb3a'
 def canonical_roster():
  expected=json.loads((root/'canonical_test_roster.json').read_text())
- if (type(expected) is not list or len(expected)!=889
-     or any(type(node) is not str or not 1<=len(node)<=2048 for node in expected) or len(set(expected))!=889
+ if (type(expected) is not list or len(expected)!=891
+     or any(type(node) is not str or not 1<=len(node)<=2048 for node in expected) or len(set(expected))!=891
      or hashlib.sha256(json.dumps(expected,separators=(',',':'),ensure_ascii=True).encode('ascii')).hexdigest()!=CANONICAL_ROSTER_SHA256):
-  raise ValueError('exact ordered889 canonical obligations required')
+  raise ValueError('exact ordered891 canonical obligations required')
  return expected
-results=[check(json.loads((root/'frozen_consumer_roster.json').read_text()),14),check(canonical_roster(),889)]
+results=[check(json.loads((root/'frozen_consumer_roster.json').read_text()),14),check(canonical_roster(),891)]
 print(json.dumps({'all_passed':True,'results':results}))

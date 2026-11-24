@@ -12,3 +12,12 @@ docs/migration/scale-mc-retirement/canonical-885-roster.json -text
 strattester/research/execution.py text eol=lf
 strattester/research/resampling.py text eol=lf
 tests/research/test_validation_resampling.py text eol=lf
+
+# Reporting source-retirement byte consumers; no global checkout normalization.
+docs/migration/reporting-retirement/canonical-889-roster.json -text
+docs/migration/reporting-retirement/transfer-ledger.json -text
+tests/research/test_statistics_reporting.py text eol=lf
+.gitattributes text eol=lf
+docs/migration/scale-mc-retirement/transfer-ledger.json -text
+strattester/research/statistics.py text eol=lf
+strattester/research/pattern_evaluation.py text eol=lf

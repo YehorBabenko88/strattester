@@ -887,5 +887,7 @@
   "tests/market_data/test_scale_mc_retirement.py::test_scale_independent_legs_and_partial_targets_are_retired_to_sole_owner",
   "tests/market_data/test_scale_mc_retirement.py::test_scale_no_shared_state_role_is_retired_to_sole_owner",
   "tests/market_data/test_scale_mc_retirement.py::test_scale_move_stop_role_is_retired_to_sole_owner",
-  "tests/market_data/test_scale_mc_retirement.py::test_seeded_monte_carlo_role_is_retired_without_changing_other_resampling"
+  "tests/market_data/test_scale_mc_retirement.py::test_seeded_monte_carlo_role_is_retired_without_changing_other_resampling",
+  "tests/market_data/test_reporting_retirement.py::test_reporting_primary_coverage_role_has_exact_canonical_counterpart",
+  "tests/market_data/test_reporting_retirement.py::test_reporting_volatility_role_removes_only_duplicate_source_and_preserves_custody"
 ]
