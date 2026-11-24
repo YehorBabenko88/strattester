@@ -46,7 +46,8 @@ async def scenario(tmp_path,mode):
                 if mode=='consumer_ack_cancel':await asyncio.Event().wait()
                 raise RuntimeError('OLD_EXECUTION_OUTCOME_UNKNOWN')
             return consume
-        group=BoundedAcquisitionGroup(sink,plan,source_revision='a'*40,execution_factory=consume_factory,connector=connector,clock_ms=lambda:2000000,max_frames=2,start_timeout=1);groups.append(group);return group
+        # Test budget hierarchy: default readiness budget, one-second fault handshakes.
+        group=BoundedAcquisitionGroup(sink,plan,source_revision='a'*40,execution_factory=consume_factory,connector=connector,clock_ms=lambda:2000000,max_frames=2);groups.append(group);return group
     controller=RotationController(factory);replacing=None
     try:
         await controller.rotate(selection('BTCUSDT'));old=controller.current
