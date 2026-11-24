@@ -12,7 +12,8 @@ def functions(raw):
 def current_archive(path):
  value=json.loads((DOC/'transfer-ledger.json').read_bytes());return (ROOT/value['archives'][path]['archive']).read_bytes()
 def common(role):
- value=json.loads((DOC/'transfer-ledger.json').read_bytes())
+ raw=(DOC/'transfer-ledger.json').read_bytes();assert sha(raw)=='3b2ddef46c7001b271a446a098fb5dae26ef5f9e34524710819451aceaf421f6'
+ value=json.loads(raw)
  assert set(value)==set(["schema","source_head","status","original_legacy_total","accepted_original_roles","remaining_accepted","candidate_original_roles","conditional_after_acceptance_publication_current_CI","prior_accepted_original_ids","roles","archives","old_canonical","canonical_current_count","canonical_ordered_sha256","new_ids","preserved_inventory","runtime49","runtime_anchor_unchanged","MathSDKSourceUnchanged","runtime_dependency_added","authority","release"])
  assert value['schema']=='market_data.pattern-statistics-bootstrap-source-retirement.v1' and value['source_head']=='cef6365fb9241a62e9ffc3ddb610d2a8575fd6e3'
  assert value['status']=='PRIVATE_SOURCE_REMOVAL_CANDIDATE_PENDING_INDEPENDENT_QA_PUBLICATION_CURRENT_CI'
