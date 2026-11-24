@@ -69,7 +69,9 @@ def test_journal_metadata_role_has_exact_canonical_owner():
     assert not (research_package and any(alias.name=='journal' for alias in node.names))
    if isinstance(node,ast.Call):
     name=node.func.id if isinstance(node.func,ast.Name) else node.func.attr if isinstance(node.func,ast.Attribute) else None
-    if name in ('getattr','__getattribute__') and len(node.args)>1:assert literal(node.args[1]) not in ('TradeJournal','journal')
+    if name in ('getattr','__getattribute__'):
+     field_index=0 if name=='__getattribute__' and isinstance(node.func,ast.Attribute) and len(node.args)==1 else 1
+     if len(node.args)>field_index:assert literal(node.args[field_index]) not in ('TradeJournal','journal')
     if name in ('__import__','import_module') and node.args:
      target=literal(node.args[0]);assert target not in ('journal','.journal') and not retired_module(target)
      if target in ('strattester.research','research'):
