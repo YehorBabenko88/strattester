@@ -11,7 +11,6 @@ from strattester.engine.executor import _coverage_ready
 from strattester.marketdata.sqlite_store import Candle, SQLiteMarketStore
 from strattester.marketdata.sharded_store import ShardedMarketStore
 from strattester.persistence.sqlite_state_store import SQLiteStateStore
-from strattester.research.execution import ExecutionPolicy, Signal, simulate_trade
 from strattester.runtime.lifecycle import Lifecycle
 from strattester.runtime.worker import WorkerRuntime
 
@@ -170,14 +169,3 @@ def test_routed_write_waits_for_promotion_then_uses_the_shard(tmp_path, monkeypa
         legacy.close()
 
 
-@pytest.mark.parametrize('side,sl,tp,bar', [
-    ('long', 95, 105, {'t':60000, 'open':110, 'high':112, 'low':94, 'close':96}),
-    ('short', 105, 95, {'t':60000, 'open':90, 'high':106, 'low':88, 'close':104}),
-])
-def test_intrabar_limit_fill_cannot_exit_at_an_earlier_opening_gap(side, sl, tp, bar):
-    signal = Signal(0, side, 'limit', 100, sl, tp)
-    trade = simulate_trade(signal, [bar], ExecutionPolicy(60000, fee_rate=0))
-    assert trade.entry_price == 100
-    assert trade.exit_reason == 'SL'
-    assert trade.exit_price == sl
-    assert trade.gross_pnl == -5

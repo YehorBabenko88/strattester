@@ -13,6 +13,24 @@ _lineage_module = _LineageModule('_sealed_data_runtime_lineage')
 _lineage_module.__file__ = str(_lineage_path)
 exec(compile(_lineage_raw,str(_lineage_path),'exec'),_lineage_module.__dict__)
 verified_contexts = _lineage_module.verified_contexts
+# Mandatory source retirement custody: exact detached sealed DEV helper, no fallback.
+import hashlib as _retirement_hashlib
+from pathlib import Path as _RetirementPath
+from types import ModuleType as _RetirementModule
+_retirement_path = _RetirementPath(__file__).resolve().parents[2]/'scripts/ordinary_execution_retirement_custody.py'
+_retirement_raw = _retirement_path.read_bytes()
+if _retirement_hashlib.sha256(_retirement_raw).hexdigest() != '5bbf148b9517e744a86b02943df8be64ce606d24e592a6c30603a8ab6e2d5ca3':
+ raise ValueError('RETIREMENT_HELPER_SOURCE_SEAL')
+_retirement_module = _RetirementModule('_sealed_ordinary_execution_retirement')
+_retirement_module.__file__ = str(_retirement_path)
+exec(compile(_retirement_raw,str(_retirement_path),'exec'),_retirement_module.__dict__)
+verified_pre_cut_archives = _retirement_module.verified_pre_cut_archives
+verify_retired_execution_absence = _retirement_module.verify_retired_execution_absence
+
+def pre_cut_sources():
+ verify_retired_execution_absence(ROOT)
+ return verified_pre_cut_archives(ROOT)['VERIFIED_PRE_CUT_ARCHIVES']
+
 def historical_context():
  return verified_contexts(ROOT)['VERIFIED_HISTORICAL']
 DOC=ROOT/'docs/migration/journal-retirement'
@@ -49,7 +67,9 @@ def test_journal_metadata_role_has_exact_canonical_owner():
  assert len(originals)==547 and set(prior)<=originals and OLD_ID in originals and OLD_ID not in prior
  assert value['role']==json.loads(r'''{"original_id":"tests/research/test_execution_journal.py::test_journal_preserves_research_metadata","owner":"Terminan","owner_commit":"f111ccb7706de6654ba234e0e175221e7a938518","functional_build":"754e99bbb1cbecb2fd2d7766cbae39802d6b4831","canonical_api":"terminan.research_reporting.build_research_report","canonical_id":"tests/test_journal_declared_labels.py::JournalDeclaredLabelTests::test_original_journal_three_labels_survive_actual_modeled_fill","literal_labels":{"coverage":"COMPLETE_HISTORY","declared_volatility":"HIGH","declared_poc_mode":"TRADE_POC"},"hosted_evidence":{"path":"outputs/hosted-termf111-1795495526719/receipt.json","sha256":"71ee237c4669a8b595c0d423c16a46bb1ebbdc82a43d346ecef015e87f15ecdf"},"independent_evidence":{"path":"outputs/qa-independent-journal-labels-1795494768931/receipt.json","sha256":"ef698aeafa172e8f0b3feb9d5949069e3c0900c944a619e319ff1bb43cf8a27a"},"durable_storage_qualified":false}''')
  assert value['preserved_inventory']==PRESERVED and value['preserved_code']==CODE
- for path,digest in dict(PRESERVED,**CODE).items():assert sha((ROOT/path).read_bytes())==digest
+ for path,digest in PRESERVED.items():assert sha((ROOT/path).read_bytes())==digest
+ archived_code=pre_cut_sources()
+ for path,digest in CODE.items():assert sha(archived_code[path])==digest
  assert value['archives']==json.loads(r'''{"strattester/research/journal.py":{"archive":"docs/migration/journal-retirement/raw/strattester__research__journal.py.txt","blob":"14abc71411e8ae90ac3bbe87f310b97c729e4f25","sha256":"fb11dbeeddf728d2350ca779ec6eec1bdbfc51145acf740dbec40e188834c035","bytes":163},"tests/research/test_execution_journal.py":{"archive":"docs/migration/journal-retirement/raw/tests__research__test_execution_journal.py.txt","blob":"494f8408eaed87a81edbe353ee5b1ef7e675f6b2","sha256":"36e8feef44ce246d3fe3ddcd5c07f135fb131fdd596a78426ddbad2a6df8d823","bytes":3517}}''')
  for item in value['archives'].values():
   raw=(ROOT/item['archive']).read_bytes();assert sha(raw)==item['sha256'] and len(raw)==item['bytes']
@@ -65,11 +85,11 @@ def test_journal_metadata_role_has_exact_canonical_owner():
  assert len(historical_runtime49)==49 and historical_runtime49==value['runtime49']==custody['runtime_files']
  assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==898
  assert not (ROOT/'strattester/research/journal.py').exists()
- raw=(ROOT/value['archives']['tests/research/test_execution_journal.py']['archive']).read_bytes();current=(ROOT/'tests/research/test_execution_journal.py').read_bytes()
+ raw=(ROOT/value['archives']['tests/research/test_execution_journal.py']['archive']).read_bytes();archived_pre_cut=pre_cut_sources()['tests/research/test_execution_journal.py']
  start=raw.index(b'def test_journal_preserves_research_metadata(');end=raw.index(b'def test_long_limit_gapped_below_fills_at_better_open(')
  expected=(raw[:start]+raw[end:]).replace(b'from strattester.research.journal import TradeJournal\n',b'')
- assert current==expected
- original=functions(raw);retained=functions(current)
+ assert archived_pre_cut==expected
+ original=functions(raw);retained=functions(archived_pre_cut)
  assert len(original)==9 and len(retained)==8 and retained=={k:v for k,v in original.items() if k!='test_journal_preserves_research_metadata'}
  for path in (ROOT/'strattester').rglob('*.py'):
   for node in ast.walk(ast.parse(path.read_bytes())):

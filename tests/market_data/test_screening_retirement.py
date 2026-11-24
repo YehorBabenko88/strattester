@@ -13,6 +13,24 @@ _lineage_module = _LineageModule('_sealed_data_runtime_lineage')
 _lineage_module.__file__ = str(_lineage_path)
 exec(compile(_lineage_raw,str(_lineage_path),'exec'),_lineage_module.__dict__)
 verified_contexts = _lineage_module.verified_contexts
+# Mandatory source retirement custody: exact detached sealed DEV helper, no fallback.
+import hashlib as _retirement_hashlib
+from pathlib import Path as _RetirementPath
+from types import ModuleType as _RetirementModule
+_retirement_path = _RetirementPath(__file__).resolve().parents[2]/'scripts/ordinary_execution_retirement_custody.py'
+_retirement_raw = _retirement_path.read_bytes()
+if _retirement_hashlib.sha256(_retirement_raw).hexdigest() != '5bbf148b9517e744a86b02943df8be64ce606d24e592a6c30603a8ab6e2d5ca3':
+ raise ValueError('RETIREMENT_HELPER_SOURCE_SEAL')
+_retirement_module = _RetirementModule('_sealed_ordinary_execution_retirement')
+_retirement_module.__file__ = str(_retirement_path)
+exec(compile(_retirement_raw,str(_retirement_path),'exec'),_retirement_module.__dict__)
+verified_pre_cut_archives = _retirement_module.verified_pre_cut_archives
+verify_retired_execution_absence = _retirement_module.verify_retired_execution_absence
+
+def pre_cut_sources():
+ verify_retired_execution_absence(ROOT)
+ return verified_pre_cut_archives(ROOT)['VERIFIED_PRE_CUT_ARCHIVES']
+
 def historical_context():
  return verified_contexts(ROOT)['VERIFIED_HISTORICAL']
 DOC=ROOT/'docs/migration/screening-retirement'
@@ -64,10 +82,10 @@ def common(role):
     assert not (research_package and any(alias.name=='entry_screening' for alias in node.names))
    if isinstance(node,ast.Import):assert not any(a.name in (module,'entry_screening') or a.name.startswith((module+'.','entry_screening.')) for a in node.names)
    if isinstance(node,ast.Constant) and type(node.value) is str:assert not (node.value==module or node.value.startswith((module+':',module+'.')))
- raw=(ROOT/value['archives']['tests/research/test_entry_screening.py']['archive']).read_bytes();current=(ROOT/'tests/research/test_entry_screening.py').read_bytes()
+ raw=(ROOT/value['archives']['tests/research/test_entry_screening.py']['archive']).read_bytes();archived_pre_cut=pre_cut_sources()['tests/research/test_entry_screening.py']
  expected=b'\n'.join(raw.split(b'\n')[1:3])+b'\n\n'+raw[raw.index(b'def test_spec_only_hypotheses_cannot_enter_executable_ranking('):]
- assert current==expected
- original=functions(raw);retained=functions(current)
+ assert archived_pre_cut==expected
+ original=functions(raw);retained=functions(archived_pre_cut)
  assert len(original)==3 and len(retained)==1 and retained=={k:v for k,v in original.items() if k not in ('test_majority_losing_oos_pattern_is_rejected','test_stable_oos_pattern_can_survive')}
  attrs=(ROOT/'.gitattributes').read_bytes();assert sha(attrs[:1359])=='72dccdf9e0015ed49115382cd05adaf1e88da2bcb61751ec3014133bf855924e'
  for policy in (b'docs/migration/screening-retirement/canonical-895-roster.json -text',b'docs/migration/screening-retirement/transfer-ledger.json -text',b'tests/research/test_entry_screening.py text eol=lf'):assert policy in attrs.splitlines()

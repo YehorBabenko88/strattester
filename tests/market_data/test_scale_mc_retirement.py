@@ -13,6 +13,24 @@ _lineage_module = _LineageModule('_sealed_data_runtime_lineage')
 _lineage_module.__file__ = str(_lineage_path)
 exec(compile(_lineage_raw,str(_lineage_path),'exec'),_lineage_module.__dict__)
 verified_contexts = _lineage_module.verified_contexts
+# Mandatory source retirement custody: exact detached sealed DEV helper, no fallback.
+import hashlib as _retirement_hashlib
+from pathlib import Path as _RetirementPath
+from types import ModuleType as _RetirementModule
+_retirement_path = _RetirementPath(__file__).resolve().parents[2]/'scripts/ordinary_execution_retirement_custody.py'
+_retirement_raw = _retirement_path.read_bytes()
+if _retirement_hashlib.sha256(_retirement_raw).hexdigest() != '5bbf148b9517e744a86b02943df8be64ce606d24e592a6c30603a8ab6e2d5ca3':
+ raise ValueError('RETIREMENT_HELPER_SOURCE_SEAL')
+_retirement_module = _RetirementModule('_sealed_ordinary_execution_retirement')
+_retirement_module.__file__ = str(_retirement_path)
+exec(compile(_retirement_raw,str(_retirement_path),'exec'),_retirement_module.__dict__)
+verified_pre_cut_archives = _retirement_module.verified_pre_cut_archives
+verify_retired_execution_absence = _retirement_module.verify_retired_execution_absence
+
+def pre_cut_sources():
+ verify_retired_execution_absence(ROOT)
+ return verified_pre_cut_archives(ROOT)['VERIFIED_PRE_CUT_ARCHIVES']
+
 def historical_context():
  return verified_contexts(ROOT)['VERIFIED_HISTORICAL']
 DOC=ROOT/"docs/migration/scale-mc-retirement"
@@ -57,7 +75,7 @@ def _scale(role,canonical):
  assert mapping['owner']=='Terminan' and mapping['owner_commit']=="26af145a1c53d85f607fc18c4fd200f0a42b0f73" and mapping['canonical_api']=='terminan.paper.PaperEngine.execute_scale_plan' and mapping['canonical_ids']==[canonical]
  raw=(ROOT/value['archives']['strattester/research/execution.py']['archive']).read_bytes();prefix=raw[:4515]
  assert _sha(prefix)=='47154908f325ef7b99c26e79f4184ccfb66756ed1998810a27d1a7f54de550a5'
- assert (ROOT/'strattester/research/execution.py').read_bytes()==prefix
+ assert pre_cut_sources()['strattester/research/execution.py']==prefix
  for p in (ROOT/'strattester').rglob('*.py'):
   tree=ast.parse(p.read_bytes())
   assert not any(isinstance(n,(ast.Name,ast.ClassDef,ast.FunctionDef)) and (getattr(n,'id',None) or getattr(n,'name',None)) in {'ScaleSignal','ExecutionFill','ExecutionExit','ScaleTrade','simulate_scale_trade'} for n in ast.walk(tree))
