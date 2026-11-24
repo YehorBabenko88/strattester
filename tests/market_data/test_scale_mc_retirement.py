@@ -1,6 +1,9 @@
 """Closed custody of four original roles; no Term/Math runtime import or counter grant."""
 import ast,hashlib,json,pathlib,tomllib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
+from runtime_lineage_custody import verified_contexts
+def historical_context():
+ return verified_contexts(ROOT)['VERIFIED_HISTORICAL']
 DOC=ROOT/"docs/migration/scale-mc-retirement"
 OLD_IDS=["tests/research/test_scale_execution.py::test_scale_trade_has_two_independent_entry_legs_and_partial_targets","tests/research/test_scale_execution.py::test_scale_trade_does_not_share_state_between_calls","tests/research/test_scale_execution.py::test_scale_trade_can_move_stop_after_first_target","tests/research/test_validation_resampling.py::test_monte_carlo_drawdown_is_seeded"]
 RAW_HASHES={"strattester/research/execution.py":"99c1a3a7907b0481c0f2a4f239fb6808f137834b39fffaf7885ef60f66246832","tests/research/test_scale_execution.py":"c4b2c3dd70f42a8f7e0926d8e1f4c8599fcd3531a39f92af8f3306e9d4839d96","strattester/research/resampling.py":"795b77b9e68d0265813645d48c277f379d0e1c6e27cbf33524d1a41c4cceef21","tests/research/test_validation_resampling.py":"abebf46ae3a067f011e7732d7c674c949cc842a292cf648aa56e9e90c9bd5a71"}
@@ -28,12 +31,12 @@ def _common(role):
   item=value['archives'][original];raw=(ROOT/item['archive']).read_bytes()
   assert item['sha256']==digest and _sha(raw)==digest and len(raw)==item['bytes']
  old=(ROOT/value['old_canonical']['archive']).read_bytes();assert _sha(old)==value['old_canonical']['sha256']
- before=json.loads(old);current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
- assert len(before)==885 and current[:885]==before and len(current)==len(set(current))==898
- actual={p.relative_to(ROOT).as_posix():_sha(p.read_bytes()) for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
- assert len(actual)==49 and actual==value['runtime49']
- custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
- assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==898 and custody['runtime_files']==actual
+ before=json.loads(old);historical_roster=historical_context()['roster']
+ assert len(before)==885 and historical_roster[:885]==before and len(historical_roster)==len(set(historical_roster))==898
+ historical_runtime49=historical_context()['runtime49']
+ assert len(historical_runtime49)==49 and historical_runtime49==value['runtime49']
+ custody=historical_context()['custody']
+ assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==898 and custody['runtime_files']==historical_runtime49
  project=tomllib.loads((ROOT/'pyproject.toml').read_text('utf8'));assert project['tool']['setuptools']['packages']==['market_data']
  assert all('terminan' not in dependency.lower() for dependency in project['project']['dependencies'])
  return value,value['roles'][role]

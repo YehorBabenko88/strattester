@@ -1,6 +1,9 @@
 """Pure closed four-role retirement custody; no owner imports or acceptance grant."""
 import ast,hashlib,json,pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
+from runtime_lineage_custody import verified_contexts
+def historical_context():
+ return verified_contexts(ROOT)['VERIFIED_HISTORICAL']
 DOC=ROOT/'docs/migration/pattern-statistics-bootstrap-retirement'
 OLD_IDS=["tests/research/test_pattern_evaluation.py::test_pattern_evaluator_is_chronological_and_returns_verdict","tests/research/test_pattern_evaluation.py::test_empty_pattern_never_becomes_keep","tests/research/test_statistics_reporting.py::test_statistics_compute_core_metrics_drawdown_and_streaks","tests/research/test_validation_resampling.py::test_bootstrap_expectancy_is_seeded_and_contains_sample_mean"]
 RAW_SHA={"strattester/research/pattern_evaluation.py":"dae7ec661950dd4b2b4ba0d567be8981e4ec0163825916825acbe61036173709","strattester/research/statistics.py":"dc5a03194c57d1f0c6151462787b0836490aa157a5b4f1c65988c70e60b6269e","strattester/research/resampling.py":"4d80e652e63646e2cd6dcdf870472584ca61c9b936a619de3a4ad010e2ae4d5b","tests/research/test_pattern_evaluation.py":"36f7d34194e660d70bfb31c257cbb204f43f731aceb29b7c155602626005f1c6","tests/research/test_statistics_reporting.py":"9a404f3c1460e4f85d700e0cb4c80f0fc2d43d772f92b1629676f26dee4ba0ac","tests/research/test_validation_resampling.py":"4d22060095ce2c3f5bfe782f0bebb10520b7940a2df255d7247713c445f7e215"}
@@ -37,14 +40,14 @@ def common(role):
   item=value['archives'][path];raw=(ROOT/item['archive']).read_bytes()
   assert item['archive']=='docs/migration/pattern-statistics-bootstrap-retirement/raw/'+path.replace('/','__')+'.txt' and item['sha256']==digest and sha(raw)==digest and len(raw)==item['bytes']
  frozen=(DOC/'canonical-891-roster.json').read_bytes();assert sha(frozen)=='e2f41ad7ada4f806a2ce95e561c8fda59216d9ee467cf9b70a6ba89afb6637a1'==value['old_canonical']['sha256']
- before=json.loads(frozen);current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
- assert len(before)==891 and current[:891]==before and current[891:895]==NEW_IDS==value['new_ids']
- assert len(current)==len(set(current))==898 and value['canonical_current_count']==895 and all(type(x) is str for x in current)
+ before=json.loads(frozen);historical_roster=historical_context()['roster']
+ assert len(before)==891 and historical_roster[:891]==before and historical_roster[891:895]==NEW_IDS==value['new_ids']
+ assert len(historical_roster)==len(set(historical_roster))==898 and value['canonical_current_count']==895 and all(type(x) is str for x in historical_roster)
  assert sha(json.dumps(before,separators=(',',':'),ensure_ascii=True).encode())==value['old_canonical']['ordered_sha256']=='bf927586b34ed8a5c44a98bfef06ff6823e54b11b1e3b41b803ff1e17e12cb3a'
- assert sha(json.dumps(current[:895],separators=(',',':'),ensure_ascii=True).encode())==value['canonical_ordered_sha256']=='bc6d10725016a3841ae3d1c545ca8d7d9ffca193f128fc96b89b95d29edba033'
- actual={p.relative_to(ROOT).as_posix():sha(p.read_bytes()) for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
- custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
- assert len(actual)==49 and actual==value['runtime49']==custody['runtime_files']
+ assert sha(json.dumps(historical_roster[:895],separators=(',',':'),ensure_ascii=True).encode())==value['canonical_ordered_sha256']=='bc6d10725016a3841ae3d1c545ca8d7d9ffca193f128fc96b89b95d29edba033'
+ historical_runtime49=historical_context()['runtime49']
+ custody=historical_context()['custody']
+ assert len(historical_runtime49)==49 and historical_runtime49==value['runtime49']==custody['runtime_files']
  assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==898
  for path in ["strattester/research/pattern_evaluation.py","strattester/research/statistics.py","strattester/research/resampling.py","tests/research/test_pattern_evaluation.py","tests/research/test_statistics_reporting.py"]:assert not (ROOT/path).exists()
  forbidden={'evaluate_entry_signals','PatternEvaluation','TradeMetrics','evaluate_trades','BootstrapCI','bootstrap_expectancy'}

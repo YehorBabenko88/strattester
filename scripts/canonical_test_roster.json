@@ -896,5 +896,9 @@
   "tests/market_data/test_pattern_statistics_bootstrap_retirement.py::test_bootstrap_role_is_owned_by_iid_mean_bootstrap",
   "tests/market_data/test_screening_retirement.py::test_majority_loss_screening_role_has_exact_canonical_owner",
   "tests/market_data/test_screening_retirement.py::test_stable_screening_role_retires_whole_module_and_preserves_catalog",
-  "tests/market_data/test_journal_retirement.py::test_journal_metadata_role_has_exact_canonical_owner"
+  "tests/market_data/test_journal_retirement.py::test_journal_metadata_role_has_exact_canonical_owner",
+  "tests/market_data/test_runtime_math_lineage.py::test_legacy49_c05_and_math9ed_custody_is_preserved",
+  "tests/market_data/test_runtime_math_lineage.py::test_current49_single_export_delta_and_mathQ_are_closed",
+  "tests/market_data/test_runtime_math_lineage.py::test_runtime_anchor_is_prior_runtime_commit_not_self_reference",
+  "tests/market_data/test_runtime_math_lineage.py::test_original898_prefix_and_new_structural_suffix_are_exact"
 ]

@@ -6,6 +6,7 @@ Existing ingestion_ms is deliberately never treated as feature availability.
 """
 import copy
 import math
+from market_math import historical_ohlc_directional_volume_valid
 from .provenance import canonical, digest
 from .numeric_dto import volume_total
 
@@ -56,7 +57,7 @@ def _export_records(records,request,trust,*,version):
                 _candle(c)
             vals=[c[k] for k in ('open','high','low','close','buy_volume','sell_volume')]
             if any(type(v) not in (int,float) or not math.isfinite(v) for v in vals):raise ValueError('NUMERIC')
-            if not 0<c['low']<=min(c['open'],c['close'])<=max(c['open'],c['close'])<=c['high'] or min(c['buy_volume'],c['sell_volume'])<0:raise ValueError('OHLCV')
+            if historical_ohlc_directional_volume_valid(*vals) is not True:raise ValueError('OHLCV')
             volume=volume_total((c['buy_volume'],c['sell_volume']))
             out.append({**{k:c[k] for k in ('open','high','low','close')},'volume':volume,
               **({'turnover':c['turnover']} if version=='v1.2' else {}),

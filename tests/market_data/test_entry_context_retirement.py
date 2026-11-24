@@ -2,6 +2,9 @@
 """Custody of two transferred research roles; no Terminan runtime import."""
 import ast,hashlib,json,pathlib,tomllib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
+from runtime_lineage_custody import verified_contexts
+def historical_context():
+ return verified_contexts(ROOT)['VERIFIED_HISTORICAL']
 LEDGER=ROOT/'docs/migration/entry-context-retirement/transfer-ledger.json'
 def ledger():
  value=json.loads(LEDGER.read_bytes())
@@ -23,15 +26,15 @@ def test_original_547_inventory_bytes_and_all_788_baseline_roles_preserved():
  original=json.loads((ROOT/'docs/ci/retained-legacy-test-inventory.json').read_bytes())
  assert sum(len(row['tests']) for row in original)==547
  baseline=json.loads((ROOT/'docs/migration/entry-context-retirement/canonical-788-roster.json').read_bytes())
- current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
- custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
+ historical_roster=historical_context()['roster']
+ custody=historical_context()['custody']
  original_raw=(ROOT/custody['canonical_original_archive']).read_bytes()
  assert hashlib.sha256(original_raw).hexdigest()==custody['canonical_original_sha256']
  original=json.loads(original_raw)
- assert len(baseline)==788 and current[:788]==baseline
- assert len(original)==custody['canonical_original_count']==791 and current[:791]==original
- assert len(current)==custody['canonical_current_count']==898
- assert len(set(current))==898
+ assert len(baseline)==788 and historical_roster[:788]==baseline
+ assert len(original)==custody['canonical_original_count']==791 and historical_roster[:791]==original
+ assert len(historical_roster)==custody['canonical_current_count']==898
+ assert len(set(historical_roster))==898
  assert not any('test_trade_context.py' in node for node in baseline)
 def test_only_unowned_context_source_removed_no_runtime_dependency_or_alias():
  value=ledger()
@@ -40,12 +43,12 @@ def test_only_unowned_context_source_removed_no_runtime_dependency_or_alias():
  for path in (ROOT/'strattester').rglob('*.py'):
   raw=path.read_text(encoding='utf8')
   assert 'trade_context' not in raw and 'attach_entry_context' not in raw
- custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
+ custody=historical_context()['custody']
  assert custody['schema']=='market_data.turnover-runtime-custody.v1' and custody['source_head']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57'
  assert set(custody['changed_baseline_archives'])=={'market_data/footprint_state.py','market_data/provenance.py','market_data/history_export.py','market_data/history_export_v11.py','market_data/numeric_dto.py','market_data/history_snapshot.py'}
  assert custody['legacy_ledger_modified'] is False
- actual={p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
- assert len(actual)==49 and actual==custody['runtime_files']
+ historical_runtime49=historical_context()['runtime49']
+ assert len(historical_runtime49)==49 and historical_runtime49==custody['runtime_files']
  for relative,sha in value['runtime_baseline'].items():
   archive=custody['changed_baseline_archives'].get(relative)
   assert hashlib.sha256((ROOT/(archive or relative)).read_bytes()).hexdigest()==sha

@@ -32,3 +32,10 @@ docs/migration/journal-retirement/transfer-ledger.json -text
 tests/research/test_execution_journal.py text eol=lf
 strattester/research/scalp_entries.py text eol=lf
 strattester/strategies/builtin/research_scalp.py text eol=lf
+
+# Required historical/live reanchor custody: append-only byte rules.
+/docs/provenance/runtime-math-reanchor/**/*.txt -text
+/docs/provenance/runtime-math-reanchor/transition.json -text
+/scripts/runtime_lineage_custody.py text eol=lf
+/tests/market_data/test_runtime_math_lineage.py text eol=lf
+/tests/market_data/test_history_export.py text eol=lf

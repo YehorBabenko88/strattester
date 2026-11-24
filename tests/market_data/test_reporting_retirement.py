@@ -1,6 +1,9 @@
 """Pure reporting-role source custody; no runtime owner imports or acceptance grant."""
 import ast,hashlib,json,pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
+from runtime_lineage_custody import verified_contexts
+def historical_context():
+ return verified_contexts(ROOT)['VERIFIED_HISTORICAL']
 DOC=ROOT/'docs/migration/reporting-retirement'
 OLD_IDS=["tests/research/test_statistics_reporting.py::test_primary_report_excludes_partial_history","tests/research/test_statistics_reporting.py::test_volatility_breakdown_keeps_sample_counts_and_coverage_separate"]
 RAW_SHA={"strattester/research/reporting.py":"251bbbe7d14e6c711abbf532afe2f8c7a03b21e9e4eb6d11fe2cc6e718622089","tests/research/test_statistics_reporting.py":"2cfddb71a8925ec5989ed666e341b760cefb60a57cef39ea8949afcc58b5473a"}
@@ -61,10 +64,10 @@ def test_reporting_volatility_role_removes_only_duplicate_source_and_preserves_c
  inventory=json.loads((ROOT/'docs/ci/retained-legacy-test-inventory.json').read_bytes());originals={r['path']+'::'+name for r in inventory for name in r['tests']}
  assert len(originals)==547 and set(prior)<=originals and set(OLD_IDS)<=originals and not set(prior)&set(OLD_IDS)
  frozen=(ROOT/value['old_canonical']['archive']).read_bytes();assert sha(frozen)=='c1bf1dce6aa6d294019ba3c05b479544b167551222fcd7df5bdf963e26c569b2'==value['old_canonical']['sha256']
- before=json.loads(frozen);current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
- assert len(before)==889 and current[:889]==before and current[889:891]==NEW_IDS and len(current)==len(set(current))==898 and value['canonical_current_count']==891
- assert sha(json.dumps(current[:891],separators=(',',':'),ensure_ascii=True).encode('ascii'))==value['canonical_ordered_sha256']=='bf927586b34ed8a5c44a98bfef06ff6823e54b11b1e3b41b803ff1e17e12cb3a'
- actual={p.relative_to(ROOT).as_posix():sha(p.read_bytes()) for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
- assert len(actual)==49 and actual==value['runtime49']
+ before=json.loads(frozen);historical_roster=historical_context()['roster']
+ assert len(before)==889 and historical_roster[:889]==before and historical_roster[889:891]==NEW_IDS and len(historical_roster)==len(set(historical_roster))==898 and value['canonical_current_count']==891
+ assert sha(json.dumps(historical_roster[:891],separators=(',',':'),ensure_ascii=True).encode('ascii'))==value['canonical_ordered_sha256']=='bf927586b34ed8a5c44a98bfef06ff6823e54b11b1e3b41b803ff1e17e12cb3a'
+ historical_runtime49=historical_context()['runtime49']
+ assert len(historical_runtime49)==49 and historical_runtime49==value['runtime49']
  attrs=(ROOT/'.gitattributes').read_bytes();assert sha(attrs[:730])=='e30342895d6598258847b98c8d450e2f38dacadc2742ac87ceb1dc448f149834'
  for policy in (b'docs/migration/reporting-retirement/canonical-889-roster.json -text',b'docs/migration/reporting-retirement/transfer-ledger.json -text',b'tests/research/test_statistics_reporting.py text eol=lf',b'.gitattributes text eol=lf',b'docs/migration/scale-mc-retirement/transfer-ledger.json -text',b'strattester/research/statistics.py text eol=lf',b'strattester/research/pattern_evaluation.py text eol=lf'):assert policy in attrs.splitlines()

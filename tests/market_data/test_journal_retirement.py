@@ -1,6 +1,9 @@
 """Pure original in-memory journal role custody; no journal or owner runtime execution."""
 import ast,hashlib,json,pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
+from runtime_lineage_custody import verified_contexts
+def historical_context():
+ return verified_contexts(ROOT)['VERIFIED_HISTORICAL']
 DOC=ROOT/'docs/migration/journal-retirement'
 OLD_ID='tests/research/test_execution_journal.py::test_journal_preserves_research_metadata'
 NEW_ID='tests/market_data/test_journal_retirement.py::test_journal_metadata_role_has_exact_canonical_owner'
@@ -27,7 +30,7 @@ def test_journal_metadata_role_has_exact_canonical_owner():
  assert value['runtime_dependency_added'] is False and value['authority'] is False and value['release']=='NO_GO'
  assert value['MathSDKSourceUnchanged']=='9ed369ddd41ae32c4b3a9434f0b29d6dcf51154f'
  for script,name in (('scripts/build_sdk_source_manifest.py','SOURCES'),('scripts/check_frozen_consumer.py','SOURCE_REVISIONS')):
-  assignments=[node for node in ast.parse((ROOT/script).read_bytes()).body if isinstance(node,ast.Assign) and any(isinstance(t,ast.Name) and t.id==name for t in node.targets)]
+  assignments=[node for node in ast.parse(historical_context()['archived_sources'][script]).body if isinstance(node,ast.Assign) and any(isinstance(t,ast.Name) and t.id==name for t in node.targets)]
   assert len(assignments)==1 and ast.literal_eval(assignments[0].value)['unified-math-kernels']==value['MathSDKSourceUnchanged']
  previous=json.loads((ROOT/'docs/migration/screening-retirement/transfer-ledger.json').read_bytes());prior=previous['prior_accepted_original_ids']+[r['original_id'] for r in previous['roles']]
  assert value['prior_accepted_original_ids']==prior and len(prior)==len(set(prior))==43
@@ -41,14 +44,14 @@ def test_journal_metadata_role_has_exact_canonical_owner():
   raw=(ROOT/item['archive']).read_bytes();assert sha(raw)==item['sha256'] and len(raw)==item['bytes']
  assert value['old_canonical']==json.loads(r'''{"archive":"docs/migration/journal-retirement/canonical-897-roster.json","sha256":"bc1630041f9e60421cb713b52df38bef3f6d947ecc649ee24028b901d1ed0362","count":897,"ordered_sha256":"a625c31418f78bb8bdb432a210d87707e7cffee0152ecfb7d4aa6b9e338d102f"}''')
  frozen=(DOC/'canonical-897-roster.json').read_bytes();assert sha(frozen)=='bc1630041f9e60421cb713b52df38bef3f6d947ecc649ee24028b901d1ed0362'
- before=json.loads(frozen);current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
- assert len(before)==897 and current[:897]==before and current[897:]==[NEW_ID] and value['new_id']==NEW_ID
- assert len(current)==len(set(current))==value['canonical_current_count']==898 and all(type(x) is str for x in current)
+ before=json.loads(frozen);historical_roster=historical_context()['roster']
+ assert len(before)==897 and historical_roster[:897]==before and historical_roster[897:]==[NEW_ID] and value['new_id']==NEW_ID
+ assert len(historical_roster)==len(set(historical_roster))==value['canonical_current_count']==898 and all(type(x) is str for x in historical_roster)
  assert sha(json.dumps(before,separators=(',',':'),ensure_ascii=True).encode())==value['old_canonical']['ordered_sha256']=='a625c31418f78bb8bdb432a210d87707e7cffee0152ecfb7d4aa6b9e338d102f'
- assert sha(json.dumps(current,separators=(',',':'),ensure_ascii=True).encode())==value['canonical_ordered_sha256']=='cce8e94b8a6dc655718e09b8d38e39aa3b66eff3d3b24f6d81593916544ec538'
- actual={p.relative_to(ROOT).as_posix():sha(p.read_bytes()) for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
- custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
- assert len(actual)==49 and actual==value['runtime49']==custody['runtime_files']
+ assert sha(json.dumps(historical_roster,separators=(',',':'),ensure_ascii=True).encode())==value['canonical_ordered_sha256']=='cce8e94b8a6dc655718e09b8d38e39aa3b66eff3d3b24f6d81593916544ec538'
+ historical_runtime49=historical_context()['runtime49']
+ custody=historical_context()['custody']
+ assert len(historical_runtime49)==49 and historical_runtime49==value['runtime49']==custody['runtime_files']
  assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==898
  assert not (ROOT/'strattester/research/journal.py').exists()
  raw=(ROOT/value['archives']['tests/research/test_execution_journal.py']['archive']).read_bytes();current=(ROOT/'tests/research/test_execution_journal.py').read_bytes()

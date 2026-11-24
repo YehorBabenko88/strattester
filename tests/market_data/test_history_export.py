@@ -45,6 +45,8 @@ class ExportTest(unittest.TestCase):
                 r,q,t=fixture(); mutate(r,q,t)
                 with self.assertRaises(ValueError):export_records(r,q,t)
 
+        _assert_historical_numeric_delegate_contract(self)
+
     def test_readonly_sql(self):
         r,q,t=fixture()
         class Cursor:
@@ -58,5 +60,61 @@ class ExportTest(unittest.TestCase):
         self.assertEqual(len(read_postgres(Conn(),q,t)['rows']),80)
         self.assertIn('REPEATABLE READ READ ONLY',c.calls[0][0])
         self.assertIn('provenance_minutes',c.calls[-1][0])
+
+
+
+def _assert_historical_numeric_delegate_contract(case):
+    # Isolated downstream NUMERIC seam: bypass only integrity serialization in
+    # this test. Real Decimal/nonfinite canonical rejection is preserved below.
+    from decimal import Decimal, localcontext
+    from unittest.mock import patch
+    import market_data.history_export as owner
+    class Truthy:
+        def __bool__(self):raise AssertionError('FOREIGN_BOOL_CALLBACK')
+    def seam(values, response=True):
+        rows,request,trust=fixture(1);row=rows[0]
+        old=row['dataset_fingerprint'];receipt=trust['receipts'].pop(old)
+        row['dataset_fingerprint']='sealed';receipt['fingerprint']='sealed'
+        trust['receipts']={'sealed':receipt};trust['receipt_pins']={'sealed':'sealed'}
+        row['candle'].update(zip(('open','high','low','close','buy_volume','sell_volume'),values))
+        with patch.object(owner,'canonical',return_value=b'[]'),patch.object(owner,'digest',return_value='sealed'),patch.object(owner,'historical_ohlc_directional_volume_valid',return_value=response) as delegated:
+            try:result=owner.export_records(rows,request,trust)
+            except ValueError as error:return str(error),delegated.call_count
+            return result,delegated.call_count
+    for bad in (True,'1',Decimal('1'),float('inf'),float('nan')):
+        error,calls=seam((bad,2,1,2,2,1))
+        case.assertEqual((error,calls),('NUMERIC',0))
+    error,calls=seam((10**1000,2,1,2,2,1))
+    case.assertEqual((error,calls),('HISTORY_UNAVAILABLE',0))
+    for response in (False,1,Truthy()):
+        error,calls=seam((1,2,1,2,2,1),response)
+        case.assertEqual((error,calls),('OHLCV',1))
+    # Full export with ordinary integrity preflight: patch the actual imported
+    # binding and reject nonliteral success without calling foreign __bool__.
+    for response in (False,1,Truthy()):
+        rows,request,trust=fixture(1);before=copy.deepcopy((rows,request,trust))
+        with patch.object(owner,'historical_ohlc_directional_volume_valid',return_value=response) as delegated:
+            with case.assertRaisesRegex(ValueError,'^OHLCV$'):owner.export_records(rows,request,trust)
+            case.assertEqual(delegated.call_count,1)
+        case.assertEqual(before,(rows,request,trust))
+    # Isolated seam plus direct real Math preserve the historical numeric domain.
+    real=owner.historical_ohlc_directional_volume_valid
+    for values in ((1,2,1,2,2,1),(2**53+1,2**53+1,2**53+1,2**53+1,0,0),(5e-324,5e-324,5e-324,5e-324,5e-324,0),(1e308,1e308,1e308,1e308,-0.0,0)):
+        with localcontext() as context:
+            context.prec=1
+            for signal in context.traps:context.traps[signal]=True
+            before=dict(context.flags)
+            result,calls=seam(values,True)
+            case.assertIsInstance(result,dict);case.assertEqual(calls,1)
+            case.assertIs(real(*values),True);case.assertEqual(before,dict(context.flags))
+    for values in ((1,2,0,2,2,1),(1,2,1,3,2,1),(1,2,1,2,-1,1)):
+        case.assertIs(real(*values),False)
+    for bad in (Decimal('1'),float('nan')):
+        rows,request,trust=fixture(1);rows[0]['candle']['open']=bad
+        with patch.object(owner,'historical_ohlc_directional_volume_valid') as delegated:
+            with case.assertRaises(ValueError) as raised:owner.export_records(rows,request,trust)
+            if type(bad) is Decimal:case.assertEqual(str(raised.exception),'HISTORY_UNAVAILABLE')
+            else:case.assertTrue(str(raised.exception).startswith('Out of range float values are not JSON compliant'))
+            delegated.assert_not_called()
 
 if __name__=='__main__':unittest.main()
