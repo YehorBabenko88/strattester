@@ -31,14 +31,14 @@ def common(role):
  assert value['old_canonical']==json.loads(r'''{"archive":"docs/migration/screening-retirement/canonical-895-roster.json","sha256":"079c5fc28c4e719f2e197c58940fc4f053772074bc086e1a57ef51046c1ed5c3","count":895,"ordered_sha256":"bc6d10725016a3841ae3d1c545ca8d7d9ffca193f128fc96b89b95d29edba033"}''')
  frozen=(DOC/'canonical-895-roster.json').read_bytes();assert sha(frozen)=='079c5fc28c4e719f2e197c58940fc4f053772074bc086e1a57ef51046c1ed5c3'
  before=json.loads(frozen);current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
- assert len(before)==895 and current[:895]==before and current[895:]==NEW_IDS==value['new_ids']
- assert len(current)==len(set(current))==value['canonical_current_count']==897 and all(type(x) is str for x in current)
+ assert len(before)==895 and current[:895]==before and current[895:897]==NEW_IDS==value['new_ids']
+ assert len(current)==len(set(current))==898 and value['canonical_current_count']==897 and all(type(x) is str for x in current)
  assert sha(json.dumps(before,separators=(',',':'),ensure_ascii=True).encode())==value['old_canonical']['ordered_sha256']=='bc6d10725016a3841ae3d1c545ca8d7d9ffca193f128fc96b89b95d29edba033'
- assert sha(json.dumps(current,separators=(',',':'),ensure_ascii=True).encode())==value['canonical_ordered_sha256']=='a625c31418f78bb8bdb432a210d87707e7cffee0152ecfb7d4aa6b9e338d102f'
+ assert sha(json.dumps(current[:897],separators=(',',':'),ensure_ascii=True).encode())==value['canonical_ordered_sha256']=='a625c31418f78bb8bdb432a210d87707e7cffee0152ecfb7d4aa6b9e338d102f'
  actual={p.relative_to(ROOT).as_posix():sha(p.read_bytes()) for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
  custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
  assert len(actual)==49 and actual==value['runtime49']==custody['runtime_files']
- assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==897
+ assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==898
  assert not (ROOT/'strattester/research/entry_screening.py').exists()
  module='strattester.research.entry_screening';forbidden={'EntryPatternVerdict','screen_entry_pattern','segment_verdicts'}
  for path in (ROOT/'strattester').rglob('*.py'):

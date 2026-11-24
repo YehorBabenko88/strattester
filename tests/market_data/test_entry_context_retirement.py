@@ -30,8 +30,8 @@ def test_original_547_inventory_bytes_and_all_788_baseline_roles_preserved():
  original=json.loads(original_raw)
  assert len(baseline)==788 and current[:788]==baseline
  assert len(original)==custody['canonical_original_count']==791 and current[:791]==original
- assert len(current)==custody['canonical_current_count']==897
- assert len(set(current))==897
+ assert len(current)==custody['canonical_current_count']==898
+ assert len(set(current))==898
  assert not any('test_trade_context.py' in node for node in baseline)
 def test_only_unowned_context_source_removed_no_runtime_dependency_or_alias():
  value=ledger()

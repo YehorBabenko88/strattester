@@ -27,3 +27,8 @@ docs/migration/pattern-statistics-bootstrap-retirement/transfer-ledger.json -tex
 docs/migration/screening-retirement/canonical-895-roster.json -text
 docs/migration/screening-retirement/transfer-ledger.json -text
 tests/research/test_entry_screening.py text eol=lf
+docs/migration/journal-retirement/canonical-897-roster.json -text
+docs/migration/journal-retirement/transfer-ledger.json -text
+tests/research/test_execution_journal.py text eol=lf
+strattester/research/scalp_entries.py text eol=lf
+strattester/strategies/builtin/research_scalp.py text eol=lf

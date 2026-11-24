@@ -62,7 +62,7 @@ def test_reporting_volatility_role_removes_only_duplicate_source_and_preserves_c
  assert len(originals)==547 and set(prior)<=originals and set(OLD_IDS)<=originals and not set(prior)&set(OLD_IDS)
  frozen=(ROOT/value['old_canonical']['archive']).read_bytes();assert sha(frozen)=='c1bf1dce6aa6d294019ba3c05b479544b167551222fcd7df5bdf963e26c569b2'==value['old_canonical']['sha256']
  before=json.loads(frozen);current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
- assert len(before)==889 and current[:889]==before and current[889:891]==NEW_IDS and len(current)==len(set(current))==897 and value['canonical_current_count']==891
+ assert len(before)==889 and current[:889]==before and current[889:891]==NEW_IDS and len(current)==len(set(current))==898 and value['canonical_current_count']==891
  assert sha(json.dumps(current[:891],separators=(',',':'),ensure_ascii=True).encode('ascii'))==value['canonical_ordered_sha256']=='bf927586b34ed8a5c44a98bfef06ff6823e54b11b1e3b41b803ff1e17e12cb3a'
  actual={p.relative_to(ROOT).as_posix():sha(p.read_bytes()) for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
  assert len(actual)==49 and actual==value['runtime49']

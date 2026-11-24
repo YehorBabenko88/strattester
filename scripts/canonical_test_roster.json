@@ -895,5 +895,6 @@
   "tests/market_data/test_pattern_statistics_bootstrap_retirement.py::test_statistics_role_is_owned_by_declared_trade_summary",
   "tests/market_data/test_pattern_statistics_bootstrap_retirement.py::test_bootstrap_role_is_owned_by_iid_mean_bootstrap",
   "tests/market_data/test_screening_retirement.py::test_majority_loss_screening_role_has_exact_canonical_owner",
-  "tests/market_data/test_screening_retirement.py::test_stable_screening_role_retires_whole_module_and_preserves_catalog"
+  "tests/market_data/test_screening_retirement.py::test_stable_screening_role_retires_whole_module_and_preserves_catalog",
+  "tests/market_data/test_journal_retirement.py::test_journal_metadata_role_has_exact_canonical_owner"
 ]

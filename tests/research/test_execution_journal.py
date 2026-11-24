@@ -1,5 +1,4 @@
 from strattester.research.execution import ExecutionPolicy,Signal,simulate_trade
-from strattester.research.journal import TradeJournal
 
 def _bar(t,o,h,l,c):
     return {'t':t,'open':o,'high':h,'low':l,'close':c}
@@ -29,17 +28,6 @@ def test_limit_order_is_not_eligible_before_next_bar():
     s=Signal(decision_time=60,side='long',entry_kind='limit',entry_price=99.5,stop_loss=98,take_profit=103)
     t=simulate_trade(s,bars,ExecutionPolicy(bar_ms=60,fee_rate=0))
     assert t.entry_time==120
-
-def test_journal_preserves_research_metadata():
-    bars=[_bar(0,100,101,99,100),_bar(60,100,101,99,100),_bar(120,100,103,99,102)]
-    s=Signal(decision_time=60,side='long',entry_kind='market',entry_price=None,stop_loss=98,take_profit=103)
-    t=simulate_trade(s,bars,ExecutionPolicy(bar_ms=60,fee_rate=0),metadata={'coverage':'COMPLETE_HISTORY','volatility':'HIGH','poc_mode':'TRADE_POC'})
-    j=TradeJournal(); j.append(t)
-    row=j.rows[0]
-    assert row.metadata['coverage']=='COMPLETE_HISTORY'
-    assert row.metadata['volatility']=='HIGH'
-    assert row.metadata['poc_mode']=='TRADE_POC'
-
 
 def test_long_limit_gapped_below_fills_at_better_open():
     bars=[_bar(0,100,101,99,100),_bar(60,98,100,97,99),_bar(120,99,102,98,101)]

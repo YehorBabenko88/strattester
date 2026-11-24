@@ -39,13 +39,13 @@ def common(role):
  frozen=(DOC/'canonical-891-roster.json').read_bytes();assert sha(frozen)=='e2f41ad7ada4f806a2ce95e561c8fda59216d9ee467cf9b70a6ba89afb6637a1'==value['old_canonical']['sha256']
  before=json.loads(frozen);current=json.loads((ROOT/'scripts/canonical_test_roster.json').read_bytes())
  assert len(before)==891 and current[:891]==before and current[891:895]==NEW_IDS==value['new_ids']
- assert len(current)==len(set(current))==897 and value['canonical_current_count']==895 and all(type(x) is str for x in current)
+ assert len(current)==len(set(current))==898 and value['canonical_current_count']==895 and all(type(x) is str for x in current)
  assert sha(json.dumps(before,separators=(',',':'),ensure_ascii=True).encode())==value['old_canonical']['ordered_sha256']=='bf927586b34ed8a5c44a98bfef06ff6823e54b11b1e3b41b803ff1e17e12cb3a'
  assert sha(json.dumps(current[:895],separators=(',',':'),ensure_ascii=True).encode())==value['canonical_ordered_sha256']=='bc6d10725016a3841ae3d1c545ca8d7d9ffca193f128fc96b89b95d29edba033'
  actual={p.relative_to(ROOT).as_posix():sha(p.read_bytes()) for p in (ROOT/'market_data').iterdir() if p.suffix in ('.py','.sql')}
  custody=json.loads((ROOT/'docs/provenance/turnover-history-foundation/CURRENT_RUNTIME.json').read_bytes())
  assert len(actual)==49 and actual==value['runtime49']==custody['runtime_files']
- assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==897
+ assert custody['source_head']==value['runtime_anchor_unchanged']=='c05e0cabd6c6e4c2abb2002b7b69a8f1ba8aec57' and custody['canonical_current_count']==898
  for path in ["strattester/research/pattern_evaluation.py","strattester/research/statistics.py","strattester/research/resampling.py","tests/research/test_pattern_evaluation.py","tests/research/test_statistics_reporting.py"]:assert not (ROOT/path).exists()
  forbidden={'evaluate_entry_signals','PatternEvaluation','TradeMetrics','evaluate_trades','BootstrapCI','bootstrap_expectancy'}
  modules={'pattern_evaluation','statistics','resampling'}
