@@ -26,16 +26,3 @@ def bootstrap_expectancy(values,*,iterations:int=1000,seed:int=0,confidence:floa
     alpha=(1-confidence)/2
     return BootstrapCI(_quantile(means,alpha),sum(xs)/len(xs),_quantile(means,1-alpha))
 
-def _max_drawdown(path):
-    equity=0.0; peak=0.0; max_dd=0.0
-    for x in path:
-        equity+=x; peak=max(peak,equity); max_dd=max(max_dd,peak-equity)
-    return max_dd
-
-def monte_carlo_max_drawdowns(values,*,iterations:int=1000,seed:int=0):
-    xs=list(float(x) for x in values)
-    if not xs: raise ValueError('empty sample')
-    rng=random.Random(seed); out=[]
-    for _ in range(iterations):
-        path=list(xs); rng.shuffle(path); out.append(_max_drawdown(path))
-    return tuple(out)

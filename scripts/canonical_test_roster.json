@@ -883,5 +883,9 @@
   "tests/market_data/test_observation_materializer.py::ObservationMaterializerTests::test_source_epoch_tick_and_units_bind_replay_fingerprint_without_authentication",
   "tests/market_data/test_observation_materializer.py::ObservationMaterializerTests::test_synthetic_source_uses_actual_decoder_kind_and_never_authenticates",
   "tests/market_data/test_observation_materializer.py::ObservationMaterializerTests::test_validated_marker_binds_actual_frame_digest_and_receive_clocks",
-  "tests/market_data/test_observation_materializer.py::ObservationMaterializerTests::test_window_and_payload_budgets_refuse_before_iteration_or_accumulation"
+  "tests/market_data/test_observation_materializer.py::ObservationMaterializerTests::test_window_and_payload_budgets_refuse_before_iteration_or_accumulation",
+  "tests/market_data/test_scale_mc_retirement.py::test_scale_independent_legs_and_partial_targets_are_retired_to_sole_owner",
+  "tests/market_data/test_scale_mc_retirement.py::test_scale_no_shared_state_role_is_retired_to_sole_owner",
+  "tests/market_data/test_scale_mc_retirement.py::test_scale_move_stop_role_is_retired_to_sole_owner",
+  "tests/market_data/test_scale_mc_retirement.py::test_seeded_monte_carlo_role_is_retired_without_changing_other_resampling"
 ]
