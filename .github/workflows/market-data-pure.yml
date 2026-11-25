@@ -59,7 +59,7 @@ jobs:
           assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['MARKET_DATA_TEST_SHA']
           def run(*args, cwd=root):
               subprocess.run([sys.executable,*map(str,args)],cwd=cwd,check=True)
-          run('-m','pip','install','setuptools>=75,<83','wheel','pytest==8.3.5','pytest-asyncio==0.26.0','aiohttp>=3.10,<4','psycopg[binary]>=3.2,<4','websockets>=15,<16')
+          run('-m','pip','install','setuptools>=75,<83','wheel','pytest==8.3.5','pytest-asyncio==0.26.0','aiohttp>=3.10,<4','psycopg[binary]==3.3.6','websockets>=15,<16')
           run('-I','-S','-B',root/'scripts/check_sdk_cache_path_controls.py')
           run('-I','-c','from setuptools.build_meta import build_wheel,build_sdist; build_wheel(".candidate-dist"); build_sdist(".candidate-dist")')
           run('-m','pip','wheel','--no-deps','--wheel-dir',root/'.dependency-wheels',root/'.source/math')
