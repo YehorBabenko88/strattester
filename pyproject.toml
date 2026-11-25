@@ -7,7 +7,7 @@ name = "market-data"
 version = "0.1.0"
 description = "Canonical bounded public market acquisition and read-only historical data service"
 requires-python = ">=3.11"
-dependencies = ["aiohttp>=3.10,<4", "psycopg[binary]>=3.2,<4", "websockets>=15,<16"]
+dependencies = ["aiohttp>=3.10,<4", "psycopg[binary]==3.3.6", "websockets>=15,<16"]
 
 [project.optional-dependencies]
 ingestion = ["asyncpg>=0.29,<1"]
