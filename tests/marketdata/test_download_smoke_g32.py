@@ -107,3 +107,38 @@ def test_malformed_reader_container_denied(tmp_path):
     result = run_download_smoke(root, InvalidReader(), minutes=3, clock_ms=lambda:900_000)
     assert not result.ok and result.detail == "INVALID_MANAGED_GRID_ROWS"
     assert not root.exists()
+
+
+@pytest.mark.parametrize("field,bad_value", [
+    (1, "0"), (2, "0"), (3, "0"), (4, "0"),
+    (5, "-0"), (5, "-0.000"), (6, "-0"),
+    (6, "1e-10000"), (5, "1e-10000"), (1, "1e-10000"),
+])
+def test_g34_lossless_numeric_gate_rejects_before_sqlite(tmp_path, field, bad_value):
+    root = tmp_path / "user-data"
+    root.mkdir()
+    sentinel = root / "market_download_smoke.sqlite3"
+    sentinel.write_bytes(b"EXISTING-USER-DATA-UNCHANGED")
+    bad = _row(600_000)
+    bad[field] = bad_value
+    class Reader:
+        def fetch_klines(self, *args, **kwargs):
+            return [bad, _row(660_000), _row(720_000)]
+    result = run_download_smoke(root, Reader(), minutes=3, clock_ms=lambda:900_000)
+    assert not result.ok
+    assert result.detail == "INVALID_MANAGED_GRID_ROWS"
+    assert sentinel.read_bytes() == b"EXISTING-USER-DATA-UNCHANGED"
+    assert sorted(p.name for p in root.iterdir()) == [sentinel.name]
+
+
+def test_g34_valid_zero_volume_and_turnover_retained(tmp_path):
+    root = tmp_path / "user-data"
+    class Reader:
+        def fetch_klines(self, *args, **kwargs):
+            rows = [_row(600_000), _row(660_000), _row(720_000)]
+            rows[0][5:] = ["0", "0"]
+            return rows
+    result = run_download_smoke(root, Reader(), minutes=3, clock_ms=lambda:900_000)
+    assert result.ok, result.detail
+    assert result.count == 3
+    assert not root.exists()
