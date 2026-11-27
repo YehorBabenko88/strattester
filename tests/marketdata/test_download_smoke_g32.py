@@ -225,3 +225,69 @@ def test_g35_smoke_preserves_existing_unique_sqlite_datasets(tmp_path, valid_row
         assert result.detail == "INVALID_MANAGED_GRID_ROWS"
     assert sorted(p.name for p in user_root.iterdir()) == before_files
     assert _snapshot_sqlite_datasets(db) == baseline
+
+
+def _sqlite_schema_fingerprint(path):
+    import sqlite3
+    con = sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True)
+    try:
+        definitions = con.execute(
+            "SELECT type,name,tbl_name,sql FROM sqlite_master "
+            "WHERE type IN ('table','index','trigger','view') "
+            "ORDER BY type,name,tbl_name"
+        ).fetchall()
+        version = con.execute("PRAGMA user_version").fetchone()[0]
+        return (definitions, version)
+    finally:
+        con.close()
+
+
+@pytest.mark.parametrize("valid_rows", [True, False])
+def test_g35_smoke_never_rewrites_existing_sqlite_schema_or_wal(tmp_path, valid_rows):
+    import sqlite3
+
+    user_root = tmp_path / "protected-original"
+    user_root.mkdir()
+    db = user_root / "market_download_smoke.sqlite3"
+    _seed_real_sqlite_with_unique_history(db)
+
+    # A legacy caller's database may contain unrelated application metadata.
+    # This is temporary test data, not a real user database.
+    con = sqlite3.connect(db)
+    try:
+        con.execute("CREATE TABLE legacy_unique_config (key TEXT PRIMARY KEY, value TEXT)")
+        con.execute("INSERT INTO legacy_unique_config VALUES (?,?)", ("protected", "untouched"))
+        con.execute(
+            "CREATE TRIGGER legacy_unique_guard BEFORE DELETE ON legacy_unique_config "
+            "BEGIN SELECT RAISE(ABORT, 'protected'); END"
+        )
+        con.commit()
+    finally:
+        con.close()
+
+    baseline = _snapshot_sqlite_datasets(db)
+    schema = _sqlite_schema_fingerprint(db)
+    with sqlite3.connect(f"file:{db.as_posix()}?mode=ro", uri=True) as check:
+        legacy = check.execute("SELECT * FROM legacy_unique_config").fetchall()
+    before_files = sorted(p.name for p in user_root.iterdir())
+
+    class Reader:
+        def fetch_klines(self, *args, **kwargs):
+            rows = [_row(660_000), _row(720_000), _row(780_000)]
+            if not valid_rows:
+                rows[1][5] = "-0"
+            return rows
+
+    result = run_download_smoke(
+        user_root, client=Reader(), minutes=3, clock_ms=lambda: 900_000
+    )
+    assert result.ok is valid_rows
+    if not valid_rows:
+        assert result.detail == "INVALID_MANAGED_GRID_ROWS"
+    assert _snapshot_sqlite_datasets(db) == baseline
+    assert _sqlite_schema_fingerprint(db) == schema
+    with sqlite3.connect(f"file:{db.as_posix()}?mode=ro", uri=True) as check:
+        assert check.execute("SELECT * FROM legacy_unique_config").fetchall() == legacy
+        assert check.execute("PRAGMA quick_check").fetchone() == ("ok",)
+    assert sorted(p.name for p in user_root.iterdir()) == before_files
+
