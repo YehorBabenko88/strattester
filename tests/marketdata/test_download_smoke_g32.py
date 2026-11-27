@@ -78,21 +78,21 @@ def test_managed_reader_exception_fails_closed_without_storage(tmp_path):
 
 
 @pytest.mark.parametrize("bad", [
-    ["600000", "nan", "1", "1", "1", "10", "100"],
-    ["600000", "inf", "1", "1", "1", "10", "100"],
-    ["600000", "1", "0.9", "1.1", "1", "10", "100"],
-    ["600000", "1", "1", "1", "1", "-1", "100"],
-    ["600000", "1", "1", "1", "1", "10", "-1"],
-    ["600001", "1", "1", "1", "1", "10", "100"],
-    ["600000.0", "1", "1", "1", "1", "10", "100"],
-    ["600000", "1", "1", "1", "1", "10"],
-    ["600000", "1e9999", "1", "1", "1", "10", "100"],
-    ["600000", "1", "1", "1", "1", True, "100"],
+    ["660000", "nan", "1", "1", "1", "10", "100"],
+    ["660000", "inf", "1", "1", "1", "10", "100"],
+    ["660000", "1", "0.9", "1.1", "1", "10", "100"],
+    ["660000", "1", "1", "1", "1", "-1", "100"],
+    ["660000", "1", "1", "1", "1", "10", "-1"],
+    ["660001", "1", "1", "1", "1", "10", "100"],
+    ["660000.0", "1", "1", "1", "1", "10", "100"],
+    ["660000", "1", "1", "1", "1", "10"],
+    ["660000", "1e9999", "1", "1", "1", "10", "100"],
+    ["660000", "1", "1", "1", "1", True, "100"],
 ])
 def test_malformed_managed_rows_denied_before_sqlite(tmp_path, bad):
     class BadReader:
         def fetch_klines(self, *args, **kwargs):
-            return [bad, _row(660_000), _row(720_000)]
+            return [bad, _row(720_000), _row(780_000)]
     root = tmp_path / "user-root"
     result = run_download_smoke(root, BadReader(), minutes=3, clock_ms=lambda:900_000)
     assert not result.ok and result.detail == "INVALID_MANAGED_GRID_ROWS"
@@ -119,11 +119,11 @@ def test_g34_lossless_numeric_gate_rejects_before_sqlite(tmp_path, field, bad_va
     root.mkdir()
     sentinel = root / "market_download_smoke.sqlite3"
     sentinel.write_bytes(b"EXISTING-USER-DATA-UNCHANGED")
-    bad = _row(600_000)
+    bad = _row(660_000)
     bad[field] = bad_value
     class Reader:
         def fetch_klines(self, *args, **kwargs):
-            return [bad, _row(660_000), _row(720_000)]
+            return [bad, _row(720_000), _row(780_000)]
     result = run_download_smoke(root, Reader(), minutes=3, clock_ms=lambda:900_000)
     assert not result.ok
     assert result.detail == "INVALID_MANAGED_GRID_ROWS"
@@ -135,7 +135,7 @@ def test_g34_valid_zero_volume_and_turnover_retained(tmp_path):
     root = tmp_path / "user-data"
     class Reader:
         def fetch_klines(self, *args, **kwargs):
-            rows = [_row(600_000), _row(660_000), _row(720_000)]
+            rows = [_row(660_000), _row(720_000), _row(780_000)]
             rows[0][5:] = ["0", "0"]
             return rows
     result = run_download_smoke(root, Reader(), minutes=3, clock_ms=lambda:900_000)
