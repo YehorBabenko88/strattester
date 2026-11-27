@@ -61,3 +61,43 @@ def test_valid_snapshot_preserves_missing_confirmation_protocol(tmp_path):
     assert sync.sync(3000) == {"BTCUSDT"}
     assert registry.get("ETHUSDT").status is InstrumentStatus.DELISTED
     registry.close()
+
+
+def test_g34_disjoint_equal_size_snapshots_never_mutate_original_sqlite(tmp_path):
+    path = tmp_path / "instruments.sqlite3"
+    registry = InstrumentRegistry.open(path)
+    source = MutableSource({"BTCUSDT", "ETHUSDT"})
+    sync = UniverseSynchronizer(registry, source)
+    assert sync.sync(1000) == {"BTCUSDT", "ETHUSDT"}
+    tables = ("instruments", "instrument_intervals", "instrument_registry_meta")
+    def snapshot():
+        return {table: registry.conn.execute(
+            "SELECT * FROM " + table + " ORDER BY 1"
+        ).fetchall() for table in tables}
+    original = snapshot()
+    source.symbols = {"FOOUSDT", "BARUSDT"}
+    for timestamp in (2000, 3000, 4000):
+        with pytest.raises(UniverseSnapshotError):
+            sync.sync(timestamp)
+        assert snapshot() == original
+        assert registry.active_symbols() == {"BTCUSDT", "ETHUSDT"}
+        assert registry.get("BTCUSDT").status is InstrumentStatus.ACTIVE
+        assert registry.get("ETHUSDT").status is InstrumentStatus.ACTIVE
+    registry.close()
+    reopened = InstrumentRegistry.open(path)
+    assert reopened.active_symbols() == {"BTCUSDT", "ETHUSDT"}
+    assert reopened.get("BTCUSDT").status is InstrumentStatus.ACTIVE
+    assert reopened.get("ETHUSDT").status is InstrumentStatus.ACTIVE
+    reopened.close()
+
+
+def test_g34_overlap_count_not_just_total_size(tmp_path):
+    registry = InstrumentRegistry.open(tmp_path / "instruments.sqlite3")
+    source = MutableSource({"BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT"})
+    sync = UniverseSynchronizer(registry, source)
+    assert len(sync.sync(1000)) == 4
+    source.symbols = {"BTCUSDT", "FOOUSDT", "BARUSDT", "BAZUSDT"}
+    with pytest.raises(UniverseSnapshotError):
+        sync.sync(2000)
+    assert registry.active_symbols() == {"BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT"}
+    registry.close()
