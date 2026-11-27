@@ -101,3 +101,40 @@ def test_g34_overlap_count_not_just_total_size(tmp_path):
         sync.sync(2000)
     assert registry.active_symbols() == {"BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT"}
     registry.close()
+
+
+@pytest.mark.parametrize("payload", [
+    {"status": "INFORMATIONAL", "symbols": ["BTCUSDT"],
+     "consumer_cutover_authorized": False, "delisting_authorized": False},
+    {"status": "UNAVAILABLE", "symbols": [],
+     "consumer_cutover_authorized": False, "delisting_authorized": False},
+    {"status": "INFORMATIONAL", "symbols": ["BTCUSDT", "ETHUSDT"],
+     "exchange_completeness": "NOT_ATTESTED",
+     "consumer_cutover_authorized": False},
+    {"status": "INFORMATIONAL", "symbols": ["BTCUSDT"],
+     "source_authenticity": "NOT_INDEPENDENTLY_ATTESTED"},
+])
+def test_g35_observational_roster_cannot_reconcile_registry(tmp_path, payload):
+    """Informational Grid roster is not an authority to mutate SQLite."""
+    path = tmp_path / "instruments.sqlite3"
+    registry = InstrumentRegistry.open(path)
+    source = MutableSource({"BTCUSDT", "ETHUSDT"})
+    synchronizer = UniverseSynchronizer(registry, source)
+    assert synchronizer.sync(1000) == {"BTCUSDT", "ETHUSDT"}
+    tables = ("instruments", "instrument_intervals", "instrument_registry_meta")
+    before = {table: registry.conn.execute(
+        f"SELECT * FROM {table} ORDER BY 1"
+    ).fetchall() for table in tables}
+    source.symbols = payload
+    with pytest.raises(UniverseSnapshotError):
+        synchronizer.sync(2000)
+    for table in tables:
+        assert registry.conn.execute(
+            f"SELECT * FROM {table} ORDER BY 1"
+        ).fetchall() == before[table]
+    registry.close()
+    reopened = InstrumentRegistry.open(path)
+    assert reopened.active_symbols() == {"BTCUSDT", "ETHUSDT"}
+    assert reopened.get("BTCUSDT").status is InstrumentStatus.ACTIVE
+    assert reopened.get("ETHUSDT").status is InstrumentStatus.ACTIVE
+    reopened.close()
