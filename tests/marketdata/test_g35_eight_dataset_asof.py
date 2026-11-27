@@ -174,3 +174,32 @@ def test_g35_nonfinite_unique_history_rejected_without_data_loss(
         assert store.integrity_check()
     finally:
         store.close()
+
+
+@pytest.mark.parametrize("changes", [
+    {"turnover": float("nan")},
+    {"volume": float("inf")},
+    {"open": float("inf"), "high": float("inf")},
+    {"close": float("nan")},
+])
+def test_g35_nonfinite_candles_never_replace_or_extend_history(tmp_path, changes):
+    store = SQLiteMarketStore.open(tmp_path / "nonfinite-candles.sqlite3")
+    _seed_all_eight(store)
+    try:
+        baseline = store.connection.execute(
+            "SELECT * FROM candles ORDER BY open_time"
+        ).fetchall()
+        fields = {
+            "symbol": "BTCUSDT", "timeframe": "1m", "open_time": 180_000,
+            "open": 100, "high": 102, "low": 99, "close": 101,
+            "volume": 5, "turnover": 505, "complete": True,
+        }
+        fields.update(changes)
+        stats = store.upsert_candles([Candle(**fields)])
+        assert stats.accepted == 0 and stats.rejected == 1
+        assert store.connection.execute(
+            "SELECT * FROM candles ORDER BY open_time"
+        ).fetchall() == baseline
+        assert store.integrity_check()
+    finally:
+        store.close()
