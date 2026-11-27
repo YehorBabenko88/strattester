@@ -265,29 +265,49 @@ def test_g35_smoke_never_rewrites_existing_sqlite_schema_or_wal(tmp_path, valid_
     finally:
         con.close()
 
-    baseline = _snapshot_sqlite_datasets(db)
-    schema = _sqlite_schema_fingerprint(db)
-    with sqlite3.connect(f"file:{db.as_posix()}?mode=ro", uri=True) as check:
-        legacy = check.execute("SELECT * FROM legacy_unique_config").fetchall()
-    before_files = sorted(p.name for p in user_root.iterdir())
+    # Keep an original SQLite WAL writer open with committed but uncheckpointed
+    # data. Smoke must not open, checkpoint, replace or delete that user path.
+    wal_writer = sqlite3.connect(db)
+    try:
+        assert wal_writer.execute("PRAGMA journal_mode=WAL").fetchone() == ("wal",)
+        wal_writer.execute("PRAGMA wal_autocheckpoint=0")
+        wal_writer.execute(
+            "INSERT INTO legacy_unique_config VALUES (?,?)",
+            ("wal_pending", "retained"),
+        )
+        wal_writer.commit()
+        wal_path = Path(str(db) + "-wal")
+        assert wal_path.is_file() and wal_path.stat().st_size > 0
 
-    class Reader:
-        def fetch_klines(self, *args, **kwargs):
-            rows = [_row(660_000), _row(720_000), _row(780_000)]
-            if not valid_rows:
-                rows[1][5] = "-0"
-            return rows
+        baseline = _snapshot_sqlite_datasets(db)
+        schema = _sqlite_schema_fingerprint(db)
+        with sqlite3.connect(f"file:{db.as_posix()}?mode=ro", uri=True) as check:
+            legacy = check.execute("SELECT * FROM legacy_unique_config ORDER BY key").fetchall()
+        before_files = sorted(p.name for p in user_root.iterdir())
+        before_wal = wal_path.read_bytes()
 
-    result = run_download_smoke(
-        user_root, client=Reader(), minutes=3, clock_ms=lambda: 900_000
-    )
-    assert result.ok is valid_rows
-    if not valid_rows:
-        assert result.detail == "INVALID_MANAGED_GRID_ROWS"
-    assert _snapshot_sqlite_datasets(db) == baseline
-    assert _sqlite_schema_fingerprint(db) == schema
-    with sqlite3.connect(f"file:{db.as_posix()}?mode=ro", uri=True) as check:
-        assert check.execute("SELECT * FROM legacy_unique_config").fetchall() == legacy
-        assert check.execute("PRAGMA quick_check").fetchone() == ("ok",)
-    assert sorted(p.name for p in user_root.iterdir()) == before_files
+        class Reader:
+            def fetch_klines(self, *args, **kwargs):
+                rows = [_row(660_000), _row(720_000), _row(780_000)]
+                if not valid_rows:
+                    rows[1][5] = "-0"
+                return rows
+
+        result = run_download_smoke(
+            user_root, client=Reader(), minutes=3, clock_ms=lambda: 900_000
+        )
+        assert result.ok is valid_rows
+        if not valid_rows:
+            assert result.detail == "INVALID_MANAGED_GRID_ROWS"
+        assert _snapshot_sqlite_datasets(db) == baseline
+        assert _sqlite_schema_fingerprint(db) == schema
+        with sqlite3.connect(f"file:{db.as_posix()}?mode=ro", uri=True) as check:
+            assert check.execute(
+                "SELECT * FROM legacy_unique_config ORDER BY key"
+            ).fetchall() == legacy
+            assert check.execute("PRAGMA quick_check").fetchone() == ("ok",)
+        assert sorted(p.name for p in user_root.iterdir()) == before_files
+        assert wal_path.read_bytes() == before_wal
+    finally:
+        wal_writer.close()
 
