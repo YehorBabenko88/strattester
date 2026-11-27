@@ -181,8 +181,7 @@ def _seed_real_sqlite_with_unique_history(path):
 
 def _snapshot_sqlite_datasets(path):
     import sqlite3
-    from strattester.marketdata.sqlite_store import SQLiteMarketStore
-    store = SQLiteMarketStore.open(path)
+    con = sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True)
     try:
         tables = (
             "candles", "mark_prices", "index_prices", "premium_index",
@@ -190,15 +189,15 @@ def _snapshot_sqlite_datasets(path):
             "public_trade_aggregates",
         )
         snapshot = {
-            table: store.connection.execute(
+            table: con.execute(
                 f"SELECT * FROM {table} ORDER BY 1,2,3"
             ).fetchall() for table in tables
         }
         assert all(snapshot.values()), "every seeded unique dataset must remain populated"
-        assert store.integrity_check()
+        assert con.execute("PRAGMA quick_check").fetchone() == ("ok",)
         return snapshot
     finally:
-        store.close()
+        con.close()
 
 
 @pytest.mark.parametrize("valid_rows", [True, False])
