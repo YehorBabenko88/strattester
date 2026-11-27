@@ -142,3 +142,87 @@ def test_g34_valid_zero_volume_and_turnover_retained(tmp_path):
     assert result.ok, result.detail
     assert result.count == 3
     assert not root.exists()
+
+
+def _seed_real_sqlite_with_unique_history(path):
+    """Create only a disposable fixture DB; persist every unique dataset."""
+    from strattester.marketdata.sqlite_store import SQLiteMarketStore, Candle
+    store = SQLiteMarketStore.open(path)
+    try:
+        assert store.upsert_candles([
+            Candle("BTCUSDT", "1m", 60_000, 100, 101, 99, 100, 7, 700, True)
+        ]).accepted == 1
+        assert store.upsert_price_klines("mark_price", "BTCUSDT", [
+            ["60000", "100", "101", "99", "100"]
+        ]).accepted == 1
+        assert store.upsert_price_klines("index_price", "BTCUSDT", [
+            ["60000", "100", "101", "99", "100"]
+        ]).accepted == 1
+        assert store.upsert_price_klines("premium_index", "BTCUSDT", [
+            ["60000", "0.01", "0.02", "0.00", "0.01"]
+        ]).accepted == 1
+        assert store.upsert_open_interest("BTCUSDT", [
+            {"timestamp": "300000", "openInterest": "123.4"}
+        ]).accepted == 1
+        assert store.upsert_funding("BTCUSDT", [
+            {"fundingRateTimestamp": "60000", "fundingRate": "0.0001"}
+        ]).accepted == 1
+        assert store.upsert_long_short_ratio("BTCUSDT", [
+            {"timestamp": "300000", "buyRatio": "0.55", "sellRatio": "0.45"}
+        ]).accepted == 1
+        assert store.upsert_public_trade_aggregates("BTCUSDT", [
+            {"open_time": 60000, "buy_volume": 3, "sell_volume": 2,
+             "turnover": 500, "trade_count": 5, "vwap": 100,
+             "max_trade": 2}
+        ]).accepted == 1
+    finally:
+        store.close()
+
+
+def _snapshot_sqlite_datasets(path):
+    import sqlite3
+    from strattester.marketdata.sqlite_store import SQLiteMarketStore
+    store = SQLiteMarketStore.open(path)
+    try:
+        tables = (
+            "candles", "mark_prices", "index_prices", "premium_index",
+            "open_interest", "funding", "long_short_ratio",
+            "public_trade_aggregates",
+        )
+        snapshot = {
+            table: store.connection.execute(
+                f"SELECT * FROM {table} ORDER BY 1,2,3"
+            ).fetchall() for table in tables
+        }
+        assert all(snapshot.values()), "every seeded unique dataset must remain populated"
+        assert store.integrity_check()
+        return snapshot
+    finally:
+        store.close()
+
+
+@pytest.mark.parametrize("valid_rows", [True, False])
+def test_g35_smoke_preserves_existing_unique_sqlite_datasets(tmp_path, valid_rows):
+    # Real SQLite, not a byte sentinel. All files belong to pytest's temp dir.
+    user_root = tmp_path / "preserved-data"
+    user_root.mkdir()
+    db = user_root / "market_download_smoke.sqlite3"
+    _seed_real_sqlite_with_unique_history(db)
+    baseline = _snapshot_sqlite_datasets(db)
+    before_files = sorted(p.name for p in user_root.iterdir())
+
+    class Reader:
+        def fetch_klines(self, *args, **kwargs):
+            rows = [_row(660_000), _row(720_000), _row(780_000)]
+            if not valid_rows:
+                rows[0][5] = "-0"
+            return rows
+
+    result = run_download_smoke(
+        user_root, client=Reader(), minutes=3, clock_ms=lambda: 900_000
+    )
+    assert result.ok is valid_rows
+    if not valid_rows:
+        assert result.detail == "INVALID_MANAGED_GRID_ROWS"
+    assert sorted(p.name for p in user_root.iterdir()) == before_files
+    assert _snapshot_sqlite_datasets(db) == baseline
