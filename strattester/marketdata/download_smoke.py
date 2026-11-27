@@ -47,11 +47,18 @@ def _checked_smoke_candles(rows, start_ms: int, end_ms: int):
                 converted = float(value)
                 if not (-float("inf") < converted < float("inf")):
                     return None
+                # SQLiteMarketStore.Candle stores binary64 values. Refuse
+                # any nonzero source value that would silently underflow to 0.
+                if value != 0 and converted == 0:
+                    return None
+                # Source -0 cannot be normalized into a trusted zero volume.
+                if value.is_zero() and value.is_signed():
+                    return None
                 values.append(converted)
         except (ValueError, TypeError, InvalidOperation, OverflowError):
             return None
         o, h, l, c, volume, turnover = values
-        if min(o, h, l, c) < 0 or not (l <= o <= h and l <= c <= h):
+        if min(o, h, l, c) <= 0 or not (l <= o <= h and l <= c <= h):
             return None
         if volume < 0 or turnover < 0:
             return None
