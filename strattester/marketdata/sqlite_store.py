@@ -95,7 +95,15 @@ class SQLiteMarketStore:
 
     @staticmethod
     def _valid(c: Candle) -> bool:
-        return bool(c.symbol and c.timeframe and c.open_time>=0 and c.low<=c.high and c.low<=c.open<=c.high and c.low<=c.close<=c.high and c.volume>=0)
+        try:
+            numbers = (c.open, c.high, c.low, c.close, c.volume)
+            if not all(math.isfinite(v) for v in numbers):
+                return False
+            if c.turnover is not None and not math.isfinite(c.turnover):
+                return False
+            return bool(c.symbol and c.timeframe and c.open_time>=0 and c.low<=c.high and c.low<=c.open<=c.high and c.low<=c.close<=c.high and c.volume>=0)
+        except (TypeError, ValueError, OverflowError):
+            return False
 
     def upsert_candles(self,records: Iterable[Candle]) -> WriteStats:
         accepted=unchanged=rejected=0
@@ -179,9 +187,9 @@ class SQLiteMarketStore:
             try:
                 raw_ts=r.get('timestamp') if r.get('timestamp') is not None else r.get('time')
                 ts=int(raw_ts); value=float(r.get('openInterest'))
-                if ts<0 or value<0: raise ValueError
+                if ts<0 or not math.isfinite(value) or value<0: raise ValueError
                 parsed.append(((symbol,timeframe,ts),(value,1)))
-            except (AttributeError,TypeError,ValueError):
+            except (AttributeError,TypeError,ValueError,OverflowError):
                 rejected+=1
         with self.connection:
             s=self._write_scalar_rows(self.connection,'open_interest',('symbol','timeframe','open_time'),('value','complete'),parsed)
@@ -192,9 +200,9 @@ class SQLiteMarketStore:
         for r in rows:
             try:
                 ts=int(r.get('fundingRateTimestamp')); value=float(r.get('fundingRate'))
-                if ts<0: raise ValueError
+                if ts<0 or not math.isfinite(value): raise ValueError
                 parsed.append(((symbol,ts),(value,)))
-            except (AttributeError,TypeError,ValueError):
+            except (AttributeError,TypeError,ValueError,OverflowError):
                 rejected+=1
         with self.connection:
             s=self._write_scalar_rows(self.connection,'funding',('symbol','funding_time'),('rate',),parsed)
@@ -206,9 +214,11 @@ class SQLiteMarketStore:
             try:
                 ts=int(r.get('timestamp')); buy=float(r.get('buyRatio')); sell=float(r.get('sellRatio'))
                 ratio=buy/sell if sell else None
-                if ts<0 or buy<0 or sell<0: raise ValueError
+                if (ts<0 or not all(math.isfinite(x) for x in (buy,sell))
+                        or (ratio is not None and not math.isfinite(ratio))
+                        or buy<0 or sell<0): raise ValueError
                 parsed.append(((symbol,timeframe,ts),(buy,sell,ratio)))
-            except (AttributeError,TypeError,ValueError):
+            except (AttributeError,TypeError,ValueError,OverflowError):
                 rejected+=1
         with self.connection:
             s=self._write_scalar_rows(self.connection,'long_short_ratio',('symbol','timeframe','open_time'),('buy_ratio','sell_ratio','long_short_ratio'),parsed)
@@ -222,9 +232,12 @@ class SQLiteMarketStore:
                 turnover=float(r.get('turnover',0)); count=int(r.get('trade_count',0))
                 vwap=None if r.get('vwap') is None else float(r['vwap'])
                 max_trade=None if r.get('max_trade') is None else float(r['max_trade'])
-                if ts<0 or min(buy,sell,turnover,count)<0: raise ValueError
+                if (ts<0 or min(buy,sell,turnover,count)<0
+                        or not all(math.isfinite(x) for x in (buy,sell,turnover))
+                        or (vwap is not None and not math.isfinite(vwap))
+                        or (max_trade is not None and not math.isfinite(max_trade))): raise ValueError
                 parsed.append(((symbol,timeframe,ts),(buy,sell,turnover,count,vwap,max_trade)))
-            except (KeyError,TypeError,ValueError):
+            except (KeyError,TypeError,ValueError,OverflowError):
                 rejected+=1
         with self.connection:
             s=self._write_scalar_rows(self.connection,'public_trade_aggregates',
