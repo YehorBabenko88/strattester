@@ -37,8 +37,11 @@ class UniverseSynchronizer:
             if not symbols:
                 raise UniverseSnapshotError('exchange returned an empty instrument universe; refusing mass delist')
             ratio=len(symbols)/len(active)
-            if ratio < self.minimum_snapshot_ratio:
+            overlap=len(symbols & active)/len(active)
+            if ratio < self.minimum_snapshot_ratio or overlap < self.minimum_snapshot_ratio:
                 raise UniverseSnapshotError(
-                    f'exchange instrument universe shrank suspiciously: {len(active)} -> {len(symbols)}; refusing mass delist')
+                    f'instrument universe lost too many previously active symbols: '
+                    f'{len(active)} active, {len(symbols)} reported, '
+                    f'{len(symbols & active)} retained; refusing reconciliation')
         self.registry.reconcile(symbols,observed_at)
         return symbols
