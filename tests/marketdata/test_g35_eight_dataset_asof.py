@@ -123,3 +123,54 @@ def test_g35_public_trade_delta_turnover_asof_and_unique_fields(tmp_path):
         assert later[0]["turnover"] == 1111
     finally:
         store.close()
+
+
+@pytest.mark.parametrize("dataset,table,rows", [
+    ("open_interest", "open_interest", [
+        {"timestamp": "900000", "openInterest": "inf"},
+    ]),
+    ("funding", "funding", [
+        {"fundingRateTimestamp": "180000", "fundingRate": "nan"},
+    ]),
+    ("long_short_ratio", "long_short_ratio", [
+        {"timestamp": "900000", "buyRatio": "nan", "sellRatio": "0.5"},
+    ]),
+    ("long_short_ratio", "long_short_ratio", [
+        {"timestamp": "900000", "buyRatio": "1e308", "sellRatio": "1e-308"},
+    ]),
+    ("public_trade_aggregates", "public_trade_aggregates", [
+        {"open_time": 180000, "buy_volume": 3, "sell_volume": 2,
+         "turnover": 500, "trade_count": 5, "vwap": "nan", "max_trade": 2},
+    ]),
+    ("public_trade_aggregates", "public_trade_aggregates", [
+        {"open_time": 180000, "buy_volume": 3, "sell_volume": 2,
+         "turnover": 500, "trade_count": 5, "vwap": 100, "max_trade": "inf"},
+    ]),
+    ("public_trade_aggregates", "public_trade_aggregates", [
+        {"open_time": 180000, "buy_volume": 3, "sell_volume": 2,
+         "turnover": "inf", "trade_count": 5, "vwap": 100, "max_trade": 2},
+    ]),
+])
+def test_g35_nonfinite_unique_history_rejected_without_data_loss(
+    tmp_path, dataset, table, rows
+):
+    store = SQLiteMarketStore.open(tmp_path / "nonfinite-rejection.sqlite3")
+    _seed_all_eight(store)
+    try:
+        before = store.connection.execute(
+            f"SELECT * FROM {table} ORDER BY 1,2"
+        ).fetchall()
+        writers = {
+            "open_interest": store.upsert_open_interest,
+            "funding": store.upsert_funding,
+            "long_short_ratio": store.upsert_long_short_ratio,
+            "public_trade_aggregates": store.upsert_public_trade_aggregates,
+        }
+        stats = writers[dataset]("BTCUSDT", rows)
+        assert stats.accepted == 0 and stats.rejected == 1
+        assert store.connection.execute(
+            f"SELECT * FROM {table} ORDER BY 1,2"
+        ).fetchall() == before
+        assert store.integrity_check()
+    finally:
+        store.close()
