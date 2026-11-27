@@ -65,3 +65,45 @@ def test_invalid_minutes_fail_before_client_or_storage(tmp_path,minutes):
     assert not result.ok and result.detail=='INVALID_SMOKE_MINUTES'
     assert reader.calls==[]
     assert not (tmp_path/'user-root').exists()
+
+
+def test_managed_reader_exception_fails_closed_without_storage(tmp_path):
+    class BrokenReader:
+        def fetch_klines(self, *args, **kwargs):
+            raise ConnectionError("no managed source")
+    root = tmp_path / "user-root"
+    result = run_download_smoke(root, BrokenReader(), minutes=3, clock_ms=lambda:900_000)
+    assert not result.ok and result.detail == "MANAGED_GRID_READER_ERROR"
+    assert not root.exists()
+
+
+@pytest.mark.parametrize("bad", [
+    ["600000", "nan", "1", "1", "1", "10", "100"],
+    ["600000", "inf", "1", "1", "1", "10", "100"],
+    ["600000", "1", "0.9", "1.1", "1", "10", "100"],
+    ["600000", "1", "1", "1", "1", "-1", "100"],
+    ["600000", "1", "1", "1", "1", "10", "-1"],
+    ["600001", "1", "1", "1", "1", "10", "100"],
+    ["600000.0", "1", "1", "1", "1", "10", "100"],
+    ["600000", "1", "1", "1", "1", "10"],
+    ["600000", "1e9999", "1", "1", "1", "10", "100"],
+    ["600000", "1", "1", "1", "1", True, "100"],
+])
+def test_malformed_managed_rows_denied_before_sqlite(tmp_path, bad):
+    class BadReader:
+        def fetch_klines(self, *args, **kwargs):
+            return [bad, _row(660_000), _row(720_000)]
+    root = tmp_path / "user-root"
+    result = run_download_smoke(root, BadReader(), minutes=3, clock_ms=lambda:900_000)
+    assert not result.ok and result.detail == "INVALID_MANAGED_GRID_ROWS"
+    assert not root.exists()
+
+
+def test_malformed_reader_container_denied(tmp_path):
+    class InvalidReader:
+        def fetch_klines(self, *args, **kwargs):
+            return None
+    root = tmp_path/"user-root"
+    result = run_download_smoke(root, InvalidReader(), minutes=3, clock_ms=lambda:900_000)
+    assert not result.ok and result.detail == "INVALID_MANAGED_GRID_ROWS"
+    assert not root.exists()
